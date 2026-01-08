@@ -1,6 +1,10 @@
 ---
 name: clerk-api
 description: Manage Clerk users, organizations, and invitations via the Backend API. Use when the user asks about managing authentication users, creating or updating organizations, inviting members, listing users, or any Clerk-related administrative operations.
+license: MIT
+metadata:
+  author: clerk
+  version: "1.0.0"
 ---
 
 # Clerk API Skill
@@ -25,32 +29,32 @@ Manage users in your Clerk application.
 
 **List users:**
 ```bash
-python users.py list [--limit N] [--offset N] [--query "search term"]
+python scripts/users.py list [--limit N] [--offset N] [--query "search term"]
 ```
 
 **Get a specific user:**
 ```bash
-python users.py get <user_id>
+python scripts/users.py get <user_id>
 ```
 
 **Get total user count:**
 ```bash
-python users.py count
+python scripts/users.py count
 ```
 
 **Update a user:**
 ```bash
-python users.py update <user_id> [--first-name "John"] [--last-name "Doe"] [--username "johndoe"]
+python scripts/users.py update <user_id> [--first-name "John"] [--last-name "Doe"] [--username "johndoe"]
 ```
 
 **Update user metadata:**
 ```bash
-python users.py update-metadata <user_id> --public '{"key": "value"}' --unsafe '{"key": "value"}'
+python scripts/users.py update-metadata <user_id> --public '{"key": "value"}' --unsafe '{"key": "value"}'
 ```
 
 **Delete a user:**
 ```bash
-python users.py delete <user_id>
+python scripts/users.py delete <user_id>
 ```
 
 ### Organizations
@@ -59,42 +63,42 @@ Manage organizations and memberships.
 
 **List organizations:**
 ```bash
-python organizations.py list [--limit N] [--offset N] [--query "search term"]
+python scripts/organizations.py list [--limit N] [--offset N] [--query "search term"]
 ```
 
 **Get an organization:**
 ```bash
-python organizations.py get <org_id>
+python scripts/organizations.py get <org_id>
 ```
 
 **Create an organization:**
 ```bash
-python organizations.py create --name "Acme Corp" [--slug "acme"] [--created-by <user_id>]
+python scripts/organizations.py create --name "Acme Corp" [--slug "acme"] [--created-by <user_id>]
 ```
 
 **Update an organization:**
 ```bash
-python organizations.py update <org_id> [--name "New Name"] [--slug "new-slug"]
+python scripts/organizations.py update <org_id> [--name "New Name"] [--slug "new-slug"]
 ```
 
 **Delete an organization:**
 ```bash
-python organizations.py delete <org_id>
+python scripts/organizations.py delete <org_id>
 ```
 
 **Add a member to an organization:**
 ```bash
-python organizations.py add-member <org_id> --user-id <user_id> --role "org:admin"
+python scripts/organizations.py add-member <org_id> --user-id <user_id> --role "org:admin"
 ```
 
 **Update a member's role:**
 ```bash
-python organizations.py update-member <org_id> --user-id <user_id> --role "org:member"
+python scripts/organizations.py update-member <org_id> --user-id <user_id> --role "org:member"
 ```
 
 **Remove a member from an organization:**
 ```bash
-python organizations.py remove-member <org_id> --user-id <user_id>
+python scripts/organizations.py remove-member <org_id> --user-id <user_id>
 ```
 
 ### Invitations
@@ -103,17 +107,17 @@ Manage organization invitations.
 
 **List invitations for an organization:**
 ```bash
-python invitations.py list <org_id>
+python scripts/invitations.py list <org_id>
 ```
 
 **Create an invitation:**
 ```bash
-python invitations.py create <org_id> --email "user@example.com" --role "org:member"
+python scripts/invitations.py create <org_id> --email "user@example.com" --role "org:member"
 ```
 
 **Revoke an invitation:**
 ```bash
-python invitations.py revoke <org_id> --invitation-id <invitation_id>
+python scripts/invitations.py revoke <org_id> --invitation-id <invitation_id>
 ```
 
 ## Common Workflows
@@ -122,32 +126,32 @@ python invitations.py revoke <org_id> --invitation-id <invitation_id>
 
 1. Create an organization:
    ```bash
-   python organizations.py create --name "Engineering Team"
+   python scripts/organizations.py create --name "Engineering Team"
    ```
 
 2. Invite team members:
    ```bash
-   python invitations.py create <org_id> --email "alice@company.com" --role "org:admin"
-   python invitations.py create <org_id> --email "bob@company.com" --role "org:member"
+   python scripts/invitations.py create <org_id> --email "alice@company.com" --role "org:admin"
+   python scripts/invitations.py create <org_id> --email "bob@company.com" --role "org:member"
    ```
 
 ### Find and update a user
 
 1. Search for the user:
    ```bash
-   python users.py list --query "alice@example.com"
+   python scripts/users.py list --query "alice@example.com"
    ```
 
 2. Update their profile:
    ```bash
-   python users.py update <user_id> --first-name "Alice" --last-name "Smith"
+   python scripts/users.py update <user_id> --first-name "Alice" --last-name "Smith"
    ```
 
 ### Audit organization membership
 
 1. List all organizations:
    ```bash
-   python organizations.py list
+   python scripts/organizations.py list
    ```
 
 2. For each organization, the response includes member count and details.
