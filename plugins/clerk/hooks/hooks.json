@@ -1,0 +1,13 @@
+{
+  "hooks": [
+    {
+      "matcher": "PreToolUse",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$BASH $SKILL_DIR/hooks/auto-approve-api.sh \"$TOOL_INPUT\""
+        }
+      ]
+    }
+  ]
+}

@@ -1,131 +1,160 @@
 # Clerk Skills
 
-This repo contains the Clerk API skill for Claude so the agent can manage Clerk users, organizations, and invitations through the Backend API.
+Official Clerk authentication skills for AI coding agents. Build apps with Clerk auth using Claude Code, Cursor, Windsurf, OpenCode, Gemini CLI, and more.
 
-## Quick Start
+## Installation
 
-### 1. Set Your API Key
-
-Get your secret key from the [Clerk Dashboard](https://dashboard.clerk.com) under **API Keys** and export it before running any scripts:
+### Quick Install (All Agents)
 
 ```bash
-export CLERK_SECRET_KEY=sk_live_xxxxx  # use sk_test_ for development
+curl -fsSL https://clerk.com/skills/install | bash
 ```
 
-### 2. Install the Skill
+Supports: Claude Code, Cursor 1.6+, OpenCode, Windsurf, Gemini CLI, Aider
 
-#### Option A: Claude.ai
-
-1. Zip this repository directory
-2. Go to Settings → Features in [claude.ai](https://claude.ai)
-3. Upload the zip under Custom Skills
-
-#### Option B: Claude API
-
-Upload via the `/v1/skill` endpoint:
+### Claude Code (Marketplace)
 
 ```bash
-curl -X POST https://api.anthropic.com/v1/skill \
-  -H "Authorization: Bearer $ANTHROPIC_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "clerk-api", "files": [...]}'
+claude plugin marketplace add clerk/clerk-skills
+claude plugin install clerk@clerk-skills
 ```
 
-#### Option C: Claude Code
-
-Copy this directory into your project’s `.claude/skills/` folder, for example:
+### Manual
 
 ```bash
-cp -r skills/ .claude/skills/clerk-api
+git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 ```
 
-### 3. Use the Skill
+## Available Skills
 
-Once installed, Claude will automatically reach for this skill when you ask about:
+| Skill | Description | Use When |
+|-------|-------------|----------|
+| `clerk-api` | Manage users, organizations, invitations via Backend API | "List all users", "Create organization" |
+| `nextjs-clerk` | Build Next.js apps with Clerk auth | "Add Clerk to my app", "Protect this route" |
 
-- Managing users (`list all users`, `update user metadata`, etc.)
-- Managing organizations (`create an org`, `add member`, etc.)
-- Managing invitations (`invite user`, `revoke invitation`, etc.)
+## Setup
 
-## Available Operations
+### 1. Get API Keys
 
-### Users
+Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com) under **API Keys**.
 
+### 2. Set Environment Variables
+
+```bash
+# Required for all skills
+export CLERK_SECRET_KEY="sk_test_..."
+
+# Required for Next.js apps
+export NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+
+# Optional for webhooks
+export CLERK_WEBHOOK_SECRET="whsec_..."
+```
+
+## clerk-api Skill
+
+Manage Clerk resources via the Backend API.
+
+### Operations
+
+**Users**
 | Operation | Description |
 |-----------|-------------|
 | `list_users()` | List/search users |
 | `get_user(user_id)` | Get user by ID |
 | `get_user_count()` | Get total user count |
 | `update_user(user_id, ...)` | Update user profile |
-| `update_user_metadata(user_id, ...)` | Update public/unsafe/private metadata |
-| `delete_user(user_id)` | Delete a user permanently |
+| `update_user_metadata(user_id, ...)` | Update metadata |
+| `delete_user(user_id)` | Delete user permanently |
 
-### Organizations
-
+**Organizations**
 | Operation | Description |
 |-----------|-------------|
 | `list_organizations()` | List/search organizations |
 | `get_organization(org_id)` | Get organization by ID |
 | `create_organization(name, ...)` | Create new organization |
 | `update_organization(org_id, ...)` | Update organization |
-| `delete_organization(org_id)` | Delete organization permanently |
+| `delete_organization(org_id)` | Delete organization |
 | `list_members(org_id)` | List organization members |
-| `add_member(org_id, user_id, role)` | Add member to organization |
-| `update_member(org_id, user_id, role)` | Update member's role |
-| `remove_member(org_id, user_id)` | Remove member from organization |
+| `add_member(org_id, user_id, role)` | Add member |
+| `update_member(org_id, user_id, role)` | Update member role |
+| `remove_member(org_id, user_id)` | Remove member |
 
-### Invitations
-
+**Invitations**
 | Operation | Description |
 |-----------|-------------|
 | `list_invitations(org_id)` | List organization invitations |
 | `get_invitation(org_id, invitation_id)` | Get invitation by ID |
-| `create_invitation(org_id, email, role)` | Invite user to organization |
-| `revoke_invitation(org_id, invitation_id)` | Revoke pending invitation |
+| `create_invitation(org_id, email, role)` | Invite user |
+| `revoke_invitation(org_id, invitation_id)` | Revoke invitation |
 
-## Security Considerations
+## nextjs-clerk Skill
 
-- Never share your Clerk secret key—it has full admin access
-- Use test keys (`sk_test_`) in development and switch to `sk_live_` only for production
-- Audit Claude’s operations in the Clerk Dashboard logs
-- Consider restricted keys if you only need read access
+Build Next.js applications with Clerk authentication.
+
+### Features
+
+- Project setup with ClerkProvider
+- Route protection middleware (public, protected, org-aware)
+- Sign-in/sign-up pages
+- Auth components (UserButton, SignInButton, etc.)
+- Organization support (B2B/multi-tenant)
+- Webhook handlers
+- Server actions
+
+### Scripts
+
+| Script | Description |
+|--------|-------------|
+| `setup.sh` | Bootstrap new Next.js + Clerk project |
+| `middleware.sh` | Generate route protection middleware |
+| `auth-pages.sh` | Generate sign-in/sign-up pages |
+| `components.sh` | Generate common components |
+| `webhook.sh` | Generate webhook handlers |
+
+## Repository Structure
+
+```
+clerk-skills/
+├── .claude-plugin/
+│   └── marketplace.json       # Claude Code marketplace
+├── plugins/
+│   └── clerk/
+│       ├── .claude-plugin/
+│       │   └── plugin.json
+│       ├── hooks/             # Auto-approve API calls
+│       └── skills/
+│           ├── clerk-api/     # Backend API skill
+│           └── nextjs-clerk/  # Next.js skill
+├── install.sh                 # curl installer
+├── AGENTS.md                  # Universal agent instructions
+├── CLAUDE.md -> AGENTS.md
+└── README.md
+```
+
+## Security
+
+- Never share your Clerk secret key
+- Use test keys (`sk_test_`) in development
+- Audit operations in Clerk Dashboard logs
+- Consider restricted keys for read-only access
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
-| `CLERK_SECRET_KEY environment variable is not set` | Export your Clerk secret key before running commands |
-| `401 Unauthorized` | The secret key is invalid or expired; generate a new one |
-| `404 Not Found` | The resource ID is incorrect |
-| `422 Validation Error` | Review the error details for invalid parameters |
+| `CLERK_SECRET_KEY not set` | Export your Clerk secret key |
+| `401 Unauthorized` | Secret key is invalid or expired |
+| `404 Not Found` | Resource ID is incorrect |
+| `422 Validation Error` | Check error details for invalid parameters |
 
-## Development
-
-Test the Python scripts locally from the repository root:
-
-```bash
-export CLERK_SECRET_KEY=sk_test_xxxxx
-
-# Test user operations
-python users.py list
-
-# Test organization operations
-python organizations.py list
-```
-
-## Files
-
-| File | Description |
-|------|-------------|
-| `SKILL.md` | Skill definition and invocation instructions for Claude |
-| `clerk_api.py` | Minimal Clerk Backend API client |
-| `users.py` | User management operations |
-| `organizations.py` | Organization and membership operations |
-| `invitations.py` | Invitation operations |
-| `README.md` | This file |
-
-## Support
+## Links
 
 - [Clerk Documentation](https://clerk.com/docs)
-- [Clerk Backend API Reference](https://clerk.com/docs/reference/backend-api)
-- [Claude Agent Skills Documentation](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
+- [Next.js Quickstart](https://clerk.com/docs/quickstarts/nextjs)
+- [Backend API Reference](https://clerk.com/docs/reference/backend-api)
+- [AI Skills Documentation](https://clerk.com/docs/ai)
+
+## License
+
+MIT

@@ -1,0 +1,12 @@
+{
+  "name": "clerk",
+  "version": "1.0.0",
+  "description": "Clerk authentication toolkit for AI coding agents - manage users, organizations, and build Next.js apps with Clerk auth",
+  "author": {
+    "name": "Clerk",
+    "email": "support@clerk.com"
+  },
+  "repository": "https://github.com/clerk/skills",
+  "license": "MIT",
+  "homepage": "https://clerk.com/docs/ai"
+}

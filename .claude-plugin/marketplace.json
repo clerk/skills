@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "clerk-skills",
+  "description": "Official Clerk authentication skills for AI coding agents",
+  "owner": {
+    "name": "Clerk",
+    "email": "support@clerk.com"
+  },
+  "plugins": [
+    {
+      "name": "clerk",
+      "description": "Clerk auth toolkit - manage users, organizations, and build Next.js apps with Clerk authentication",
+      "version": "1.0.0",
+      "author": {
+        "name": "Clerk",
+        "email": "support@clerk.com"
+      },
+      "source": "./plugins/clerk",
+      "homepage": "https://clerk.com/docs/ai",
+      "repository": "https://github.com/clerk/skills",
+      "license": "MIT",
+      "category": "authentication",
+      "keywords": ["auth", "authentication", "clerk", "nextjs", "react", "organizations", "users", "b2b", "saas"]
+    }
+  ]
+}
