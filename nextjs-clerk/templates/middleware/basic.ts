@@ -1,8 +1,8 @@
 /**
- * Basic Middleware Template
- * 
+ * Basic Proxy Middleware Template
+ *
  * Protects routes that match the specified patterns.
- * Place this in your project root as `middleware.ts`.
+ * Place this in your project root as `proxy.ts` (Next.js 16+) or `middleware.ts` (Next.js ≤15).
  */
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 

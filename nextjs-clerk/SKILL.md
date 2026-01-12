@@ -1,11 +1,17 @@
 ---
 name: nextjs-clerk
 description: Help write Next.js applications with Clerk authentication. Use when the user asks about adding Clerk auth to a Next.js app, protecting routes, using authentication hooks, implementing sign-in/sign-up flows, or working with organizations in Next.js.
+license: MIT
+metadata:
+  author: clerk
+  version: "1.0.0"
 ---
 
 # Next.js Clerk Authentication Skill
 
-This skill helps you implement Clerk authentication in Next.js applications. It covers the App Router (Next.js 13+), server components, client components, middleware, and common authentication patterns.
+This skill helps you implement Clerk authentication in Next.js applications. It covers the App Router (Next.js 15+), server components, client components, proxy middleware, and common authentication patterns.
+
+> **Note**: Next.js 16+ uses `proxy.ts` instead of `middleware.ts`. For Next.js 15 or earlier, use `middleware.ts` with the same code.
 
 ## Quick Start
 
@@ -41,10 +47,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-### 4. Add Middleware for Route Protection
+### 4. Add Proxy Middleware for Route Protection
 
 ```typescript
-// middleware.ts
+// proxy.ts (or middleware.ts for Next.js ≤15)
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
@@ -56,7 +62,12 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
 };
 ```
 
@@ -66,10 +77,11 @@ This skill provides shell scripts to scaffold common Clerk patterns:
 
 | Script | Description |
 |--------|-------------|
-| `bash setup.sh` | Set up a new Next.js project with Clerk |
-| `bash middleware.sh` | Generate middleware with route protection |
-| `bash auth-pages.sh` | Generate sign-in and sign-up pages |
-| `bash components.sh` | Generate common auth component patterns |
+| `bash scripts/setup.sh` | Set up a new Next.js project with Clerk |
+| `bash scripts/middleware.sh` | Generate middleware with route protection |
+| `bash scripts/auth-pages.sh` | Generate sign-in and sign-up pages |
+| `bash scripts/components.sh` | Generate common auth component patterns |
+| `bash scripts/webhook.sh` | Generate webhook handler for Clerk events |
 
 ## Common Patterns
 
@@ -186,16 +198,26 @@ export function OrgDashboard() {
 ### Protect Routes by Organization
 
 ```typescript
-// middleware.ts
-import { clerkMiddleware } from '@clerk/nextjs/server';
+// proxy.ts (or middleware.ts for Next.js ≤15)
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+
+const isOrgRoute = createRouteMatcher(['/dashboard(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   const { orgId } = await auth();
-  
-  if (req.nextUrl.pathname.startsWith('/dashboard') && !orgId) {
+
+  // Require organization for dashboard routes
+  if (isOrgRoute(req) && !orgId) {
     return Response.redirect(new URL('/select-org', req.url));
   }
 });
+
+export const config = {
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
+};
 ```
 
 ## Webhooks

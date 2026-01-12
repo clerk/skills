@@ -1,9 +1,9 @@
 /**
- * Public-by-Default Middleware Template
- * 
+ * Public-by-Default Proxy Middleware Template
+ *
  * Makes all routes public by default and only protects specific routes.
  * Use this when most of your app is public but some routes need auth.
- * Place this in your project root as `middleware.ts`.
+ * Place this in your project root as `proxy.ts` (Next.js 16+) or `middleware.ts` (Next.js ≤15).
  */
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 

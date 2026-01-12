@@ -1,9 +1,9 @@
 /**
- * Middleware with Organization Support
- * 
+ * Proxy Middleware with Organization Support
+ *
  * Protects routes and ensures users have an active organization selected.
  * Use this for B2B/multi-tenant applications.
- * Place this in your project root as `middleware.ts`.
+ * Place this in your project root as `proxy.ts` (Next.js 16+) or `middleware.ts` (Next.js ≤15).
  */
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
