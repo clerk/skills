@@ -27,10 +27,25 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 ## Available Skills
 
+### Core Skills (0-1 Setup)
+
 | Skill | Description | Use When |
 |-------|-------------|----------|
 | `clerk-api` | Manage users, organizations, invitations via Backend API | "List all users", "Create organization" |
 | `nextjs-clerk` | Build Next.js apps with Clerk auth | "Add Clerk to my app", "Protect this route" |
+
+### Production Skills (1-N Development)
+
+| Skill | LLM Score | Description | Use When |
+|-------|-----------|-------------|----------|
+| `webhook-sync` | 84% | Sync Clerk users to your database | "Sync users to Prisma", "Handle user webhooks" |
+| `protect-routes` | 44% | Route protection with permissions | "Protect this route", "Add permission check" |
+| `org-rbac` | 57% | Organizations + role-based access | "Add RBAC", "Manage team permissions" |
+| `profile-page` | 42% | Server/client hybrid user profiles | "Build profile page", "currentUser vs useUser" |
+| `billing-checkout` | 0% | Clerk Billing + subscription management | "Add payments", "Implement checkout flow" |
+| `clerk-testing` | N/A | E2E testing with Playwright/Cypress | "Add tests", "Test auth flows" |
+
+> **LLM Score**: Baseline success rate without the skill. Lower = more value from the skill.
 
 ## Setup
 
@@ -124,8 +139,14 @@ clerk-skills/
 │       │   └── plugin.json
 │       ├── hooks/             # Auto-approve API calls
 │       └── skills/
-│           ├── clerk-api/     # Backend API skill
-│           └── nextjs-clerk/  # Next.js skill
+│           ├── clerk-api/     # Backend API management
+│           ├── nextjs-clerk/  # Next.js setup & auth
+│           ├── webhook-sync/  # Database sync via webhooks
+│           ├── protect-routes/# Route protection patterns
+│           ├── org-rbac/      # Organizations + RBAC
+│           ├── profile-page/  # Server/client profiles
+│           ├── billing-checkout/ # Payments & subscriptions
+│           └── clerk-testing/ # E2E testing (Playwright/Cypress)
 ├── install.sh                 # curl installer
 ├── AGENTS.md                  # Universal agent instructions
 ├── CLAUDE.md -> AGENTS.md

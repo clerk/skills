@@ -222,42 +222,31 @@ export const config = {
 
 ## Webhooks
 
-Handle Clerk webhook events:
+Handle Clerk webhook events using the built-in `verifyWebhook` helper:
 
 ```typescript
 // app/api/webhooks/clerk/route.ts
-import { Webhook } from 'svix';
-import { headers } from 'next/headers';
-import { WebhookEvent } from '@clerk/nextjs/server';
+import { verifyWebhook, type WebhookEvent } from '@clerk/nextjs/webhooks';
 
 export async function POST(req: Request) {
-  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
-  const headerPayload = await headers();
-  const svix_id = headerPayload.get('svix-id');
-  const svix_timestamp = headerPayload.get('svix-timestamp');
-  const svix_signature = headerPayload.get('svix-signature');
-
-  const payload = await req.json();
-  const body = JSON.stringify(payload);
-  const wh = new Webhook(WEBHOOK_SECRET);
-  
+  // verifyWebhook reads CLERK_WEBHOOK_SIGNING_SECRET automatically
   let evt: WebhookEvent;
+
   try {
-    evt = wh.verify(body, {
-      'svix-id': svix_id!,
-      'svix-timestamp': svix_timestamp!,
-      'svix-signature': svix_signature!,
-    }) as WebhookEvent;
+    evt = await verifyWebhook(req);
   } catch (err) {
-    return Response.json({ error: 'Invalid webhook' }, { status: 400 });
+    console.error('Webhook verification failed:', err);
+    return Response.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   switch (evt.type) {
     case 'user.created':
-      // Handle new user
+      // Handle new user - see webhook-sync skill for DB patterns
+      console.log('User created:', evt.data.id);
       break;
     case 'organization.created':
       // Handle new organization
+      console.log('Org created:', evt.data.id);
       break;
   }
 
