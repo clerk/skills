@@ -13,12 +13,14 @@ Write E2E tests for Clerk-authenticated applications using @clerk/testing.
 
 ## Framework Detection
 
-Detect which framework the project uses, then load ONLY that template:
+Detect which framework the project uses, then read ONLY that README:
 
 | Detected File | Action |
 |---------------|--------|
-| `playwright.config.ts` | Read `templates/playwright/*.ts` |
-| `cypress.config.ts` | Read `templates/cypress/*.ts` |
+| `playwright.config.ts` | Read `templates/playwright/README.md` |
+| `cypress.config.ts` | Read `templates/cypress/README.md` |
+
+The README contains install instructions, key patterns, and framework-specific gotchas.
 
 ## Environment Variables
 
