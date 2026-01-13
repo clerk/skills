@@ -16,7 +16,7 @@
         "email": "support@clerk.com"
       },
       "source": "./plugins/clerk",
-      "homepage": "https://clerk.com/docs/ai",
+      "homepage": "https://clerk.com/ai/overview",
       "repository": "https://github.com/clerk/skills",
       "license": "MIT",
       "category": "authentication",
