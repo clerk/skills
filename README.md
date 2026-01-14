@@ -169,18 +169,6 @@ Handle Clerk webhooks to sync data to your database.
 
 **Shared**: `templates/db-sync.ts` - ORM-agnostic database sync pattern
 
-## Next: clerk-admin Subagent
-
-Skills help agents **write Clerk code**. But agents still tell users "go to Dashboard" for config.
-
-**Exploring**: `clerk-admin` subagent for PLAPI operations:
-- Create webhook endpoints
-- Configure org settings
-- Manage domains
-- Fetch secrets
-
-Skills reference the subagent when admin operations are needed, keeping code-writing separate from configuration.
-
 ## Security
 
 - Never share your Clerk secret key
