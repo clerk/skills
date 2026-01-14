@@ -27,25 +27,74 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 ## Available Skills
 
-### Core Skills (0-1 Setup)
+| Skill | Purpose | Use When |
+|-------|---------|----------|
+| `clerk-nextjs` | Build Next.js apps with Clerk from scratch | "Add Clerk to my app", "Protect this route" |
+| `clerk-auth-flows` | Custom sign-in/sign-up with Clerk hooks | "Build custom login form", "Add MFA" |
+| `clerk-testing` | Setup @clerk/testing for e2e tests | "Add auth tests", "Test sign-in flow" |
+| `clerk-webhooks` | Handle webhooks to sync data to DB | "Sync users to Prisma", "Handle user events" |
 
-| Skill | Description | Use When |
-|-------|-------------|----------|
-| `clerk-api` | Manage users, organizations, invitations via Backend API | "List all users", "Create organization" |
-| `nextjs-clerk` | Build Next.js apps with Clerk auth | "Add Clerk to my app", "Protect this route" |
+## Design Principles
 
-### Production Skills (1-N Development)
+### Progressive Disclosure
 
-| Skill | LLM Score | Description | Use When |
-|-------|-----------|-------------|----------|
-| `webhook-sync` | 84% | Sync Clerk users to your database | "Sync users to Prisma", "Handle user webhooks" |
-| `protect-routes` | 44% | Route protection with permissions | "Protect this route", "Add permission check" |
-| `org-rbac` | 57% | Organizations + role-based access | "Add RBAC", "Manage team permissions" |
-| `profile-page` | 42% | Server/client hybrid user profiles | "Build profile page", "currentUser vs useUser" |
-| `billing-checkout` | 0% | Clerk Billing + subscription management | "Add payments", "Implement checkout flow" |
-| `clerk-testing` | N/A | E2E testing with Playwright/Cypress | "Add tests", "Test auth flows" |
+Agent loads only what's relevant to the user's framework:
 
-> **LLM Score**: Baseline success rate without the skill. Lower = more value from the skill.
+```
+SKILL.md (framework-agnostic, <100 lines)
+  → detects framework config
+  → routes to templates/{framework}/README.md
+  → agent loads only that framework's code
+```
+
+### Naming Convention
+
+`clerk-*` prefix for discoverability - type `/clerk` to find all skills:
+
+```
+clerk-auth-flows
+clerk-nextjs
+clerk-testing
+clerk-webhooks
+```
+
+## Repository Structure
+
+```
+clerk-skills/
+├── plugins/clerk/skills/
+│   ├── clerk-auth-flows/
+│   │   ├── SKILL.md
+│   │   ├── references/
+│   │   │   ├── sign-in-api.md
+│   │   │   └── sign-up-api.md
+│   │   └── templates/
+│   │       ├── sign-in-password.tsx
+│   │       ├── sign-up-verify.tsx
+│   │       ├── oauth-buttons.tsx
+│   │       └── mfa-totp.tsx
+│   ├── clerk-nextjs/
+│   │   ├── SKILL.md
+│   │   ├── scripts/
+│   │   └── templates/
+│   ├── clerk-testing/
+│   │   ├── SKILL.md
+│   │   └── templates/
+│   │       ├── playwright/
+│   │       └── cypress/
+│   └── clerk-webhooks/
+│       ├── SKILL.md
+│       ├── references/
+│       │   └── events.md
+│       └── templates/
+│           ├── nextjs/
+│           ├── express/
+│           ├── astro/
+│           └── db-sync.ts
+├── install.sh
+├── AGENTS.md
+└── README.md
+```
 
 ## Setup
 
@@ -62,63 +111,25 @@ export CLERK_SECRET_KEY="sk_test_..."
 # Required for Next.js apps
 export NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
 
-# Optional for webhooks
-export CLERK_WEBHOOK_SECRET="whsec_..."
+# Required for webhooks
+export CLERK_WEBHOOK_SIGNING_SECRET="whsec_..."
 ```
 
-## clerk-api Skill
+## Skill Details
 
-Manage Clerk resources via the Backend API.
-
-### Operations
-
-**Users**
-| Operation | Description |
-|-----------|-------------|
-| `list_users()` | List/search users |
-| `get_user(user_id)` | Get user by ID |
-| `get_user_count()` | Get total user count |
-| `update_user(user_id, ...)` | Update user profile |
-| `update_user_metadata(user_id, ...)` | Update metadata |
-| `delete_user(user_id)` | Delete user permanently |
-
-**Organizations**
-| Operation | Description |
-|-----------|-------------|
-| `list_organizations()` | List/search organizations |
-| `get_organization(org_id)` | Get organization by ID |
-| `create_organization(name, ...)` | Create new organization |
-| `update_organization(org_id, ...)` | Update organization |
-| `delete_organization(org_id)` | Delete organization |
-| `list_members(org_id)` | List organization members |
-| `add_member(org_id, user_id, role)` | Add member |
-| `update_member(org_id, user_id, role)` | Update member role |
-| `remove_member(org_id, user_id)` | Remove member |
-
-**Invitations**
-| Operation | Description |
-|-----------|-------------|
-| `list_invitations(org_id)` | List organization invitations |
-| `get_invitation(org_id, invitation_id)` | Get invitation by ID |
-| `create_invitation(org_id, email, role)` | Invite user |
-| `revoke_invitation(org_id, invitation_id)` | Revoke invitation |
-
-## nextjs-clerk Skill
+### clerk-nextjs
 
 Build Next.js applications with Clerk authentication.
 
-### Features
-
+**Features**:
 - Project setup with ClerkProvider
-- Route protection middleware (public, protected, org-aware)
+- Route protection middleware
 - Sign-in/sign-up pages
-- Auth components (UserButton, SignInButton, etc.)
+- Auth components (UserButton, SignInButton)
 - Organization support (B2B/multi-tenant)
-- Webhook handlers
-- Server actions
+- Webhook handlers & server actions
 
-### Scripts
-
+**Scripts**:
 | Script | Description |
 |--------|-------------|
 | `setup.sh` | Bootstrap new Next.js + Clerk project |
@@ -127,38 +138,54 @@ Build Next.js applications with Clerk authentication.
 | `components.sh` | Generate common components |
 | `webhook.sh` | Generate webhook handlers |
 
-## Repository Structure
+### clerk-auth-flows
 
-```
-clerk-skills/
-├── .claude-plugin/
-│   └── marketplace.json       # Claude Code marketplace
-├── plugins/
-│   └── clerk/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── hooks/             # Auto-approve API calls
-│       └── skills/
-│           ├── clerk-api/     # Backend API management
-│           ├── nextjs-clerk/  # Next.js setup & auth
-│           ├── webhook-sync/  # Database sync via webhooks
-│           ├── protect-routes/# Route protection patterns
-│           ├── org-rbac/      # Organizations + RBAC
-│           ├── profile-page/  # Server/client profiles
-│           ├── billing-checkout/ # Payments & subscriptions
-│           └── clerk-testing/ # E2E testing (Playwright/Cypress)
-├── install.sh                 # curl installer
-├── AGENTS.md                  # Universal agent instructions
-├── CLAUDE.md -> AGENTS.md
-└── README.md
-```
+Build custom authentication UIs with Clerk hooks (not Elements - deprecated).
+
+**Templates**:
+| Template | Description |
+|----------|-------------|
+| `sign-in-password.tsx` | Full sign-in with password |
+| `sign-up-verify.tsx` | Sign-up with email verification |
+| `oauth-buttons.tsx` | OAuth (Google, GitHub) buttons |
+| `mfa-totp.tsx` | MFA with TOTP codes |
+
+### clerk-testing
+
+Setup @clerk/testing for e2e authentication tests.
+
+**Frameworks**:
+- Playwright (`templates/playwright/`)
+- Cypress (`templates/cypress/`)
+
+### clerk-webhooks
+
+Handle Clerk webhooks to sync data to your database.
+
+**Frameworks**:
+- Next.js (`templates/nextjs/`)
+- Express (`templates/express/`)
+- Astro (`templates/astro/`)
+
+**Shared**: `templates/db-sync.ts` - ORM-agnostic database sync pattern
+
+## Next: clerk-admin Subagent
+
+Skills help agents **write Clerk code**. But agents still tell users "go to Dashboard" for config.
+
+**Exploring**: `clerk-admin` subagent for PLAPI operations:
+- Create webhook endpoints
+- Configure org settings
+- Manage domains
+- Fetch secrets
+
+Skills reference the subagent when admin operations are needed, keeping code-writing separate from configuration.
 
 ## Security
 
 - Never share your Clerk secret key
 - Use test keys (`sk_test_`) in development
 - Audit operations in Clerk Dashboard logs
-- Consider restricted keys for read-only access
 
 ## Troubleshooting
 
@@ -166,15 +193,15 @@ clerk-skills/
 |-------|-----|
 | `CLERK_SECRET_KEY not set` | Export your Clerk secret key |
 | `401 Unauthorized` | Secret key is invalid or expired |
-| `404 Not Found` | Resource ID is incorrect |
-| `422 Validation Error` | Check error details for invalid parameters |
+| Webhook 400 errors | Check `CLERK_WEBHOOK_SIGNING_SECRET` |
+| Webhook 404 errors | Verify endpoint path matches route |
 
 ## Links
 
 - [Clerk Documentation](https://clerk.com/docs)
 - [Next.js Quickstart](https://clerk.com/docs/quickstarts/nextjs)
 - [Backend API Reference](https://clerk.com/docs/reference/backend-api)
-- [AI Skills Documentation](https://clerk.com/docs/ai)
+- [Webhooks Guide](https://clerk.com/docs/webhooks/overview)
 
 ## License
 
