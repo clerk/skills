@@ -11,16 +11,6 @@ metadata:
 
 Build completely custom authentication flows with Clerk hooks.
 
-> **Note**: Clerk Elements is deprecated. Use the hooks-based approach shown here.
-
-## Why Custom UI?
-
-The shadcn model won - developers want:
-- Source in their codebase
-- Full control over styling
-- Ability to iterate with their dev flow
-- Custom validation and UX
-
 ## Quick Start: Custom Sign-In
 
 ```tsx
