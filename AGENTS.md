@@ -1,117 +1,75 @@
 # Clerk Authentication Skills
 
-Agent skills for building applications with Clerk authentication.
+Agent skills for building applications with Clerk authentication. Task-based architecture following the [Agent Skills Specification](https://agentskills.io/specification).
 
-## Available Skills
+## Skill Architecture
 
-### Core Skills (0-1 Setup)
+| Type | Purpose | Example |
+|------|---------|---------|
+| **Task Skills** | Common journeys, cross-framework | `adding-auth`, `syncing-users` |
+| **Reference Skills** | Deep framework-specific patterns | `nextjs-patterns` |
 
-#### clerk-api
-Manage Clerk users, organizations, and invitations via the Backend API.
+---
 
-**Use when**: The user asks to list/create/update/delete users, organizations, or invitations.
+## Task Skills (Journeys)
 
-**Operations**:
-- Users: list, get, count, update, update-metadata, delete
-- Organizations: list, get, create, update, delete, members
-- Invitations: list, get, create, revoke
+### adding-auth
+Add Clerk authentication to any project.
 
-**Requires**: `CLERK_SECRET_KEY` environment variable
+**Use when**: User asks to set up Clerk, add auth to a new app, or integrate Clerk with any framework.
 
-#### nextjs-clerk
-Build Next.js applications with Clerk authentication.
+**Frameworks supported**: Next.js, Express, Remix, React SPA
 
-**Use when**: The user asks to add Clerk auth to a Next.js app, protect routes, or create auth UI.
+**Triggers**: "add auth", "set up Clerk", "integrate authentication", "install Clerk"
 
-**Operations**:
-- Project setup with ClerkProvider
-- Route protection middleware
-- Sign-in/sign-up pages
-- Auth components (UserButton, SignInButton, etc.)
-- Organization support (B2B/multi-tenant)
-- Webhook handlers
+### customizing-auth-ui
+Build custom sign-in and sign-up UIs with Clerk hooks.
 
-**Requires**: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`
+**Use when**: User needs full control over auth UI, custom forms, multi-step flows, or branded authentication.
 
-### Production Skills (1-N Development)
+**Triggers**: "custom sign-in", "custom sign-up", "build auth form", "branded login"
 
-#### webhook-sync
-Sync Clerk users and organizations to your database via webhooks.
+### syncing-users
+Sync Clerk users to your database via webhooks.
 
-**Use when**: "Sync users to Prisma", "Handle user webhooks", "Set up database sync"
+**Use when**: User needs to store user data locally, react to auth events, or sync with Prisma/Drizzle/Supabase.
 
-**Patterns**:
-- Webhook route handlers with signature verification
-- Prisma, Drizzle, Supabase database adapters
-- User/organization lifecycle events
+**Triggers**: "sync users", "webhook handler", "user to database", "store users locally"
 
-**Requires**: `CLERK_WEBHOOK_SECRET`
+### testing-auth
+Write E2E tests for Clerk-authenticated apps.
 
-#### protect-routes
-Implement proper route protection with authentication and authorization.
+**Use when**: User wants to add tests, test auth flows, or set up Playwright/Cypress with Clerk.
 
-**Use when**: "Protect this route", "Add permission check", "auth() was called but..." errors
+**Triggers**: "test auth", "e2e tests", "Playwright Clerk", "Cypress Clerk", "bypass bot detection"
 
-**Patterns**:
-- `auth.protect()` vs `auth()`
-- Permission-based: `has({ permission: 'org:settings:manage' })`
-- Role-based: `has({ role: 'org:admin' })`
-- API route and Server Action protection
-- HTTP status codes (401 vs 403)
+### managing-orgs
+Build B2B multi-tenant apps with Clerk Organizations.
 
-#### org-rbac
-Build B2B SaaS with organizations and role-based access control.
+**Use when**: User needs team workspaces, role-based access, organization switching, or member invitations.
 
-**Use when**: "Add RBAC", "Manage team permissions", "Organization invitations"
+**Triggers**: "organizations", "multi-tenant", "team workspaces", "RBAC", "invite members"
 
-**Patterns**:
-- Organization URL sync
-- Role and permission checks
-- Member management (list, update role, remove)
-- Invitation flows (create, list, revoke)
-- Organization metadata
+---
 
-#### profile-page
-Build user profile pages with the server/client hybrid pattern.
+## Reference Skills (Deep Patterns)
 
-**Use when**: "Build profile page", "currentUser vs useUser confusion", "Profile form"
+### nextjs-patterns
+Advanced Next.js patterns with Clerk.
 
-**Patterns**:
-- Server Component: `currentUser()` for initial data
-- Client Component: `useUser()` for live updates
-- API routes for metadata mutations
-- Image upload with `setProfileImage()`
+**Use when**: User asks about middleware strategies, Server Actions auth, App Router patterns, caching, or optimizing Clerk in Next.js.
 
-#### billing-checkout
-Implement Clerk Billing with subscriptions and payments.
+**Triggers**: "middleware best practices", "Server Actions auth", "auth() vs useAuth()", "caching with auth"
 
-**Use when**: "Add payments", "Implement checkout flow", "Feature gating"
-
-**Patterns**:
-- Experimental checkout API (`@clerk/nextjs/experimental`)
-- Complete flow: `start()` → `confirm()` → `finalize()`
-- PricingTable component
-- Feature-based authorization: `has({ feature: '...' })`
-- Subscription webhooks
-
-#### clerk-testing
-Write E2E tests for Clerk-authenticated applications.
-
-**Use when**: "Add tests", "Test auth flows", "Set up Playwright/Cypress"
-
-**Patterns**:
-- `clerkSetup()` global setup
-- `setupClerkTestingToken()` to bypass bot detection
-- `clerk.signIn()` with multiple strategies
-- Auth state persistence with storageState
+---
 
 ## Skill Loading
 
-Skills are loaded automatically when relevant. You can also explicitly load them:
+Skills are loaded automatically when relevant based on trigger keywords. You can also explicitly reference them:
 
 ```
-Load the clerk-api skill: cat ~/.claude/skills/clerk/clerk-api.md
-Load the nextjs-clerk skill: cat ~/.claude/skills/clerk/nextjs-clerk.md
+cat ~/.claude/skills/clerk/adding-auth/SKILL.md
+cat ~/.claude/skills/clerk/nextjs-patterns/SKILL.md
 ```
 
 ## Environment Setup
@@ -122,34 +80,34 @@ Before using Clerk skills, ensure these environment variables are set:
 # Required for all skills
 export CLERK_SECRET_KEY="sk_test_..."
 
-# Required for Next.js apps
+# Required for Next.js/React apps
 export NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
 
 # Optional for webhooks
-export CLERK_WEBHOOK_SECRET="whsec_..."
+export CLERK_WEBHOOK_SIGNING_SECRET="whsec_..."
 ```
 
 Get keys from: https://dashboard.clerk.com
 
-## Common Patterns
+## Quick Reference
 
-### Protect a Route (Next.js)
-Use `clerkMiddleware()` with `createRouteMatcher()` to define protected routes.
-
-### Add Auth UI
-Use `<SignInButton>`, `<SignUpButton>`, `<UserButton>` components with ClerkProvider.
-
-### Server-Side Auth
-Use `auth()` or `currentUser()` from `@clerk/nextjs/server` in Server Components.
-
-### Organizations (B2B)
-Enable organizations in Clerk Dashboard, use `<OrganizationSwitcher>` component.
+| User Says | Skill | Why |
+|-----------|-------|-----|
+| "Add Clerk to my Next.js app" | `adding-auth` | Task, detects Next.js |
+| "Set up authentication" | `adding-auth` | Generic task |
+| "Build custom sign-in form" | `customizing-auth-ui` | Task |
+| "Sync users to Postgres" | `syncing-users` | Task |
+| "How do Server Actions work with Clerk?" | `nextjs-patterns` | Deep pattern |
+| "Middleware best practices" | `nextjs-patterns` | Framework optimization |
+| "Test my auth flow" | `testing-auth` | Task |
+| "Add organizations to my app" | `managing-orgs` | Task |
 
 ## Documentation
 
-- Clerk Docs: https://clerk.com/docs
-- Next.js Quickstart: https://clerk.com/docs/quickstarts/nextjs
-- API Reference: https://clerk.com/docs/reference/backend-api
+- [Clerk Docs](https://clerk.com/docs)
+- [Next.js Quickstart](https://clerk.com/docs/quickstarts/nextjs)
+- [API Reference](https://clerk.com/docs/reference/backend-api)
+- [Agent Skills Spec](https://agentskills.io/specification)
 
 ## Installation
 
