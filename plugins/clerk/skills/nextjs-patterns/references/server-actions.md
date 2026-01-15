@@ -1,6 +1,27 @@
 # Server Actions with Auth
 
-## Basic Protected Action
+| Impact | Tags |
+|--------|------|
+| HIGH | server-actions, mutations, protection |
+
+## Always Protect Server Actions
+
+**Impact: HIGH** - Unprotected actions are security vulnerabilities
+
+Server Actions are public endpoints. Always verify auth.
+
+**Incorrect (no auth check):**
+
+```typescript
+'use server';
+
+export async function createPost(formData: FormData) {
+  const title = formData.get('title') as string;
+  await db.posts.create({ data: { title } }); // Anyone can call this!
+}
+```
+
+**Correct (auth check first):**
 
 ```typescript
 'use server';
@@ -15,16 +36,30 @@ export async function createPost(formData: FormData) {
   }
 
   const title = formData.get('title') as string;
-
-  await db.posts.create({
-    data: { title, authorId: userId },
-  });
-
+  await db.posts.create({ data: { title, authorId: userId } });
   revalidatePath('/posts');
 }
 ```
 
-## With Organization Context
+---
+
+## Organization Context
+
+**Impact: HIGH** - B2B apps need org scoping
+
+**Incorrect (missing org check):**
+
+```typescript
+'use server';
+
+export async function createTeamProject(formData: FormData) {
+  const { userId } = await auth();
+  // Creates project without org context!
+  await db.projects.create({ data: { name } });
+}
+```
+
+**Correct (org + role check):**
 
 ```typescript
 'use server';
@@ -43,14 +78,15 @@ export async function createTeamProject(formData: FormData) {
   }
 
   const name = formData.get('name') as string;
-
-  await db.projects.create({
-    data: { name, organizationId: orgId },
-  });
+  await db.projects.create({ data: { name, organizationId: orgId } });
 }
 ```
 
-## With Permission Checks
+---
+
+## Permission Checks
+
+**Impact: MEDIUM** - Fine-grained RBAC
 
 ```typescript
 'use server';
@@ -74,7 +110,11 @@ export async function deleteProject(projectId: string) {
 }
 ```
 
+---
+
 ## Error Handling Pattern
+
+**Impact: MEDIUM** - Better UX than throwing
 
 ```typescript
 'use server';
@@ -98,3 +138,5 @@ export async function createItem(formData: FormData): Promise<ActionResult<Item>
   }
 }
 ```
+
+Reference: [Server Actions Guide](https://clerk.com/docs/references/nextjs/server-actions)

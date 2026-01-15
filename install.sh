@@ -24,8 +24,8 @@ fi
 REPO_URL="https://raw.githubusercontent.com/clerk/skills/main/plugins/clerk/skills"
 INSTALLED=0
 
-# Skills to install
-SKILLS=("clerk-api" "nextjs-clerk")
+# Skills to install (task skills + reference skills)
+SKILLS=("adding-auth" "customizing-auth-ui" "syncing-users" "testing-auth" "managing-orgs" "nextjs-patterns")
 
 echo ""
 echo "  ██████╗██╗     ███████╗██████╗ ██╗  ██╗"

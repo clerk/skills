@@ -4,7 +4,7 @@ description: Advanced Next.js patterns with Clerk authentication. Use when worki
 license: MIT
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Advanced Next.js Patterns with Clerk
@@ -13,22 +13,31 @@ Deep patterns for production Next.js applications with Clerk.
 
 > For basic setup, see `adding-auth` skill. This covers advanced patterns.
 
+## Impact Levels
+
+| Impact | Rules | When |
+|--------|-------|------|
+| CRITICAL | `await auth()`, user-scoped cache keys | Breaking bugs, security holes |
+| HIGH | Middleware setup, Server Actions auth, API protection | Common mistakes |
+| MEDIUM | Caching patterns, org context, permission checks | Optimization |
+| LOW | Reusable helpers, DRY patterns | Nice-to-have |
+
 ## References
 
-| Reference | Topic |
-|-----------|-------|
-| `references/middleware-strategies.md` | Public-first vs protected-first |
-| `references/server-vs-client.md` | auth() vs useAuth() |
-| `references/server-actions.md` | Auth in Server Actions |
-| `references/caching-auth.md` | unstable_cache with auth |
-| `references/api-routes.md` | Protected API routes |
+| Reference | Impact | Topic |
+|-----------|--------|-------|
+| `references/server-vs-client.md` | CRITICAL | `await auth()` vs hooks |
+| `references/middleware-strategies.md` | HIGH | Public-first vs protected-first |
+| `references/server-actions.md` | HIGH | Protect mutations |
+| `references/api-routes.md` | HIGH | 401 vs 403, route protection |
+| `references/caching-auth.md` | MEDIUM | User-scoped caching |
 
 ## Quick Reference
 
 ### Server Components
 ```tsx
 import { auth, currentUser } from '@clerk/nextjs/server';
-const { userId } = await auth();
+const { userId } = await auth(); // ALWAYS await!
 ```
 
 ### Client Components

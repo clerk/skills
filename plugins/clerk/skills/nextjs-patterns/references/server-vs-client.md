@@ -1,6 +1,58 @@
 # Server vs Client Components
 
-## When to Use Server Components
+| Impact | Tags |
+|--------|------|
+| CRITICAL | server, client, auth, hooks |
+
+## Always Await auth()
+
+**Impact: CRITICAL** - Missing await causes undefined userId
+
+**Incorrect (sync call):**
+
+```tsx
+// WRONG - auth() is async in Next.js 15!
+const { userId } = auth();
+console.log(userId); // undefined
+```
+
+**Correct (async call):**
+
+```tsx
+const { userId } = await auth();
+console.log(userId); // 'user_xxx'
+```
+
+---
+
+## Server vs Client Import
+
+**Impact: CRITICAL** - Wrong import breaks the build
+
+**Incorrect (server import in client):**
+
+```tsx
+'use client';
+import { auth } from '@clerk/nextjs/server'; // BUILD ERROR
+```
+
+**Correct (client hooks in client):**
+
+```tsx
+'use client';
+import { useAuth } from '@clerk/nextjs';
+
+export function UserButton() {
+  const { userId } = useAuth();
+  // ...
+}
+```
+
+---
+
+## Server Components (Default)
+
+**Impact: HIGH** - Best for initial load, SEO, DB queries
 
 Use `auth()` and `currentUser()` from `@clerk/nextjs/server`:
 
@@ -20,13 +72,11 @@ export default async function DashboardPage() {
 }
 ```
 
-**Best for:**
-- Initial page load
-- SEO-critical pages
-- Reducing client bundle size
-- Database queries with auth context
+---
 
-## When to Use Client Components
+## Client Components
+
+**Impact: MEDIUM** - For interactive UI, sign out, token fetching
 
 Use hooks from `@clerk/nextjs`:
 
@@ -51,13 +101,11 @@ export function UserDashboard() {
 }
 ```
 
-**Best for:**
-- Interactive UI needing live auth state
-- Sign out buttons
-- Token fetching for API calls
-- Organization switching
+---
 
 ## Hybrid Pattern (Recommended)
+
+**Impact: HIGH** - Best of both worlds
 
 ```tsx
 // Server Component - fetch initial data
@@ -68,12 +116,7 @@ export default async function ProfilePage() {
   const user = await currentUser();
   if (!user) return <div>Please sign in</div>;
 
-  const initialData = {
-    firstName: user.firstName,
-    lastName: user.lastName,
-  };
-
-  return <ProfileForm initialData={initialData} />;
+  return <ProfileForm initialData={{ firstName: user.firstName }} />;
 }
 
 // Client Component - handle interactions
@@ -88,26 +131,4 @@ export function ProfileForm({ initialData }) {
 }
 ```
 
-## Common Mistakes
-
-### Calling auth() in Client Components
-
-```tsx
-// WRONG - won't work
-'use client';
-import { auth } from '@clerk/nextjs/server';
-
-// RIGHT
-'use client';
-import { useAuth } from '@clerk/nextjs';
-```
-
-### Not Awaiting auth()
-
-```tsx
-// WRONG
-const { userId } = auth();
-
-// RIGHT
-const { userId } = await auth();
-```
+Reference: [Server-side auth](https://clerk.com/docs/references/nextjs/auth)
