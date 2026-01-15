@@ -4,235 +4,64 @@ description: Add Clerk authentication to any project. Use when setting up Clerk,
 license: MIT
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Adding Authentication with Clerk
 
-This skill helps you add Clerk authentication to any project. It detects your framework and provides the appropriate setup instructions.
+Add Clerk to any project. Detects framework and provides setup.
+
+## Quick Setup (Automated)
+
+| Framework | Script |
+|-----------|--------|
+| Next.js | `scripts/setup-nextjs.sh` |
+| Express | `scripts/setup-express.sh` |
+| Remix | `scripts/setup-remix.sh` |
+| React SPA | `scripts/setup-react.sh` |
+
+Run the script for your framework, then get keys from [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys).
 
 ## Framework Detection
 
-Before starting, check your project's `package.json` to detect the framework:
+Check `package.json` to detect:
 
 | Dependency | Framework | Template |
 |------------|-----------|----------|
 | `next` | Next.js | `templates/nextjs/` |
-| `express` | Express | `templates/express/` |
-| `@remix-run/react` | Remix | `templates/remix/` |
-| `react` (no framework) | React SPA | `templates/react/` |
+| `express` | Express | Use script |
+| `@remix-run/react` | Remix | Use script |
+| `react` (no framework) | React SPA | Use script |
 
-## Quick Start
+## Manual Setup
 
-### 1. Install Dependencies
+For Next.js, copy from `templates/nextjs/`:
 
-```bash
-# Next.js
-npm install @clerk/nextjs
+- `middleware/basic.ts` - Route protection
+- `layout.tsx` - ClerkProvider wrapper
+- `components/AuthButtons.tsx` - Sign in/out UI
 
-# Express
-npm install @clerk/express
-
-# Remix
-npm install @clerk/remix
-
-# React SPA
-npm install @clerk/clerk-react
-```
-
-### 2. Get Your API Keys
-
-1. Go to [Clerk Dashboard](https://dashboard.clerk.com)
-2. Create an application (or select existing)
-3. Copy your keys from **API Keys** section
+## Environment Variables
 
 ```bash
-# .env.local (Next.js) or .env (others)
-CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
-CLERK_SECRET_KEY=sk_test_xxxxx
+# Required
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+CLERK_SECRET_KEY=sk_test_xxx
 
-# Next.js also needs:
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+# Optional (webhooks)
+CLERK_WEBHOOK_SECRET=whsec_xxx
 ```
-
-### 3. Framework-Specific Setup
-
-Choose your framework below for detailed setup instructions.
-
----
-
-## Next.js Setup
-
-### Wrap Your App with ClerkProvider
-
-```tsx
-// app/layout.tsx
-import { ClerkProvider } from '@clerk/nextjs';
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
-  );
-}
-```
-
-### Add Middleware for Route Protection
-
-```typescript
-// middleware.ts
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
-});
-
-export const config = {
-  matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
-  ],
-};
-```
-
-### Add Auth UI
-
-```tsx
-import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from '@clerk/nextjs';
-
-export function Header() {
-  return (
-    <header>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-      <SignedOut>
-        <SignInButton />
-        <SignUpButton />
-      </SignedOut>
-    </header>
-  );
-}
-```
-
----
-
-## Express Setup
-
-### Initialize Clerk Middleware
-
-```typescript
-import express from 'express';
-import { clerkMiddleware, requireAuth, getAuth } from '@clerk/express';
-
-const app = express();
-
-// Add Clerk middleware to all routes
-app.use(clerkMiddleware());
-
-// Public route
-app.get('/', (req, res) => {
-  res.json({ message: 'Public route' });
-});
-
-// Protected route
-app.get('/protected', requireAuth(), (req, res) => {
-  const { userId } = getAuth(req);
-  res.json({ userId });
-});
-
-app.listen(3000);
-```
-
----
-
-## React SPA Setup
-
-### Wrap Your App with ClerkProvider
-
-```tsx
-import { ClerkProvider } from '@clerk/clerk-react';
-
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-function App() {
-  return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <Router />
-    </ClerkProvider>
-  );
-}
-```
-
-### Add Auth Components
-
-```tsx
-import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from '@clerk/clerk-react';
-
-function Header() {
-  return (
-    <header>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-      <SignedOut>
-        <SignInButton mode="modal" />
-        <SignUpButton mode="modal" />
-      </SignedOut>
-    </header>
-  );
-}
-```
-
----
-
-## Remix Setup
-
-### Add ClerkApp HOC
-
-```tsx
-// app/root.tsx
-import { ClerkApp } from '@clerk/remix';
-import { rootAuthLoader } from '@clerk/remix/ssr.server';
-
-export const loader = (args) => rootAuthLoader(args);
-
-function App() {
-  return (
-    <html>
-      <head />
-      <body>
-        <Outlet />
-      </body>
-    </html>
-  );
-}
-
-export default ClerkApp(App);
-```
-
----
 
 ## Next Steps
 
-After basic setup:
-
-- **Custom UI**: See `customizing-auth-ui` skill for custom sign-in/sign-up forms
-- **Webhooks**: See `syncing-users` skill to sync users to your database
-- **Organizations**: See `managing-orgs` skill for B2B multi-tenant apps
-- **Testing**: See `testing-auth` skill for E2E test setup
-- **Advanced Next.js**: See `nextjs-patterns` skill for middleware strategies, Server Actions, caching
+- `customizing-auth-ui` - Custom sign-in/sign-up forms
+- `syncing-users` - Sync users to your database
+- `managing-orgs` - B2B multi-tenant apps
+- `testing-auth` - E2E test setup
+- `nextjs-patterns` - Advanced Next.js patterns
 
 ## Documentation
 
-- [Clerk Docs](https://clerk.com/docs)
 - [Next.js Quickstart](https://clerk.com/docs/quickstarts/nextjs)
 - [Express Quickstart](https://clerk.com/docs/quickstarts/express)
 - [React Quickstart](https://clerk.com/docs/quickstarts/react)
