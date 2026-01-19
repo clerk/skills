@@ -52,9 +52,16 @@ CLERK_SECRET_KEY=sk_test_xxx
 CLERK_WEBHOOK_SECRET=whsec_xxx
 ```
 
+## Common Pitfalls
+
+- **Always await `auth()`** in Server Components - returns a promise
+- **Never expose `CLERK_SECRET_KEY`** - only use `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` on client
+- **Include matcher in middleware** - without it, middleware doesn't run
+- **Allow public routes** - don't protect `/sign-in`, `/sign-up`
+- **Middleware order matters** (Express) - add `clerkMiddleware()` before routes
+
 ## See Also
 
-- `gotchas.md` - Common setup pitfalls and security issues
 - `customizing-auth-ui/` - Custom sign-in/sign-up forms
 - `syncing-users/` - Sync users to your database
 - `managing-orgs/` - B2B multi-tenant apps

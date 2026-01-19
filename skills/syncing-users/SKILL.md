@@ -44,9 +44,16 @@ Clerk is the source of truth for auth, but you need user data in your database f
 | `organization.created` | New org created |
 | `organizationMembership.created` | User joins org |
 
+## Common Pitfalls
+
+- **Use raw text body** for signature verification - `await req.text()` not `req.json()`
+- **Pass all svix headers** - `svix-id`, `svix-timestamp`, `svix-signature`
+- **Handle all event types** - `user.created`, `user.updated`, `user.deleted`
+- **Use upsert pattern** - events may arrive out of order
+- **Return fast** - queue long operations, webhook has timeout
+
 ## See Also
 
-- `gotchas.md` - Common webhook pitfalls and security issues
 - `managing-orgs/` - Organization webhook events
 
 ## Documentation

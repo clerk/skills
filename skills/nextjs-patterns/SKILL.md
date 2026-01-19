@@ -46,9 +46,16 @@ import { useAuth, useUser } from '@clerk/nextjs';
 const { userId } = useAuth();
 ```
 
+## Common Pitfalls
+
+- **Always `await auth()`** - most common mistake in Server Components
+- **Include API routes in matcher** - `'/(api|trpc)(.*)'`
+- **User-scoped cache keys** - include `userId` in `unstable_cache` keys
+- **Protect Server Actions** - always check `auth()` in mutations
+- **401 vs 403** - 401 = not authenticated, 403 = authenticated but forbidden
+
 ## See Also
 
-- `gotchas.md` - Common Next.js + Clerk pitfalls
 - `adding-auth/` - Basic auth setup (start here first)
 - `managing-orgs/` - Organization patterns
 

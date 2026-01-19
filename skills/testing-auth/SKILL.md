@@ -39,9 +39,16 @@ E2E_CLERK_USER_PASSWORD=your-test-password
 2. **Auth State Persistence**: Save session to `storageState` for faster tests
 3. **Sign-In Strategies**: Password, email_code, phone_code, OAuth
 
+## Common Pitfalls
+
+- **Call `setupClerkTestingToken()` first** - before navigating to auth pages
+- **Use test instance keys** - `pk_test_xxx`, `sk_test_xxx`
+- **Save auth state** - use `storageState` for faster tests
+- **Wait for Clerk to load** - `[data-clerk-loaded="true"]` or `.cl-userButtonTrigger`
+- **Cypress setup** - add `addClerkCommands({ Cypress, cy })` to support file
+
 ## See Also
 
-- `gotchas.md` - Common testing pitfalls
 - `adding-auth/` - Basic auth setup (prerequisite)
 
 ## Documentation

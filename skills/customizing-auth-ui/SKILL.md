@@ -37,9 +37,15 @@ const { signIn, setActive } = useSignIn();
 const { signUp, setActive } = useSignUp();
 ```
 
+## Common Pitfalls
+
+- **Check `isLoaded` before using hooks** - `signIn`/`signUp` are undefined until loaded
+- **Call `setActive()` after sign-in** - session won't activate without it
+- **Handle all statuses** - `complete`, `needs_first_factor`, `needs_second_factor`
+- **Import error helper**: `import { isClerkAPIResponseError } from '@clerk/nextjs/errors'`
+
 ## See Also
 
-- `gotchas.md` - Common UI customization pitfalls
 - `adding-auth/` - Basic auth setup (start here first)
 - `nextjs-patterns/` - Advanced Next.js patterns
 

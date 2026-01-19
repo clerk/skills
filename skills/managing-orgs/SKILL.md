@@ -43,9 +43,16 @@ const { setActive, userMemberships } = useOrganizationList();
 | Admin | `org:admin` | Full access |
 | Member | `org:member` | Limited access |
 
+## Common Pitfalls
+
+- **Enable Organizations in Dashboard** first - Dashboard > Organizations > Settings
+- **Check `isLoaded` and `organization`** before accessing org data
+- **Use role keys not names** - `org:admin` not `Admin`
+- **Use `has()` for RBAC** - not `orgRole` string comparison
+- **Check auth before org context** in middleware
+
 ## See Also
 
-- `gotchas.md` - Common B2B multi-tenant pitfalls
 - `syncing-users/` - Sync organization data to DB
 - `nextjs-patterns/` - Advanced middleware for orgs
 
