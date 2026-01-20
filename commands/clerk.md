@@ -26,8 +26,8 @@ skill({ name: 'clerk' })
 ### Step 3: Identify task type from user request
 
 Analyze $ARGUMENTS to determine:
-- **Task type**: setup, customize UI, sync data, test, orgs, iOS, troubleshoot
-- **Platform**: Web (Next.js, React, Express, Remix) or iOS/watchOS
+- **Task type**: setup, customize UI, sync data, test, orgs, troubleshoot
+- **Platform**: Web (Next.js, React, Express, Remix)
 
 Use decision trees in SKILL.md to select correct skill.
 
@@ -43,7 +43,6 @@ Based on task type, load the appropriate skill:
 | Testing | `testing-auth/` | SKILL.md + gotchas.md |
 | Multi-tenant | `managing-orgs/` | SKILL.md + gotchas.md |
 | Next.js patterns | `nextjs-patterns/` | SKILL.md + relevant reference |
-| iOS/watchOS | `ios/` *(coming soon)* | SKILL.md + references/ |
 | Troubleshoot | `clerk-errors/` | SKILL.md |
 
 ### Step 5: Execute task

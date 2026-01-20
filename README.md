@@ -30,7 +30,6 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `testing-auth` | E2E auth testing | test, Playwright, Cypress |
 | `managing-orgs` | Multi-tenant B2B | org, team, RBAC |
 | `nextjs-patterns` | Advanced Next.js patterns | middleware, Server Actions |
-| `ios` *(coming soon)* | iOS/watchOS auth | ClerkKit, ClerkKitUI, SwiftUI |
 
 ## Quick Start
 
@@ -54,7 +53,6 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Sync users to Prisma via webhooks" | `syncing-users` |
 | "Add Playwright tests for auth" | `testing-auth` |
 | "Set up organizations for B2B" | `managing-orgs` |
-| "Add Clerk to my iOS app" *(coming soon)* | `ios` |
 
 ## Repository Structure
 
@@ -70,10 +68,9 @@ clerk-skills/
 │   ├── syncing-users/
 │   ├── testing-auth/
 │   ├── managing-orgs/
-│   ├── nextjs-patterns/
-│   │   ├── SKILL.md
-│   │   └── references/          # Detailed pattern docs
-│   └── ios/                     # iOS/watchOS auth (coming soon)
+│   └── nextjs-patterns/
+│       ├── SKILL.md
+│       └── references/          # Detailed pattern docs
 ├── commands/
 │   └── clerk.md                 # /clerk command
 └── README.md

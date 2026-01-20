@@ -20,8 +20,7 @@ What do you need?
 ├─ Sync users to database → syncing-users/
 ├─ E2E testing → testing-auth/
 ├─ Multi-tenant / B2B → managing-orgs/
-├─ Advanced Next.js patterns → nextjs-patterns/
-└─ iOS / watchOS auth → ios/ (coming soon)
+└─ Advanced Next.js patterns → nextjs-patterns/
 ```
 
 ## Decision Trees by Task
@@ -31,7 +30,6 @@ What do you need?
 ```
 Platform?
 ├─ Web (Next.js, React, Express, Remix) → adding-auth/
-├─ iOS / watchOS → ios/ (coming soon)
 └─ Android → (planned)
 ```
 
@@ -85,17 +83,6 @@ Pattern needed?
 └─ Caching with auth → nextjs-patterns/references/caching-auth.md
 ```
 
-### iOS: "I need iOS / watchOS auth" (coming soon)
-
-```
-iOS approach?
-├─ Prebuilt UI (fast) → ios/ (ClerkKitUI: AuthView, UserButton)
-├─ Custom flows (branded) → ios/ (ClerkKit: clerk.auth.*)
-└─ Watch sync → ios/ (watchConnectivityEnabled: true)
-```
-
-> **Note**: iOS skill is being contributed by Mike Pitre. See [clerk-ios-skill](https://github.com/clerk/clerk-ios-skill).
-
 ## Skill Index
 
 | Category | Skill | When to Use |
@@ -106,7 +93,6 @@ iOS approach?
 | **Testing** | `testing-auth/` | E2E auth testing with Playwright/Cypress |
 | **B2B** | `managing-orgs/` | Multi-tenant, organizations, RBAC, teams |
 | **Patterns** | `nextjs-patterns/` | Server components, middleware, caching |
-| **Mobile** | `ios/` *(coming soon)* | iOS, watchOS, ClerkKit, ClerkKitUI, SwiftUI |
 
 ## How to Use This Skill
 
