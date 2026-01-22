@@ -68,3 +68,4 @@ const { setActive, userMemberships } = useOrganizationList()
 
 - [Organizations overview](https://clerk.com/docs/guides/organizations/overview)
 - [Roles and Permissions](https://clerk.com/docs/guides/organizations/control-access/roles-and-permissions)
+- [Role- and Permission-based access control](https://clerk.com/docs/guides/secure/authorization-checks)
