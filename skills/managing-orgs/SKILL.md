@@ -21,7 +21,7 @@ This skill requires basic Clerk authentication to be set up first:
 
 ## Enable Organizations
 
-1. Navigate to the [Organizations](https://dashboard.clerk.com/last-active?path=organizations) page in the [Clerk Dashboard](https://dashboard.clerk.com) and enable Organizations.
+1. Navigate to the [Organizations](https://dashboard.clerk.com/last-active?path=organizations) page in the Clerk Dashboard and enable Organizations.
 
 ## Templates
 
