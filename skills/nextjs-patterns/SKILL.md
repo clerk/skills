@@ -59,7 +59,7 @@ const { userId } = useAuth()
 - **Must `await` the `auth()` helper in Server Components**.
 - [**Include API routes in Middleware matcher**](https://clerk.com/docs/reference/nextjs/clerk-middleware#configure-clerk-middleware).
 - **User-scoped cache keys**: Include `userId` in `unstable_cache` keys.
-- **Protect Server Actions**: Always check `auth()` in mutations.
+- **Protect Server Actions**: Always [check `auth()`](https://clerk.com/docs/nextjs/guides/users/reading) in mutations.
 - **401 vs 403**: 401 = not authenticated, 403 = authenticated but forbidden (not authorized, or doesn't have the required permissions). Use the correct status code for the response.
 
 ## See Also
