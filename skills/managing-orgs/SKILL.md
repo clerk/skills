@@ -56,7 +56,7 @@ const { setActive, userMemberships } = useOrganizationList()
 - **Organizations feature isn't enabled in the Clerk Dashboard**.
 - **Check `isLoaded` and `organization` before accessing Org data**: Before accessing the Organization data, check if the Organization is loaded and if the Organization is present (set as the Active Organization).
 - **Use Role keys, not names**: In your code, use `org:admin`, not `Admin`.
-- **Use `has()` for RBAC**: In your code, use the `has()` helper instead of doing `orgRole` string comparison.
+- **Use `has()` for RBAC**: In your code, [use the `has()` helper](https://clerk.com/docs/guides/secure/authorization-checks) instead of doing `orgRole` string comparison.
 - **Check auth before Org context**: In your middleware, check if the user is authenticated before trying to access the Organization context.
 
 ## See Also
