@@ -1,62 +1,47 @@
 ---
 name: syncing-users
-description: Sync Clerk users to your database via webhooks. Use when you need to store user data locally, react to auth events, sync with Prisma/Drizzle/Supabase, or handle user lifecycle events.
+description: Sync Clerk users to database via webhooks (Prisma, Drizzle, Supabase).
 license: MIT
 metadata:
   author: clerk
   version: "1.0.0"
 ---
 
-# Syncing Users to Your Database
+# Syncing Users to Database
 
-Sync Clerk users, organizations, and events to your database using webhooks.
+Sync users to your database for relating to app data and complex queries.
 
-## Why Sync?
+## Setup
 
-Clerk is the source of truth for auth, but you need user data in your database for:
-- Relating users to app data (posts, orders, etc.)
-- Complex queries joining user data
-- Storing additional metadata
-
-## Quick Start
-
-1. Create webhook endpoint (see `templates/nextjs/route.ts`)
-2. Configure webhook in [Clerk Dashboard](https://dashboard.clerk.com) → Webhooks
+1. Create webhook endpoint (`templates/nextjs/route.ts`)
+2. Configure in Dashboard → Webhooks
 3. Add `CLERK_WEBHOOK_SIGNING_SECRET` to `.env`
-4. Implement DB handlers for your ORM
 
 ## Templates
 
 | Template | Use Case |
 |----------|----------|
-| `templates/nextjs/route.ts` | Next.js webhook route handler |
-| `templates/prisma/handlers.ts` | Prisma DB sync handlers |
-| `templates/drizzle/handlers.ts` | Drizzle DB sync handlers |
-| `templates/supabase/handlers.ts` | Supabase DB sync handlers |
+| `templates/nextjs/route.ts` | Webhook route handler |
+| `templates/prisma/handlers.ts` | Prisma sync |
+| `templates/drizzle/handlers.ts` | Drizzle sync |
+| `templates/supabase/handlers.ts` | Supabase sync |
 
-## Webhook Events
+## Events
 
-| Event | When |
-|-------|------|
-| `user.created` | New user signs up |
-| `user.updated` | User updates profile |
-| `user.deleted` | User account deleted |
-| `organization.created` | New org created |
-| `organizationMembership.created` | User joins org |
+`user.created` | `user.updated` | `user.deleted` | `organization.created` | `organizationMembership.created`
 
 ## Common Pitfalls
 
-- **Use raw text body** for signature verification - `await req.text()` not `req.json()`
+- **Use raw text body** - `await req.text()` not `req.json()` for signature verification
 - **Pass all svix headers** - `svix-id`, `svix-timestamp`, `svix-signature`
-- **Handle all event types** - `user.created`, `user.updated`, `user.deleted`
-- **Use upsert pattern** - events may arrive out of order
-- **Return fast** - queue long operations, webhook has timeout
+- **Handle all event types**
+- **Use upsert** - events may arrive out of order
+- **Return fast** - queue long operations
 
 ## See Also
 
-- `managing-orgs/` - Organization webhook events
+`managing-orgs/`
 
-## Documentation
+## Docs
 
-- [Clerk Webhooks](https://clerk.com/docs/webhooks/overview)
-- [Webhook Events](https://clerk.com/docs/webhooks/events)
+[Webhooks](https://clerk.com/docs/webhooks/overview) | [Events](https://clerk.com/docs/webhooks/events)

@@ -1,14 +1,14 @@
 # Clerk Skills
 
-Auth expertise for AI coding agents.
+Skills to help AI coding agents work more effectively with Clerk.
+
+Skills follow the [Agent Skills](https://agentskills.io/) format.
 
 ## Install
 
 ```bash
 npx add-skill clerk/skills
 ```
-
-Supports **15 agents**: Claude Code, Cursor, OpenCode, Windsurf, Gemini CLI, GitHub Copilot, Aider, and more.
 
 ### Alternative Installation
 
@@ -62,7 +62,6 @@ clerk-skills/
 │   ├── SKILL.md                 # Master skill (decision trees)
 │   ├── adding-auth/
 │   │   ├── SKILL.md
-│   │   ├── gotchas.md           # Common pitfalls
 │   │   └── templates/
 │   ├── customizing-auth-ui/
 │   ├── syncing-users/

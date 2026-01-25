@@ -15,8 +15,8 @@
         "name": "Clerk",
         "email": "support@clerk.com"
       },
-      "source": "./plugins/clerk",
-      "homepage": "https://clerk.com/ai/overview",
+      "source": "./",
+      "homepage": "https://clerk.com/",
       "repository": "https://github.com/clerk/skills",
       "license": "MIT",
       "category": "authentication",
