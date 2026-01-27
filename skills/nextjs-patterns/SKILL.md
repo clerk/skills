@@ -9,7 +9,7 @@ metadata:
 
 # Next.js Patterns
 
-For basic setup, see `adding-auth/`.
+For basic setup, see `setup/`.
 
 ## Impact Levels
 

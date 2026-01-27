@@ -9,7 +9,7 @@ metadata:
 
 # Managing Organizations (B2B)
 
-**Prerequisite**: Basic auth setup (`adding-auth/`) - ClerkProvider, sign-in/up pages, middleware.
+**Prerequisite**: Basic auth setup (`setup/`) - ClerkProvider, sign-in/up pages, middleware.
 
 ## Enable Organizations
 

@@ -24,7 +24,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 | Skill | Purpose | Trigger Keywords |
 |-------|---------|------------------|
-| `adding-auth` | Add Clerk to any framework | setup, integrate, sign-in |
+| `setup` | Add Clerk to any framework | setup, integrate, sign-in |
 | `customizing-auth-ui` | Custom sign-in/up flows | custom UI, forms, hooks |
 | `syncing-users` | Webhook → DB sync | sync, webhook, Prisma, Drizzle |
 | `testing-auth` | E2E auth testing | test, Playwright, Cypress |
@@ -48,7 +48,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 | You Say | Skill Used |
 |---------|------------|
-| "Add Clerk auth to my Next.js app" | `adding-auth` |
+| "Add Clerk auth to my Next.js app" | `setup` |
 | "Build custom sign-in form with hooks" | `customizing-auth-ui` |
 | "Sync users to Prisma via webhooks" | `syncing-users` |
 | "Add Playwright tests for auth" | `testing-auth` |
@@ -60,7 +60,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 clerk-skills/
 ├── skills/
 │   ├── SKILL.md                 # Master skill (decision trees)
-│   ├── adding-auth/
+│   ├── setup/
 │   │   ├── SKILL.md
 │   │   └── templates/
 │   ├── customizing-auth-ui/

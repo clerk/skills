@@ -12,7 +12,7 @@ skills/
 │   └── clerk.md              # /clerk slash command workflow
 ├── skills/
 │   ├── SKILL.md              # Master skill with decision trees
-│   ├── adding-auth/          # Framework setup & basic auth
+│   ├── setup/                # Framework setup & basic auth
 │   ├── customizing-auth-ui/  # Custom sign-in/up components
 │   ├── managing-orgs/        # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
@@ -28,7 +28,7 @@ The master `skills/SKILL.md` contains decision trees that route to the appropria
 ```
 User Request
     │
-    ├─ "Add authentication" → adding-auth/
+    ├─ "Add authentication" → setup/
     ├─ "Custom sign-in UI"  → customizing-auth-ui/
     ├─ "Organizations/RBAC" → managing-orgs/
     ├─ "Sync users to DB"   → syncing-users/
