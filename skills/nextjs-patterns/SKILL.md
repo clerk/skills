@@ -54,4 +54,4 @@ const { userId } = useAuth();
 
 ## Docs
 
-[Next.js SDK](https://clerk.com/docs/references/nextjs/overview)
+[Next.js SDK](https://clerk.com/docs/reference/nextjs/overview)

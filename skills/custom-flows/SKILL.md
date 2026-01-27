@@ -25,13 +25,13 @@ SignUpStatus: missing_requirements | abandoned | complete
 
 | Auth Flow | Documentation |
 |-----------|---------------|
-| Email + Password | https://clerk.com/docs/custom-flows/email-password |
-| OAuth | https://clerk.com/docs/custom-flows/oauth-connections |
-| Magic Link | https://clerk.com/docs/custom-flows/email-link |
-| Phone + SMS | https://clerk.com/docs/custom-flows/phone-number |
-| Passkeys | https://clerk.com/docs/custom-flows/passkeys |
-| MFA | https://clerk.com/docs/custom-flows/mfa |
-| SAML SSO | https://clerk.com/docs/custom-flows/saml-connections |
+| Email + Password | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password |
+| OAuth | https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections |
+| Magic Link | https://clerk.com/docs/guides/development/custom-flows/authentication/email-links |
+| Phone + SMS | https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp |
+| Passkeys | https://clerk.com/docs/guides/development/custom-flows/authentication/passkeys |
+| MFA | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password-mfa |
+| Enterprise SSO | https://clerk.com/docs/guides/development/custom-flows/authentication/enterprise-connections |
 
 ## Best Practices
 
@@ -56,6 +56,6 @@ import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
 
 ## See Also
 
-- [Custom Flows Overview](https://clerk.com/docs/custom-flows/overview)
-- [useSignIn](https://clerk.com/docs/references/react/use-sign-in)
-- [useSignUp](https://clerk.com/docs/references/react/use-sign-up)
+- [Custom Flows Overview](https://clerk.com/docs/guides/development/custom-flows/overview)
+- [useSignIn](https://clerk.com/docs/reference/hooks/use-sign-in)
+- [useSignUp](https://clerk.com/docs/reference/hooks/use-sign-up)

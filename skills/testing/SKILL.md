@@ -14,9 +14,9 @@ metadata:
 
 | Framework | Documentation |
 |-----------|---------------|
-| Overview | https://clerk.com/docs/testing/overview |
-| Playwright | https://clerk.com/docs/testing/playwright |
-| Cypress | https://clerk.com/docs/testing/cypress |
+| Overview | https://clerk.com/docs/guides/development/testing/overview |
+| Playwright | https://clerk.com/docs/guides/development/testing/playwright/overview |
+| Cypress | https://clerk.com/docs/guides/development/testing/cypress/overview |
 
 ## Setup
 
@@ -53,4 +53,4 @@ E2E_CLERK_USER_PASSWORD=your-test-password
 
 ## See Also
 
-- [Testing Overview](https://clerk.com/docs/testing/overview)
+- [Testing Overview](https://clerk.com/docs/guides/development/testing/overview)

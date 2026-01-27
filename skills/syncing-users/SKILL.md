@@ -12,11 +12,11 @@ metadata:
 
 ## Decision Tree
 
-| ORM/DB | Documentation |
-|--------|---------------|
-| General setup | https://clerk.com/docs/webhooks/overview |
-| Sync to database | https://clerk.com/docs/webhooks/sync-data |
-| Event reference | https://clerk.com/docs/webhooks/events |
+| Task | Documentation |
+|------|---------------|
+| Setup | https://clerk.com/docs/guides/development/webhooks/overview |
+| Sync to database | https://clerk.com/docs/guides/development/webhooks/syncing |
+| Debugging | https://clerk.com/docs/guides/development/webhooks/debugging |
 
 ## Setup
 
@@ -45,5 +45,5 @@ metadata:
 
 ## See Also
 
-- [Webhooks Overview](https://clerk.com/docs/webhooks/overview)
-- [Sync Data Guide](https://clerk.com/docs/webhooks/sync-data)
+- [Webhooks Overview](https://clerk.com/docs/guides/development/webhooks/overview)
+- [Sync Data Guide](https://clerk.com/docs/guides/development/webhooks/syncing)

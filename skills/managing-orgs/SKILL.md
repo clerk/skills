@@ -16,11 +16,11 @@ metadata:
 
 | Task | Documentation |
 |------|---------------|
-| Setup | https://clerk.com/docs/organizations/overview |
-| Custom roles | https://clerk.com/docs/organizations/roles-permissions |
-| Invitations | https://clerk.com/docs/organizations/invitation-actions |
-| Org switcher | https://clerk.com/docs/components/organization/organization-switcher |
-| Verify membership | https://clerk.com/docs/organizations/verify-user-permissions |
+| Setup | https://clerk.com/docs/guides/organizations/overview |
+| Custom roles | https://clerk.com/docs/guides/organizations/control-access/roles-and-permissions |
+| Invitations | https://clerk.com/docs/guides/organizations/add-members/invitations |
+| Org switcher | https://clerk.com/docs/reference/components/organization/organization-switcher |
+| Verify membership | https://clerk.com/docs/guides/organizations/control-access/check-access |
 
 ## Key Hooks
 
@@ -49,5 +49,5 @@ import { useOrganization, useOrganizationList } from '@clerk/nextjs';
 
 ## See Also
 
-- [Organizations Overview](https://clerk.com/docs/organizations/overview)
-- [Roles & Permissions](https://clerk.com/docs/organizations/roles-permissions)
+- [Organizations Overview](https://clerk.com/docs/guides/organizations/overview)
+- [Roles & Permissions](https://clerk.com/docs/guides/organizations/control-access/roles-and-permissions)

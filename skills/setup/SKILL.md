@@ -147,10 +147,10 @@ Check `package.json` for existing auth libraries:
 
 ## See Also
 
-- `customizing-auth-ui/` - Custom sign-in/up components
+- `custom-flows/` - Custom sign-in/up components
 - `syncing-users/` - Webhook → database sync
 - `managing-orgs/` - B2B multi-tenant organizations
-- `testing-auth/` - E2E testing setup
+- `testing/` - E2E testing setup
 - `nextjs-patterns/` - Advanced Next.js patterns
 
 ## Documentation

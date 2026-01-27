@@ -44,4 +44,4 @@ export default clerkMiddleware(async (auth, req) => {
 });
 ```
 
-[Docs](https://clerk.com/docs/references/nextjs/clerk-middleware)
+[Docs](https://clerk.com/docs/reference/nextjs/clerk-middleware)

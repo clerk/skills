@@ -85,4 +85,4 @@ export function ProfileForm({ initialData }) {
 }
 ```
 
-[Docs](https://clerk.com/docs/references/nextjs/auth)
+[Docs](https://clerk.com/docs/reference/nextjs/auth)

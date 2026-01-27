@@ -51,4 +51,4 @@ export async function deleteProject(projectId: string) {
 }
 ```
 
-[Docs](https://clerk.com/docs/references/nextjs/server-actions)
+[Docs](https://clerk.com/docs/reference/nextjs/server-actions)
