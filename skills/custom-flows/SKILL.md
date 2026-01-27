@@ -5,12 +5,12 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Custom Authentication Flows
 
-> **Prerequisite**: Complete `setup/` first.
+> **Prerequisite**: Ensure `ClerkProvider` wraps your app. See `setup/`.
 
 ## Mental Model
 
@@ -21,11 +21,20 @@ SignInStatus: needs_identifier | needs_first_factor | needs_second_factor | need
 SignUpStatus: missing_requirements | abandoned | complete
 ```
 
+## Imports
+
+```typescript
+import { useSignIn, useSignUp } from '@clerk/nextjs';
+import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
+import type { EmailCodeFactor, PhoneCodeFactor } from '@clerk/types';
+```
+
 ## Decision Tree
 
 | Auth Flow | Documentation |
 |-----------|---------------|
 | Email + Password | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password |
+| Sign Up | https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up |
 | OAuth | https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections |
 | Magic Link | https://clerk.com/docs/guides/development/custom-flows/authentication/email-links |
 | Phone + SMS | https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp |
@@ -33,9 +42,31 @@ SignUpStatus: missing_requirements | abandoned | complete
 | MFA | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password-mfa |
 | Enterprise SSO | https://clerk.com/docs/guides/development/custom-flows/authentication/enterprise-connections |
 
+## Status Switch Template
+
+```typescript
+switch (signInAttempt.status) {
+  case 'complete':
+    await setActive({ session: signInAttempt.createdSessionId });
+    break;
+  case 'needs_second_factor':
+    // Handle 2FA (TOTP, SMS, etc.)
+    break;
+  case 'needs_first_factor':
+    // Handle additional verification
+    break;
+  case 'needs_identifier':
+    // Request email/phone
+    break;
+  case 'needs_new_password':
+    // Password reset flow
+    break;
+}
+```
+
 ## Best Practices
 
-- Check `isLoaded` before accessing hook data
+- Check `isLoaded` before accessing hook data: `if (!isLoaded) return null`
 - Handle ALL status values with switch statement
 - Call `setActive()` after `complete`
 - Clear password from state after submission
@@ -47,12 +78,6 @@ SignUpStatus: missing_requirements | abandoned | complete
 | Access `signIn` before `isLoaded` | Runtime error | `if (!isLoaded) return null` |
 | Only handle `complete` status | Breaks on MFA | Switch on all statuses |
 | Clerk call on every keystroke | Rate limits | Submit on button click |
-
-## Error Handling
-
-```typescript
-import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
-```
 
 ## See Also
 

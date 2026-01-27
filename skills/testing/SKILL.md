@@ -5,7 +5,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Testing
@@ -21,22 +21,48 @@ metadata:
 ## Setup
 
 ```bash
-npm install @clerk/testing --save-dev
+npm install @clerk/testing @playwright/test --save-dev
 ```
 
 ## Environment Variables
 
 ```bash
-E2E_CLERK_USER_USERNAME=test@example.com
-E2E_CLERK_USER_PASSWORD=your-test-password
+CLERK_PUBLISHABLE_KEY=pk_test_xxx
+CLERK_SECRET_KEY=sk_test_xxx
+```
+
+## Playwright Config
+
+```typescript
+// playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  projects: [
+    { name: 'setup', testMatch: /global\.setup\.ts/ },
+    { name: 'tests', dependencies: ['setup'] }
+  ]
+});
+```
+
+## Global Setup
+
+```typescript
+// e2e/global.setup.ts
+import { clerkSetup } from '@clerk/testing/playwright';
+import { test as setup } from '@playwright/test';
+
+setup('clerk setup', async ({}) => {
+  await clerkSetup();
+});
 ```
 
 ## Best Practices
 
-- Use `clerk.signIn()` to bypass auth UI (faster)
+- Use `setupClerkTestingToken()` before navigating to auth pages
 - Use test API keys: `pk_test_xxx`, `sk_test_xxx`
 - Save auth state with `storageState` for faster tests
-- Call `setupClerkTestingToken()` before navigating to auth pages
+- Use `page.waitForSelector('[data-clerk-component]')` for Clerk UI
 
 ## Anti-Patterns
 
@@ -44,7 +70,7 @@ E2E_CLERK_USER_PASSWORD=your-test-password
 |---------|---------|-----|
 | Production keys in tests | Security risk | Use `pk_test_*` keys |
 | No `setupClerkTestingToken()` | Auth fails | Call before navigation |
-| UI-based sign-in | Slow tests | Use `clerk.signIn()` |
+| UI-based sign-in every test | Slow tests | Use `storageState` |
 
 ## Framework-Specific
 
@@ -54,3 +80,4 @@ E2E_CLERK_USER_PASSWORD=your-test-password
 ## See Also
 
 - [Testing Overview](https://clerk.com/docs/guides/development/testing/overview)
+- [Demo Repo](https://github.com/clerk/clerk-playwright-nextjs)

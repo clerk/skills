@@ -5,7 +5,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Organizations (B2B)
@@ -25,7 +25,22 @@ metadata:
 ## Key Hooks
 
 ```typescript
-import { useOrganization, useOrganizationList } from '@clerk/nextjs';
+import { useAuth, useOrganization, useOrganizationList } from '@clerk/nextjs';
+
+// useAuth: isSignedIn, has(), isLoaded
+// useOrganization: organization, membership, isLoaded
+```
+
+## Built-in Components
+
+Use `<Protect>` for declarative RBAC:
+
+```tsx
+import { Protect } from '@clerk/nextjs';
+
+<Protect role="org:admin" fallback={<Unauthorized />}>
+  <AdminPanel />
+</Protect>
 ```
 
 ## Default Roles
@@ -35,16 +50,16 @@ import { useOrganization, useOrganizationList } from '@clerk/nextjs';
 ## Best Practices
 
 - Enable Organizations in Dashboard first
-- Create `/sign-in` and `/sign-up` pages before using `redirectToSignIn()`
+- Create `/sign-in` and `/sign-up` pages before `redirectToSignIn()`
 - Use `has()` for permission checks, not string comparison
-- Check auth before org context in middleware
+- Always guard with `if (!isLoaded) return null`
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
 | `role === 'Admin'` | Wrong format | `has({ role: 'org:admin' })` |
-| Access `organization` before `isLoaded` | Undefined | Guard with `isLoaded` check |
+| Access `organization` before `isLoaded` | Undefined | `if (!isLoaded) return null` |
 | Skip Dashboard setup | Orgs won't work | Enable in Dashboard first |
 
 ## See Also
