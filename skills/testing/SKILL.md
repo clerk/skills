@@ -18,44 +18,49 @@ metadata:
 | Playwright | https://clerk.com/docs/guides/development/testing/playwright/overview |
 | Cypress | https://clerk.com/docs/guides/development/testing/cypress/overview |
 
-## Setup
+## Mental Model
 
-```bash
-npm install @clerk/testing @playwright/test --save-dev
-```
+Test auth = isolated session state. Each test needs fresh auth context.
+- `clerkSetup()` initializes test environment
+- `setupClerkTestingToken()` bypasses bot detection
+- `storageState` persists auth between tests for speed
 
-## Environment Variables
-
-```bash
-CLERK_PUBLISHABLE_KEY=pk_test_xxx
-CLERK_SECRET_KEY=sk_test_xxx
-```
-
-## Playwright Config
+## Minimal Pattern
 
 ```typescript
+// global.setup.ts
+import { clerkSetup } from '@clerk/testing/playwright'
+import { test as setup } from '@playwright/test'
+
+setup('global setup', async ({}) => {
+  await clerkSetup()
+})
+
 // playwright.config.ts
-import { defineConfig } from '@playwright/test';
+projects: [
+  { name: 'global setup', testMatch: /global\.setup\.ts/ },
+  {
+    name: 'tests',
+    dependencies: ['global setup'],
+    use: { storageState: 'playwright/.clerk/user.json' }  // Reuse auth
+  }
+]
 
-export default defineConfig({
-  projects: [
-    { name: 'setup', testMatch: /global\.setup\.ts/ },
-    { name: 'tests', dependencies: ['setup'] }
-  ]
-});
+// my-test.spec.ts
+import { setupClerkTestingToken } from '@clerk/testing/playwright'
+
+test('authenticated flow', async ({ page }) => {
+  await setupClerkTestingToken({ page })
+  await page.goto('/dashboard')
+})
 ```
 
-## Global Setup
+## Workflow
 
-```typescript
-// e2e/global.setup.ts
-import { clerkSetup } from '@clerk/testing/playwright';
-import { test as setup } from '@playwright/test';
-
-setup('clerk setup', async ({}) => {
-  await clerkSetup();
-});
-```
+1. Identify test framework (Playwright or Cypress)
+2. WebFetch the appropriate URL from decision tree above
+3. Follow official setup instructions
+4. Use `pk_test_*` and `sk_test_*` keys only
 
 ## Best Practices
 

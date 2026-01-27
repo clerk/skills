@@ -21,14 +21,6 @@ SignInStatus: needs_identifier | needs_first_factor | needs_second_factor | need
 SignUpStatus: missing_requirements | abandoned | complete
 ```
 
-## Imports
-
-```typescript
-import { useSignIn, useSignUp } from '@clerk/nextjs';
-import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
-import type { EmailCodeFactor, PhoneCodeFactor } from '@clerk/types';
-```
-
 ## Decision Tree
 
 | Auth Flow | Documentation |
@@ -42,27 +34,41 @@ import type { EmailCodeFactor, PhoneCodeFactor } from '@clerk/types';
 | MFA | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password-mfa |
 | Enterprise SSO | https://clerk.com/docs/guides/development/custom-flows/authentication/enterprise-connections |
 
-## Status Switch Template
+## Minimal Pattern
 
 ```typescript
-switch (signInAttempt.status) {
-  case 'complete':
-    await setActive({ session: signInAttempt.createdSessionId });
-    break;
-  case 'needs_second_factor':
-    // Handle 2FA (TOTP, SMS, etc.)
-    break;
-  case 'needs_first_factor':
-    // Handle additional verification
-    break;
-  case 'needs_identifier':
-    // Request email/phone
-    break;
-  case 'needs_new_password':
-    // Password reset flow
-    break;
+// Full sign-in flow (from official docs)
+const handleSubmit = async () => {
+  if (!isLoaded) return
+
+  try {
+    const signInAttempt = await signIn.create({
+      identifier: email,
+      password,
+    })
+
+    if (signInAttempt.status === 'complete') {
+      await setActive({ session: signInAttempt.createdSessionId })
+      router.push('/')
+    } else if (signInAttempt.status === 'needs_second_factor') {
+      // Handle 2FA - see MFA docs
+    } else {
+      console.error('Unhandled status:', signInAttempt.status)
+    }
+  } catch (err) {
+    // See error-handling docs
+    console.error(err)
+  }
 }
 ```
+
+## Workflow
+
+1. Identify auth method from user requirements
+2. WebFetch the appropriate URL from decision tree above
+3. Follow official code examples from the docs
+4. Handle ALL status values (not just `complete`)
+5. Call `setActive()` after successful auth
 
 ## Best Practices
 

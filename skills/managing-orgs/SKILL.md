@@ -22,26 +22,44 @@ metadata:
 | Org switcher | https://clerk.com/docs/reference/components/organization/organization-switcher |
 | Verify membership | https://clerk.com/docs/guides/organizations/control-access/check-access |
 
-## Key Hooks
+## Mental Model
+
+Orgs are permission containers: `Users → Memberships → Roles → Permissions`
+
+- User joins org via invitation or direct add
+- Membership holds the user's role in that org
+- Roles grant permissions (use `has()` to check)
+- `<Protect>` component for declarative RBAC
+
+## Minimal Pattern
 
 ```typescript
-import { useAuth, useOrganization, useOrganizationList } from '@clerk/nextjs';
+// Client-side role check (from official docs)
+const { isLoaded, has } = useAuth()
+if (!isLoaded) return null
+if (!has({ role: 'org:admin' })) {
+  return <p>Admin access required</p>
+}
 
-// useAuth: isSignedIn, has(), isLoaded
-// useOrganization: organization, membership, isLoaded
+// Server-side role check
+const { has } = await auth()
+if (!has({ role: 'org:admin' })) {
+  return new Response('Forbidden', { status: 403 })
+}
+
+// Custom permission check (for granular control)
+// e.g., org:invoices:create, org:settings:manage
+if (!has({ permission: 'org:settings:manage' })) {
+  return <p>Permission denied</p>
+}
 ```
 
-## Built-in Components
+## Workflow
 
-Use `<Protect>` for declarative RBAC:
-
-```tsx
-import { Protect } from '@clerk/nextjs';
-
-<Protect role="org:admin" fallback={<Unauthorized />}>
-  <AdminPanel />
-</Protect>
-```
+1. Enable Organizations in Clerk Dashboard first
+2. WebFetch the appropriate URL from decision tree above
+3. Use `has({ role: 'org:admin' })` for permission checks
+4. Guard hooks with `if (!isLoaded) return null`
 
 ## Default Roles
 
