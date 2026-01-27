@@ -1,26 +1,24 @@
 ---
 name: clerk
-description: Clerk skill. Setup, custom UI, database sync, testing, B2B multi-tenant. Use when working with Clerk features.
+description: Clerk authentication skill. Setup, custom flows, webhooks, testing, B2B organizations. Use when working with Clerk.
 license: MIT
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # Clerk
 
-Always reference https://clerk.com/docs for API and code samples.
-
-Route to the right skill using decision trees below.
+Reference https://clerk.com/docs for API and code samples.
 
 ## Decision Tree
 
 ```
 Task?
 ├─ Add auth → setup/
-├─ Custom sign-in/up UI → customizing-auth-ui/
+├─ Custom sign-in/up → custom-flows/
 ├─ Sync users to DB → syncing-users/
-├─ E2E testing → testing-auth/
+├─ E2E testing → testing/
 ├─ Multi-tenant/B2B → managing-orgs/
 └─ Next.js patterns → nextjs-patterns/
 ```
@@ -29,45 +27,25 @@ Task?
 
 ```
 Framework?
-├─ Next.js → nextjs-patterns
-```
-
-## By ORM
-
-```
-ORM?
-├─ Prisma → syncing-users/templates/prisma/
-├─ Drizzle → syncing-users/templates/drizzle/
-└─ Supabase → syncing-users/templates/supabase/
+├─ Next.js → nextjs-patterns/
+└─ Other → setup/ (has framework detection)
 ```
 
 ## By Test Framework
 
 ```
 Test framework?
-├─ Playwright → testing-auth/templates/playwright/
-└─ Cypress → testing-auth/templates/cypress/
+├─ Playwright → testing/ → WebFetch playwright docs
+└─ Cypress → testing/ → WebFetch cypress docs
 ```
 
 ## B2B / Organizations
 
 ```
 Use case?
-├─ B2B SaaS → managing-orgs/ (full org setup)
-├─ Team workspaces → managing-orgs/templates/org-switcher.tsx
-├─ Role-based access → managing-orgs/templates/rbac-check.tsx
-└─ Member invitations → managing-orgs/templates/invite-form.tsx
-```
-
-## Next.js Patterns
-
-```
-Pattern?
-├─ Server vs Client → nextjs-patterns/references/server-vs-client.md
-├─ Middleware → nextjs-patterns/references/middleware-strategies.md
-├─ Server Actions → nextjs-patterns/references/server-actions.md
-├─ API routes → nextjs-patterns/references/api-routes.md
-└─ Caching → nextjs-patterns/references/caching-auth.md
+├─ Team workspaces → managing-orgs/
+├─ Role-based access → managing-orgs/
+└─ Member invitations → managing-orgs/
 ```
 
 ## Resources

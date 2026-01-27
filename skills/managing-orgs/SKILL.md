@@ -1,57 +1,53 @@
 ---
 name: managing-orgs
-description: B2B multi-tenant apps with Clerk Organizations, RBAC, team workspaces.
+description: B2B multi-tenant apps with Clerk Organizations. Use for team workspaces, RBAC, member management.
+allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "1.1.0"
+  version: "2.0.0"
 ---
 
-# Managing Organizations (B2B)
+# Organizations (B2B)
 
-**Prerequisite**: Basic auth setup (`setup/`) - ClerkProvider, sign-in/up pages, middleware.
+> **Prerequisite**: Complete `setup/` first. Enable Organizations in Dashboard.
 
-## Enable Organizations
+## Decision Tree
 
-Dashboard → Organizations → Settings → Enable → Configure roles.
-
-## Templates
-
-| Template | Use Case |
-|----------|----------|
-| `templates/org-switcher.tsx` | Org switching UI |
-| `templates/member-list.tsx` | Manage members |
-| `templates/invite-form.tsx` | Invite members |
-| `templates/rbac-check.tsx` | Role-based checks |
-| `templates/middleware-org.ts` | Require org |
-| `templates/sign-in-page.tsx` | Sign-in page |
-| `templates/sign-up-page.tsx` | Sign-up page |
+| Task | Documentation |
+|------|---------------|
+| Setup | https://clerk.com/docs/organizations/overview |
+| Custom roles | https://clerk.com/docs/organizations/roles-permissions |
+| Invitations | https://clerk.com/docs/organizations/invitations |
+| Org switcher | https://clerk.com/docs/components/organization-switcher |
+| Verify membership | https://clerk.com/docs/organizations/verify-user-permissions |
 
 ## Key Hooks
 
-```tsx
+```typescript
 import { useOrganization, useOrganizationList } from '@clerk/nextjs';
-const { organization, membership } = useOrganization();
-const { setActive, userMemberships } = useOrganizationList();
 ```
 
 ## Default Roles
 
 `org:admin` (full access) | `org:member` (limited)
 
-## Common Pitfalls
+## Best Practices
 
-- **Create sign-in/sign-up pages** - `redirectToSignIn()` expects `/sign-in` to exist
-- **Enable Organizations in Dashboard first**
-- **Check `isLoaded` and `organization`** before accessing org data
-- **Use role keys** - `org:admin` not `Admin`
-- **Use `has()` for RBAC** - not string comparison
-- **Check auth before org context** in middleware
+- Enable Organizations in Dashboard first
+- Create `/sign-in` and `/sign-up` pages before using `redirectToSignIn()`
+- Use `has()` for permission checks, not string comparison
+- Check auth before org context in middleware
+
+## Anti-Patterns
+
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| `role === 'Admin'` | Wrong format | `has({ role: 'org:admin' })` |
+| Access `organization` before `isLoaded` | Undefined | Guard with `isLoaded` check |
+| Skip Dashboard setup | Orgs won't work | Enable in Dashboard first |
 
 ## See Also
 
-`syncing-users/` | `nextjs-patterns/`
-
-## Docs
-
-[Organizations](https://clerk.com/docs/organizations/overview) | [Custom Roles](https://clerk.com/docs/organizations/roles-permissions)
+- [Organizations Overview](https://clerk.com/docs/organizations/overview)
+- [Roles & Permissions](https://clerk.com/docs/organizations/roles-permissions)
