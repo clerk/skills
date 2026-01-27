@@ -18,8 +18,8 @@ metadata:
 |------|---------------|
 | Setup | https://clerk.com/docs/organizations/overview |
 | Custom roles | https://clerk.com/docs/organizations/roles-permissions |
-| Invitations | https://clerk.com/docs/organizations/invitations |
-| Org switcher | https://clerk.com/docs/components/organization-switcher |
+| Invitations | https://clerk.com/docs/organizations/invitation-actions |
+| Org switcher | https://clerk.com/docs/components/organization/organization-switcher |
 | Verify membership | https://clerk.com/docs/organizations/verify-user-permissions |
 
 ## Key Hooks

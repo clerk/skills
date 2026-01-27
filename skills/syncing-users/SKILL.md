@@ -30,18 +30,18 @@ metadata:
 
 ## Best Practices
 
-- Use `await req.text()` for signature verification (not `req.json()`)
-- Pass all svix headers: `svix-id`, `svix-timestamp`, `svix-signature`
+- Use `verifyWebhook(req)` from `@clerk/nextjs/webhooks` (handles signature automatically)
 - Use upsert operations (events may arrive out of order)
 - Return fast, queue long operations
+- Handle all relevant event types in switch statement
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| `req.json()` for body | Signature fails | `req.text()` then parse |
-| Missing svix headers | Verification fails | Forward all three headers |
+| Manual svix verification | Error-prone | Use `verifyWebhook()` helper |
 | Long webhook handler | Timeouts | Queue async work |
+| Only handle `user.created` | Missing updates/deletes | Handle all user events |
 
 ## See Also
 
