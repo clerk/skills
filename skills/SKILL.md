@@ -4,7 +4,7 @@ description: Clerk authentication skill. Setup, custom flows, webhooks, testing,
 license: MIT
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "1.0.0"
 ---
 
 # Clerk
@@ -16,7 +16,8 @@ Reference https://clerk.com/docs for API and code samples.
 ```
 Task?
 ├─ Add auth → setup/
-├─ Custom sign-in/up → custom-flows/
+├─ Custom sign-in/up → custom-ui/
+├─ Appearance styling → custom-ui/
 ├─ Sync users to DB → syncing-users/
 ├─ E2E testing → testing/
 ├─ Multi-tenant/B2B → managing-orgs/

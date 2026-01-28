@@ -1,27 +1,20 @@
 ---
-name: custom-flows
-description: Build custom sign-in/sign-up flows with Clerk hooks. Use when pre-built components don't fit design requirements, for multi-step onboarding, or non-standard auth patterns.
+name: custom-ui
+description: Build custom sign-in/sign-up flows and customize component appearance. Use for custom auth flows, appearance styling, non-standard patterns.
 allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.1.0"
+  version: "1.0.0"
 ---
 
-# Custom Authentication Flows
+# Custom UI
 
 > **Prerequisite**: Ensure `ClerkProvider` wraps your app. See `setup/`.
 
-## Mental Model
-
-`useSignIn` and `useSignUp` are state machines:
-
-```
-SignInStatus: needs_identifier | needs_first_factor | needs_second_factor | needs_new_password | complete
-SignUpStatus: missing_requirements | abandoned | complete
-```
-
 ## Decision Tree
+
+### Custom Flows
 
 | Auth Flow | Documentation |
 |-----------|---------------|
@@ -34,7 +27,25 @@ SignUpStatus: missing_requirements | abandoned | complete
 | MFA | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password-mfa |
 | Enterprise SSO | https://clerk.com/docs/guides/development/custom-flows/authentication/enterprise-connections |
 
-## Minimal Pattern
+### Appearance
+
+| Task | Documentation |
+|------|---------------|
+| Overview | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/overview |
+| Layout options | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/layout |
+| Variables (colors, fonts) | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/variables |
+| Themes | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/themes |
+
+## Custom Flow Mental Model
+
+`useSignIn` and `useSignUp` are state machines:
+
+```
+SignInStatus: needs_identifier | needs_first_factor | needs_second_factor | needs_new_password | complete
+SignUpStatus: missing_requirements | abandoned | complete
+```
+
+## Custom Flow Pattern
 
 ```typescript
 // Full sign-in flow (from official docs)
@@ -62,6 +73,39 @@ const handleSubmit = async () => {
 }
 ```
 
+## Appearance Pattern
+
+```typescript
+<SignIn
+  appearance={{
+    variables: {
+      colorPrimary: '#0000ff',
+      borderRadius: '0.5rem',
+    },
+    layout: {
+      logoImageUrl: '/logo.png',
+      socialButtonsVariant: 'iconButton',
+    },
+  }}
+/>
+```
+
+### variables (colors, typography, borders)
+
+| Property | Description |
+|----------|-------------|
+| `colorPrimary` | Primary color throughout |
+| `colorBackground` | Background color |
+| `borderRadius` | Border radius (default: `0.375rem`) |
+
+### layout (structure, logo, social buttons)
+
+| Property | Description |
+|----------|-------------|
+| `logoImageUrl` | URL to custom logo |
+| `socialButtonsVariant` | `'blockButton'` \| `'iconButton'` \| `'auto'` |
+| `socialButtonsPlacement` | `'top'` \| `'bottom'` |
+
 ## Workflow
 
 1. Identify auth method from user requirements
@@ -84,9 +128,16 @@ const handleSubmit = async () => {
 | Access `signIn` before `isLoaded` | Runtime error | `if (!isLoaded) return null` |
 | Only handle `complete` status | Breaks on MFA | Switch on all statuses |
 | Clerk call on every keystroke | Rate limits | Submit on button click |
+| Colors not applying | Wrong property | Use `colorPrimary` not `primaryColor` |
+| Logo not showing | Missing wrapper | Put `logoImageUrl` inside `layout: {}` |
+| Social buttons wrong | Missing variant | Add `socialButtonsVariant: 'iconButton'` in `layout` |
+| Catch-all 404 | Wrong folder | Use `[[...sign-in]]` folder naming |
 
 ## See Also
 
 - [Custom Flows Overview](https://clerk.com/docs/guides/development/custom-flows/overview)
 - [useSignIn](https://clerk.com/docs/reference/hooks/use-sign-in)
 - [useSignUp](https://clerk.com/docs/reference/hooks/use-sign-up)
+- [Appearance Prop Overview](https://clerk.com/docs/guides/customizing-clerk/appearance-prop/overview)
+- [Layout Options](https://clerk.com/docs/guides/customizing-clerk/appearance-prop/layout)
+- [Variables Reference](https://clerk.com/docs/guides/customizing-clerk/appearance-prop/variables)
