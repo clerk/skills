@@ -92,10 +92,18 @@ Execute each step from the quickstart guide:
 
 ### 4. Get API Keys
 
-Direct the user to get their keys from:
-- **Dashboard**: [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys)
+Two paths for development API keys:
+
+**Keyless (Automatic)**
+- On first SDK initialization, Clerk auto-generates dev keys and shows "Claim your application" popover
+- No manual key setup required—keys are created and injected automatically
+- Simplest path for new projects
+
+**Manual (Dashboard)**
+- Get keys from [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys) if Keyless doesn't trigger
 - **Publishable Key**: Starts with `pk_test_` or `pk_live_`
 - **Secret Key**: Starts with `sk_test_` or `sk_live_`
+- Set as environment variables: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
 
 ## Migrating from Another Auth Provider
 

@@ -1,0 +1,14 @@
+{
+  "name": "clerk-managing-orgs",
+  "description": "B2B multi-tenant apps with Clerk Organizations. Use for org-based routing, URL sync with org slug, RBAC, team workspaces, member management.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Clerk",
+    "email": "support@clerk.com"
+  },
+  "license": "MIT",
+  "homepage": "https://clerk.com/docs",
+  "repository": "https://github.com/clerk/skills",
+  "keywords": ["organizations", "b2b", "multi-tenant", "rbac", "team-workspace"],
+  "category": "authentication"
+}
