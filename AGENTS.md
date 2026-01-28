@@ -11,13 +11,12 @@ skills/
 ├── commands/
 │   └── clerk.md              # /clerk slash command workflow
 ├── skills/
-│   ├── SKILL.md              # Master skill with decision trees
 │   ├── setup/                # Framework setup & basic auth
-│   ├── customizing-auth-ui/  # Custom sign-in/up components
+│   ├── custom-ui/            # Custom sign-in/up components
 │   ├── managing-orgs/        # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
 │   ├── syncing-users/        # Webhook → database sync
-│   └── testing-auth/         # E2E testing setup
+│   └── testing/              # E2E testing setup
 └── README.md                 # User-facing documentation
 ```
 
@@ -29,10 +28,10 @@ The master `skills/SKILL.md` contains decision trees that route to the appropria
 User Request
     │
     ├─ "Add authentication" → setup/
-    ├─ "Custom sign-in UI"  → customizing-auth-ui/
+    ├─ "Custom sign-in UI"  → custom-ui/
     ├─ "Organizations/RBAC" → managing-orgs/
     ├─ "Sync users to DB"   → syncing-users/
-    ├─ "Write auth tests"   → testing-auth/
+    ├─ "Write tests"        → testing/
     └─ "Next.js patterns"   → nextjs-patterns/
 ```
 
