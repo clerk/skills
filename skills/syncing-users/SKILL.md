@@ -5,10 +5,12 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # User Sync (Webhooks)
+
+**Workflow**: WebFetch the relevant doc URL below, then implement following the code examples from the docs.
 
 ## Decision Tree
 
@@ -20,7 +22,7 @@ metadata:
 
 ## Setup
 
-1. Create webhook endpoint
+1. Create webhook endpoint at `app/api/webhooks/route.ts`
 2. Dashboard → Webhooks → Add Endpoint
 3. Add `CLERK_WEBHOOK_SIGNING_SECRET` to env
 
@@ -28,20 +30,22 @@ metadata:
 
 `user.created` | `user.updated` | `user.deleted` | `organization.created` | `organizationMembership.created`
 
-## Best Practices
+## Critical Requirements
 
-- Use `verifyWebhook(req)` from `@clerk/nextjs/webhooks` (handles signature automatically)
-- Use upsert operations (events may arrive out of order)
-- Return fast, queue long operations
-- Handle all relevant event types in switch statement
+- Import from `@clerk/backend/webhooks`
+- Call `verifyWebhook(req)` passing the Request object directly (NOT `verifyWebhook({ headers, payload })`)
+- Return 200 on success, 400 on verification failure
+- Do NOT use svix directly
 
-## Anti-Patterns
+## Symptom-Based Pitfalls
 
-| Pattern | Problem | Fix |
-|---------|---------|-----|
-| Manual svix verification | Error-prone | Use `verifyWebhook()` helper |
-| Long webhook handler | Timeouts | Queue async work |
-| Only handle `user.created` | Missing updates/deletes | Handle all user events |
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Verification fails | Manual svix handling | Use `verifyWebhook(req)` single param |
+| "Missing svix headers" | Wrong import | Use `@clerk/backend/webhooks` |
+| Missing updates | Only `user.created` | Handle `user.updated` and `user.deleted` |
+| Timeouts | Long handler | Queue async work, return immediately |
+| Route not found | Wrong path | Use `app/api/webhooks/route.ts` |
 
 ## See Also
 
