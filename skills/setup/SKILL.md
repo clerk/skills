@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "1.0.0"
 ---
 
 # Adding Clerk

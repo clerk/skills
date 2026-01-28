@@ -5,7 +5,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.1.0"
+  version: "1.0.0"
 ---
 
 # User Sync (Webhooks)
