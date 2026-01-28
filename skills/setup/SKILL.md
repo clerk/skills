@@ -1,10 +1,11 @@
 ---
-name: clerk-setup
+name: setup
 description: Add Clerk authentication to any project by following the official quickstart guides.
 license: MIT
+allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "1.0.0"
 ---
 
 # Adding Clerk
@@ -147,10 +148,10 @@ Check `package.json` for existing auth libraries:
 
 ## See Also
 
-- `customizing-auth-ui/` - Custom sign-in/up components
+- `custom-flows/` - Custom sign-in/up components
 - `syncing-users/` - Webhook → database sync
 - `managing-orgs/` - B2B multi-tenant organizations
-- `testing-auth/` - E2E testing setup
+- `testing/` - E2E testing setup
 - `nextjs-patterns/` - Advanced Next.js patterns
 
 ## Documentation

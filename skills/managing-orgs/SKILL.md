@@ -1,57 +1,66 @@
 ---
 name: managing-orgs
-description: B2B multi-tenant apps with Clerk Organizations, RBAC, team workspaces.
+description: B2B multi-tenant apps with Clerk Organizations. Use for org-based routing, URL sync with org slug, RBAC, team workspaces, member management. Triggers on "organization", "B2B", "multi-tenant", "team workspace", "org slug", "URL sync".
+allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "1.1.0"
+  version: "1.0.0"
 ---
 
-# Managing Organizations (B2B)
+# Organizations (B2B)
 
-**Prerequisite**: Basic auth setup (`setup/`) - ClerkProvider, sign-in/up pages, middleware.
+**Workflow**: WebFetch the relevant doc URL below, then implement following the code examples from the docs.
 
-## Enable Organizations
+> **Prerequisite**: Enable Organizations in Clerk Dashboard first.
 
-Dashboard → Organizations → Settings → Enable → Configure roles.
+## Decision Tree
 
-## Templates
+| Task | Documentation |
+|------|---------------|
+| Overview | https://clerk.com/docs/guides/organizations/overview |
+| Org slugs in URLs | https://clerk.com/docs/guides/organizations/org-slugs-in-urls |
+| Roles & permissions | https://clerk.com/docs/guides/organizations/control-access/roles-and-permissions |
+| Check access | https://clerk.com/docs/guides/organizations/control-access/check-access |
+| Invitations | https://clerk.com/docs/guides/organizations/add-members/invitations |
+| OrganizationSwitcher | https://clerk.com/docs/reference/components/organization/organization-switcher |
 
-| Template | Use Case |
-|----------|----------|
-| `templates/org-switcher.tsx` | Org switching UI |
-| `templates/member-list.tsx` | Manage members |
-| `templates/invite-form.tsx` | Invite members |
-| `templates/rbac-check.tsx` | Role-based checks |
-| `templates/middleware-org.ts` | Require org |
-| `templates/sign-in-page.tsx` | Sign-in page |
-| `templates/sign-up-page.tsx` | Sign-up page |
+## Critical Patterns
 
-## Key Hooks
+### Get orgSlug from auth()
 
-```tsx
-import { useOrganization, useOrganizationList } from '@clerk/nextjs';
-const { organization, membership } = useOrganization();
-const { setActive, userMemberships } = useOrganizationList();
+```typescript
+import { auth } from '@clerk/nextjs/server'
+
+const { orgId, orgSlug } = await auth()
+```
+
+### Dynamic route with org slug
+
+```
+app/orgs/[slug]/page.tsx
+```
+
+### Role check with has()
+
+```typescript
+const { has } = await auth()
+if (!has({ role: 'org:admin' })) { /* forbidden */ }
 ```
 
 ## Default Roles
 
 `org:admin` (full access) | `org:member` (limited)
 
-## Common Pitfalls
+## Symptom-Based Pitfalls
 
-- **Create sign-in/sign-up pages** - `redirectToSignIn()` expects `/sign-in` to exist
-- **Enable Organizations in Dashboard first**
-- **Check `isLoaded` and `organization`** before accessing org data
-- **Use role keys** - `org:admin` not `Admin`
-- **Use `has()` for RBAC** - not string comparison
-- **Check auth before org context** in middleware
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `orgSlug` undefined | Not from auth() | `const { orgSlug } = await auth()` |
+| Role check fails | String comparison | Use `has({ role: 'org:admin' })` |
+| Org not found | Dashboard not enabled | Enable Organizations in Dashboard |
 
 ## See Also
 
-`syncing-users/` | `nextjs-patterns/`
-
-## Docs
-
-[Organizations](https://clerk.com/docs/organizations/overview) | [Custom Roles](https://clerk.com/docs/organizations/roles-permissions)
+- [Organizations Overview](https://clerk.com/docs/guides/organizations/overview)
+- [Org Slugs in URLs](https://clerk.com/docs/guides/organizations/org-slugs-in-urls)
