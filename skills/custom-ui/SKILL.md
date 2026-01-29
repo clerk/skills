@@ -27,14 +27,16 @@ metadata:
 | MFA | https://clerk.com/docs/guides/development/custom-flows/authentication/email-password-mfa |
 | Enterprise SSO | https://clerk.com/docs/guides/development/custom-flows/authentication/enterprise-connections |
 
-### Appearance
+### Component Customization
 
 | Task | Documentation |
 |------|---------------|
-| Overview | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/overview |
-| Layout options | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/layout |
-| Variables (colors, fonts) | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/variables |
-| Themes | https://clerk.com/docs/guides/customizing-clerk/appearance-prop/themes |
+| Appearance prop overview | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview |
+| Layout (structure, logo, buttons) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/layout |
+| Themes (pre-built dark/light) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes |
+| Variables (colors, fonts, spacing) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables |
+| CAPTCHA configuration | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha |
+| Bring your own CSS | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css |
 
 ## Custom Flow Mental Model
 
@@ -138,6 +140,9 @@ const handleSubmit = async () => {
 - [Custom Flows Overview](https://clerk.com/docs/guides/development/custom-flows/overview)
 - [useSignIn](https://clerk.com/docs/reference/hooks/use-sign-in)
 - [useSignUp](https://clerk.com/docs/reference/hooks/use-sign-up)
-- [Appearance Prop Overview](https://clerk.com/docs/guides/customizing-clerk/appearance-prop/overview)
-- [Layout Options](https://clerk.com/docs/guides/customizing-clerk/appearance-prop/layout)
-- [Variables Reference](https://clerk.com/docs/guides/customizing-clerk/appearance-prop/variables)
+- [Appearance Prop Overview](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview)
+- [Layout Options](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/layout)
+- [Themes](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes)
+- [Variables Reference](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables)
+- [CAPTCHA Configuration](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha)
+- [Bring Your Own CSS](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css)
