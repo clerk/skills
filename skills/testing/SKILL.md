@@ -25,36 +25,6 @@ Test auth = isolated session state. Each test needs fresh auth context.
 - `setupClerkTestingToken()` bypasses bot detection
 - `storageState` persists auth between tests for speed
 
-## Minimal Pattern
-
-```typescript
-// global.setup.ts
-import { clerkSetup } from '@clerk/testing/playwright'
-import { test as setup } from '@playwright/test'
-
-setup('global setup', async ({}) => {
-  await clerkSetup()
-})
-
-// playwright.config.ts
-projects: [
-  { name: 'global setup', testMatch: /global\.setup\.ts/ },
-  {
-    name: 'tests',
-    dependencies: ['global setup'],
-    use: { storageState: 'playwright/.clerk/user.json' }  // Reuse auth
-  }
-]
-
-// my-test.spec.ts
-import { setupClerkTestingToken } from '@clerk/testing/playwright'
-
-test('authenticated flow', async ({ page }) => {
-  await setupClerkTestingToken({ page })
-  await page.goto('/dashboard')
-})
-```
-
 ## Workflow
 
 1. Identify test framework (Playwright or Cypress)
@@ -84,5 +54,4 @@ test('authenticated flow', async ({ page }) => {
 
 ## See Also
 
-- [Testing Overview](https://clerk.com/docs/guides/development/testing/overview)
-- [Demo Repo](https://github.com/clerk/clerk-playwright-nextjs)
+- [Demo Repo](https://github.com/clerk/clerk-playwright-nextjs/tree/95c7189a48c24d7e9e9744897040aa9418f68ac2/e2e)
