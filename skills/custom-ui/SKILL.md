@@ -71,12 +71,3 @@ metadata:
 | Logo not showing | Put `logoImageUrl` inside `layout: {}` |
 | Social buttons wrong | Add `socialButtonsVariant: 'iconButton'` in `layout` |
 | Styling not working | Use appearance prop, not direct CSS (unless with bring-your-own-css) |
-
-## See Also
-
-- [Appearance Prop Overview](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview)
-- [Layout Options](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/layout)
-- [Themes](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes)
-- [Variables Reference](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables)
-- [CAPTCHA Configuration](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha)
-- [Bring Your Own CSS](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css)
