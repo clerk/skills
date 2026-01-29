@@ -63,11 +63,38 @@ Ensure `clerkMiddleware()` doesn't protect `/api/webhooks(.*)` path.
 
 ### Verify Webhook
 
-Use correct import and single parameter:
+**Recommended**: Use Clerk's helper (handles everything):
 
 ```typescript
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
 const evt = await verifyWebhook(req)  // Pass request directly
+```
+
+**Manual (Svix)**: For unsupported frameworks or custom implementations:
+
+```typescript
+import { Webhook } from "svix";
+
+const webhook = new Webhook(process.env.CLERK_WEBHOOK_SIGNING_SECRET)
+
+export async function POST(req: Request) {
+  const svix_id = req.headers.get("svix-id") ?? ""
+  const svix_timestamp = req.headers.get("svix-timestamp") ?? ""
+  const svix_signature = req.headers.get("svix-signature") ?? ""
+  const body = await req.text()
+
+  try {
+    const msg = webhook.verify(body, {
+      "svix-id": svix_id,
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
+    })
+    // msg.type, msg.data available after verification
+    return new Response("OK", { status: 200 })
+  } catch (err) {
+    return new Response("Bad Request", { status: 400 })
+  }
+}
 ```
 
 ### Type-Safe Events
