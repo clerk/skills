@@ -25,7 +25,7 @@ Based on what you're trying to do, here's the right skill to use:
 - Server Actions, caching
 - API route protection
 
-**B2B / Organizations** → Use `clerk-managing-orgs`
+**B2B / Organizations** → Use `clerk-orgs`
 - Multi-tenant apps
 - Organization slugs in URLs
 - Roles, permissions, RBAC
@@ -47,7 +47,7 @@ If you know your task, you can directly access:
 - `/clerk-setup` - Framework setup
 - `/clerk-custom-ui` - Custom flows
 - `/clerk-nextjs-patterns` - Next.js patterns
-- `/clerk-managing-orgs` - Organizations
+- `/clerk-orgs` - Organizations
 - `/clerk-syncing-users` - Webhooks
 - `/clerk-testing` - Testing
 
