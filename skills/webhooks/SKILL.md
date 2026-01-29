@@ -31,15 +31,53 @@ metadata:
 
 ## Supported Events
 
-| Event | When | Use Case |
-|-------|------|----------|
-| `user.created` | New user registers | Insert to database |
-| `user.updated` | User info changes | Sync updates |
-| `user.deleted` | User deletes account | Archive/delete record |
-| `organization.created` | New org created | Track creation |
-| `organizationMembership.created` | User joins org | Track membership |
+**User Events**
+- `user.created` - New user registers or created via API
+- `user.updated` - User info changes
+- `user.deleted` - User deletes account
 
-Full list in Dashboard → Webhooks → Event Catalog
+**Organization Events**
+- `organization.created` - New org created
+- `organization.updated` - Org info changes
+- `organization.deleted` - Org deleted
+- `organizationDomain.created` - Domain verified
+- `organizationDomain.updated` - Domain changes
+- `organizationDomain.deleted` - Domain removed
+- `organizationInvitation.created` - Invitation sent
+- `organizationInvitation.accepted` - Invitation accepted
+- `organizationInvitation.revoked` - Invitation revoked
+- `organizationMembership.created` - User joined org
+- `organizationMembership.updated` - Member role changed
+- `organizationMembership.deleted` - User removed from org
+
+**Roles & Permissions**
+- `role.created` - Custom role created
+- `role.updated` - Role updated
+- `role.deleted` - Role deleted
+- `permission.created` - Permission created
+- `permission.updated` - Permission updated
+- `permission.deleted` - Permission deleted
+
+**Session Events**
+- `session.created` - Session started
+- `session.updated` - Session activity
+- `session.ended` - Session ended
+- `session.removed` - Session revoked
+- `session.revoked` - Session manually revoked
+- `session.pending` - Session pending activation
+
+**Communication Events**
+- `email.created` - Email sent
+- `sms.created` - SMS sent
+
+**Other Events**
+- `invitation.created` - General invitation sent
+- `invitation.accepted` - Invitation accepted
+- `invitation.revoked` - Invitation revoked
+- `waitlistEntry.created` - User added to waitlist
+- `waitlistEntry.updated` - Waitlist status changed
+
+For full event details and payload structures, see Dashboard → Webhooks → Event Catalog
 
 ## When to Sync
 
