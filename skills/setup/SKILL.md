@@ -10,7 +10,7 @@ metadata:
 
 # Adding Clerk
 
-This skill guides you to set up Clerk for authentication by following the official quickstart documentation.
+This skill sets up Clerk for authentication by following the official quickstart documentation.
 
 ## Quick Reference
 
@@ -152,6 +152,7 @@ Check `package.json` for existing auth libraries:
 | HIGH | Missing middleware matcher | Include API routes: `matcher: ['/((?!.*\\..*|_next).*)', '/']` |
 | HIGH | ClerkProvider not at root | Must wrap entire app in root layout/App component |
 | HIGH | Auth routes not public | Allow `/sign-in`, `/sign-up` in middleware config |
+| HIGH | Landing page requires auth | To keep "/" public, exclude it: `matcher: ['/((?!.*\\..*|_next|^/$).*)', '/api/(.*)']` |
 | MEDIUM | Wrong import path | Server code uses `@clerk/nextjs/server`, client uses `@clerk/nextjs` |
 
 ## See Also
