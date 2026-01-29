@@ -56,6 +56,28 @@ metadata:
 | `socialButtonsVariant` | `'blockButton'` \| `'iconButton'` \| `'auto'` |
 | `socialButtonsPlacement` | `'top'` \| `'bottom'` |
 
+## shadcn Theme
+
+For shadcn/ui projects, use the built-in shadcn theme:
+
+```typescript
+import { shadcn } from '@clerk/themes'
+
+<ClerkProvider
+  appearance={{
+    theme: shadcn,
+  }}
+/>
+```
+
+Also import the shadcn CSS in your global.css:
+```css
+@import 'tailwindcss';
+@import '@clerk/themes/shadcn.css';
+```
+
+This auto-adapts to light/dark mode and requires Tailwind CSS v4+ (or manually pass variables for v3).
+
 ## Workflow
 
 1. Identify customization needs (colors, layout, theme, CSS)
