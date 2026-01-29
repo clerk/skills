@@ -22,14 +22,15 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 ## Skills
 
-| Skill | Purpose | Trigger Keywords |
-|-------|---------|------------------|
-| `setup` | Add Clerk to any framework | setup, integrate, sign-in |
-| `customizing-auth-ui` | Custom sign-in/up flows | custom UI, forms, hooks |
-| `syncing-users` | Webhook → DB sync | sync, webhook, Prisma, Drizzle |
-| `testing-auth` | E2E auth testing | test, Playwright, Cypress |
-| `managing-orgs` | Multi-tenant B2B | org, team, RBAC |
-| `nextjs-patterns` | Advanced Next.js patterns | middleware, Server Actions |
+| Skill | Purpose | When to Use | Type |
+|-------|---------|------------|------|
+| `/clerk` | **Clerk router** - Routes to the right skill | Always start here | Router |
+| `clerk-setup` | Add Clerk to any framework | New projects, framework setup | Auth Setup |
+| `clerk-custom-ui` | Custom sign-in/up components and appearance | Building custom forms, styling | UI Customization |
+| `clerk-nextjs-patterns` | Advanced Next.js patterns | Server Actions, middleware, caching | Framework Patterns |
+| `clerk-orgs` | Multi-tenant B2B organizations | Building team workspaces, RBAC | B2B SaaS |
+| `clerk-webhooks` | Real-time events and data syncing | Webhooks, database sync, notifications | Data Sync |
+| `clerk-testing` | E2E testing for auth flows | Writing Playwright/Cypress tests | Testing |
 
 ## Quick Start
 
@@ -48,30 +49,34 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 | You Say | Skill Used |
 |---------|------------|
-| "Add Clerk auth to my Next.js app" | `setup` |
-| "Build custom sign-in form with hooks" | `customizing-auth-ui` |
-| "Sync users to Prisma via webhooks" | `syncing-users` |
-| "Add Playwright tests for auth" | `testing-auth` |
-| "Set up organizations for B2B" | `managing-orgs` |
+| "Add Clerk auth to my Next.js app" | `clerk-setup` |
+| "Build custom sign-in form with styling" | `clerk-custom-ui` |
+| "Sync users to Prisma via webhooks" | `clerk-webhooks` |
+| "Add Playwright tests for auth" | `clerk-testing` |
+| "Set up organizations for my B2B app" | `clerk-orgs` |
+| "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 
 ## Repository Structure
 
 ```
 clerk-skills/
+├── .claude-plugin/
+│   └── marketplace.json         # Plugin registry
 ├── skills/
-│   ├── SKILL.md                 # Master skill (decision trees)
-│   ├── setup/
-│   │   ├── SKILL.md
-│   │   └── templates/
-│   ├── customizing-auth-ui/
-│   ├── syncing-users/
-│   ├── testing-auth/
-│   ├── managing-orgs/
-│   └── nextjs-patterns/
-│       ├── SKILL.md
-│       └── references/          # Detailed pattern docs
-├── commands/
-│   └── clerk.md                 # /clerk command
+│   ├── clerk/                   # Router skill
+│   │   └── SKILL.md
+│   ├── setup/                   # Framework setup
+│   │   └── SKILL.md
+│   ├── custom-ui/               # Component customization
+│   │   └── SKILL.md
+│   ├── nextjs-patterns/         # Next.js patterns
+│   │   └── SKILL.md
+│   ├── orgs/                    # Organizations (B2B)
+│   │   └── SKILL.md
+│   ├── webhooks/                # Webhooks & data sync
+│   │   └── SKILL.md
+│   └── testing/                 # E2E testing
+│       └── SKILL.md
 └── README.md
 ```
 
