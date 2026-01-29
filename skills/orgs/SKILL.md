@@ -29,7 +29,7 @@ metadata:
 | Invitations | https://clerk.com/docs/guides/organizations/add-members/invitations |
 | OrganizationSwitcher | https://clerk.com/docs/reference/components/organization/organization-switcher |
 | Verified domains | https://clerk.com/docs/guides/organizations/verified-domains |
-| Enterprise SSO | https://clerk.com/docs/guides/organizations/enterprise-sso |
+| Enterprise SSO | https://clerk.com/docs/guides/organizations/add-members/sso |
 
 ## Key Patterns
 
@@ -171,10 +171,3 @@ export default async function AdminPage({ params }: { params: { slug: string } }
 4. **Assign roles** - Default member role, promote to admin as needed
 5. **Build protected routes** - Use auth() to check orgSlug and roles
 6. **Use OrganizationSwitcher** - Let users switch between orgs
-
-## Advanced Features
-
-For production B2B apps, also see:
-
-- **Verified Domains**: https://clerk.com/docs/guides/organizations/verified-domains - Auto-assign users to orgs based on email domain
-- **Enterprise SSO**: https://clerk.com/docs/guides/organizations/enterprise-sso - SAML/OIDC for enterprise customers
