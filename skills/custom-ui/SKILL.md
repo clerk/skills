@@ -58,7 +58,7 @@ metadata:
 
 ## shadcn Theme
 
-**If your project has `components.json`** (shadcn/ui installed), use the shadcn theme:
+**If the project has `components.json`** (shadcn/ui installed), use the shadcn theme:
 
 ```typescript
 import { shadcn } from '@clerk/themes'
@@ -75,9 +75,6 @@ Also import shadcn CSS in your global.css:
 @import 'tailwindcss';
 @import '@clerk/themes/shadcn.css';
 ```
-
-Auto-adapts to light/dark mode. Requires Tailwind v4+ (or manually pass variables for v3).
-
 ## Workflow
 
 1. Identify customization needs (colors, layout, theme, CSS)
