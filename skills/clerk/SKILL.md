@@ -31,10 +31,10 @@ Based on what you're trying to do, here's the right skill to use:
 - Roles, permissions, RBAC
 - Member management
 
-**Sync users to database** → Use `clerk-syncing-users`
-- Webhook setup
-- User events
-- Database sync patterns
+**Webhooks** → Use `clerk-webhooks`
+- Real-time events
+- Data syncing
+- Notifications & integrations
 
 **E2E Testing** → Use `clerk-testing`
 - Playwright/Cypress setup
@@ -48,7 +48,7 @@ If you know your task, you can directly access:
 - `/clerk-custom-ui` - Custom flows
 - `/clerk-nextjs-patterns` - Next.js patterns
 - `/clerk-orgs` - Organizations
-- `/clerk-syncing-users` - Webhooks
+- `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
 
 Or describe what you need and I'll recommend the right one.
