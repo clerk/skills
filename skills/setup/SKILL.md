@@ -1,5 +1,5 @@
 ---
-name: setup
+name: clerk-setup
 description: Add Clerk authentication to any project by following the official quickstart guides.
 license: MIT
 allowed-tools: WebFetch

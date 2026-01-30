@@ -1,5 +1,5 @@
 ---
-name: testing
+name: clerk-testing
 description: E2E testing for Clerk apps. Use with Playwright or Cypress for auth flow tests.
 allowed-tools: WebFetch
 license: MIT

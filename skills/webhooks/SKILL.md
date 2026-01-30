@@ -1,5 +1,5 @@
 ---
-name: webhooks
+name: clerk-webhooks
 description: Clerk webhooks for real-time events and data syncing. Listen for user creation, updates, deletion, and organization events. Build event-driven features like database sync, notifications, integrations.
 allowed-tools: WebFetch
 license: MIT

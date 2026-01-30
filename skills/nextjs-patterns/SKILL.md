@@ -1,5 +1,5 @@
 ---
-name: nextjs-patterns
+name: clerk-nextjs-patterns
 description: Advanced Next.js patterns - middleware, Server Actions, caching with Clerk.
 license: MIT
 allowed-tools: WebFetch

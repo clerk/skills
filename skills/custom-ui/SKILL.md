@@ -1,5 +1,5 @@
 ---
-name: custom-ui
+name: clerk-custom-ui
 description: Customize Clerk component appearance - themes, layout, colors, fonts, CSS. Use for appearance styling, visual customization, branding.
 allowed-tools: WebFetch
 license: MIT

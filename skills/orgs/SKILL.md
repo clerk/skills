@@ -1,5 +1,5 @@
 ---
-name: orgs
+name: clerk-orgs
 description: Clerk Organizations for B2B SaaS - create multi-tenant apps with org switching, role-based access, verified domains, and enterprise SSO. Use for team workspaces, RBAC, org-based routing, member management.
 allowed-tools: WebFetch
 license: MIT
