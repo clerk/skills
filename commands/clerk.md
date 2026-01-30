@@ -37,13 +37,12 @@ Based on task type, load the appropriate skill:
 
 | Task | Skill | Files to Read |
 |------|-------|---------------|
-| Add auth | `adding-auth/` | SKILL.md + gotchas.md |
-| Custom UI | `customizing-auth-ui/` | SKILL.md + gotchas.md |
-| Sync users | `syncing-users/` | SKILL.md + gotchas.md |
-| Testing | `testing-auth/` | SKILL.md + gotchas.md |
-| Multi-tenant | `managing-orgs/` | SKILL.md + gotchas.md |
+| Add auth | `setup/` | SKILL.md |
+| Custom UI | `customizing-auth-ui/` | SKILL.md |
+| Sync users | `syncing-users/` | SKILL.md |
+| Testing | `testing-auth/` | SKILL.md |
+| Multi-tenant | `managing-orgs/` | SKILL.md |
 | Next.js patterns | `nextjs-patterns/` | SKILL.md + relevant reference |
-| Troubleshoot | `clerk-errors/` | SKILL.md |
 
 ### Step 5: Execute task
 
