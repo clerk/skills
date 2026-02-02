@@ -17,98 +17,24 @@ metadata:
 - Reviewing an existing auth implementation for gaps
 - Deciding between prebuilt vs custom flows (start here to understand what you'd need to replicate)
 
-## Quick Reference
+## Rules
 
-| Category | Impact | What Clerk Handles Automatically |
-|----------|--------|----------------------------------|
-| Password validation | CRITICAL | Strength requirements, breach detection, zxcvbn scoring |
-| Email verification | CRITICAL | OTP delivery, expiration, retry limits |
-| Bot protection | CRITICAL | CAPTCHA integration, rate limiting on attempts |
-| Session management | CRITICAL | Short-lived JWTs, automatic refresh, revocation |
-| Multi-factor auth | HIGH | TOTP, SMS, backup codes, recovery flows |
-| OAuth flows | HIGH | PKCE, state parameter, nonce validation, token exchange |
-| Error handling | HIGH | Generic messages that don't leak user existence |
-| Brute-force protection | HIGH | Account lockout after failed attempts, progressive delays |
-| Input sanitization | HIGH | XSS prevention in all user-supplied fields |
-| Accessibility | MEDIUM | ARIA labels, focus management, keyboard navigation, screen reader support |
-| Loading states | MEDIUM | Disabled buttons during submission, progress indicators |
-| Redirect safety | MEDIUM | Allowlisted redirect URLs, open-redirect prevention |
+Individual best practices are documented in the [`rules/`](rules/) directory, organized by category. See [`rules/_sections.md`](rules/_sections.md) for the full list of categories and impact levels.
 
-<!-- TODO: Add detailed section for each category below. Each should include:
-     - What the prebuilt component does automatically
-     - Code examples showing the correct custom implementation
-     - Clerk SDK helpers that make it easier (e.g. useSignIn, useSignUp hooks)
-     - Links to relevant Clerk docs -->
-
-### Password Validation
-
-<!-- TODO: Document password strength rules Clerk enforces by default (min length,
-     breach detection via zxcvbn). Show how to replicate with custom forms using
-     Clerk's password settings API or client-side validation. -->
-
-### Email Verification
-
-<!-- TODO: Document OTP flow lifecycle — delivery, expiration window, retry/resend
-     limits. Show prepareEmailAddressVerification / attemptEmailAddressVerification
-     usage in custom flows. -->
-
-### Bot Protection
-
-<!-- TODO: Document CAPTCHA integration options (Turnstile, etc.), how Clerk gates
-     sign-up/sign-in attempts, and how to configure bot protection in Dashboard. -->
-
-### Session Management
-
-<!-- TODO: Document short-lived JWT strategy, token refresh lifecycle, session
-     revocation. Cover getToken(), session.touch(), and multi-session handling. -->
-
-### Multi-Factor Auth
-
-<!-- TODO: Document TOTP enrollment flow, SMS fallback, backup codes generation
-     and redemption. Show how to check MFA status in sessionClaims and enforce
-     step-up auth in custom flows. -->
-
-### OAuth Flows
-
-<!-- TODO: Document PKCE flow, state/nonce validation, token exchange. Show
-     authenticateWithRedirect usage and how Clerk handles the callback. Cover
-     social connection configuration and account linking. -->
-
-### Error Handling
-
-<!-- TODO: Document the principle of generic error messages that don't reveal
-     user existence. Show Clerk's error object structure (clerkError.errors[])
-     and how to map codes to user-friendly messages without leaking info. -->
-
-### Brute-Force Protection
-
-<!-- TODO: Document account lockout thresholds, progressive delays, and how
-     Clerk signals lockout state. Show how to surface lockout messaging in
-     custom UIs. -->
-
-### Input Sanitization
-
-<!-- TODO: Document XSS vectors in auth forms (name fields, OAuth profile data,
-     error messages). Show safe rendering patterns for user-supplied content
-     returned from Clerk APIs. -->
-
-### Accessibility
-
-<!-- TODO: Document ARIA patterns for auth forms — labels, live regions for
-     errors, focus management after submission, keyboard navigation, screen
-     reader announcements. Reference WCAG 2.1 AA requirements. -->
-
-### Loading States
-
-<!-- TODO: Document button disabled states during async operations, progress
-     indicators, preventing double submission. Show patterns using isLoaded /
-     status from Clerk hooks. -->
-
-### Redirect Safety
-
-<!-- TODO: Document open-redirect risks, how Clerk validates redirect URLs
-     against allowlisted origins in Dashboard, and how to replicate that
-     validation in custom redirect logic. -->
+| Category | Impact | Rules |
+|----------|--------|-------|
+| Password validation | CRITICAL | [Strength requirements](rules/password-strength.md), [Breach detection](rules/password-breach-detection.md) |
+| Email verification | CRITICAL | [OTP lifecycle](rules/email-otp-lifecycle.md) |
+| Bot protection | CRITICAL | [CAPTCHA integration](rules/bot-captcha.md) |
+| Session management | CRITICAL | [Short-lived tokens](rules/session-short-lived-tokens.md) |
+| Multi-factor auth | HIGH | [MFA enforcement](rules/mfa-enforcement.md) |
+| OAuth flows | HIGH | [PKCE and state validation](rules/oauth-pkce.md) |
+| Error handling | HIGH | [Generic error messages](rules/error-generic-messages.md) |
+| Brute-force protection | HIGH | [Lockout messaging](rules/brute-lockout.md) |
+| Input sanitization | HIGH | [XSS prevention](rules/input-xss-prevention.md) |
+| Accessibility | MEDIUM | [Auth form patterns](rules/a11y-form-patterns.md) |
+| Loading states | MEDIUM | [Submit state handling](rules/loading-submit-states.md) |
+| Redirect safety | MEDIUM | [URL validation](rules/redirect-url-validation.md) |
 
 ## Common Pitfalls
 
@@ -124,10 +50,6 @@ metadata:
 | Long-lived sessions without refresh | MEDIUM | Use short-lived tokens with rotation; Clerk does this by default |
 | Missing loading/disabled states on submit buttons | MEDIUM | Prevent double submissions and show feedback |
 | No keyboard navigation in custom auth forms | MEDIUM | Test tab order, focus traps in modals, enter-to-submit |
-
-<!-- TODO: Expand pitfalls table with more entries as individual sections above
-     are fleshed out. Each section will likely surface additional pitfalls
-     specific to that category. -->
 
 ## See Also
 
