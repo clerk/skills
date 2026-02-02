@@ -57,6 +57,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
+| `clerk-best-practices`  | Auth best practices from prebuilt components | Building custom flows, security review | Best Practices     |
 
 ## Quick Start
 
@@ -101,7 +102,9 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── webhooks/                # Webhooks & data sync
 │   │   └── SKILL.md
-│   └── testing/                 # E2E testing
+│   ├── testing/                 # E2E testing
+│   │   └── SKILL.md
+│   └── best-practices/          # Auth best practices
 │       └── SKILL.md
 └── README.md
 ```
