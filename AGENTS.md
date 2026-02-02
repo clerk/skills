@@ -13,6 +13,7 @@ skills/
 ├── skills/
 │   ├── setup/                # Framework setup & basic auth
 │   ├── custom-ui/            # Custom sign-in/up components
+│   ├── best-practices/       # Auth best practices from prebuilt components
 │   ├── managing-orgs/        # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
 │   ├── syncing-users/        # Webhook → database sync
@@ -29,6 +30,7 @@ User Request
     │
     ├─ "Add authentication" → setup/
     ├─ "Custom sign-in UI"  → custom-ui/
+    ├─ "Auth best practices" → best-practices/
     ├─ "Organizations/RBAC" → managing-orgs/
     ├─ "Sync users to DB"   → syncing-users/
     ├─ "Write tests"        → testing/
