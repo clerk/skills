@@ -60,25 +60,6 @@ npx shadcn@latest add dashboard-01
 
 This creates a dashboard page and sidebar layout.
 
-## Add Skills
-
-Ask which agents the skills should be installed for by showing options from [`agents`](general#skills-agents).
-- Allow multiple selections.
-- Continue prompting until the user says `done` (max 10 agents).
-
-Construct the command as follows (replacing `npx` if applicable):
-
-```bash
-npx skills add clerk/skills --yes \
-  --skill "clerk" \
-  --skill "clerk-setup" \
-  --skill "clerk-nextjs-patterns" \
-  --skill "clerk-custom-ui" \
-  -a <agent1> -a <agent2>
-```
-
-Run from the project root.
-
 ## Add Clerk Features
 
 Review `<project_cwd>/.agents/skills/clerk` for available Clerk skills. Follow the recommended skill for setting up basic auth in Next.js.
