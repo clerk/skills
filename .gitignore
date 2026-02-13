@@ -1,0 +1,4 @@
+.vscode
+.env*
+!.env.example
+.claude
