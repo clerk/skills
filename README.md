@@ -87,6 +87,8 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 `/clerk-new` scaffolds a complete Clerk project end-to-end — framework setup, shadcn UI, Clerk SDK, middleware, auth pages, and a Clerk app instance via the platform API.
 
+Requires `CLERK_PLATFORM_TOKEN` in your root `.env` to create Clerk app instances via the platform API.
+
 Options can be natural language, recognized CLI flags, or a combination of both.
 
 ```bash
