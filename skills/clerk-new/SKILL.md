@@ -26,7 +26,6 @@ Bootstrap a Clerk project using the platform API and framework CLIs.
 **`one-shot`** — If arguments include `one shot`, `one-shot`, or `--one-shot`:
 - Accept all defaults and skip all interactive prompts.
 - Use `test-app` as the directory and `My Test App` as the Clerk app name.
-- Use shadcn.
 - Reconcile any additional args as overrides where they make sense.
 
 > [!IMPORTANT] Execution order
@@ -36,7 +35,7 @@ Bootstrap a Clerk project using the platform API and framework CLIs.
 
 ### Step 1: Generate App
 
-**Next.js** — Follow all instructions in [`references/nextjs`](references/nextjs).
+**Next.js** — Follow all instructions in [`references/nextjs`](references/nextjs.md).
 
 ---
 
@@ -53,10 +52,10 @@ Bootstrap a Clerk project using the platform API and framework CLIs.
 
 **Run command**
 
-```bash
-bash ./.claude/skills/clerk-new/scripts/setup.sh --t <template> -o <output> [name] 
-```
+> Replace `directory` with the one selected in Step 1 (or use '.' for cwd if that was chosen).
 
-Replace `directory` with the one selected in Step 1.
+```bash
+bash ./.claude/skills/clerk-new/scripts/setup.sh --t <template> -o <directory> [name] 
+```
 
 Exit task.
