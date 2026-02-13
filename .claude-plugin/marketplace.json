@@ -115,6 +115,21 @@
       "license": "MIT",
       "category": "authentication",
       "keywords": ["testing", "e2e", "playwright", "cypress"]
+    },
+    {
+      "name": "clerk-new",
+      "description": "Uses clerk platform API to create a new clerk project",
+      "version": "1.0.0",
+      "author": {
+        "name": "Clerk",
+        "email": "support@clerk.com"
+      },
+      "source": "./skills/clerk-new",
+      "homepage": "https://clerk.com/docs",
+      "repository": "https://github.com/clerk/skills",
+      "license": "MIT",
+      "category": "authentication",
+      "keywords": ["clerk", "platform", "automation", "authentication"]
     }
   ]
 }
