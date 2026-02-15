@@ -28,34 +28,10 @@ Bootstrap a Clerk project using the platform API and framework CLIs.
 - Use `test-app` as the directory and `My Test App` as the Clerk app name.
 - Reconcile any additional args as overrides where they make sense.
 
-> [!IMPORTANT] Execution order
-> Steps are sequential. **Do not read reference files for a later step before completing the current step.** Only read a reference when you are actively executing the step that requires it. In one-shot mode this is critical — all inputs for Step 1 are already known, so execute it immediately without reading any other files first.
-
 ---
-
-### Step 1: Generate App
-
+## Framework Router:
 **Next.js** — Follow all instructions in [`references/nextjs`](references/nextjs.md).
 
 ---
-
-### Step 2: Create Clerk App Instance
-
-**Collect options**
-
-| Option | CLI | Required | Default | Description |
-|--------|-----|----------|---------|-------------|
-| App name | `<name>` | yes | — | Display name for the Clerk app instance (capital case) |
-| Template | `-t <template>` | no | `b2b-saas` | Enables additional Clerk features: `b2b-saas`, `b2c-saas`, or `waitlist` |
-
-- If no app name was provided, prompt for one — suggest `My Clerk App`.
-
-**Run command**
-
-> Replace `directory` with the one selected in Step 1 (or use '.' for cwd if that was chosen).
-
-```bash
-bash ./.claude/skills/clerk-new/scripts/setup.sh --t <template> -o <directory> [name] 
-```
 
 Exit task.

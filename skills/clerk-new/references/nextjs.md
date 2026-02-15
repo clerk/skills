@@ -1,6 +1,9 @@
 # Next.js Project Setup
 
-## Create Next App
+> [!IMPORTANT] Execution order
+> Sections and steps are sequential. **Do not read reference files for a later step before completing the current step.** Only read a reference when you are actively executing the step that requires it. In one-shot mode this is critical — all inputs for Step 1 are already known, so execute it immediately without reading any other files first.
+
+## Step 1: Create Next App
 
 ### Collect options
 
@@ -35,19 +38,22 @@ Use `--use-npm --no-linter` as defaults unless overridden by arguments.
 npx create-next-app@latest [directory] [options] --disable-git --yes
 ```
 
-## Install Clerk
+## Step 2: Create Clerk App Intance
+Follow all instructions in [`references/clerk-platform`](clerk-platform.md)
+
+## Step 3: Install Clerk
 > If `npm` was not chosen as package manager, replace `npm install` in the following command with `<yarn|pnpm|bun> add`
 
 ```bash
 npm install @clerk/nextjs @clerk/themes
 ```
 
-## Add Clerk Features
+## Step 4: Add Clerk Features
 
 Invoke `/clerk` skill to see available Clerk skills. Follow the recommended skill for setting up basic auth in Next.js.
 
 > [!IMPORTANT]
-> Skip adding Clerk keys to `.env` — that's handled by the platform API in a later step.
+> Add the proper env vars for custom auth pages. Skip adding Clerk tokens to `.env.local` if they already exist.
 
 - If `waitlist` was selected as template → use `<Waitlist />` component.
 - Otherwise → use `<SignIn />` / `<SignUp />` components.
@@ -56,6 +62,7 @@ Invoke `/clerk` skill to see available Clerk skills. Follow the recommended skil
 
 Add `clerkMiddleware` with public routes for `/`, `/api(.*)`, and all auth pages (including `/waitlist(.*)` if applicable).
 
+Example:
 ```typescript
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
@@ -78,5 +85,4 @@ export default clerkMiddleware(async (auth, req) => {
 
 ### Custom UI
 
-- Add a header component with sign-in/sign-up (or waitlist) buttons when signed out, and `<UserButton />` when signed in.
-- Remove shadcn example components from `page.tsx` and `components/` — replace with the header and a clean landing page.
+- Add a header component to `/page.tsx` with sign-in/sign-up (or waitlist) buttons when signed out, and `<UserButton />` when signed in.
