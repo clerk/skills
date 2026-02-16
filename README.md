@@ -58,6 +58,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
+| `/clerk-bapi`           | Clerk Backend REST API explorer & executor   | Browsing or calling BAPI endpoints     | API Tool           |
 
 ## Quick Start
 
@@ -82,6 +83,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Add Playwright tests for auth"          | `clerk-testing`         |
 | "Set up organizations for my B2B app"    | `clerk-orgs`            |
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
+| "List all users via the Backend API"     | `clerk-bapi`            |
 
 ### Using /clerk-new
 
@@ -133,8 +135,12 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── webhooks/                # Webhooks & data sync
 │   │   └── SKILL.md
-│   └── testing/                 # E2E testing
-│       └── SKILL.md
+│   ├── testing/                 # E2E testing
+│   │   └── SKILL.md
+│   └── clerk-bapi/              # Backend REST API
+│       ├── SKILL.md
+│       ├── references/          # OpenAPI spec
+│       └── scripts/             # API browsing & execution
 └── README.md
 ```
 
@@ -148,6 +154,10 @@ For agents that support slash commands (Claude Code, OpenCode):
 /clerk fix "redirect_uri_mismatch" error
 
 /clerk-new one-shot biome bun
+
+/clerk-bapi tags
+/clerk-bapi GET /users
+/clerk-bapi Users
 ```
 
 ## Resources
