@@ -62,18 +62,22 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 ## Quick Start
 
-### 1. Get API Keys
+### 1. Set Up API Keys
 
-Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com) → **API Keys**.
+**Option A: Automatic** — Use `/clerk-new` to create a Clerk app instance and add keys to your `.env` automatically. Requires a platform token from the [Access Tokens](https://dashboard.clerk.com/settings/access-tokens) section of the Clerk dashboard:
 
-### 2. Set Environment Variables
+```bash
+CLERK_PLATFORM_TOKEN=pt_xxx
+```
+
+**Option B: Manual** — Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) → **API Keys** and add them to your `.env`:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
 CLERK_SECRET_KEY=sk_test_xxx
 ```
 
-### 3. Ask Your Agent
+### 2. Ask Your Agent
 
 | You Say                                  | Skill Used              |
 | ---------------------------------------- | ----------------------- |
@@ -87,9 +91,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 ### Using /clerk-new
 
-`/clerk-new` scaffolds a complete Clerk project end-to-end — framework setup, shadcn UI, Clerk SDK, middleware, auth pages, and a Clerk app instance via the platform API.
-
-Requires `CLERK_PLATFORM_TOKEN` in your root `.env` to create Clerk app instances via the platform API.
+`/clerk-new` scaffolds a complete Clerk project end-to-end — framework setup, shadcn UI, Clerk SDK, middleware, auth pages, and a Clerk app instance via the platform API. Requires `CLERK_PLATFORM_TOKEN` (see above).
 
 Options can be natural language, recognized CLI flags, or a combination of both.
 
