@@ -29,6 +29,9 @@ Bootstrap a Clerk project using the platform API and framework CLIs.
 - Reconcile any additional args as overrides where they make sense.
 
 ---
+
+> **Do not explore or discover files.** Each step explicitly states which files to read — only read those, when that step requires it.
+
 ## Framework Router:
 **Next.js** — Follow all instructions in [`references/nextjs`](references/nextjs.md).
 

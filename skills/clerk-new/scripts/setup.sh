@@ -19,6 +19,11 @@ if [ -z "$API_KEY" ]; then
 fi
 
 # Check for required dependencies
+if ! command -v curl &> /dev/null; then
+  echo "Error: curl is required but not installed." >&2
+  exit 1
+fi
+
 if ! command -v node &> /dev/null; then
   echo "Error: Node.js is required but not installed. Install from: https://nodejs.org" >&2
   exit 1
@@ -27,27 +32,24 @@ fi
 # Default values
 TEMPLATE="b2b-saas"
 OUTPUT_DIR_ARG=""
+PROJECT_NAME=""
 
-# Parse command-line options
-while getopts "t:o:" opt; do
-  case $opt in
-    t) TEMPLATE="$OPTARG" ;;
-    o) OUTPUT_DIR_ARG="$OPTARG" ;;
-    \?)
+# Parse command-line options (supports flags and positional args in any order)
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -t) TEMPLATE="$2"; shift 2 ;;
+    -o) OUTPUT_DIR_ARG="$2"; shift 2 ;;
+    -h|--help)
       echo "Usage: $0 <name> [-t template] [-o output]" >&2
       echo "  <name>        Project name (required)" >&2
       echo "  -t template   Template: b2b-saas (default), b2c-saas, or waitlist" >&2
       echo "  -o output     Output directory (optional)" >&2
-      exit 1
+      exit 0
       ;;
+    -*) echo "Unknown option: $1" >&2; exit 1 ;;
+    *) PROJECT_NAME="$1"; shift ;;
   esac
 done
-
-# Shift past the parsed options
-shift $((OPTIND - 1))
-
-# Get project name from first remaining positional argument
-PROJECT_NAME="${1:-}"
 
 if [ -z "$PROJECT_NAME" ]; then
   echo "Error: Project name is required" >&2
@@ -84,8 +86,8 @@ RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/v1/platform/application
   }")
 
 # Split response body and HTTP status code
-HTTP_BODY=$(echo "$RESPONSE" | head -n -1)
 HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+HTTP_BODY=$(echo "$RESPONSE" | sed '$d')
 
 # Check for API errors
 if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then

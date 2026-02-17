@@ -89,30 +89,6 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
 | "List all users via the Backend API"     | `clerk-bapi`            |
 
-### Using /clerk-new
-
-`/clerk-new` scaffolds a complete Clerk project end-to-end — framework setup, shadcn UI, Clerk SDK, middleware, auth pages, and a Clerk app instance via the platform API. Requires `CLERK_PLATFORM_TOKEN` (see above).
-
-Options can be natural language, recognized CLI flags, or a combination of both.
-
-```bash
-# Interactive — walks through all options
-/clerk-new
-
-# One-shot — accepts all defaults, creates test-app/ instantly
-/clerk-new one-shot
-
-# One-shot with overrides (flags or natural language)
-/clerk-new one-shot biome bun
-/clerk-new one-shot --use-pnpm --eslint
-/clerk-new one-shot use bun with biome and the waitlist template
-
-# Dry run — prints commands without executing
-/clerk-new --dry-mode
-
-# Show all available options
-/clerk-new help
-```
 
 ## Repository Structure
 
@@ -144,6 +120,30 @@ clerk-skills/
 │       ├── references/          # OpenAPI spec
 │       └── scripts/             # API browsing & execution
 └── README.md
+```
+## Using /clerk-new
+
+`/clerk-new` scaffolds a complete Clerk project end-to-end — framework setup, shadcn UI, Clerk SDK, middleware, auth pages, and a Clerk app instance via the platform API. Requires `CLERK_PLATFORM_TOKEN` (see above).
+
+Options can be natural language, recognized CLI flags, or a combination of both.
+
+```bash
+# Interactive — walks through all options
+/clerk-new
+
+# One-shot — accepts all defaults, creates test-app/ instantly
+/clerk-new one-shot
+
+# One-shot with overrides (flags or natural language)
+/clerk-new one-shot biome bun
+/clerk-new one-shot --use-pnpm --eslint
+/clerk-new one-shot use bun with biome and the waitlist template
+
+# Dry run — prints commands without executing
+/clerk-new --dry-mode
+
+# Show all available options
+/clerk-new help
 ```
 
 ## Using /clerk Command

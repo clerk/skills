@@ -14,5 +14,5 @@
 > Replace `directory` with the one selected in previous step (or use '.' for cwd if that was chosen).
 
 ```bash
-bash ./.claude/skills/clerk-new/scripts/setup.sh --t <template> -o <directory> [name] 
+bash ./.claude/skills/clerk-new/scripts/setup.sh -t <template> -o <directory> [name]
 ```
