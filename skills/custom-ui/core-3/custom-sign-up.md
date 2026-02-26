@@ -68,17 +68,6 @@ const { error } = await signUp.update({
 })
 ```
 
-### Upsert (create or update)
-
-Conditionally creates a new sign-up or updates the existing one:
-
-```typescript
-const { error } = await signUp.upsert({
-  emailAddress: 'user@example.com',
-  password: 'securePassword123',
-})
-```
-
 ## Email / Phone Verification
 
 After creating a sign-up, verify the user's email or phone:
