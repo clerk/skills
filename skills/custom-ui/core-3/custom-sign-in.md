@@ -77,7 +77,9 @@ const { error } = await signIn.phoneCode.verifyCode({ code: '123456' })
 
 ## MFA (Second Factor)
 
-When the sign-in requires a second factor:
+A second factor is required when `signIn.status` is one of:
+- `'needs_second_factor'` — user has MFA enabled (TOTP, backup codes, etc.)
+- `'needs_client_trust'` — new device sign-in without MFA; requires email or phone code verification
 
 ```typescript
 // TOTP (Authenticator app)
