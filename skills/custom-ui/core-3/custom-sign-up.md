@@ -83,7 +83,8 @@ const { error } = await signUp.verifications.verifyPhoneCode({ code: '123456' })
 ### Email Link
 
 ```typescript
-const { error } = await signUp.verifications.sendEmailLink()
+// verificationUrl: where the user lands after clicking the email link (relative or absolute)
+const { error } = await signUp.verifications.sendEmailLink({ verificationUrl: '/verify' })
 // User clicks the link in their email to verify
 ```
 
