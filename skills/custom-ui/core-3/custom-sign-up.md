@@ -90,8 +90,8 @@ After successful sign-up and verification, call `finalize()` to activate the ses
 ```typescript
 await signUp.finalize({
   navigate: async ({ session, decorateUrl }) => {
-    if (session?.currentTask) {
-      const taskUrl = decorateUrl(`/sign-up/tasks/${session.currentTask}`)
+    if (session.currentTask) {
+      const taskUrl = decorateUrl(`/sign-up/tasks/${session.currentTask.key}`)
       router.push(taskUrl)
       return
     }
@@ -183,8 +183,8 @@ export default function SignUpPage() {
 
     await signUp.finalize({
       navigate: async ({ session, decorateUrl }) => {
-        if (session?.currentTask) {
-          router.push(decorateUrl(`/sign-up/tasks/${session.currentTask}`))
+        if (session.currentTask) {
+          router.push(decorateUrl(`/sign-up/tasks/${session.currentTask.key}`))
           return
         }
         router.push(decorateUrl('/'))

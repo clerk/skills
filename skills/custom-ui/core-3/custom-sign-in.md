@@ -132,8 +132,8 @@ After successful authentication, call `finalize()` to activate the session:
 await signIn.finalize({
   navigate: async ({ session, decorateUrl }) => {
     // Check for session tasks (e.g., forced password reset, MFA setup)
-    if (session?.currentTask) {
-      const taskUrl = decorateUrl(`/sign-in/tasks/${session.currentTask}`)
+    if (session.currentTask) {
+      const taskUrl = decorateUrl(`/sign-in/tasks/${session.currentTask.key}`)
       router.push(taskUrl)
       return
     }
@@ -203,8 +203,8 @@ export default function SignInPage() {
 
     await signIn.finalize({
       navigate: async ({ session, decorateUrl }) => {
-        if (session?.currentTask) {
-          router.push(decorateUrl(`/sign-in/tasks/${session.currentTask}`))
+        if (session.currentTask) {
+          router.push(decorateUrl(`/sign-in/tasks/${session.currentTask.key}`))
           return
         }
         router.push(decorateUrl('/'))
@@ -219,8 +219,8 @@ export default function SignInPage() {
 
     await signIn.finalize({
       navigate: async ({ session, decorateUrl }) => {
-        if (session?.currentTask) {
-          router.push(decorateUrl(`/sign-in/tasks/${session.currentTask}`))
+        if (session.currentTask) {
+          router.push(decorateUrl(`/sign-in/tasks/${session.currentTask.key}`))
           return
         }
         router.push(decorateUrl('/'))
