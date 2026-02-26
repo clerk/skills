@@ -146,100 +146,108 @@ errors?.global // ClerkGlobalHookError[] | null
 errors?.raw // ClerkError[] | null
 ```
 
-## Complete Example: Email/Password with Email Verification
+## Complete Example: Phone OTP Sign-Up
+
+From [the docs](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp). Uses phone OTP with inline comments for adapting to email OTP.
 
 ```tsx
 'use client'
-import { useState } from 'react'
-import { useSignUp } from '@clerk/nextjs'
+
+import * as React from 'react'
+import { useAuth, useSignUp } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 
 export default function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp()
+  const { isSignedIn } = useAuth()
   const router = useRouter()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [code, setCode] = useState('')
-  const [step, setStep] = useState<'register' | 'verify'>('register')
+  const handleSubmit = async (formData: FormData) => {
+    // For email OTP: collect the email address instead of the phone number
+    const phoneNumber = formData.get('phoneNumber') as string
 
-  async function handleRegister(e: React.FormEvent) {
-    e.preventDefault()
-    const { error } = await signUp.password({
-      emailAddress: email,
-      password,
-    })
-    if (error) return
+    // For email OTP: change create({ phoneNumber }) to create({ emailAddress })
+    const error = await signUp.create({ phoneNumber })
 
-    // Send email verification code
-    const { error: sendError } = await signUp.verifications.sendEmailCode()
-    if (sendError) return
-
-    setStep('verify')
+    // For email OTP: change sendPhoneCode() to sendEmailCode()
+    if (!error) await signUp.verifications.sendPhoneCode()
   }
 
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault()
-    const { error } = await signUp.verifications.verifyEmailCode({ code })
-    if (error) return
+  const handleVerify = async (formData: FormData) => {
+    const code = formData.get('code') as string
 
-    await signUp.finalize({
-      navigate: async ({ session, decorateUrl }) => {
-        const dest = session.currentTask
-          ? `/sign-up/tasks/${session.currentTask.key}`
-          : '/'
-        const url = decorateUrl(dest)
-        if (url.startsWith('http')) {
-          window.location.href = url
-        } else {
-          router.push(url)
-        }
-      },
-    })
+    // For email OTP: change verifyPhoneCode() to verifyEmailCode()
+    await signUp.verifications.verifyPhoneCode({ code })
+
+    if (signUp.status === 'complete') {
+      await signUp.finalize({
+        navigate: ({ session, decorateUrl }) => {
+          if (session?.currentTask) {
+            // Handle pending session tasks
+            // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
+            console.log(session?.currentTask)
+            return
+          }
+
+          const url = decorateUrl('/')
+          if (url.startsWith('http')) {
+            window.location.href = url
+          } else {
+            router.push(url)
+          }
+        },
+      })
+    }
   }
 
-  if (step === 'verify') {
+  if (signUp.status === 'complete' || isSignedIn) {
+    return null
+  }
+
+  if (
+    signUp.status === 'missing_requirements' &&
+    // For email OTP: check for phone_number instead of email_address
+    signUp.unverifiedFields.includes('phone_number') &&
+    signUp.missingFields.length === 0
+  ) {
     return (
-      <form onSubmit={handleVerify}>
-        <p>Check your email for a verification code.</p>
-        <input
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Verification code"
-        />
-        {errors?.fields?.code && <p>{errors.fields.code.message}</p>}
-        <button type="submit" disabled={fetchStatus === 'fetching'}>
-          Verify Email
-        </button>
-      </form>
+      <>
+        <h1>Verify your account</h1>
+        <form action={handleVerify}>
+          <div>
+            <label htmlFor="code">Code</label>
+            <input id="code" name="code" type="text" />
+          </div>
+          {errors.fields.code && <p>{errors.fields.code.message}</p>}
+          <button type="submit" disabled={fetchStatus === 'fetching'}>
+            Verify
+          </button>
+        </form>
+        {/* For email OTP: change sendPhoneCode() to sendEmailCode() */}
+        <button onClick={() => signUp.verifications.sendPhoneCode()}>I need a new code</button>
+      </>
     )
   }
 
   return (
-    <form onSubmit={handleRegister}>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-      />
-      {errors?.fields?.emailAddress && <p>{errors.fields.emailAddress.message}</p>}
+    <>
+      <h1>Sign up</h1>
+      <form action={handleSubmit}>
+        {/* For email OTP: collect the emailAddress instead */}
+        <div>
+          <label htmlFor="phoneNumber">Phone number</label>
+          <input id="phoneNumber" name="phoneNumber" type="tel" />
+          {errors.fields.phoneNumber && <p>{errors.fields.phoneNumber.message}</p>}
+        </div>
+        <button type="submit" disabled={fetchStatus === 'fetching'}>
+          Continue
+        </button>
+      </form>
+      {errors && <p>{JSON.stringify(errors, null, 2)}</p>}
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-      />
-      {errors?.fields?.password && <p>{errors.fields.password.message}</p>}
-
-      {errors?.global?.map((err, i) => <p key={i}>{err.message}</p>)}
-
-      <button type="submit" disabled={fetchStatus === 'fetching'}>
-        Sign Up
-      </button>
-    </form>
+      {/* Required for sign-up flows. Clerk's bot sign-up protection is enabled by default */}
+      <div id="clerk-captcha" />
+    </>
   )
 }
 ```
@@ -247,4 +255,5 @@ export default function SignUpPage() {
 ## Docs
 
 - [Custom sign-up flow](https://clerk.com/docs/custom-flows/overview)
+- [Email/phone OTP custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp)
 - [useSignUp() reference](https://clerk.com/docs/references/react/use-sign-up)
