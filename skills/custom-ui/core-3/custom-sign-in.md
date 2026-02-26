@@ -58,8 +58,8 @@ const { error } = await signIn.ticket({ ticket: 'ticket_abc123' })
 ### Email Code
 
 ```typescript
-// Send code
-const { error } = await signIn.emailCode.sendCode()
+// Send code (emailAddress is optional if a signIn already exists from a prior method call)
+const { error } = await signIn.emailCode.sendCode({ emailAddress: 'user@example.com' })
 
 // Verify code
 const { error } = await signIn.emailCode.verifyCode({ code: '123456' })
@@ -68,8 +68,8 @@ const { error } = await signIn.emailCode.verifyCode({ code: '123456' })
 ### Phone Code
 
 ```typescript
-// Send code
-const { error } = await signIn.phoneCode.sendCode()
+// Send code (phoneNumber is optional if a signIn already exists from a prior method call)
+const { error } = await signIn.phoneCode.sendCode({ phoneNumber: '+12015551234' })
 
 // Verify code
 const { error } = await signIn.phoneCode.verifyCode({ code: '123456' })
