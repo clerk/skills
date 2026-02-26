@@ -143,8 +143,8 @@ await signIn.finalize({
 })
 ```
 
-- `decorateUrl(path)` — decorates the URL with session info (required)
-- `session?.currentTask` — check for pending session tasks before redirecting
+- `decorateUrl(path)` — decorates the URL with session info (required to support Safari's Intelligent Tracking Prevention). May return an absolute URL.
+- `session.currentTask` — check for pending session tasks before redirecting
 
 ### Reset State
 
