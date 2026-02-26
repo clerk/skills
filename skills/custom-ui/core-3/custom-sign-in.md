@@ -179,108 +179,130 @@ errors?.raw // ClerkError[] | null
 
 ## Complete Example: Email/Password with MFA
 
+From [the docs](https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication). Supports SMS verification codes, authenticator app (TOTP), and backup codes.
+
 ```tsx
 'use client'
-import { useState } from 'react'
+
 import { useSignIn } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 
-export default function SignInPage() {
+export default function Page() {
   const { signIn, errors, fetchStatus } = useSignIn()
   const router = useRouter()
 
-  const [identifier, setIdentifier] = useState('')
-  const [password, setPassword] = useState('')
-  const [mfaCode, setMfaCode] = useState('')
-  const [step, setStep] = useState<'credentials' | 'mfa'>('credentials')
+  const handleSubmit = async (formData: FormData) => {
+    const emailAddress = formData.get('email') as string
+    const password = formData.get('password') as string
 
-  async function handleSignIn(e: React.FormEvent) {
-    e.preventDefault()
-    const { error } = await signIn.password({ identifier, password })
+    await signIn.password({
+      emailAddress,
+      password,
+    })
 
-    if (error) return // errors are available via `errors` object
-
-    if (signIn.status === 'needs_second_factor' || signIn.status === 'needs_client_trust') {
-      setStep('mfa')
-      return
+    // If you're using the authenticator app strategy, remove this check.
+    if (signIn.status === 'needs_second_factor') {
+      await signIn.mfa.sendPhoneCode()
     }
 
-    await signIn.finalize({
-      navigate: async ({ session, decorateUrl }) => {
-        const dest = session.currentTask
-          ? `/sign-in/tasks/${session.currentTask.key}`
-          : '/'
-        const url = decorateUrl(dest)
-        if (url.startsWith('http')) {
-          window.location.href = url
-        } else {
-          router.push(url)
-        }
-      },
-    })
+    if (signIn.status === 'complete') {
+      await signIn.finalize({
+        navigate: ({ session, decorateUrl }) => {
+          if (session?.currentTask) {
+            // Handle pending session tasks
+            // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
+            console.log(session?.currentTask)
+            return
+          }
+
+          const url = decorateUrl('/')
+          if (url.startsWith('http')) {
+            window.location.href = url
+          } else {
+            router.push(url)
+          }
+        },
+      })
+    }
   }
 
-  async function handleMFA(e: React.FormEvent) {
-    e.preventDefault()
-    const { error } = await signIn.mfa.verifyTOTP({ code: mfaCode })
-    if (error) return
+  const handleMFAVerification = async (formData: FormData) => {
+    const code = formData.get('code') as string
+    const useBackupCode = formData.get('useBackupCode') === 'on'
 
-    await signIn.finalize({
-      navigate: async ({ session, decorateUrl }) => {
-        const dest = session.currentTask
-          ? `/sign-in/tasks/${session.currentTask.key}`
-          : '/'
-        const url = decorateUrl(dest)
-        if (url.startsWith('http')) {
-          window.location.href = url
-        } else {
-          router.push(url)
-        }
-      },
-    })
+    if (useBackupCode) {
+      await signIn.mfa.verifyBackupCode({ code })
+    } else {
+      await signIn.mfa.verifyPhoneCode({ code })
+      // If you're using the authenticator app strategy, use the following method instead:
+      // await signIn.mfa.verifyTOTP({ code })
+    }
+
+    if (signIn.status === 'complete') {
+      await signIn.finalize({
+        navigate: ({ session, decorateUrl }) => {
+          if (session?.currentTask) {
+            // Handle pending session tasks
+            // See https://clerk.com/docs/guides/development/custom-flows/authentication/session-tasks
+            console.log(session?.currentTask)
+            return
+          }
+
+          const url = decorateUrl('/')
+          if (url.startsWith('http')) {
+            window.location.href = url
+          } else {
+            router.push(url)
+          }
+        },
+      })
+    }
   }
 
-  if (step === 'mfa') {
+  if (signIn.status === 'needs_second_factor') {
     return (
-      <form onSubmit={handleMFA}>
-        <input
-          type="text"
-          value={mfaCode}
-          onChange={(e) => setMfaCode(e.target.value)}
-          placeholder="Enter MFA code"
-        />
-        {errors?.fields?.code && <p>{errors.fields.code.message}</p>}
-        <button type="submit" disabled={fetchStatus === 'fetching'}>
-          Verify
-        </button>
-      </form>
+      <div>
+        <h1>Verify your account</h1>
+        <form action={handleMFAVerification}>
+          <div>
+            <label htmlFor="code">Code</label>
+            <input id="code" name="code" type="text" />
+            {errors.fields.code && <p>{errors.fields.code.message}</p>}
+          </div>
+          <div>
+            <label>
+              Use backup code
+              <input type="checkbox" name="useBackupCode" />
+            </label>
+          </div>
+          <button type="submit" disabled={fetchStatus === 'fetching'}>
+            Verify
+          </button>
+        </form>
+      </div>
     )
   }
 
   return (
-    <form onSubmit={handleSignIn}>
-      <input
-        type="email"
-        value={identifier}
-        onChange={(e) => setIdentifier(e.target.value)}
-        placeholder="Email"
-      />
-      {errors?.fields?.identifier && <p>{errors.fields.identifier.message}</p>}
-
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-      />
-      {errors?.fields?.password && <p>{errors.fields.password.message}</p>}
-
-      {errors?.global?.map((err, i) => <p key={i}>{err.message}</p>)}
-
-      <button type="submit" disabled={fetchStatus === 'fetching'}>
-        Sign In
-      </button>
-    </form>
+    <>
+      <h1>Sign in</h1>
+      <form action={handleSubmit}>
+        <div>
+          <label htmlFor="email">Enter email address</label>
+          <input id="email" name="email" type="email" />
+          {errors.fields.identifier && <p>{errors.fields.identifier.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="password">Enter password</label>
+          <input id="password" name="password" type="password" />
+          {errors.fields.password && <p>{errors.fields.password.message}</p>}
+        </div>
+        <button type="submit" disabled={fetchStatus === 'fetching'}>
+          Continue
+        </button>
+      </form>
+      {errors && <p>{JSON.stringify(errors, null, 2)}</p>}
+    </>
   )
 }
 ```
@@ -288,4 +310,5 @@ export default function SignInPage() {
 ## Docs
 
 - [Custom sign-in flow](https://clerk.com/docs/custom-flows/overview)
+- [MFA custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication)
 - [useSignIn() reference](https://clerk.com/docs/references/react/use-sign-in)
