@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # Next.js Patterns
@@ -36,6 +36,13 @@ Server vs Client = different auth APIs:
 
 Never mix them. Server Components use server imports, Client Components use hooks.
 
+Key properties from `auth()`:
+- `isAuthenticated` — boolean, replaces the `!!userId` pattern
+- `sessionStatus` — `'active'` | `'pending'`, for detecting incomplete session tasks
+- `userId`, `orgId`, `orgSlug`, `has()`, `protect()` — unchanged
+
+> **Core 2:** `isAuthenticated` and `sessionStatus` are not available. Check `!!userId` instead.
+
 ## Minimal Pattern
 
 ```typescript
@@ -43,11 +50,27 @@ Never mix them. Server Components use server imports, Client Components use hook
 import { auth } from '@clerk/nextjs/server'
 
 export default async function Page() {
-  const { userId } = await auth()  // MUST await!
-  if (!userId) return <p>Not signed in</p>
+  const { isAuthenticated, userId } = await auth()  // MUST await!
+  if (!isAuthenticated) return <p>Not signed in</p>
   return <p>Hello {userId}</p>
 }
 ```
+
+> **Core 2:** `isAuthenticated` is not available. Use `if (!userId)` instead.
+
+### Conditional Rendering with `<Show>`
+
+For client-side conditional rendering based on auth state:
+
+```tsx
+import { Show } from '@clerk/nextjs'
+
+<Show when="signed-in" fallback={<p>Please sign in</p>}>
+  <Dashboard />
+</Show>
+```
+
+> **Core 2:** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `custom-ui/core-3/show-component.md` for the full migration table.
 
 ## Common Pitfalls
 

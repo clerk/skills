@@ -6,14 +6,16 @@
 import { auth } from '@clerk/nextjs/server';
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) {
+  const { isAuthenticated, userId } = await auth();
+  if (!isAuthenticated) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const data = await db.data.findMany({ where: { userId } });
   return Response.json(data);
 }
 ```
+
+> **Core 2:** `isAuthenticated` is not available. Use `if (!userId)` instead.
 
 ## 401 vs 403
 
@@ -22,8 +24,8 @@ export async function GET() {
 
 ```typescript
 export async function DELETE(req: Request) {
-  const { userId, has } = await auth();
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const { isAuthenticated, has } = await auth();
+  if (!isAuthenticated) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
   const isAdmin = await has({ role: 'org:admin' });
   if (!isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });

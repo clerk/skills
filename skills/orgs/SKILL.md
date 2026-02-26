@@ -5,7 +5,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # Organizations (B2B SaaS)
@@ -152,6 +152,64 @@ export default async function AdminPage({ params }: { params: { slug: string } }
   return <div>Admin settings for {orgSlug}</div>
 }
 ```
+
+## Conditional Rendering with `<Show>`
+
+Use `<Show>` for role-based conditional rendering in client components:
+
+```tsx
+import { Show } from '@clerk/nextjs'
+
+<Show when={{ role: 'org:admin' }}>
+  <AdminPanel />
+</Show>
+
+<Show when={{ permission: 'org:billing:manage' }}>
+  <BillingSettings />
+</Show>
+```
+
+> **Core 2:** Use `<Protect role="org:admin">` and `<Protect permission="org:billing:manage">` instead of `<Show>`.
+
+## Billing Checks
+
+The `has()` method supports billing plan and feature checks for gating access:
+
+```typescript
+const { has } = await auth()
+
+has({ plan: 'gold' })        // Check subscription plan
+has({ feature: 'widgets' })  // Check feature entitlement
+```
+
+> **Core 2:** `has()` only supports `role` and `permission` parameters. Billing checks are not available.
+
+## Session Tasks
+
+When personal accounts are disabled, users must choose an organization after sign-in. This is handled by the `choose-organization` session task:
+
+```tsx
+import { TaskChooseOrganization } from '@clerk/nextjs'
+
+// Renders when user must select an org
+<TaskChooseOrganization redirectUrlComplete="/dashboard" />
+```
+
+> **Core 2:** Session tasks are not available. Use `<OrganizationSwitcher>` for org selection.
+
+## Enterprise SSO
+
+Organizations can use Enterprise SSO (SAML/OIDC) for member authentication:
+
+```typescript
+// Strategy name for Enterprise SSO
+strategy: 'enterprise_sso'
+
+// Access enterprise accounts on user object
+user.enterpriseAccounts
+```
+
+> **Core 2:** Uses `strategy: 'saml'` instead of `strategy: 'enterprise_sso'`, and `user.samlAccounts` instead of `user.enterpriseAccounts`.
 
 ## Common Pitfalls
 

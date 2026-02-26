@@ -1,7 +1,7 @@
 {
   "name": "clerk-nextjs-patterns",
   "description": "Advanced Next.js patterns - middleware, Server Actions, caching with Clerk",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": {
     "name": "Clerk",
     "email": "support@clerk.com"

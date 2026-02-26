@@ -38,7 +38,7 @@ Based on task type, load the appropriate skill:
 | Task | Skill | Files to Read |
 |------|-------|---------------|
 | Add auth | `setup/` | SKILL.md |
-| Custom UI | `customizing-auth-ui/` | SKILL.md |
+| Custom UI | `customizing-auth-ui/` | SKILL.md + core-2/ or core-3/ references |
 | Sync users | `syncing-users/` | SKILL.md |
 | Testing | `testing-auth/` | SKILL.md |
 | Multi-tenant | `managing-orgs/` | SKILL.md |
