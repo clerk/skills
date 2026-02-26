@@ -131,14 +131,16 @@ After successful authentication, call `finalize()` to activate the session:
 ```typescript
 await signIn.finalize({
   navigate: async ({ session, decorateUrl }) => {
-    // Check for session tasks (e.g., forced password reset, MFA setup)
-    if (session.currentTask) {
-      const taskUrl = decorateUrl(`/sign-in/tasks/${session.currentTask.key}`)
-      router.push(taskUrl)
-      return
+    const destination = session.currentTask
+      ? `/sign-in/tasks/${session.currentTask.key}`
+      : '/'
+    const url = decorateUrl(destination)
+    // decorateUrl may return an absolute URL for Safari ITP
+    if (url.startsWith('http')) {
+      window.location.href = url
+    } else {
+      router.push(url)
     }
-    const url = decorateUrl('/')
-    router.push(url)
   },
 })
 ```
@@ -203,11 +205,15 @@ export default function SignInPage() {
 
     await signIn.finalize({
       navigate: async ({ session, decorateUrl }) => {
-        if (session.currentTask) {
-          router.push(decorateUrl(`/sign-in/tasks/${session.currentTask.key}`))
-          return
+        const dest = session.currentTask
+          ? `/sign-in/tasks/${session.currentTask.key}`
+          : '/'
+        const url = decorateUrl(dest)
+        if (url.startsWith('http')) {
+          window.location.href = url
+        } else {
+          router.push(url)
         }
-        router.push(decorateUrl('/'))
       },
     })
   }
@@ -219,11 +225,15 @@ export default function SignInPage() {
 
     await signIn.finalize({
       navigate: async ({ session, decorateUrl }) => {
-        if (session.currentTask) {
-          router.push(decorateUrl(`/sign-in/tasks/${session.currentTask.key}`))
-          return
+        const dest = session.currentTask
+          ? `/sign-in/tasks/${session.currentTask.key}`
+          : '/'
+        const url = decorateUrl(dest)
+        if (url.startsWith('http')) {
+          window.location.href = url
+        } else {
+          router.push(url)
         }
-        router.push(decorateUrl('/'))
       },
     })
   }

@@ -90,13 +90,16 @@ After successful sign-up and verification, call `finalize()` to activate the ses
 ```typescript
 await signUp.finalize({
   navigate: async ({ session, decorateUrl }) => {
-    if (session.currentTask) {
-      const taskUrl = decorateUrl(`/sign-up/tasks/${session.currentTask.key}`)
-      router.push(taskUrl)
-      return
+    const destination = session.currentTask
+      ? `/sign-up/tasks/${session.currentTask.key}`
+      : '/'
+    const url = decorateUrl(destination)
+    // decorateUrl may return an absolute URL for Safari ITP
+    if (url.startsWith('http')) {
+      window.location.href = url
+    } else {
+      router.push(url)
     }
-    const url = decorateUrl('/')
-    router.push(url)
   },
 })
 ```
@@ -183,11 +186,15 @@ export default function SignUpPage() {
 
     await signUp.finalize({
       navigate: async ({ session, decorateUrl }) => {
-        if (session.currentTask) {
-          router.push(decorateUrl(`/sign-up/tasks/${session.currentTask.key}`))
-          return
+        const dest = session.currentTask
+          ? `/sign-up/tasks/${session.currentTask.key}`
+          : '/'
+        const url = decorateUrl(dest)
+        if (url.startsWith('http')) {
+          window.location.href = url
+        } else {
+          router.push(url)
         }
-        router.push(decorateUrl('/'))
       },
     })
   }
