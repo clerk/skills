@@ -2,30 +2,6 @@
 
 Build a custom sign-in experience using the `useSignIn()` hook.
 
-> **Core 2:** The `useSignIn()` hook returns a completely different shape in Core 2. If the project uses `@clerk/nextjs` v5–v6, `@clerk/clerk-react` v5–v6, or `@clerk/clerk-expo` v1–v2, see `core-2/custom-sign-in.md` instead. Key differences: returns `{ signIn, isLoaded, setActive }`, uses `create()` / `prepareFirstFactor()` / `attemptFirstFactor()` methods, and `setActive({ session: signIn.createdSessionId })` to finalize. Errors use try/catch with `isClerkAPIResponseError()`.
-
-## Quick Reference: Core 2 → Current
-
-| Core 2 | Current |
-|--------|---------|
-| `signIn.create({ identifier, password })` | `signIn.password({ identifier, password })` |
-| `signIn.authenticateWithRedirect({ strategy: 'oauth_google' })` | `signIn.sso({ strategy: 'oauth_google' })` |
-| `signIn.authenticateWithPasskey()` | `signIn.passkey({ flow: 'discoverable' })` |
-| `signIn.prepareFirstFactor({ strategy: 'email_code' })` | `signIn.emailCode.sendCode()` |
-| `signIn.attemptFirstFactor({ strategy: 'email_code', code })` | `signIn.emailCode.verifyCode({ code })` |
-| `signIn.prepareFirstFactor({ strategy: 'phone_code' })` | `signIn.phoneCode.sendCode()` |
-| `signIn.attemptFirstFactor({ strategy: 'phone_code', code })` | `signIn.phoneCode.verifyCode({ code })` |
-| `signIn.prepareSecondFactor({ strategy: 'email_code' })` | `signIn.mfa.sendEmailCode()` |
-| `signIn.attemptSecondFactor({ strategy: 'email_code', code })` | `signIn.mfa.verifyEmailCode({ code })` |
-| `signIn.attemptSecondFactor({ strategy: 'phone_code', code })` | `signIn.mfa.verifyPhoneCode({ code })` |
-| `signIn.attemptSecondFactor({ strategy: 'totp', code })` | `signIn.mfa.verifyTOTP({ code })` |
-| `signIn.attemptSecondFactor({ strategy: 'backup_code', code })` | `signIn.mfa.verifyBackupCode({ code })` |
-| `signIn.prepareFirstFactor({ strategy: 'reset_password_email_code' })` | `signIn.resetPasswordEmailCode.sendCode()` |
-| `signIn.attemptFirstFactor({ strategy: 'reset_password_email_code', code })` | `signIn.resetPasswordEmailCode.verifyCode({ code })` |
-| `signIn.resetPassword({ password })` | `signIn.resetPasswordEmailCode.submitPassword({ password })` |
-| `setActive({ session: signIn.createdSessionId })` | `signIn.finalize({ navigate })` |
-| try/catch with `isClerkAPIResponseError()` | `errors.fields`, `errors.global`, `errors.raw` |
-
 ## Hook API
 
 ```typescript

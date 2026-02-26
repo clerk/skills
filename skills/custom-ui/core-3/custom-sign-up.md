@@ -2,22 +2,6 @@
 
 Build a custom sign-up experience using the `useSignUp()` hook.
 
-> **Core 2:** The `useSignUp()` hook returns a completely different shape in Core 2. If the project uses `@clerk/nextjs` v5–v6, `@clerk/clerk-react` v5–v6, or `@clerk/clerk-expo` v1–v2, see `core-2/custom-sign-up.md` instead. Key differences: returns `{ signUp, isLoaded, setActive }`, uses `create()` / `prepareVerification()` / `attemptVerification()` methods, and `setActive({ session: signUp.createdSessionId })` to finalize. Errors use try/catch with `isClerkAPIResponseError()`.
-
-## Quick Reference: Core 2 → Current
-
-| Core 2 | Current |
-|--------|---------|
-| `signUp.create({ emailAddress, password })` | `signUp.password({ emailAddress, password })` |
-| `signUp.authenticateWithRedirect()` | `signUp.sso()` |
-| `signUp.prepareVerification({ strategy: 'email_code' })` | `signUp.verifications.sendEmailCode()` |
-| `signUp.attemptVerification({ strategy: 'email_code', code })` | `signUp.verifications.verifyEmailCode({ code })` |
-| `signUp.prepareVerification({ strategy: 'phone_code' })` | `signUp.verifications.sendPhoneCode()` |
-| `signUp.attemptVerification({ strategy: 'phone_code', code })` | `signUp.verifications.verifyPhoneCode({ code })` |
-| `signUp.prepareVerification({ strategy: 'email_link' })` | `signUp.verifications.sendEmailLink()` |
-| `setActive({ session: signUp.createdSessionId })` | `signUp.finalize({ navigate })` |
-| try/catch with `isClerkAPIResponseError()` | `errors.fields`, `errors.global`, `errors.raw` |
-
 ## Hook API
 
 ```typescript
