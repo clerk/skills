@@ -111,15 +111,7 @@ await signUp.finalize({
 
 ### Transferable Sign-Ups
 
-If `signUp.isTransferable` is `true`, the identifier matches an existing user — transfer to sign-in instead:
-
-```typescript
-if (signUp.isTransferable) {
-  // Redirect to sign-in page
-  router.push('/sign-in')
-  return
-}
-```
+If `signUp.isTransferable` is `true`, the identifier matches an existing user and the sign-up should be transferred to a sign-in flow. This involves coordinating between sign-up and sign-in resources. See the [transferable sign-up docs](https://clerk.com/docs/custom-flows/overview) for the full implementation.
 
 ### Reset State
 
