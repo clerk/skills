@@ -45,10 +45,14 @@ const { error } = await signUp.web3({ strategy: 'web3_solana_signature' })
 
 ### Update (add fields to existing sign-up)
 
+Use `update()` to add optional fields (name, metadata, legal acceptance, locale) to an existing sign-up before finalization.
+
 ```typescript
 const { error } = await signUp.update({
   firstName: 'Jane',
   lastName: 'Doe',
+  unsafeMetadata: { referralSource: 'twitter' },
+  legalAccepted: true,
 })
 ```
 
