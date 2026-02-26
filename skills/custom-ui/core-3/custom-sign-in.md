@@ -32,6 +32,8 @@ const { error } = await signIn.password({
 ```typescript
 const { error } = await signIn.sso({
   strategy: 'oauth_google', // or 'oauth_github', 'enterprise_sso', etc.
+  redirectUrl: '/dashboard', // where to go after SSO completes
+  redirectCallbackUrl: '/sso-callback', // intermediate callback route
 })
 ```
 
