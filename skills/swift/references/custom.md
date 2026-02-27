@@ -24,8 +24,8 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 ## Required Patterns
 
 1. Quickstart prerequisite audit
-- Resolve the iOS quickstart URL from the sibling `clerk-ios` README.
-- Build a checklist from the quickstart and verify the current project completed all required setup.
+- Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
+- Build a checklist from the visited markdown quickstart and verify the current project completed all required setup.
 - If required setup is missing (for example associated domains or required capabilities), add it before finishing custom auth implementation.
 
 2. Package products
@@ -34,10 +34,11 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 
 3. Environment inspection + normalization
 - Make a direct HTTP call to `/v1/environment` before implementation.
-- Build and surface:
+- Derive (agent-internal only):
   - normalized ClerkKitUI-style capability matrix
   - required-field matrix
 - Drive custom-flow implementation decisions from these matrices.
+- Do not serialize or add these matrices as source artifacts in the app codebase.
 
 4. Combined-entry default
 - Keep a combined sign-in-or-sign-up entry by default.
@@ -51,6 +52,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 6. Capability-matrix-driven implementation
 - Drive custom flow behavior from normalized ClerkKitUI-style capability mapping.
 - Do not rely on one-off raw environment checks.
+- Apply matrix outcomes to runtime flow logic only; do not add matrix models/constants/files to the project.
 
 7. Required-field coverage
 - Implement all required fields from required-field matrix.
@@ -67,7 +69,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 ## Verification Checklist
 
 1. Quickstart prerequisites are complete
-- Quickstart link was sourced from sibling `clerk-ios` README.
+- Quickstart link was sourced from installed `clerk-ios` package README, `.md` was appended, and the markdown page was visited/read.
 - Required project setup from quickstart is present (including associated domains/capabilities when required).
 
 2. No unrequested mode switcher
@@ -82,6 +84,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 
 5. Matrices created and used
 - Capability matrix and required-field matrix exist and drive the implementation.
+- Matrix artifacts are not written into project source files.
 
 6. Required fields covered
 - Required-field matrix has full coverage in custom UI.
