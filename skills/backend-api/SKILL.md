@@ -1,5 +1,5 @@
 ---
-name: clerk-bapi
+name: clerk-backend-api
 description: "Clerk backend REST API"
 argument-hint: "[endpointOrTag] [method]"
 allowed-tools: Bash, Read, Grep, Skill, WebFetch
@@ -11,7 +11,7 @@ User Prompt: $ARGUMENTS
 
 ## API specs context
 
-!`bash .claude/skills/clerk-bapi/scripts/api-specs-context.sh`
+!`bash .claude/skills/backend-api/scripts/api-specs-context.sh`
 
 ## Rules
 
@@ -45,18 +45,18 @@ Print the following examples to the user verbatim:
 
 ```
 Browse
-  /clerk-bapi tags                         — list all tags
-  /clerk-bapi Users                        — browse endpoints for the Users tag
-  /clerk-bapi Users version 2025-11-10.yml — browse using a different version
+  /clerk-backend-api tags                         — list all tags
+  /clerk-backend-api Users                        — browse endpoints for the Users tag
+  /clerk-backend-api Users version 2025-11-10.yml — browse using a different version
 
 Execute
-  /clerk-bapi GET /users             — fetch all users
-  /clerk-bapi get user john_doe      — natural language works too
-  /clerk-bapi POST /invitations      — create an invitation
+  /clerk-backend-api GET /users             — fetch all users
+  /clerk-backend-api get user john_doe      — natural language works too
+  /clerk-backend-api POST /invitations      — create an invitation
 
 Inspect
-  /clerk-bapi GET /users help        — show endpoint schema without executing
-  /clerk-bapi POST /invitations -h   — view request/response details
+  /clerk-backend-api GET /users help        — show endpoint schema without executing
+  /clerk-backend-api POST /invitations -h   — view request/response details
 
 Options
   --admin                            — bypass scope restrictions for write/delete
@@ -74,7 +74,7 @@ Stop here.
 
 If using a non-latest version, fetch tags for that version:
 ```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | node .claude/skills/clerk-bapi/scripts/extract-tags.js
+curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | node .claude/skills/backend-api/scripts/extract-tags.js
 ```
 Otherwise, use the **TAGS** already in [API specs context](#api-specs-context).
 
@@ -88,7 +88,7 @@ Share tags in a table and prompt the user to select a query.
 
 Fetch all endpoints for the identified tag:
 ```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash .claude/skills/clerk-bapi/scripts/extract-tag-endpoints.sh "${tag_name}"
+curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash .claude/skills/backend-api/scripts/extract-tag-endpoints.sh "${tag_name}"
 ```
 
 Share the results (endpoints, schemas, parameters) with the user.
@@ -103,7 +103,7 @@ For natural language prompts in `execute` mode, first identify the matching endp
 
 Extract the full endpoint definition:
 ```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash .claude/skills/clerk-bapi/scripts/extract-endpoint-detail.sh "${path}" "${method}"
+curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash .claude/skills/backend-api/scripts/extract-endpoint-detail.sh "${path}" "${method}"
 ```
 - `${path}` — e.g. `/users/{user_id}`
 - `${method}` — lowercase, e.g. `get`
@@ -124,7 +124,7 @@ Use the endpoint definition from step 3 to build the request:
 2. Ask the user for any required path/query/body parameters.
 3. Execute via the request script:
 ```bash
-bash .claude/skills/clerk-bapi/scripts/execute-request.sh [--admin] ${METHOD} "${path}" ['${body_json}']
+bash .claude/skills/backend-api/scripts/execute-request.sh [--admin] ${METHOD} "${path}" ['${body_json}']
 ```
    - `--admin` — pass this if the user included `--admin` in their prompt (bypasses scope checks)
    - `${METHOD}` — uppercase HTTP method

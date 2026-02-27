@@ -51,26 +51,19 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | Skill                   | Purpose                                      | When to Use                            | Type               |
 | ----------------------- | -------------------------------------------- | -------------------------------------- | ------------------ |
 | `/clerk`                | **Clerk router** - Routes to the right skill | Always start here                      | Router             |
-| `/clerk-new`            | Bootstrap a full Clerk project from scratch  | Starting a new project with Clerk      | Project Generator  |
 | `clerk-setup`           | Add Clerk to any framework                   | New projects, framework setup          | Auth Setup         |
 | `clerk-custom-ui`       | Custom sign-in/up components and appearance  | Building custom forms, styling         | UI Customization   |
 | `clerk-nextjs-patterns` | Advanced Next.js patterns                    | Server Actions, middleware, caching    | Framework Patterns |
 | `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
-| `/clerk-bapi`           | Clerk Backend REST API explorer & executor   | Browsing or calling BAPI endpoints     | API Tool           |
+| `/clerk-backend-api`    | Clerk Backend REST API explorer & executor   | Browsing or calling backend API endpoints | API Tool           |
 
 ## Quick Start
 
 ### 1. Set Up API Keys
 
-**Option A: Automatic** — Use `/clerk-new` to create a Clerk app instance and add keys to your `.env` automatically. Requires a platform token from the [Access Tokens](https://dashboard.clerk.com/settings/access-tokens) section of the Clerk dashboard:
-
-```bash
-CLERK_PLATFORM_TOKEN=pt_xxx
-```
-
-**Option B: Manual** — Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) → **API Keys** and add them to your `.env`:
+Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) → **API Keys** and add them to your `.env`:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
@@ -87,7 +80,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Add Playwright tests for auth"          | `clerk-testing`         |
 | "Set up organizations for my B2B app"    | `clerk-orgs`            |
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
-| "List all users via the Backend API"     | `clerk-bapi`            |
+| "List all users via the Backend API"     | `clerk-backend-api`     |
 
 
 ## Repository Structure
@@ -99,10 +92,6 @@ clerk-skills/
 ├── skills/
 │   ├── clerk/                   # Router skill
 │   │   └── SKILL.md
-│   ├── clerk-new/               # Project generator
-│   │   ├── SKILL.md
-│   │   ├── references/          # Framework & UI docs
-│   │   └── scripts/             # Platform API setup
 │   ├── setup/                   # Framework setup
 │   │   └── SKILL.md
 │   ├── custom-ui/               # Component customization
@@ -115,37 +104,12 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── testing/                 # E2E testing
 │   │   └── SKILL.md
-│   └── clerk-bapi/              # Backend REST API
+│   └── backend-api/             # Backend REST API
 │       ├── SKILL.md
 │       ├── references/          # OpenAPI spec
 │       └── scripts/             # API browsing & execution
 └── README.md
 ```
-## Using /clerk-new
-
-`/clerk-new` scaffolds a complete Clerk project end-to-end — framework setup, shadcn UI, Clerk SDK, middleware, auth pages, and a Clerk app instance via the platform API. Requires `CLERK_PLATFORM_TOKEN` (see above).
-
-Options can be natural language, recognized CLI flags, or a combination of both.
-
-```bash
-# Interactive — walks through all options
-/clerk-new
-
-# One-shot — accepts all defaults, creates test-app/ instantly
-/clerk-new one-shot
-
-# One-shot with overrides (flags or natural language)
-/clerk-new one-shot biome bun
-/clerk-new one-shot --use-pnpm --eslint
-/clerk-new one-shot use bun with biome and the waitlist template
-
-# Dry run — prints commands without executing
-/clerk-new --dry-mode
-
-# Show all available options
-/clerk-new help
-```
-
 ## Using /clerk Command
 
 For agents that support slash commands (Claude Code, OpenCode):
@@ -155,11 +119,9 @@ For agents that support slash commands (Claude Code, OpenCode):
 /clerk sync users to Supabase
 /clerk fix "redirect_uri_mismatch" error
 
-/clerk-new one-shot biome bun
-
-/clerk-bapi tags
-/clerk-bapi GET /users
-/clerk-bapi Users
+/clerk-backend-api tags
+/clerk-backend-api GET /users
+/clerk-backend-api Users
 ```
 
 ## Resources

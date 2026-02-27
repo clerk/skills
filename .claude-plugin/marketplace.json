@@ -117,29 +117,14 @@
       "keywords": ["testing", "e2e", "playwright", "cypress"]
     },
     {
-      "name": "clerk-new",
-      "description": "Uses clerk platform API to create a new clerk project",
-      "version": "1.0.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/clerk-new",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["clerk", "platform", "automation", "authentication"]
-    },
-    {
-      "name": "clerk-bapi",
+      "name": "clerk-backend-api",
       "description": "Clerk Backend REST API explorer and executor - browse tags, inspect endpoint schemas, and execute API requests with scope enforcement",
       "version": "1.0.0",
       "author": {
         "name": "Clerk",
         "email": "support@clerk.com"
       },
-      "source": "./skills/clerk-bapi",
+      "source": "./skills/backend-api",
       "homepage": "https://clerk.com/docs",
       "repository": "https://github.com/clerk/skills",
       "license": "MIT",
