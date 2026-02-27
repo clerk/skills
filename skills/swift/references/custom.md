@@ -43,6 +43,8 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - Derive (agent-internal only):
   - normalized ClerkKitUI-style capability matrix
   - required-field matrix
+- Inspect installed `ClerkKitUI` source to identify which environment fields drive flow behavior.
+- Map those same environment fields into custom-flow decisions and apply them with the same semantics as `ClerkKitUI`.
 - Drive custom-flow implementation decisions from these matrices.
 - Do not serialize or add these matrices as source artifacts in the app codebase.
 
@@ -67,6 +69,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - Drive custom flow behavior from normalized ClerkKitUI-style capability mapping.
 - Do not rely on one-off raw environment checks.
 - Apply matrix outcomes to runtime flow logic only; do not add matrix models/constants/files to the project.
+- Ensure custom logic uses the same environment-field gates and interpretations that `ClerkKitUI` uses.
 
 8. Required-field coverage
 - Implement all required fields from required-field matrix.
@@ -107,6 +110,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 6. Matrices created and used
 - Capability matrix and required-field matrix exist and drive the implementation.
 - Matrix artifacts are not written into project source files.
+- Environment fields used for gating/requirements match the set and semantics used by installed `ClerkKitUI`.
 
 7. Required fields covered
 - Required-field matrix has full coverage in custom UI.
