@@ -53,6 +53,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `/clerk`                | **Clerk router** - Routes to the right skill | Always start here                      | Router             |
 | `clerk-setup`           | Add Clerk to any framework                   | New projects, framework setup          | Auth Setup         |
 | `clerk-custom-ui`       | Custom sign-in/up components and appearance  | Building custom forms, styling         | UI Customization   |
+| `clerk-swift`           | Native Swift/iOS auth with ClerkKit          | SwiftUI/UIKit auth in native iOS apps  | Native iOS         |
 | `clerk-nextjs-patterns` | Advanced Next.js patterns                    | Server Actions, middleware, caching    | Framework Patterns |
 | `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
@@ -76,6 +77,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | ---------------------------------------- | ----------------------- |
 | "Add Clerk auth to my Next.js app"       | `clerk-setup`           |
 | "Build custom sign-in form with styling" | `clerk-custom-ui`       |
+| "Add Clerk auth to my SwiftUI iOS app"   | `clerk-swift`           |
 | "Sync users to Prisma via webhooks"      | `clerk-webhooks`        |
 | "Add Playwright tests for auth"          | `clerk-testing`         |
 | "Set up organizations for my B2B app"    | `clerk-orgs`            |
@@ -95,6 +97,8 @@ clerk-skills/
 │   ├── setup/                   # Framework setup
 │   │   └── SKILL.md
 │   ├── custom-ui/               # Component customization
+│   │   └── SKILL.md
+│   ├── clerk-swift/             # Native Swift/iOS auth
 │   │   └── SKILL.md
 │   ├── nextjs-patterns/         # Next.js patterns
 │   │   └── SKILL.md

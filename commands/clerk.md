@@ -27,7 +27,9 @@ skill({ name: 'clerk' })
 
 Analyze $ARGUMENTS to determine:
 - **Task type**: setup, customize UI, sync data, test, orgs, troubleshoot
-- **Platform**: Web (Next.js, React, Express, Remix)
+- **Platform**: Web (Next.js, React, Express, Remix) or native iOS (Swift/SwiftUI)
+
+If Expo or React Native is detected, do not route to `clerk-swift`.
 
 Use decision trees in SKILL.md to select correct skill.
 
@@ -39,6 +41,7 @@ Based on task type, load the appropriate skill:
 |------|-------|---------------|
 | Add auth | `setup/` | SKILL.md |
 | Custom UI | `customizing-auth-ui/` | SKILL.md |
+| Native iOS / Swift auth | `clerk-swift/` | SKILL.md |
 | Sync users | `syncing-users/` | SKILL.md |
 | Testing | `testing-auth/` | SKILL.md |
 | Multi-tenant | `managing-orgs/` | SKILL.md |

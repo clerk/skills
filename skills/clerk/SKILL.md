@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
 ---
 
 # Clerk Skills Router
@@ -18,6 +18,12 @@ Based on what you're trying to do, here's the right skill to use:
 - Custom authentication flows
 - Appearance and styling
 - OAuth, magic links, passkeys, MFA
+
+**Swift / native iOS auth** → Use `clerk-swift`
+- Native iOS Swift and SwiftUI projects
+- ClerkKit and ClerkKitUI implementation guidance
+- Source-driven patterns from `clerk-ios`
+- Do not use for Expo or React Native projects
 
 **Advanced Next.js patterns** → Use `clerk-nextjs-patterns`
 - Server vs Client auth APIs
@@ -51,6 +57,7 @@ Based on what you're trying to do, here's the right skill to use:
 If you know your task, you can directly access:
 - `/clerk-setup` - Framework setup
 - `/clerk-custom-ui` - Custom flows
+- `/clerk-swift` - Swift/native iOS
 - `/clerk-nextjs-patterns` - Next.js patterns
 - `/clerk-orgs` - Organizations
 - `/clerk-webhooks` - Webhooks
