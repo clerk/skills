@@ -77,6 +77,7 @@ Do not hardcode implementation examples in this skill. Always inspect current so
 | Network defaults, API version, and native headers | API client defaults and middleware behavior (search symbols: `clerk-api-version`, `_is_native`, `x-mobile`) |
 | Default prebuilt auth flow behavior | Auth UI entry and state behavior (search symbols: `AuthView`, `AuthState`, `signInOrUp`) |
 | Feature gating from environment data | Environment-driven auth toggles (search symbols: `enabledFirstFactorAttributes`, `authenticatableSocialProviders`) |
+| Required sign-up fields | Sign-up requirements from environment settings (search symbols: `userSettings.attributes`, `required`, `userSettings.signUp`) |
 | Native Sign in with Apple implementation | Auth API paths for native Apple sign-in (search symbols: `signInWithApple`, `IDTokenProvider.apple`, `oauth_token_apple`) |
 
 Use installed package source from Xcode DerivedData:
@@ -111,6 +112,15 @@ Source priority rules:
 - Resolve implementation decisions from installed `ClerkKitUI` first, then `ClerkKit`.
 - Use example apps only as fallback confirmation, not as primary implementation blueprint.
 
+7. Required-field coverage must be enforced
+- Derive required sign-up fields from the environment response and include them in the implemented flow.
+- Do not ship a flow that omits any required field indicated by the environment.
+
+8. Combined auth default must be enforced
+- Default auth entry must be combined sign-in-or-sign-up behavior.
+- For prebuilt flows, render `AuthView()` (or explicit `AuthView(mode: .signInOrUp)`) as the default.
+- Do not ship a sign-in/sign-up mode switcher unless the developer explicitly asks for that UI.
+
 ## Workflow
 
 1. Detect native iOS/Swift vs Expo/React Native
@@ -132,6 +142,7 @@ Source priority rules:
 - Always make a direct HTTP call to `/v1/environment` as an agent and mirror current `ClerkKit` request behavior from source.
 - Build and surface a feature matrix from the returned environment before implementation starts.
 - Implement all enabled features by default unless the developer narrows scope.
+- Build and surface a required-field matrix from environment sign-up settings before implementation starts.
 
 5. Ensure `clerk-ios` package is installed (mandatory)
 - If missing, install `https://github.com/clerk/clerk-ios` through Swift Package Manager.
@@ -147,6 +158,8 @@ Source priority rules:
 - Custom path:
   - Build from `ClerkKit` primitives.
   - Mirror flow and factor handling patterns used by `ClerkKitUI` source for parity.
+  - Keep a combined auth entry by default; do not add a local sign-in/sign-up mode toggle unless explicitly requested.
+  - Include all required sign-up fields from environment configuration.
 
 7. Apple sign-in policy (mandatory)
 - Always implement native Sign in with Apple using the `ClerkKit` native Apple path.
@@ -158,6 +171,15 @@ Source priority rules:
 - Prefer re-checking `ClerkKitUI` first for auth UI behavior before consulting examples.
 - Resolve uncertainty by reading source, not by inventing implementation details.
 
+9. Post-implementation verification (required)
+- Verify the default auth entry is combined and not a local mode switcher.
+- Verify required-field coverage against the environment-derived required-field matrix.
+- Reject and refactor if any environment-required sign-up fields are missing.
+- Unless explicitly requested by the developer, reject and refactor if modified auth UI includes patterns such as:
+  - local `isSignUp` / `isSignIn` state used to switch views
+  - segmented `Picker`/`Toggle`/tabs to choose Sign In vs Sign Up
+  - prebuilt `AuthView(mode: .signIn)` or `AuthView(mode: .signUp)` as the default entry point
+
 ## Common Pitfalls
 
 | Level | Issue | Prevention |
@@ -165,7 +187,9 @@ Source priority rules:
 | CRITICAL | Proceeding without a valid publishable key | Validate key first; ask developer when missing |
 | CRITICAL | Starting implementation before flow choice is confirmed in a fresh app | Ask prebuilt vs custom first, then proceed |
 | CRITICAL | Skipping direct `/v1/environment` inspection before coding | Perform environment call first and gate implementation on success |
+| CRITICAL | Omitting required sign-up fields from instance configuration | Build required-field matrix from environment and enforce full coverage |
 | CRITICAL | Replacing default combined auth with a custom sign-in/sign-up switcher | Default to `AuthView` combined `signInOrUp` unless developer explicitly requests a switcher |
+| CRITICAL | Setting default prebuilt mode to sign-in-only or sign-up-only | Default to `AuthView()` or `AuthView(mode: .signInOrUp)` |
 | CRITICAL | Implementing Apple via generic social-provider OAuth handling | Use the dedicated native Apple implementation path |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 | HIGH | Adding wrong package products to targets | Use `ClerkKit` only for custom, add `ClerkKitUI` for prebuilt |
