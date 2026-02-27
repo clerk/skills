@@ -8,20 +8,21 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 
 ## Required Patterns
 
-1. Quickstart prerequisite audit
+1. Package products
+- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
+- Do not pin an exact package version unless the developer explicitly requests version pinning.
+- Add `ClerkKit` and `ClerkKitUI`.
+
+2. Quickstart prerequisite audit
 - Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
 - Build a checklist from the visited markdown quickstart and verify the current project completed all required setup.
 - If required setup is missing, add it before finishing prebuilt auth implementation.
 - Always add any missing Associated Domains entries and any other capabilities required by the quickstart.
 - Explicitly apply quickstart step `Add associated domain capability` (`https://clerk.com/docs/ios/getting-started/quickstart#add-associated-domain-capability`); ensure `webcredentials:{YOUR_FRONTEND_API_URL}` exists when missing.
 
-2. Package products
-- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
-- Do not pin an exact package version unless the developer explicitly requests version pinning.
-- Add `ClerkKit` and `ClerkKitUI`.
-
 3. Environment check for Apple capability
-- Use `/v1/environment` response to determine whether Apple is enabled.
+- Inspect installed `ClerkKitUI` source first to identify the `Environment` fields/semantics used for Apple availability.
+- Then call `/v1/environment` and evaluate Apple-enabled state using the same field semantics.
 - In prebuilt flow, do not build capability matrices; only use environment here for Apple capability handling.
 
 4. Signed-out entry pattern
@@ -49,7 +50,8 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 - `AuthView()` is presented in `.sheet`.
 
 3. Environment check used for Apple enablement
-- `/v1/environment` response was used to determine Apple-enabled state.
+- Installed `ClerkKitUI` `Environment` field usage was inspected before calling `/v1/environment`.
+- `/v1/environment` response was used to determine Apple-enabled state using the same `ClerkKitUI` field semantics.
 
 4. No default sign-in-only/sign-up-only prebuilt mode
 - Default entry uses `AuthView()` behavior (combined).

@@ -25,26 +25,26 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 
 ## Required Patterns
 
-1. Quickstart prerequisite audit
+1. Package products
+- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
+- Do not pin an exact package version unless the developer explicitly requests version pinning.
+- Add `ClerkKit` by default.
+- Add `ClerkKitUI` only if the developer explicitly asks for mixed prebuilt/custom composition.
+
+2. Quickstart prerequisite audit
 - Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
 - Build a checklist from the visited markdown quickstart and verify the current project completed all required setup.
 - If required setup is missing, add it before finishing custom auth implementation.
 - Always add any missing Associated Domains entries and any other capabilities required by the quickstart.
 - Explicitly apply quickstart step `Add associated domain capability` (`https://clerk.com/docs/ios/getting-started/quickstart#add-associated-domain-capability`); ensure `webcredentials:{YOUR_FRONTEND_API_URL}` exists when missing.
 
-2. Package products
-- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
-- Do not pin an exact package version unless the developer explicitly requests version pinning.
-- Add `ClerkKit` by default.
-- Add `ClerkKitUI` only if the developer explicitly asks for mixed prebuilt/custom composition.
-
 3. Environment inspection + normalization
-- Make a direct HTTP call to `/v1/environment` before implementation.
-- Derive (agent-internal only):
+- Inspect installed `ClerkKitUI` source first to identify which `Environment` fields and semantics drive flow behavior.
+- Build an agent-internal `Environment` field map from that source inspection.
+- Make a direct HTTP call to `/v1/environment` only after the `Environment` field map is defined.
+- Derive from the response using that `ClerkKitUI`-aligned field map (agent-internal only):
   - normalized ClerkKitUI-style capability matrix
   - required-field matrix
-- Inspect installed `ClerkKitUI` source to identify which environment fields drive flow behavior.
-- Map those same environment fields into custom-flow decisions and apply them with the same semantics as `ClerkKitUI`.
 - Drive custom-flow implementation decisions from these matrices.
 - Do not serialize or add these matrices as source artifacts in the app codebase.
 
@@ -95,7 +95,8 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - No local toggle/segmented control/tabs for sign-in vs sign-up unless explicitly requested.
 
 3. Environment call completed
-- Direct `/v1/environment` call succeeded before coding.
+- Installed `ClerkKitUI` `Environment` field usage was inspected before calling `/v1/environment`.
+- Direct `/v1/environment` call succeeded after field-map inspection.
 
 4. AuthView flow parity
 - Step transitions follow `AuthView` progression rules.
