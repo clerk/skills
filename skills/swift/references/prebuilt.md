@@ -8,36 +8,45 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 
 ## Required Patterns
 
-1. Package products
+1. Quickstart prerequisite audit
+- Resolve the iOS quickstart URL from the sibling `clerk-ios` README.
+- Build a checklist from the quickstart and verify the current project completed all required setup.
+- If required setup is missing (for example associated domains or required capabilities), add it before finishing prebuilt auth implementation.
+
+2. Package products
 - Add `ClerkKit` and `ClerkKitUI`.
 
-2. Environment check for Apple capability
+3. Environment check for Apple capability
 - Use `/v1/environment` response to determine whether Apple is enabled.
 - In prebuilt flow, do not build capability matrices; only use environment here for Apple capability handling.
 
-3. Signed-out entry pattern
+4. Signed-out entry pattern
 - Prefer `UserButton` with `signedOutContent` for signed-out entry affordance.
 - Use signed-out content action to open the auth sheet.
 
-4. Auth presentation pattern
+5. Auth presentation pattern
 - Present `AuthView()` in a sheet by default.
 - Keep default combined behavior from `AuthView()` (no sign-in-only/sign-up-only override by default).
 - Do not use full-screen replacement or push navigation by default unless explicitly requested.
 
-5. Apple capability requirement
+6. Apple capability requirement
 - If Apple is enabled in the environment and the app is missing Sign in with Apple capability, add it.
 
 ## Verification Checklist
 
-1. Default entry is prebuilt + sheet
+1. Quickstart prerequisites are complete
+- Quickstart link was sourced from sibling `clerk-ios` README.
+- Required project setup from quickstart is present (including associated domains/capabilities when required).
+
+2. Default entry is prebuilt + sheet
 - Signed-out state uses `UserButton(signedOutContent:)` (or explicitly approved alternative).
 - `AuthView()` is presented in `.sheet`.
 
-2. Environment check used for Apple enablement
+3. Environment check used for Apple enablement
 - `/v1/environment` response was used to determine Apple-enabled state.
 
-3. No default sign-in-only/sign-up-only prebuilt mode
+4. No default sign-in-only/sign-up-only prebuilt mode
 - Default entry uses `AuthView()` behavior (combined).
 
-4. Apple capability when enabled
+5. Apple capability when enabled
 - If environment enables Apple and capability was missing, Sign in with Apple capability is added.
