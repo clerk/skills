@@ -65,6 +65,19 @@ After flow type is known, load exactly one:
 
 Do not blend the two references in a single implementation unless the developer explicitly asks for a hybrid approach.
 
+## Interaction Contract
+
+Before any implementation edits, the agent must have both:
+- flow choice: `prebuilt` or `custom`
+- a real Clerk publishable key
+
+If either value is missing from the user request/context:
+- ask the user for the missing value(s)
+- pause and wait for the answer
+- do not edit files or install dependencies yet
+
+Only skip asking when the user has already explicitly provided the value in this conversation.
+
 ## Source-Driven Templates
 
 Do not hardcode implementation examples in this skill. Inspect current installed package source before implementing.
@@ -80,8 +93,10 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 1. No implementation edits before prerequisites
 - Do not edit project files until flow type is confirmed and a valid publishable key is available.
 
-2. Fresh implementation must ask flow choice
-- If no existing Clerk implementation is present, explicitly ask the developer: prebuilt views or custom flow.
+2. Missing flow or key must trigger a question
+- If flow choice is missing, explicitly ask: prebuilt views or custom flow.
+- If publishable key is missing/placeholder/invalid, explicitly ask for a real key.
+- Do not continue until both answers are provided.
 
 3. Publishable key wiring mode is mandatory
 - Use the developer-provided publishable key plainly in app configuration passed to `Clerk.configure`.
@@ -93,17 +108,21 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 ## Workflow
 
 1. Detect native iOS/Swift vs Expo/React Native.
-2. Determine flow type (`prebuilt` or `custom`).
-3. Load matching flow reference file.
-4. Ensure publishable key is valid and directly wired in `Clerk.configure`.
-5. Ensure package install/products match selected flow.
-6. Implement using selected reference checklist.
-7. Verify using selected reference checklist plus shared gates.
+2. If flow type is not explicitly provided, ask user for `prebuilt` or `custom`.
+3. If publishable key is not explicitly provided, ask user for it.
+4. Wait for both answers before changing files.
+5. Load matching flow reference file.
+6. Ensure publishable key is valid and directly wired in `Clerk.configure`.
+7. Ensure package install/products match selected flow.
+8. Implement using selected reference checklist.
+9. Verify using selected reference checklist plus shared gates.
 
 ## Common Pitfalls
 
 | Level | Issue | Prevention |
 |-------|-------|------------|
+| CRITICAL | Not asking for missing flow choice before implementation | Ask for `prebuilt` vs `custom` and wait before edits |
+| CRITICAL | Not asking for missing publishable key before implementation | Ask for key and wait before edits |
 | CRITICAL | Starting implementation before flow type is confirmed | Confirm flow first and load matching reference |
 | CRITICAL | Using plist/local/env indirection for publishable key without request | Wire key directly in configuration by default |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
