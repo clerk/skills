@@ -131,6 +131,11 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 - Audit the project against all quickstart setup steps before finishing.
 - If required quickstart setup is missing, implement it before completing the task.
 - This includes adding any missing Associated Domains entries and any other required app capabilities from the quickstart.
+- Explicitly execute the quickstart step `Add associated domain capability` (`https://clerk.com/docs/ios/getting-started/quickstart#add-associated-domain-capability`) and ensure the associated-domain entry matches quickstart requirements (`webcredentials:{YOUR_FRONTEND_API_URL}`).
+
+8. Custom-flow AuthView structure parity is mandatory
+- For `custom` flow, layout and flow structure must remain materially close to ClerkKitUI `AuthView` defaults.
+- If the developer did not explicitly request a different UX, do not introduce major structural/layout deviations from `AuthView`.
 
 ## Workflow
 
@@ -144,8 +149,9 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 8. Ensure package install/products match selected flow and package requirement follows latest up-to-next-major policy when newly added.
 9. Find iOS quickstart URL from installed `clerk-ios` package README, append `.md`, then visit and read it.
 10. Build quickstart checklist from the visited markdown quickstart, detect missing required setup, and apply the missing setup in the current project.
-11. Implement using selected reference checklist.
-12. Verify using selected reference checklist plus shared gates.
+11. Ensure the quickstart associated-domain capability step is fully applied (`webcredentials:{YOUR_FRONTEND_API_URL}` when missing).
+12. Implement using selected reference checklist.
+13. Verify using selected reference checklist plus shared gates.
 
 ## Common Pitfalls
 
@@ -159,7 +165,9 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 | HIGH | Installing `clerk-ios` with exact/stale version by default | If missing, install latest available release using up-to-next-major requirement |
 | CRITICAL | Skipping quickstart prerequisite audit | Visit/read quickstart URL from installed `clerk-ios` package README and verify all required setup steps are completed |
 | CRITICAL | Detecting missing quickstart capabilities/domains but not applying them | Add all missing required quickstart capabilities and Associated Domains before completing |
+| CRITICAL | Skipping quickstart associated-domain capability step | Execute quickstart `Add associated domain capability` and ensure `webcredentials:{YOUR_FRONTEND_API_URL}` is present |
 | CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
+| CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 
 ## See Also
