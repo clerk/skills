@@ -69,15 +69,15 @@ User asks for Clerk in Swift/iOS
 
 Do not hardcode implementation examples in this skill. Always inspect current source from `clerk-ios` before implementing.
 
-| Use Case | Source of Truth |
-|----------|-----------------|
-| SDK package products and platform support | `clerk-ios/Package.swift` |
-| Publishable key validation and frontend API derivation | `Sources/ClerkKit/Configuration/ConfigurationManager.swift` |
-| Environment fetch endpoint contract | `Sources/ClerkKit/Domains/Environment/EnvironmentService.swift` |
-| Network defaults, API version, and native headers | `Sources/ClerkKit/Dependencies/DependencyContainer.swift` and `Sources/ClerkKit/Networking/Middleware/*` |
-| Default prebuilt auth flow behavior | `Sources/ClerkKitUI/Components/Auth/AuthView.swift`, `AuthState.swift`, `AuthStartView.swift` |
-| Feature gating from environment data | `Sources/ClerkKitUI/Extensions/Environment+Ext.swift` |
-| Native Sign in with Apple implementation | `Sources/ClerkKit/Core/Auth.swift` and `Sources/ClerkKit/Helpers/SignInWithAppleHelper.swift` |
+| Use Case | Source of Truth in Installed Package |
+|----------|--------------------------------------|
+| SDK package products and platform support | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI` |
+| Publishable key validation and frontend API derivation | Clerk configuration logic (search symbols: `configure(publishableKey`, `frontendApiUrl`, `invalidPublishableKeyFormat`) |
+| Environment fetch endpoint contract | Environment request path and request construction (search symbols: `/v1/environment`, `Request<Clerk.Environment>`) |
+| Network defaults, API version, and native headers | API client defaults and middleware behavior (search symbols: `clerk-api-version`, `_is_native`, `x-mobile`) |
+| Default prebuilt auth flow behavior | Auth UI entry and state behavior (search symbols: `AuthView`, `AuthState`, `signInOrUp`) |
+| Feature gating from environment data | Environment-driven auth toggles (search symbols: `enabledFirstFactorAttributes`, `authenticatableSocialProviders`) |
+| Native Sign in with Apple implementation | Auth API paths for native Apple sign-in (search symbols: `signInWithApple`, `IDTokenProvider.apple`, `oauth_token_apple`) |
 
 Use installed package source from Xcode DerivedData:
 - `~/Library/Developer/Xcode/DerivedData/.../SourcePackages/checkouts/clerk-ios`
