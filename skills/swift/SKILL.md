@@ -31,7 +31,7 @@ If Expo/React Native signals are present, route to the general setup skill inste
 | 2 | Determine flow type (`prebuilt` or `custom`) and load the matching reference file |
 | 3 | Ensure a valid publishable key exists (or ask developer) and wire it directly in configuration |
 | 4 | Call `/v1/environment` before implementation (both flows) |
-| 5 | Ensure `clerk-ios` package is installed with correct products for selected flow |
+| 5 | Ensure `clerk-ios` package is installed with correct products for selected flow; if missing, install latest available release using an up-to-next-major version requirement |
 | 6 | Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read the markdown URL to compile a required-step checklist |
 | 7 | Verify and complete all quickstart prerequisites for this project (for example associated domains and required capabilities) |
 | 8 | Implement flow by following only the selected reference checklist |
@@ -93,7 +93,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 
 | Use Case | Source of Truth in Installed Package |
 |----------|--------------------------------------|
-| SDK package products and platform support | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI` |
+| SDK package products, platform support, and dependency constraints | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI`, plus package requirement style (up-to-next-major) |
 | Publishable key validation and frontend API derivation | Clerk configuration logic (search symbols: `configure(publishableKey`, `frontendApiUrl`, `invalidPublishableKeyFormat`) |
 | Environment endpoint contract | Environment request path and request construction (search symbols: `/v1/environment`, `Request<Clerk.Environment>`) |
 | iOS quickstart requirements | Installed `clerk-ios` package README quickstart link plus the visited/read quickstart page checklist steps (including project setup prerequisites) |
@@ -122,7 +122,11 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 5. Reference-file discipline is mandatory
 - Once flow is selected, follow only that flow reference file for implementation and verification.
 
-6. Quickstart compliance is mandatory
+6. Package install/version policy is mandatory
+- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major requirement.
+- Do not pin an exact package version unless the developer explicitly asks for exact pinning.
+
+7. Quickstart compliance is mandatory
 - Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
 - Audit the project against all quickstart setup steps before finishing.
 - If required quickstart setup is missing (for example associated domains or required capabilities), implement it before completing the task.
@@ -136,7 +140,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 5. Load matching flow reference file.
 6. Ensure publishable key is valid and directly wired in `Clerk.configure`.
 7. Call `/v1/environment` and provide response to selected flow checklist.
-8. Ensure package install/products match selected flow.
+8. Ensure package install/products match selected flow and package requirement follows latest up-to-next-major policy when newly added.
 9. Find iOS quickstart URL from installed `clerk-ios` package README, append `.md`, then visit and read it.
 10. Build quickstart checklist from the visited markdown quickstart and verify all required setup in the current project.
 11. Implement using selected reference checklist.
@@ -151,6 +155,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 | CRITICAL | Starting implementation before flow type is confirmed | Confirm flow first and load matching reference |
 | CRITICAL | Using plist/local/env indirection for publishable key without request | Wire key directly in configuration by default |
 | CRITICAL | Skipping `/v1/environment` call before implementation | Always call environment endpoint for both prebuilt and custom flows |
+| HIGH | Installing `clerk-ios` with exact/stale version by default | If missing, install latest available release using up-to-next-major requirement |
 | CRITICAL | Skipping quickstart prerequisite audit | Visit/read quickstart URL from installed `clerk-ios` package README and verify all required setup steps are completed |
 | CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |

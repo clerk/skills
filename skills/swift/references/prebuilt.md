@@ -14,6 +14,8 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 - If required setup is missing (for example associated domains or required capabilities), add it before finishing prebuilt auth implementation.
 
 2. Package products
+- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
+- Do not pin an exact package version unless the developer explicitly requests version pinning.
 - Add `ClerkKit` and `ClerkKitUI`.
 
 3. Environment check for Apple capability
