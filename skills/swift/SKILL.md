@@ -33,7 +33,7 @@ If Expo/React Native signals are present, route to the general setup skill inste
 | 4 | Use publishable key to load environment from Clerk instance (`/v1/environment`) |
 | 5 | Ensure `clerk-ios` package is installed and correct products are linked |
 | 6 | Implement all enabled instance features by default (unless developer narrows scope) |
-| 7 | Default to sign-in-or-sign-up behavior and always include native Sign in with Apple |
+| 7 | Default to `AuthView` combined `signInOrUp` mode (no custom mode switcher) and always include native Sign in with Apple |
 
 ## Decision Tree
 
@@ -82,6 +82,12 @@ Do not hardcode implementation examples in this skill. Always inspect current so
 Use installed package source from Xcode DerivedData:
 - `~/Library/Developer/Xcode/DerivedData/.../SourcePackages/checkouts/clerk-ios`
 
+Source priority rules:
+- Primary source: installed `ClerkKitUI` source for prebuilt/auth-view behavior and UI flow decisions.
+- Secondary source: installed `ClerkKit` source for core auth/network/config behavior.
+- Fallback only: example apps (local or GitHub) when behavior is not clear from `ClerkKitUI`/`ClerkKit`.
+- Do not start from example-app code when corresponding library source behavior exists.
+
 ## Execution Gates (Do Not Skip)
 
 1. No implementation edits before prerequisites
@@ -100,6 +106,10 @@ Use installed package source from Xcode DerivedData:
 
 5. Enabled-feature plan must be explicit
 - Summarize enabled features from the environment response and implement all by default unless the developer explicitly narrows scope.
+
+6. Library source priority must be enforced
+- Resolve implementation decisions from installed `ClerkKitUI` first, then `ClerkKit`.
+- Use example apps only as fallback confirmation, not as primary implementation blueprint.
 
 ## Workflow
 
@@ -131,7 +141,8 @@ Use installed package source from Xcode DerivedData:
 
 6. Implement prebuilt or custom flow
 - Prebuilt path:
-  - Align with `AuthView` behavior and default mode equivalent to sign-in-or-sign-up.
+  - Use `AuthView` in its default combined mode (`signInOrUp`).
+  - Do not build a custom sign-in/sign-up toggle or segmented switcher unless the developer explicitly asks for it.
   - Match environment-driven feature availability.
 - Custom path:
   - Build from `ClerkKit` primitives.
@@ -144,6 +155,7 @@ Use installed package source from Xcode DerivedData:
 
 8. Source currency policy
 - Before finalizing, re-check relevant files in installed `ClerkKit`/`ClerkKitUI` source to avoid stale patterns.
+- Prefer re-checking `ClerkKitUI` first for auth UI behavior before consulting examples.
 - Resolve uncertainty by reading source, not by inventing implementation details.
 
 ## Common Pitfalls
@@ -153,10 +165,12 @@ Use installed package source from Xcode DerivedData:
 | CRITICAL | Proceeding without a valid publishable key | Validate key first; ask developer when missing |
 | CRITICAL | Starting implementation before flow choice is confirmed in a fresh app | Ask prebuilt vs custom first, then proceed |
 | CRITICAL | Skipping direct `/v1/environment` inspection before coding | Perform environment call first and gate implementation on success |
+| CRITICAL | Replacing default combined auth with a custom sign-in/sign-up switcher | Default to `AuthView` combined `signInOrUp` unless developer explicitly requests a switcher |
 | CRITICAL | Implementing Apple via generic social-provider OAuth handling | Use the dedicated native Apple implementation path |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 | HIGH | Adding wrong package products to targets | Use `ClerkKit` only for custom, add `ClerkKitUI` for prebuilt |
 | HIGH | Skipping environment inspection before building flow | Load `/v1/environment` and gate features from response |
+| HIGH | Using example-app implementations as primary source | Treat `ClerkKitUI`/`ClerkKit` source as authoritative and examples as fallback only |
 | MEDIUM | Hardcoding examples that drift from SDK | Always pull patterns from current package source |
 | MEDIUM | Defaulting to sign-in-only when both are expected | Start with sign-in-or-sign-up behavior unless requested otherwise |
 
