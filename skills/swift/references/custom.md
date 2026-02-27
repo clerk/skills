@@ -4,7 +4,7 @@ Use this file only when flow type is `custom`.
 
 ## Purpose
 
-Implement native iOS auth with ClerkKit primitives while mirroring ClerkKitUI behavior where applicable.
+Implement native iOS auth with ClerkKit primitives while keeping flow and layout very close to ClerkKitUI `AuthView` by default.
 
 ## Source-Driven Requirements
 
@@ -16,10 +16,11 @@ Source priority rules for custom flow:
 - Secondary source: installed `ClerkKit` source for core auth/network/config behavior.
 - Fallback only: example apps (local or GitHub) when behavior is unclear from library source.
 
-For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity target for:
+For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - step progression/sequencing
 - field visibility and hidden-state rules per step
 - branching between factors/strategies
+- screen structure and layout composition per step
 
 ## Required Patterns
 
@@ -29,6 +30,8 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 - If required setup is missing (for example associated domains or required capabilities), add it before finishing custom auth implementation.
 
 2. Package products
+- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
+- Do not pin an exact package version unless the developer explicitly requests version pinning.
 - Add `ClerkKit` by default.
 - Add `ClerkKitUI` only if the developer explicitly asks for mixed prebuilt/custom composition.
 
@@ -48,6 +51,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 - Follow `ClerkKitUI` `AuthView` progression logic for advancing/regressing steps.
 - Show/hide inputs exactly according to the active step requirements instead of static form layouts.
 - Keep factor/strategy branching aligned with how `AuthView` gates transitions.
+- Keep screen layout and component structure very close to `AuthView` defaults unless the developer explicitly requests a different UX.
 
 6. Capability-matrix-driven implementation
 - Drive custom flow behavior from normalized ClerkKitUI-style capability mapping.
@@ -81,6 +85,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` flow behavior as the parity targ
 4. AuthView flow parity
 - Step transitions follow `AuthView` progression rules.
 - Inputs shown at each step match `AuthView` step-level visibility behavior.
+- Step layouts and component grouping are materially close to `AuthView`; do not introduce major layout redesign unless explicitly requested.
 
 5. Matrices created and used
 - Capability matrix and required-field matrix exist and drive the implementation.
