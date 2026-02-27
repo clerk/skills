@@ -64,7 +64,7 @@
         "name": "Clerk",
         "email": "support@clerk.com"
       },
-      "source": "./skills/clerk-swift",
+      "source": "./skills/swift",
       "homepage": "https://clerk.com/docs",
       "repository": "https://github.com/clerk/skills",
       "license": "MIT",

@@ -41,7 +41,7 @@ Based on task type, load the appropriate skill:
 |------|-------|---------------|
 | Add auth | `setup/` | SKILL.md |
 | Custom UI | `customizing-auth-ui/` | SKILL.md |
-| Native iOS / Swift auth | `clerk-swift/` | SKILL.md |
+| Native iOS / Swift auth | `swift/` | SKILL.md |
 | Sync users | `syncing-users/` | SKILL.md |
 | Testing | `testing-auth/` | SKILL.md |
 | Multi-tenant | `managing-orgs/` | SKILL.md |

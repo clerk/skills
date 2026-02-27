@@ -98,7 +98,7 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── custom-ui/               # Component customization
 │   │   └── SKILL.md
-│   ├── clerk-swift/             # Native Swift/iOS auth
+│   ├── swift/                   # Native Swift/iOS auth
 │   │   └── SKILL.md
 │   ├── nextjs-patterns/         # Next.js patterns
 │   │   └── SKILL.md
