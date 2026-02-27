@@ -129,7 +129,8 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 7. Quickstart compliance is mandatory
 - Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
 - Audit the project against all quickstart setup steps before finishing.
-- If required quickstart setup is missing (for example associated domains or required capabilities), implement it before completing the task.
+- If required quickstart setup is missing, implement it before completing the task.
+- This includes adding any missing Associated Domains entries and any other required app capabilities from the quickstart.
 
 ## Workflow
 
@@ -142,7 +143,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 7. Call `/v1/environment` and provide response to selected flow checklist.
 8. Ensure package install/products match selected flow and package requirement follows latest up-to-next-major policy when newly added.
 9. Find iOS quickstart URL from installed `clerk-ios` package README, append `.md`, then visit and read it.
-10. Build quickstart checklist from the visited markdown quickstart and verify all required setup in the current project.
+10. Build quickstart checklist from the visited markdown quickstart, detect missing required setup, and apply the missing setup in the current project.
 11. Implement using selected reference checklist.
 12. Verify using selected reference checklist plus shared gates.
 
@@ -157,6 +158,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 | CRITICAL | Skipping `/v1/environment` call before implementation | Always call environment endpoint for both prebuilt and custom flows |
 | HIGH | Installing `clerk-ios` with exact/stale version by default | If missing, install latest available release using up-to-next-major requirement |
 | CRITICAL | Skipping quickstart prerequisite audit | Visit/read quickstart URL from installed `clerk-ios` package README and verify all required setup steps are completed |
+| CRITICAL | Detecting missing quickstart capabilities/domains but not applying them | Add all missing required quickstart capabilities and Associated Domains before completing |
 | CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 

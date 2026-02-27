@@ -11,7 +11,8 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 1. Quickstart prerequisite audit
 - Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
 - Build a checklist from the visited markdown quickstart and verify the current project completed all required setup.
-- If required setup is missing (for example associated domains or required capabilities), add it before finishing prebuilt auth implementation.
+- If required setup is missing, add it before finishing prebuilt auth implementation.
+- Always add any missing Associated Domains entries and any other capabilities required by the quickstart.
 
 2. Package products
 - If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
@@ -38,7 +39,8 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 
 1. Quickstart prerequisites are complete
 - Quickstart link was sourced from installed `clerk-ios` package README, `.md` was appended, and the markdown page was visited/read.
-- Required project setup from quickstart is present (including associated domains/capabilities when required).
+- Required project setup from quickstart is present.
+- Any missing quickstart-required Associated Domains/capabilities were added, not just reported.
 
 2. Default entry is prebuilt + sheet
 - Signed-out state uses `UserButton(signedOutContent:)` (or explicitly approved alternative).
