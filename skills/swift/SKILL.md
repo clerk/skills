@@ -30,8 +30,9 @@ If Expo/React Native signals are present, route to the general setup skill inste
 | 1 | Confirm project type is native Swift/iOS and not Expo/React Native |
 | 2 | Determine flow type (`prebuilt` or `custom`) and load the matching reference file |
 | 3 | Ensure a valid publishable key exists (or ask developer) and wire it directly in configuration |
-| 4 | Ensure `clerk-ios` package is installed with correct products for selected flow |
-| 5 | Implement flow by following only the selected reference checklist |
+| 4 | Call `/v1/environment` before implementation (both flows) |
+| 5 | Ensure `clerk-ios` package is installed with correct products for selected flow |
+| 6 | Implement flow by following only the selected reference checklist |
 
 ## Decision Tree
 
@@ -53,6 +54,8 @@ User asks for Clerk in Swift/iOS
     |     +-- New implementation -> Ask developer prebuilt/custom, then load matching reference
     |
     +-- Ensure publishable key and direct wiring
+    |
+    +-- Call /v1/environment
     |
     +-- Implement using selected flow reference
 ```
@@ -86,6 +89,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 |----------|--------------------------------------|
 | SDK package products and platform support | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI` |
 | Publishable key validation and frontend API derivation | Clerk configuration logic (search symbols: `configure(publishableKey`, `frontendApiUrl`, `invalidPublishableKeyFormat`) |
+| Environment endpoint contract | Environment request path and request construction (search symbols: `/v1/environment`, `Request<Clerk.Environment>`) |
 | Native Sign in with Apple implementation | Apple capability and native sign-in behavior in selected flow reference |
 
 ## Execution Gates (Do Not Skip)
@@ -102,7 +106,13 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 - Use the developer-provided publishable key plainly in app configuration passed to `Clerk.configure`.
 - Do not introduce plist/local-secrets/env-file/build-setting indirection unless explicitly requested.
 
-4. Reference-file discipline is mandatory
+4. Environment call is mandatory (both flows)
+- Make a direct HTTP call to `/v1/environment` before implementation.
+- Pass the response into the selected reference workflow:
+  - prebuilt: use it to determine whether Apple is enabled and capability changes are needed
+  - custom: perform full normalization/matrix handling
+
+5. Reference-file discipline is mandatory
 - Once flow is selected, follow only that flow reference file for implementation and verification.
 
 ## Workflow
@@ -113,9 +123,10 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 4. Wait for both answers before changing files.
 5. Load matching flow reference file.
 6. Ensure publishable key is valid and directly wired in `Clerk.configure`.
-7. Ensure package install/products match selected flow.
-8. Implement using selected reference checklist.
-9. Verify using selected reference checklist plus shared gates.
+7. Call `/v1/environment` and provide response to selected flow checklist.
+8. Ensure package install/products match selected flow.
+9. Implement using selected reference checklist.
+10. Verify using selected reference checklist plus shared gates.
 
 ## Common Pitfalls
 
@@ -125,6 +136,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 | CRITICAL | Not asking for missing publishable key before implementation | Ask for key and wait before edits |
 | CRITICAL | Starting implementation before flow type is confirmed | Confirm flow first and load matching reference |
 | CRITICAL | Using plist/local/env indirection for publishable key without request | Wire key directly in configuration by default |
+| CRITICAL | Skipping `/v1/environment` call before implementation | Always call environment endpoint for both prebuilt and custom flows |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 
 ## See Also

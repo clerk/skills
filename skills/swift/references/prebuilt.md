@@ -11,16 +11,20 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 1. Package products
 - Add `ClerkKit` and `ClerkKitUI`.
 
-2. Signed-out entry pattern
+2. Environment check for Apple capability
+- Use `/v1/environment` response to determine whether Apple is enabled.
+- In prebuilt flow, do not build capability matrices; only use environment here for Apple capability handling.
+
+3. Signed-out entry pattern
 - Prefer `UserButton` with `signedOutContent` for signed-out entry affordance.
 - Use signed-out content action to open the auth sheet.
 
-3. Auth presentation pattern
+4. Auth presentation pattern
 - Present `AuthView()` in a sheet by default.
 - Keep default combined behavior from `AuthView()` (no sign-in-only/sign-up-only override by default).
 - Do not use full-screen replacement or push navigation by default unless explicitly requested.
 
-4. Apple capability requirement
+5. Apple capability requirement
 - If Apple is enabled in the environment and the app is missing Sign in with Apple capability, add it.
 
 ## Verification Checklist
@@ -29,8 +33,11 @@ Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to com
 - Signed-out state uses `UserButton(signedOutContent:)` (or explicitly approved alternative).
 - `AuthView()` is presented in `.sheet`.
 
-2. No default sign-in-only/sign-up-only prebuilt mode
+2. Environment check used for Apple enablement
+- `/v1/environment` response was used to determine Apple-enabled state.
+
+3. No default sign-in-only/sign-up-only prebuilt mode
 - Default entry uses `AuthView()` behavior (combined).
 
-3. Apple capability when enabled
+4. Apple capability when enabled
 - If environment enables Apple and capability was missing, Sign in with Apple capability is added.
