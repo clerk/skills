@@ -19,12 +19,6 @@ Based on what you're trying to do, here's the right skill to use:
 - Appearance and styling
 - OAuth, magic links, passkeys, MFA
 
-**Swift / native iOS auth** → Use `clerk-swift`
-- Native iOS Swift and SwiftUI projects
-- ClerkKit and ClerkKitUI implementation guidance
-- Source-driven patterns from `clerk-ios`
-- Do not use for Expo or React Native projects
-
 **Advanced Next.js patterns** → Use `clerk-nextjs-patterns`
 - Server vs Client auth APIs
 - Middleware strategies
@@ -52,16 +46,22 @@ Based on what you're trying to do, here's the right skill to use:
 - Inspect endpoint schemas
 - Execute API requests with scope enforcement
 
+**Swift / native iOS auth** → Use `clerk-swift`
+- Native iOS Swift and SwiftUI projects
+- ClerkKit and ClerkKitUI implementation guidance
+- Source-driven patterns from `clerk-ios`
+- Do not use for Expo or React Native projects
+
 ## Quick Navigation
 
 If you know your task, you can directly access:
 - `/clerk-setup` - Framework setup
 - `/clerk-custom-ui` - Custom flows
-- `/clerk-swift` - Swift/native iOS
 - `/clerk-nextjs-patterns` - Next.js patterns
 - `/clerk-orgs` - Organizations
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
 - `/clerk-backend-api` - Backend REST API
+- `/clerk-swift` - Swift/native iOS
 
 Or describe what you need and I'll recommend the right one.

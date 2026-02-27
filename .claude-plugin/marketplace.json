@@ -57,21 +57,6 @@
       "keywords": ["auth", "custom-ui", "appearance", "sign-in", "sign-up"]
     },
     {
-      "name": "clerk-swift",
-      "description": "Native Swift/iOS Clerk auth with source-driven ClerkKit and ClerkKitUI patterns",
-      "version": "1.0.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/swift",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["swift", "ios", "swiftui", "native-mobile", "clerkkit", "apple-sign-in"]
-    },
-    {
       "name": "clerk-nextjs-patterns",
       "description": "Advanced Next.js patterns - middleware, Server Actions, caching with Clerk",
       "version": "1.0.0",
@@ -145,6 +130,21 @@
       "license": "MIT",
       "category": "authentication",
       "keywords": ["clerk", "api", "backend", "rest", "openapi", "bapi"]
+    },
+    {
+      "name": "clerk-swift",
+      "description": "Native Swift/iOS Clerk auth with source-driven ClerkKit and ClerkKitUI patterns",
+      "version": "1.0.0",
+      "author": {
+        "name": "Clerk",
+        "email": "support@clerk.com"
+      },
+      "source": "./skills/swift",
+      "homepage": "https://clerk.com/docs",
+      "repository": "https://github.com/clerk/skills",
+      "license": "MIT",
+      "category": "authentication",
+      "keywords": ["swift", "ios", "swiftui", "native-mobile", "clerkkit", "apple-sign-in"]
     }
   ]
 }
