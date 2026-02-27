@@ -37,6 +37,7 @@ If Expo/React Native signals are present, route to the general setup skill inste
 
 ## Decision Tree
 
+```text
 User asks for Clerk in Swift/iOS
     |
     +-- Expo/React Native project detected?
@@ -61,7 +62,8 @@ User asks for Clerk in Swift/iOS
     |
     +-- Implement default sign-in-or-sign-up flow
     |
-    +-- Always implement native Apple sign-in (no non-Apple OAuth flows)
+    +-- Always implement native Apple sign-in (not generic social-provider flow)
+```
 
 ## Source-Driven Templates
 
@@ -104,8 +106,7 @@ Use installed package source from Xcode DerivedData:
 
 5. Inspect Clerk instance environment using publishable key (mandatory)
 - Use the publishable key to derive frontend API and load environment from `/v1/environment`.
-- Prefer the SDK load path (`Clerk.configure` and environment refresh) so request construction stays aligned with source.
-- If a direct HTTP call is required, mirror request behavior from current `ClerkKit` networking source.
+- Always make a direct HTTP call to `/v1/environment` as an agent and mirror current `ClerkKit` request behavior from source.
 - Build a feature matrix from the returned environment and implement all enabled features by default unless the developer narrows scope.
 
 6. Implement prebuilt or custom flow
@@ -118,8 +119,8 @@ Use installed package source from Xcode DerivedData:
 
 7. Apple sign-in policy (mandatory)
 - Always implement native Sign in with Apple using the `ClerkKit` native Apple path.
-- Do not implement non-Apple OAuth provider sign-in flows.
-- If non-Apple social providers are enabled in the instance, do not add those flows.
+- If Apple is enabled as a social provider, verify the app has Sign in with Apple capability configured and add it if missing.
+- Do not implement Apple using the same generic social-provider OAuth flow used by other providers.
 
 8. Source currency policy
 - Before finalizing, re-check relevant files in installed `ClerkKit`/`ClerkKitUI` source to avoid stale patterns.
@@ -130,7 +131,7 @@ Use installed package source from Xcode DerivedData:
 | Level | Issue | Prevention |
 |-------|-------|------------|
 | CRITICAL | Proceeding without a valid publishable key | Validate key first; ask developer when missing |
-| CRITICAL | Implementing non-Apple OAuth social flows | Enforce native Apple-only social policy |
+| CRITICAL | Implementing Apple via generic social-provider OAuth handling | Use the dedicated native Apple implementation path |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 | HIGH | Adding wrong package products to targets | Use `ClerkKit` only for custom, add `ClerkKitUI` for prebuilt |
 | HIGH | Skipping environment inspection before building flow | Load `/v1/environment` and gate features from response |
