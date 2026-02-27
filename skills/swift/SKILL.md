@@ -30,8 +30,8 @@ If Expo/React Native signals are present, route to the general setup skill inste
 | 1 | Confirm project type is native Swift/iOS and not Expo/React Native |
 | 2 | Determine whether flow is prebuilt (`AuthView`) or custom |
 | 3 | Ensure a valid Clerk publishable key exists (or ask developer for one) |
-| 4 | Ensure `clerk-ios` package is installed and correct products are linked |
-| 5 | Use publishable key to load environment from Clerk instance (`/v1/environment`) |
+| 4 | Use publishable key to load environment from Clerk instance (`/v1/environment`) |
+| 5 | Ensure `clerk-ios` package is installed and correct products are linked |
 | 6 | Implement all enabled instance features by default (unless developer narrows scope) |
 | 7 | Default to sign-in-or-sign-up behavior and always include native Sign in with Apple |
 
@@ -82,6 +82,25 @@ Do not hardcode implementation examples in this skill. Always inspect current so
 Use installed package source from Xcode DerivedData:
 - `~/Library/Developer/Xcode/DerivedData/.../SourcePackages/checkouts/clerk-ios`
 
+## Execution Gates (Do Not Skip)
+
+1. No implementation edits before prerequisites
+- Do not edit project files until flow type is confirmed, a valid publishable key is available, and environment inspection is complete.
+
+2. Fresh implementation must ask flow choice
+- If no existing Clerk implementation is present, explicitly ask the developer: prebuilt views or custom flow.
+- Do not default to prebuilt views in a fresh app without asking.
+
+3. Missing/placeholder publishable key must block implementation
+- If key is missing, invalid, or placeholder (for example `pk_test_REPLACE_ME`), ask the developer for a real key and stop.
+
+4. Environment check is mandatory before implementation
+- Always make a direct HTTP call to `/v1/environment` with the publishable key before implementing auth.
+- If the environment request fails, stop and ask the developer to correct key/configuration before proceeding.
+
+5. Enabled-feature plan must be explicit
+- Summarize enabled features from the environment response and implement all by default unless the developer explicitly narrows scope.
+
 ## Workflow
 
 1. Detect native iOS/Swift vs Expo/React Native
@@ -91,23 +110,24 @@ Use installed package source from Xcode DerivedData:
 2. Determine auth flow type
 - Detect prebuilt flow usage by checking for `ClerkKitUI` and `AuthView`.
 - Detect custom flow usage by checking direct `clerk.auth` API usage with custom SwiftUI/UIKit screens.
-- If no existing flow is present, ask the developer whether they want prebuilt views or a custom flow.
+- If no existing flow is present, ask the developer whether they want prebuilt views or a custom flow, then wait for their answer before editing files.
 
 3. Ensure publishable key (mandatory)
 - Search existing project config for a publishable key first.
 - Validate key format and avoid proceeding with an empty or invalid key.
 - If no key is available, ask the developer for it before continuing.
 
-4. Ensure `clerk-ios` package is installed (mandatory)
+4. Inspect Clerk instance environment using publishable key (mandatory)
+- Use the publishable key to derive frontend API and load environment from `/v1/environment`.
+- Always make a direct HTTP call to `/v1/environment` as an agent and mirror current `ClerkKit` request behavior from source.
+- Build and surface a feature matrix from the returned environment before implementation starts.
+- Implement all enabled features by default unless the developer narrows scope.
+
+5. Ensure `clerk-ios` package is installed (mandatory)
 - If missing, install `https://github.com/clerk/clerk-ios` through Swift Package Manager.
 - Target product rules:
   - Custom flow only: add `ClerkKit`.
   - Prebuilt views: add `ClerkKit` and `ClerkKitUI`.
-
-5. Inspect Clerk instance environment using publishable key (mandatory)
-- Use the publishable key to derive frontend API and load environment from `/v1/environment`.
-- Always make a direct HTTP call to `/v1/environment` as an agent and mirror current `ClerkKit` request behavior from source.
-- Build a feature matrix from the returned environment and implement all enabled features by default unless the developer narrows scope.
 
 6. Implement prebuilt or custom flow
 - Prebuilt path:
@@ -131,6 +151,8 @@ Use installed package source from Xcode DerivedData:
 | Level | Issue | Prevention |
 |-------|-------|------------|
 | CRITICAL | Proceeding without a valid publishable key | Validate key first; ask developer when missing |
+| CRITICAL | Starting implementation before flow choice is confirmed in a fresh app | Ask prebuilt vs custom first, then proceed |
+| CRITICAL | Skipping direct `/v1/environment` inspection before coding | Perform environment call first and gate implementation on success |
 | CRITICAL | Implementing Apple via generic social-provider OAuth handling | Use the dedicated native Apple implementation path |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 | HIGH | Adding wrong package products to targets | Use `ClerkKit` only for custom, add `ClerkKitUI` for prebuilt |
