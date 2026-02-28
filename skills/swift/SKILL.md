@@ -145,6 +145,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 9. Custom-flow AuthView structure parity is mandatory
 - For `custom` flow, layout and flow structure must remain materially close to ClerkKitUI `AuthView` defaults.
 - If the developer did not explicitly request a different UX, do not introduce major structural/layout deviations from `AuthView`.
+- If unsure/confused about custom sequencing, gating, or `Environment` usage/semantics, defer to installed `ClerkKitUI` behavior and mirror it.
 
 ## Workflow
 
@@ -179,6 +180,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 | CRITICAL | Skipping quickstart associated-domain capability step | Execute quickstart `Add associated domain capability` and ensure `webcredentials:{YOUR_FRONTEND_API_URL}` is present |
 | CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
 | CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
+| CRITICAL | Guessing custom sequencing/gating/`Environment` usage when uncertain | Reference installed `ClerkKitUI` behavior and mirror it for final implementation |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 
 ## See Also

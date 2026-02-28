@@ -82,6 +82,8 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 
 10. Source parity
 - Follow installed `ClerkKitUI` and `ClerkKit` source patterns for sequencing, factor handling, and verification steps.
+- When unsure about custom-flow implementation details, sequencing, gating, or `Environment` usage/semantics, stop guessing and reference installed `ClerkKitUI` implementation behavior.
+- Resolve ambiguity by mirroring `ClerkKitUI` behavior unless the developer explicitly asks for a different approach.
 
 ## Verification Checklist
 
@@ -103,6 +105,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - Inputs shown at each step match `AuthView` step-level visibility behavior.
 - Step layouts and component grouping are materially close to `AuthView`; do not introduce major layout redesign unless explicitly requested.
 - View hierarchy/section ordering remain close to `AuthView` across steps unless explicitly requested otherwise.
+- When implementation ambiguity appears, final behavior matches installed `ClerkKitUI` rather than an inferred/custom interpretation.
 
 5. Flow organization quality
 - Custom flow code is split into multiple focused files/modules (not a single monolithic auth view file).
