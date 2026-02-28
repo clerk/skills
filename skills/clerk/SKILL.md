@@ -41,6 +41,11 @@ Based on what you're trying to do, here's the right skill to use:
 - Auth flow testing
 - Test utilities
 
+**Backend REST API** → Use `clerk-backend-api`
+- Browse API tags and endpoints
+- Inspect endpoint schemas
+- Execute API requests with scope enforcement
+
 ## Quick Navigation
 
 If you know your task, you can directly access:
@@ -50,5 +55,6 @@ If you know your task, you can directly access:
 - `/clerk-orgs` - Organizations
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
+- `/clerk-backend-api` - Backend REST API
 
 Or describe what you need and I'll recommend the right one.
