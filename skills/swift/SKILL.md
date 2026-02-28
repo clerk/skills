@@ -180,6 +180,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 | CRITICAL | Skipping quickstart associated-domain capability step | Execute quickstart `Add associated domain capability` and ensure `webcredentials:{YOUR_FRONTEND_API_URL}` is present |
 | CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
 | CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
+| CRITICAL | Collapsing custom auth into a single all-fields screen | Follow `AuthView`-style multi-step progression and step-specific field collection |
 | CRITICAL | Guessing custom sequencing/gating/`Environment` usage when uncertain | Reference installed `ClerkKitUI` behavior and mirror it for final implementation |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 

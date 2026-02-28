@@ -58,6 +58,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - Keep factor/strategy branching aligned with how `AuthView` gates transitions.
 - Keep screen layout and component structure very close to `AuthView` defaults unless the developer explicitly requests a different UX.
 - Keep view hierarchy and section ordering close to `AuthView` on each step; do not redesign the information architecture unless explicitly requested.
+- Break the custom flow into multiple step screens/states similar to `AuthView`; do not try to gather all signup/signin requirements in one view.
 - If proposed custom layout materially deviates from `AuthView`, stop and ask for explicit developer approval before implementing.
 
 6. Multi-file organization and separation of concerns
@@ -105,6 +106,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - Inputs shown at each step match `AuthView` step-level visibility behavior.
 - Step layouts and component grouping are materially close to `AuthView`; do not introduce major layout redesign unless explicitly requested.
 - View hierarchy/section ordering remain close to `AuthView` across steps unless explicitly requested otherwise.
+- Flow is split across multiple steps like `AuthView`; required data is not collected in one monolithic screen.
 - When implementation ambiguity appears, final behavior matches installed `ClerkKitUI` rather than an inferred/custom interpretation.
 
 5. Flow organization quality
