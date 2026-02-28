@@ -18,10 +18,13 @@ bash scripts/api-specs-context.sh
 
 Use the output to determine the latest version and available tags.
 
+**Caching:** If you already fetched the spec context earlier in this conversation, do NOT fetch it again. Reuse the version and tags from the previous call.
+
 ## Rules
 
 - Always disregard endpoints/schemas related to `platform`.
 - Always confirm before performing write requests.
+- For write operations (POST/PUT/PATCH/DELETE), check if `CLERK_BAPI_SCOPES` includes the required scope. If not, ask the user upfront: "This is a write/delete operation and your current scopes don't allow it. Run with --admin to bypass?" Do NOT attempt the request first and fail — ask before executing.
 
 ## Modes
 
@@ -131,14 +134,9 @@ Use the endpoint definition from step 3 to build the request:
 ```bash
 bash scripts/execute-request.sh [--admin] ${METHOD} "${path}" ['${body_json}']
 ```
-   - `--admin` — pass this if the user included `--admin` in their prompt (bypasses scope checks)
+   - `--admin` — pass this if the user confirmed admin bypass (see Rules)
    - `${METHOD}` — uppercase HTTP method
    - `${path}` — resolved path with parameters filled in (e.g. `/users/user_abc123`)
    - `${body_json}` — optional JSON body for POST/PUT/PATCH
-
-The script enforces scope restrictions:
-- **GET** — always allowed
-- **POST, PUT, PATCH** — requires `CLERK_BAPI_SCOPES=write` or `--admin`
-- **DELETE** — requires `CLERK_BAPI_SCOPES=write,delete` or `--admin`
 
 4. Share the response with the user.
