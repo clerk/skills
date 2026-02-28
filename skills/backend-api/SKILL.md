@@ -11,7 +11,12 @@ User Prompt: $ARGUMENTS
 
 ## API specs context
 
-!`bash .claude/skills/backend-api/scripts/api-specs-context.sh`
+Before doing anything, fetch the available spec versions and tags by running:
+```bash
+bash scripts/api-specs-context.sh
+```
+
+Use the output to determine the latest version and available tags.
 
 ## Rules
 
@@ -74,7 +79,7 @@ Stop here.
 
 If using a non-latest version, fetch tags for that version:
 ```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | node .claude/skills/backend-api/scripts/extract-tags.js
+curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | node scripts/extract-tags.js
 ```
 Otherwise, use the **TAGS** already in [API specs context](#api-specs-context).
 
@@ -88,7 +93,7 @@ Share tags in a table and prompt the user to select a query.
 
 Fetch all endpoints for the identified tag:
 ```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash .claude/skills/backend-api/scripts/extract-tag-endpoints.sh "${tag_name}"
+curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash scripts/extract-tag-endpoints.sh "${tag_name}"
 ```
 
 Share the results (endpoints, schemas, parameters) with the user.
@@ -103,7 +108,7 @@ For natural language prompts in `execute` mode, first identify the matching endp
 
 Extract the full endpoint definition:
 ```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash .claude/skills/backend-api/scripts/extract-endpoint-detail.sh "${path}" "${method}"
+curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash scripts/extract-endpoint-detail.sh "${path}" "${method}"
 ```
 - `${path}` — e.g. `/users/{user_id}`
 - `${method}` — lowercase, e.g. `get`
@@ -124,7 +129,7 @@ Use the endpoint definition from step 3 to build the request:
 2. Ask the user for any required path/query/body parameters.
 3. Execute via the request script:
 ```bash
-bash .claude/skills/backend-api/scripts/execute-request.sh [--admin] ${METHOD} "${path}" ['${body_json}']
+bash scripts/execute-request.sh [--admin] ${METHOD} "${path}" ['${body_json}']
 ```
    - `--admin` — pass this if the user included `--admin` in their prompt (bypasses scope checks)
    - `${METHOD}` — uppercase HTTP method
