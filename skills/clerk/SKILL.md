@@ -46,6 +46,10 @@ Based on what you're trying to do, here's the right skill to use:
 - Inspect endpoint schemas
 - Execute API requests with scope enforcement
 
+**Type Generation** → Use `clerk-type-gen`
+- Generate types for roles, permissions, billing and more
+- Sync with latest data from dashboard
+
 ## Quick Navigation
 
 If you know your task, you can directly access:
@@ -56,5 +60,6 @@ If you know your task, you can directly access:
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
 - `/clerk-backend-api` - Backend REST API
+- `/clerk-type-gen` - Typescript types generation
 
 Or describe what you need and I'll recommend the right one.

@@ -16,7 +16,9 @@ skills/
 │   ├── managing-orgs/        # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
 │   ├── syncing-users/        # Webhook → database sync
-│   └── testing/              # E2E testing setup
+│   ├── testing/              # E2E testing setup
+│   ├── backend-api/          # Backend REST API explorer
+│   └── type-gen/             # Type generation from dashboard
 └── README.md                 # User-facing documentation
 ```
 
@@ -32,7 +34,8 @@ User Request
     ├─ "Organizations/RBAC" → managing-orgs/
     ├─ "Sync users to DB"   → syncing-users/
     ├─ "Write tests"        → testing/
-    └─ "Next.js patterns"   → nextjs-patterns/
+    ├─ "Next.js patterns"   → nextjs-patterns/
+    └─ "Sync types/roles"   → type-gen/
 ```
 
 ### Skill Structure

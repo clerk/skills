@@ -130,6 +130,21 @@
       "license": "MIT",
       "category": "authentication",
       "keywords": ["clerk", "api", "backend", "rest", "openapi", "bapi"]
+    },
+    {
+      "name": "clerk-type-gen",
+      "description": "Generate and sync TypeScript types and constants for roles, permissions, features, and plans from your Clerk dashboard",
+      "version": "1.0.0",
+      "author": {
+        "name": "Clerk",
+        "email": "support@clerk.com"
+      },
+      "source": "./.claude/skills/clerk-type-gen",
+      "homepage": "https://clerk.com/docs",
+      "repository": "https://github.com/clerk/skills",
+      "license": "MIT",
+      "category": "authentication",
+      "keywords": ["clerk", "types", "codegen", "typescript"]
     }
   ]
 }
