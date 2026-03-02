@@ -1,0 +1,14 @@
+{
+  "name": "clerk-swift",
+  "description": "Native Swift/iOS Clerk auth with source-driven ClerkKit and ClerkKitUI patterns",
+  "version": "1.0.0",
+  "author": {
+    "name": "Clerk",
+    "email": "support@clerk.com"
+  },
+  "license": "MIT",
+  "homepage": "https://clerk.com/docs",
+  "repository": "https://github.com/clerk/skills",
+  "keywords": ["swift", "ios", "swiftui", "native-mobile", "clerkkit", "apple-sign-in"],
+  "category": "authentication"
+}

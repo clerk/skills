@@ -2,6 +2,7 @@
 name: clerk-swift
 description: Implement Clerk authentication for native Swift and iOS apps using ClerkKit and ClerkKitUI source-guided patterns. Use for prebuilt AuthView or custom native flows. Do not use for Expo or React Native projects.
 license: MIT
+allowed-tools: WebFetch
 metadata:
   author: clerk
   version: "1.0.0"
