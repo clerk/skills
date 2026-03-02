@@ -8,7 +8,7 @@
   },
   "metadata": {
     "version": "1.0.0",
-    "description": "Complete Clerk authentication toolkit with router for setup, custom UI, Next.js patterns, organizations, webhooks, and testing"
+    "description": "Complete Clerk authentication toolkit with router for setup, custom UI, native iOS, native Android, Next.js patterns, organizations, webhooks, and testing"
   },
   "plugins": [
     {
@@ -130,6 +130,21 @@
       "license": "MIT",
       "category": "authentication",
       "keywords": ["swift", "ios", "swiftui", "native-mobile", "clerkkit", "apple-sign-in"]
+    },
+    {
+      "name": "clerk-android",
+      "description": "Native Android Clerk auth with source-driven Kotlin and Jetpack Compose patterns",
+      "version": "1.0.0",
+      "author": {
+        "name": "Clerk",
+        "email": "support@clerk.com"
+      },
+      "source": "./skills/android",
+      "homepage": "https://clerk.com/docs",
+      "repository": "https://github.com/clerk/skills",
+      "license": "MIT",
+      "category": "authentication",
+      "keywords": ["android", "kotlin", "jetpack-compose", "native-mobile", "clerk-android"]
     },
     {
       "name": "clerk-backend-api",
