@@ -57,21 +57,20 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
+| `/clerk-backend-api`    | Clerk Backend REST API explorer & executor   | Browsing or calling backend API endpoints | API Tool           |
 
 ## Quick Start
 
-### 1. Get API Keys
+### 1. Set Up API Keys
 
-Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com) → **API Keys**.
-
-### 2. Set Environment Variables
+Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) → **API Keys** and add them to your `.env`:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
 CLERK_SECRET_KEY=sk_test_xxx
 ```
 
-### 3. Ask Your Agent
+### 2. Ask Your Agent
 
 | You Say                                  | Skill Used              |
 | ---------------------------------------- | ----------------------- |
@@ -81,6 +80,8 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Add Playwright tests for auth"          | `clerk-testing`         |
 | "Set up organizations for my B2B app"    | `clerk-orgs`            |
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
+| "List all users via the Backend API"     | `clerk-backend-api`     |
+
 
 ## Repository Structure
 
@@ -101,11 +102,14 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── webhooks/                # Webhooks & data sync
 │   │   └── SKILL.md
-│   └── testing/                 # E2E testing
-│       └── SKILL.md
+│   ├── testing/                 # E2E testing
+│   │   └── SKILL.md
+│   └── backend-api/             # Backend REST API
+│       ├── SKILL.md
+│       ├── references/          # OpenAPI spec
+│       └── scripts/             # API browsing & execution
 └── README.md
 ```
-
 ## Using /clerk Command
 
 For agents that support slash commands (Claude Code, OpenCode):
@@ -114,6 +118,10 @@ For agents that support slash commands (Claude Code, OpenCode):
 /clerk add auth to my Express app
 /clerk sync users to Supabase
 /clerk fix "redirect_uri_mismatch" error
+
+/clerk-backend-api tags
+/clerk-backend-api GET /users
+/clerk-backend-api Users
 ```
 
 ## Resources
