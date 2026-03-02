@@ -11,14 +11,23 @@
 
 set -euo pipefail
 
-# Source env files from working directory (.env first, .env.local overrides)
-for envfile in "${PWD}/.env" "${PWD}/.env.local"; do
-  if [[ -f "$envfile" ]]; then
-    set -a
-    source "$envfile"
-    set +a
-  fi
+# Walk up from $PWD to find .env/.env.local (mirrors Clerk CLI behavior).
+# Stops at the first directory that provides CLERK_SECRET_KEY.
+_dir="$PWD"
+while true; do
+  for _envfile in "$_dir/.env" "$_dir/.env.local"; do
+    if [[ -f "$_envfile" ]]; then
+      set -a
+      source "$_envfile"
+      set +a
+    fi
+  done
+  [[ -n "${CLERK_SECRET_KEY:-}" ]] && break
+  _parent="$(dirname "$_dir")"
+  [[ "$_parent" == "$_dir" ]] && break
+  _dir="$_parent"
 done
+unset _dir _parent _envfile
 
 # Parse --admin flag
 ADMIN=false
