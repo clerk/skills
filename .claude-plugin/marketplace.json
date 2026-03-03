@@ -8,7 +8,7 @@
   },
   "metadata": {
     "version": "1.0.0",
-    "description": "Complete Clerk authentication toolkit with router for setup, custom UI, native iOS, native Android, Next.js patterns, organizations, webhooks, and testing"
+    "description": "Complete Clerk authentication toolkit with router for setup, custom UI, Next.js patterns, organizations, webhooks, testing, and native mobile (Swift and Android)"
   },
   "plugins": [
     {
