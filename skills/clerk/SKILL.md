@@ -42,9 +42,10 @@ Based on what you're trying to do, here's the right skill to use:
 - Test utilities
 
 **Backend REST API** → Use `clerk-backend-api`
-- Browse API tags and endpoints
-- Inspect endpoint schemas
-- Execute API requests with scope enforcement
+- Browse API tags and endpoints (`docs`, `docs Users`)
+- Inspect endpoint schemas (`docs GET /users`)
+- Execute API requests (`request GET /users`, `request POST /invitations`)
+- Generate TypeScript types from dashboard data (`types sync`, `types sync roles`)
 
 ## Quick Navigation
 
