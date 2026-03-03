@@ -109,7 +109,7 @@ const { isAuthenticated, userId } = await auth();  // MUST await
 
 // Client Components
 import { useAuth } from '@clerk/nextjs';
-const { isAuthenticated, userId } = useAuth();  // Hook, no await
+const { isSignedIn, userId } = useAuth();  // Hook, no await
 ```
 
 > **Core 2:** `isAuthenticated` is not available. Check `!!userId` instead.
