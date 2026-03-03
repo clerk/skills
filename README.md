@@ -107,7 +107,6 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── testing/                 # E2E testing
 │   │   └── SKILL.md
-│   ├── swift/                   # Native Swift/iOS auth
 │   ├── android/                 # Native Android auth
 │   │   └── SKILL.md
 │   ├── swift/                   # Native Swift/iOS auth
