@@ -1,142 +1,84 @@
 ---
 name: clerk-backend-api
 description: "Clerk backend REST API"
-argument-hint: "[endpointOrTag] [method]"
-allowed-tools: Bash, Read, Grep, Skill, WebFetch
+argument-hint: "<command> [subcommand] [options]"
+allowed-tools: Bash, Read, Grep, Write, Glob, WebFetch
 ---
 
-## Options context
+## User input
 
-User Prompt: $ARGUMENTS
+Full User Prompt: $ARGUMENTS
+Command: $0 
 
-## API specs context
+## Output style
 
-Before doing anything, fetch the available spec versions and tags by running:
-```bash
-bash scripts/api-specs-context.sh
-```
+**CRITICAL:** Do not narrate internal reasoning to the user as it relates to command routing, mode resolution, or options parsing. Do not say things like "Command is X, remaining tokens are Y" or "Let me read the agent file." Silently route to the correct agent and present only the agent's output.
 
-Use the output to determine the latest version and available tags.
+## Command routing
 
-**Caching:** If you already fetched the spec context earlier in this conversation, do NOT fetch it again. Reuse the version and tags from the previous call.
+Use `Command` in [User input](#user-input) to determine which agent to spawn:
+If the value of `Command` does not match a known command, infer the goal from the `Full User Prompt` and suggest the right command.
 
-## Rules
-
-- Always disregard endpoints/schemas related to `platform`.
-- Always confirm before performing write requests.
-- For write operations (POST/PUT/PATCH/DELETE), check if `CLERK_BAPI_SCOPES` includes the required scope. If not, ask the user upfront: "This is a write/delete operation and your current scopes don't allow it. Run with --admin to bypass?" Do NOT attempt the request first and fail — ask before executing.
-
-## Modes
-
-Determine the active mode based on the user prompt in [Options context](#options-context):
-
-| Mode | Trigger | Behavior |
-|------|---------|----------|
-| `help` | Prompt is empty, or contains only `help` / `-h` / `--help` | Print usage examples (step 0) |
-| `browse` | Prompt is `tags`, or a tag name (e.g. `Users`) | List all tags or endpoints for a tag |
-| `execute` | Specific endpoint (e.g. `GET /users`) or natural language action (e.g. "get user john_doe") | Look up endpoint, execute request |
-| `detail` | Endpoint + `help` / `-h` / `--help` (e.g. `GET /users help`) | Show endpoint schema, don't execute |
-
-## Your Task
-
-Use the **LATEST VERSION** from [API specs context](#api-specs-context) by default. If the user specifies a different version (e.g. `--version 2024-10-01`), use that version instead.
-
-Determine the active mode, then follow the applicable steps below.
+| Command | Agent | Agent file location |
+|---|---|---|
+| _(empty)_, `help`, `-h`, `--help` | Global help | _(none — print help below)_ |
+| `docs` | API Docs | `agents/docs.md` |
+| `request` | API Request | `agents/request.md` |
+| `types` | Type Generator | `agents/types.md` |
 
 ---
 
-### 0. Print usage
+## Global help
 
-**Modes:** `help` only — **Skip** for `browse`, `execute`, and `detail`.
-
-Print the following examples to the user verbatim:
+Print the following verbatim:
 
 ```
-Browse
-  /clerk-backend-api tags                         — list all tags
-  /clerk-backend-api Users                        — browse endpoints for the Users tag
-  /clerk-backend-api Users version 2025-11-10.yml — browse using a different version
+Usage: /clerk-backend-api <command> [subcommand] [options]
 
-Execute
-  /clerk-backend-api GET /users             — fetch all users
-  /clerk-backend-api get user john_doe      — natural language works too
-  /clerk-backend-api POST /invitations      — create an invitation
+Commands:
+  docs      Browse and inspect Clerk Backend API endpoints
+  request   Execute Clerk Backend API requests
+  types     Generate TypeScript types from your Clerk dashboard
 
-Inspect
-  /clerk-backend-api GET /users help        — show endpoint schema without executing
-  /clerk-backend-api POST /invitations -h   — view request/response details
+Docs examples:
+  /clerk-backend-api docs                      — list all API tags
+  /clerk-backend-api docs Users                — browse endpoints for Users
+  /clerk-backend-api docs GET /users           — inspect endpoint schema
+  /clerk-backend-api docs GET /users -v 2025-11-10
 
-Options
-  --admin                            — bypass scope restrictions for write/delete
-  --version [date], version [date]   — use a specific spec version
-  --help, -h, help                   — inspect endpoint instead of executing
+Request examples:
+  /clerk-backend-api request GET /users        — fetch all users
+  /clerk-backend-api request POST /invitations — create an invitation
+
+Type generation examples:
+  /clerk-backend-api types sync                — generate all types and constants
+  /clerk-backend-api types sync plans          — generate only plan constants
+  /clerk-backend-api types sync roles permissions --dry-run
+
+Global options:
+  -o, --out [dir]                               — output directory (default: <project_root>/.clerk/)
+  --help, -h, help                             — show this help
+
+Run /clerk-backend-api <command> --help for command-specific help.
 ```
 
 Stop here.
 
 ---
 
-### 1. Fetch tags
+## Global options
 
-**Modes:** `browse` (when prompt is `tags` or no tag specified) — **Skip** for `help`, `execute`, and `detail`.
+Extract these flags from the full user prompt before routing:
+- `-o, --out [dir]` — output directory. See `references/api-specs.md` for resolution rules.
 
-If using a non-latest version, fetch tags for that version:
-```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | node scripts/extract-tags.js
-```
-Otherwise, use the **TAGS** already in [API specs context](#api-specs-context).
+## Delegation
 
-Share tags in a table and prompt the user to select a query.
+Once the command is resolved:
 
----
+1. Extract global options (`-o`/`--out`) from the input and resolve them per `references/api-specs.md`.
+2. Read the corresponding agent file using the Read tool.
+3. Follow all instructions in the agent file. **The [Output style](#output-style) rule above remains in effect throughout — it applies to you and all agent instructions you follow.**
+4. Pass the **remaining tokens** (everything after the command name, minus global options) as the agent's input.
+5. Pass the resolved `<outdir>` to the agent.
 
-### 2. Fetch tag endpoints
-
-**Modes:** `browse` (when a tag name is provided) — **Skip** for `help`, `execute`, and `detail`.
-
-Fetch all endpoints for the identified tag:
-```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash scripts/extract-tag-endpoints.sh "${tag_name}"
-```
-
-Share the results (endpoints, schemas, parameters) with the user.
-
----
-
-### 3. Fetch endpoint detail
-
-**Modes:** `execute`, `detail` — **Skip** for `help` and `browse`.
-
-For natural language prompts in `execute` mode, first identify the matching endpoint by searching the tags in context. Fetch tag endpoints if needed to resolve the exact path and method.
-
-Extract the full endpoint definition:
-```bash
-curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash scripts/extract-endpoint-detail.sh "${path}" "${method}"
-```
-- `${path}` — e.g. `/users/{user_id}`
-- `${method}` — lowercase, e.g. `get`
-
-**`detail` mode:** Share the endpoint definition and schemas with the user. Stop here.
-
-**`execute` mode:** Continue to step 4.
-
----
-
-### 4. Execute request
-
-**Modes:** `execute` only.
-
-Use the endpoint definition from step 3 to build the request:
-
-1. Identify required and optional parameters from the spec.
-2. Ask the user for any required path/query/body parameters.
-3. Execute via the request script:
-```bash
-bash scripts/execute-request.sh [--admin] ${METHOD} "${path}" ['${body_json}']
-```
-   - `--admin` — pass this if the user confirmed admin bypass (see Rules)
-   - `${METHOD}` — uppercase HTTP method
-   - `${path}` — resolved path with parameters filled in (e.g. `/users/user_abc123`)
-   - `${body_json}` — optional JSON body for POST/PUT/PATCH
-
-4. Share the response with the user.
+Do NOT fetch API spec context (`scripts/openapi/api-specs-context.sh`) at the router level. Each agent decides whether and when to fetch it.

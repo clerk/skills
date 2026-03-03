@@ -133,7 +133,7 @@
     },
     {
       "name": "clerk-backend-api",
-      "description": "Clerk Backend REST API explorer and executor - browse tags, inspect endpoint schemas, and execute API requests with scope enforcement",
+      "description": "Clerk Backend REST API — browse endpoint docs, execute requests, and generate TypeScript types from your Clerk dashboard",
       "version": "1.0.0",
       "author": {
         "name": "Clerk",
@@ -144,7 +144,7 @@
       "repository": "https://github.com/clerk/skills",
       "license": "MIT",
       "category": "authentication",
-      "keywords": ["clerk", "api", "backend", "rest", "openapi", "bapi"]
+      "keywords": ["clerk", "api", "backend", "rest", "openapi", "bapi", "types", "codegen"]
     }
   ]
 }
