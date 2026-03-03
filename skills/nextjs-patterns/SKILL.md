@@ -10,7 +10,7 @@ metadata:
 
 # Next.js Patterns
 
-> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2:**` callouts.
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
 For basic setup, see `setup/`.
 
@@ -43,7 +43,7 @@ Key properties from `auth()`:
 - `sessionStatus` — `'active'` | `'pending'`, for detecting incomplete session tasks
 - `userId`, `orgId`, `orgSlug`, `has()`, `protect()` — unchanged
 
-> **Core 2:** `isAuthenticated` and `sessionStatus` are not available. Check `!!userId` instead.
+> **Core 2 ONLY (skip if current SDK):** `isAuthenticated` and `sessionStatus` are not available. Check `!!userId` instead.
 
 ## Minimal Pattern
 
@@ -58,7 +58,7 @@ export default async function Page() {
 }
 ```
 
-> **Core 2:** `isAuthenticated` is not available. Use `if (!userId)` instead.
+> **Core 2 ONLY (skip if current SDK):** `isAuthenticated` is not available. Use `if (!userId)` instead.
 
 ### Conditional Rendering with `<Show>`
 
@@ -72,7 +72,7 @@ import { Show } from '@clerk/nextjs'
 </Show>
 ```
 
-> **Core 2:** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `custom-ui/core-3/show-component.md` for the full migration table.
+> **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `custom-ui/core-3/show-component.md` for the full migration table.
 
 ## Common Pitfalls
 

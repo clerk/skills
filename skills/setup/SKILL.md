@@ -10,7 +10,7 @@ metadata:
 
 # Adding Clerk
 
-> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2:**` callouts.
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
 This skill sets up Clerk for authentication by following the official quickstart documentation.
 
@@ -157,7 +157,7 @@ Check `package.json` for existing auth libraries:
 | React Router | `@clerk/react-router` |
 | TanStack Start | `@clerk/tanstack-react-start` |
 
-> **Core 2:** React and Expo packages have different names: `@clerk/clerk-react` and `@clerk/clerk-expo` (with `clerk-` prefix).
+> **Core 2 ONLY (skip if current SDK):** React and Expo packages have different names: `@clerk/clerk-react` and `@clerk/clerk-expo` (with `clerk-` prefix).
 
 ### ClerkProvider Placement (Next.js)
 
@@ -176,7 +176,7 @@ export default function RootLayout({ children }) {
 }
 ```
 
-> **Core 2:** `ClerkProvider` can wrap `<html>` directly.
+> **Core 2 ONLY (skip if current SDK):** `ClerkProvider` can wrap `<html>` directly.
 
 ### Dynamic Rendering (Next.js)
 
@@ -190,7 +190,7 @@ For dynamic rendering with auth data, use the `dynamic` prop:
 
 Requires **Node.js 20.9.0** or higher.
 
-> **Core 2:** Minimum Node.js 18.17.0.
+> **Core 2 ONLY (skip if current SDK):** Minimum Node.js 18.17.0.
 
 ### Themes Package
 
@@ -200,7 +200,7 @@ Themes are installed from `@clerk/ui`:
 npm install @clerk/ui
 ```
 
-> **Core 2:** Themes are from `@clerk/themes` instead of `@clerk/ui`.
+> **Core 2 ONLY (skip if current SDK):** Themes are from `@clerk/themes` instead of `@clerk/ui`.
 
 ## Common Pitfalls
 

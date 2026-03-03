@@ -2,7 +2,7 @@
 
 The `<Show>` component conditionally renders content based on authentication state, roles, permissions, billing plans, and features.
 
-> **Core 2:** The `<Show>` component does not exist in Core 2. Use `<SignedIn>`, `<SignedOut>`, and `<Protect>` instead. See migration table below.
+> **Core 2 ONLY (skip if current SDK):** The `<Show>` component does not exist in Core 2. Use `<SignedIn>`, `<SignedOut>`, and `<Protect>` instead. See migration table below.
 
 ## Import
 

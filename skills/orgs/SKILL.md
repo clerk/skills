@@ -12,7 +12,7 @@ metadata:
 
 > **Prerequisite**: Enable Organizations in Clerk Dashboard first.
 >
-> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2:**` callouts.
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
 ## Quick Start
 
@@ -171,7 +171,7 @@ import { Show } from '@clerk/nextjs'
 </Show>
 ```
 
-> **Core 2:** Use `<Protect role="org:admin">` and `<Protect permission="org:billing:manage">` instead of `<Show>`.
+> **Core 2 ONLY (skip if current SDK):** Use `<Protect role="org:admin">` and `<Protect permission="org:billing:manage">` instead of `<Show>`.
 
 ## Billing Checks
 
@@ -184,7 +184,7 @@ has({ plan: 'gold' })        // Check subscription plan
 has({ feature: 'widgets' })  // Check feature entitlement
 ```
 
-> **Core 2:** `has()` only supports `role` and `permission` parameters. Billing checks are not available.
+> **Core 2 ONLY (skip if current SDK):** `has()` only supports `role` and `permission` parameters. Billing checks are not available.
 
 ## Session Tasks
 
@@ -197,7 +197,7 @@ import { TaskChooseOrganization } from '@clerk/nextjs'
 <TaskChooseOrganization redirectUrlComplete="/dashboard" />
 ```
 
-> **Core 2:** Session tasks are not available. Use `<OrganizationSwitcher>` for org selection.
+> **Core 2 ONLY (skip if current SDK):** Session tasks are not available. Use `<OrganizationSwitcher>` for org selection.
 
 ## Enterprise SSO
 
@@ -211,7 +211,7 @@ strategy: 'enterprise_sso'
 user.enterpriseAccounts
 ```
 
-> **Core 2:** Uses `strategy: 'saml'` instead of `strategy: 'enterprise_sso'`, and `user.samlAccounts` instead of `user.enterpriseAccounts`.
+> **Core 2 ONLY (skip if current SDK):** Uses `strategy: 'saml'` instead of `strategy: 'enterprise_sso'`, and `user.samlAccounts` instead of `user.enterpriseAccounts`.
 
 ## Common Pitfalls
 

@@ -40,7 +40,7 @@ export default async function DashboardPage() {
 }
 ```
 
-> **Core 2:** `isAuthenticated` is not available. Use `const { userId } = await auth()` and check `if (!userId)` instead.
+> **Core 2 ONLY (skip if current SDK):** `isAuthenticated` is not available. Use `const { userId } = await auth()` and check `if (!userId)` instead.
 
 ## Client Component
 
@@ -99,6 +99,6 @@ import { Show } from '@clerk/nextjs';
 </Show>
 ```
 
-> **Core 2:** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`.
+> **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`.
 
 [Docs](https://clerk.com/docs/reference/nextjs/auth)

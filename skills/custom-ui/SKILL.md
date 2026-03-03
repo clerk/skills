@@ -60,7 +60,7 @@ Appearance customization applies to both Core 2 and the current SDK.
 />
 ```
 
-> **Core 2:** The `options` property was named `layout`. Use `layout: { logoImageUrl: '...', socialButtonsVariant: '...' }` instead of `options`.
+> **Core 2 ONLY (skip if current SDK):** The `options` property was named `layout`. Use `layout: { logoImageUrl: '...', socialButtonsVariant: '...' }` instead of `options`.
 
 ### variables (colors, typography, borders)
 
@@ -72,7 +72,7 @@ Appearance customization applies to both Core 2 and the current SDK.
 
 **Opacity change:** `colorRing` and `colorModalBackdrop` now render at full opacity. Use explicit `rgba()` values if you need transparency.
 
-> **Core 2:** `colorRing` and `colorModalBackdrop` rendered at 15% opacity by default.
+> **Core 2 ONLY (skip if current SDK):** `colorRing` and `colorModalBackdrop` rendered at 15% opacity by default.
 
 ### options (structure, logo, social buttons)
 
@@ -83,7 +83,7 @@ Appearance customization applies to both Core 2 and the current SDK.
 | `socialButtonsPlacement` | `'top'` \| `'bottom'` |
 | `showOptionalFields` | Show optional fields (default: `false`) |
 
-> **Core 2:** This property is called `layout`, not `options`. Also, `showOptionalFields` defaulted to `true`.
+> **Core 2 ONLY (skip if current SDK):** This property is called `layout`, not `options`. Also, `showOptionalFields` defaulted to `true`.
 
 ### Themes
 
@@ -99,7 +99,7 @@ import { dark } from '@clerk/ui/themes'
 <ClerkProvider appearance={{ theme: dark }} />
 ```
 
-> **Core 2:** Themes are imported from `@clerk/themes` (install `@clerk/themes` instead of `@clerk/ui`). Example: `import { dark } from '@clerk/themes'`.
+> **Core 2 ONLY (skip if current SDK):** Themes are imported from `@clerk/themes` (install `@clerk/themes` instead of `@clerk/ui`). Example: `import { dark } from '@clerk/themes'`.
 
 **Theme stacking** — pass an array where the last theme takes precedence:
 
@@ -129,7 +129,7 @@ Also import shadcn CSS in your global styles:
 @import '@clerk/ui/themes/shadcn.css';
 ```
 
-> **Core 2:** Import from `@clerk/themes` and `@clerk/themes/shadcn.css`:
+> **Core 2 ONLY (skip if current SDK):** Import from `@clerk/themes` and `@clerk/themes/shadcn.css`:
 > ```typescript
 > import { shadcn } from '@clerk/themes'
 > ```

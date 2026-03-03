@@ -61,6 +61,6 @@ export default clerkMiddleware(async (auth, req) => {
 });
 ```
 
-> **Core 2:** `sessionStatus` is not available. Session tasks do not exist in Core 2.
+> **Core 2 ONLY (skip if current SDK):** `sessionStatus` is not available. Session tasks do not exist in Core 2.
 
 [Docs](https://clerk.com/docs/reference/nextjs/clerk-middleware)

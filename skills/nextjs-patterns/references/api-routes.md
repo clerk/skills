@@ -15,7 +15,7 @@ export async function GET() {
 }
 ```
 
-> **Core 2:** `isAuthenticated` is not available. Use `if (!userId)` instead.
+> **Core 2 ONLY (skip if current SDK):** `isAuthenticated` is not available. Use `if (!userId)` instead.
 
 ## 401 vs 403
 
