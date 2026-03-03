@@ -59,6 +59,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
 | `clerk-swift`           | Native Swift/iOS auth with ClerkKit          | SwiftUI/UIKit auth in native iOS apps  | Native iOS         |
 | `/clerk-backend-api`    | Clerk Backend REST API explorer & executor   | Browsing or calling backend API endpoints | API Tool           |
+| `/clerk-type-gen`       | Generate & sync types from Clerk dashboard   | Syncing roles, permissions, plans as TypeScript types | Code Gen           |
 
 ## Quick Start
 
@@ -83,6 +84,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
 | "Add Clerk auth to my SwiftUI iOS app"   | `clerk-swift`           |
 | "List all users via the Backend API"     | `clerk-backend-api`     |
+| "Sync my roles and permissions as types" | `clerk-type-gen`        |
 
 ## Repository Structure
 
@@ -125,6 +127,10 @@ For agents that support slash commands (Claude Code, OpenCode):
 /clerk-backend-api tags
 /clerk-backend-api GET /users
 /clerk-backend-api Users
+
+/clerk-type-gen
+/clerk-type-gen roles
+/clerk-type-gen permissions
 ```
 
 ## Resources
