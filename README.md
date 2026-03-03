@@ -57,7 +57,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
-| `/clerk-backend-api`    | Clerk Backend REST API explorer & executor   | Browsing or calling backend API endpoints | API Tool           |
+| `/clerk-backend-api`    | Clerk Backend REST API explorer, executor & type generator | Browsing/calling API endpoints, generating types | API Tool           |
 
 ## Quick Start
 
@@ -81,6 +81,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Set up organizations for my B2B app"    | `clerk-orgs`            |
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
 | "List all users via the Backend API"     | `clerk-backend-api`     |
+| "Generate types for roles and permissions" | `clerk-backend-api`   |
 
 
 ## Repository Structure
@@ -104,10 +105,12 @@ clerk-skills/
 │   │   └── SKILL.md
 │   ├── testing/                 # E2E testing
 │   │   └── SKILL.md
-│   └── backend-api/             # Backend REST API
-│       ├── SKILL.md
-│       ├── references/          # OpenAPI spec
-│       └── scripts/             # API browsing & execution
+│   └── backend-api/             # Backend REST API & type generation
+│       ├── SKILL.md             # CLI router (docs, request, types)
+│       ├── agents/              # Command agents (docs, request, types)
+│       ├── assets/              # OpenAPI spec & type templates
+│       ├── references/          # Shared rules (spec resolution, type gen)
+│       └── scripts/openapi/     # Spec extraction & request execution
 └── README.md
 ```
 ## Using /clerk Command
@@ -119,9 +122,11 @@ For agents that support slash commands (Claude Code, OpenCode):
 /clerk sync users to Supabase
 /clerk fix "redirect_uri_mismatch" error
 
-/clerk-backend-api tags
-/clerk-backend-api GET /users
-/clerk-backend-api Users
+/clerk-backend-api docs
+/clerk-backend-api docs Users
+/clerk-backend-api request GET /users
+/clerk-backend-api types sync
+/clerk-backend-api types sync roles permissions
 ```
 
 ## Resources

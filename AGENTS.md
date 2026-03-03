@@ -13,10 +13,16 @@ skills/
 ├── skills/
 │   ├── setup/                # Framework setup & basic auth
 │   ├── custom-ui/            # Custom sign-in/up components
-│   ├── managing-orgs/        # B2B multi-tenant organizations
+│   ├── orgs/                 # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
-│   ├── syncing-users/        # Webhook → database sync
-│   └── testing/              # E2E testing setup
+│   ├── webhooks/             # Webhook → database sync
+│   ├── testing/              # E2E testing setup
+│   └── backend-api/          # Backend REST API & type generation
+│       ├── SKILL.md          # CLI router (docs, request, types)
+│       ├── agents/           # Command agents
+│       ├── assets/           # OpenAPI spec & type templates
+│       ├── references/       # Shared rules
+│       └── scripts/openapi/  # Spec extraction & request scripts
 └── README.md                 # User-facing documentation
 ```
 
@@ -29,10 +35,11 @@ User Request
     │
     ├─ "Add authentication" → setup/
     ├─ "Custom sign-in UI"  → custom-ui/
-    ├─ "Organizations/RBAC" → managing-orgs/
-    ├─ "Sync users to DB"   → syncing-users/
+    ├─ "Organizations/RBAC" → orgs/
+    ├─ "Sync users to DB"   → webhooks/
     ├─ "Write tests"        → testing/
-    └─ "Next.js patterns"   → nextjs-patterns/
+    ├─ "Next.js patterns"   → nextjs-patterns/
+    └─ "Backend API / types" → backend-api/
 ```
 
 ### Skill Structure
