@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
 ---
 
 # Clerk Skills Router
@@ -41,6 +41,12 @@ Based on what you're trying to do, here's the right skill to use:
 - Auth flow testing
 - Test utilities
 
+**Swift / native iOS auth** → Use `clerk-swift`
+- Native iOS Swift and SwiftUI projects
+- ClerkKit and ClerkKitUI implementation guidance
+- Source-driven patterns from `clerk-ios`
+- Do not use for Expo or React Native projects
+
 **Backend REST API** → Use `clerk-backend-api`
 - Browse API tags and endpoints (`docs`, `docs Users`)
 - Inspect endpoint schemas (`docs GET /users`)
@@ -56,6 +62,7 @@ If you know your task, you can directly access:
 - `/clerk-orgs` - Organizations
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
+- `/clerk-swift` - Swift/native iOS
 - `/clerk-backend-api` - Backend REST API
 
 Or describe what you need and I'll recommend the right one.
