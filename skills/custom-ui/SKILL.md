@@ -11,6 +11,8 @@ metadata:
 # Custom UI
 
 > **Prerequisite**: Ensure `ClerkProvider` wraps your app. See `setup/`.
+>
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. This determines which custom flow references to use below.
 
 This skill covers two areas:
 1. **Custom authentication flows** — build your own sign-in/sign-up UI with hooks

@@ -11,6 +11,8 @@ metadata:
 # Organizations (B2B SaaS)
 
 > **Prerequisite**: Enable Organizations in Clerk Dashboard first.
+>
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2:**` callouts.
 
 ## Quick Start
 

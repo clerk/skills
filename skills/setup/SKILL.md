@@ -10,6 +10,8 @@ metadata:
 
 # Adding Clerk
 
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2:**` callouts.
+
 This skill sets up Clerk for authentication by following the official quickstart documentation.
 
 ## Quick Reference
