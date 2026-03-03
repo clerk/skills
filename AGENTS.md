@@ -15,9 +15,9 @@ skills/
 │   ├── custom-ui/            # Custom sign-in/up flows & appearance
 │   │   ├── core-2/           # Core 2 custom flow references
 │   │   └── core-3/           # Current custom flow references
-│   ├── managing-orgs/        # B2B multi-tenant organizations
+│   ├── orgs/                 # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
-│   ├── syncing-users/        # Webhook → database sync
+│   ├── webhooks/             # Webhook → database sync
 │   └── testing/              # E2E testing setup
 └── README.md                 # User-facing documentation
 ```
@@ -31,8 +31,8 @@ User Request
     │
     ├─ "Add authentication" → setup/
     ├─ "Custom sign-in UI"  → custom-ui/
-    ├─ "Organizations/RBAC" → managing-orgs/
-    ├─ "Sync users to DB"   → syncing-users/
+    ├─ "Organizations/RBAC" → orgs/
+    ├─ "Sync users to DB"   → webhooks/
     ├─ "Write tests"        → testing/
     └─ "Next.js patterns"   → nextjs-patterns/
 ```

@@ -215,9 +215,9 @@ npm install @clerk/ui
 
 ## See Also
 
-- `custom-flows/` - Custom sign-in/up components
-- `syncing-users/` - Webhook → database sync
-- `managing-orgs/` - B2B multi-tenant organizations
+- `custom-ui/` - Custom sign-in/up components
+- `webhooks/` - Webhook → database sync
+- `orgs/` - B2B multi-tenant organizations
 - `testing/` - E2E testing setup
 - `nextjs-patterns/` - Advanced Next.js patterns
 

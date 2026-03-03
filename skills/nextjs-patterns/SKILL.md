@@ -85,7 +85,7 @@ import { Show } from '@clerk/nextjs'
 ## See Also
 
 - `setup/`
-- `managing-orgs/`
+- `orgs/`
 
 ## Docs
 
