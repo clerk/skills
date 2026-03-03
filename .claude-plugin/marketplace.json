@@ -43,7 +43,7 @@
     },
     {
       "name": "clerk-custom-ui",
-      "description": "Build custom sign-in/sign-up flows and customize component appearance",
+      "description": "Custom authentication flows (useSignIn, useSignUp hooks) and component appearance customization",
       "version": "1.0.0",
       "author": {
         "name": "Clerk",
@@ -54,7 +54,7 @@
       "repository": "https://github.com/clerk/skills",
       "license": "MIT",
       "category": "authentication",
-      "keywords": ["auth", "custom-ui", "appearance", "sign-in", "sign-up"]
+      "keywords": ["auth", "custom-ui", "appearance", "sign-in", "sign-up", "useSignIn", "useSignUp", "custom-flows", "themes"]
     },
     {
       "name": "clerk-nextjs-patterns",

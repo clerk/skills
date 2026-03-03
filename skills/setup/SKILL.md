@@ -5,10 +5,12 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
 # Adding Clerk
+
+> **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
 This skill sets up Clerk for authentication by following the official quickstart documentation.
 
@@ -143,6 +145,63 @@ Check `package.json` for existing auth libraries:
 
 - **Migration Overview**: https://clerk.com/docs/guides/development/migrating/overview
 
+## SDK Notes
+
+### Package Names
+
+| Package | Install |
+|---------|---------|
+| Next.js | `@clerk/nextjs` |
+| React | `@clerk/react` |
+| Expo | `@clerk/expo` |
+| React Router | `@clerk/react-router` |
+| TanStack Start | `@clerk/tanstack-react-start` |
+
+> **Core 2 ONLY (skip if current SDK):** React and Expo packages have different names: `@clerk/clerk-react` and `@clerk/clerk-expo` (with `clerk-` prefix).
+
+### ClerkProvider Placement (Next.js)
+
+`ClerkProvider` must be placed **inside `<body>`**, not wrapping `<html>`:
+
+```tsx
+// root layout.tsx
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <ClerkProvider>{children}</ClerkProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+> **Core 2 ONLY (skip if current SDK):** `ClerkProvider` can wrap `<html>` directly.
+
+### Dynamic Rendering (Next.js)
+
+For dynamic rendering with auth data, use the `dynamic` prop:
+
+```tsx
+<ClerkProvider dynamic>{children}</ClerkProvider>
+```
+
+### Node.js Requirement
+
+Requires **Node.js 20.9.0** or higher.
+
+> **Core 2 ONLY (skip if current SDK):** Minimum Node.js 18.17.0.
+
+### Themes Package
+
+Themes are installed from `@clerk/ui`:
+
+```bash
+npm install @clerk/ui
+```
+
+> **Core 2 ONLY (skip if current SDK):** Themes are from `@clerk/themes` instead of `@clerk/ui`.
+
 ## Common Pitfalls
 
 | Level | Issue | Solution |
@@ -150,16 +209,17 @@ Check `package.json` for existing auth libraries:
 | CRITICAL | Missing `await` on `auth()` | In Next.js 15+, `auth()` is async: `const { userId } = await auth()` |
 | CRITICAL | Exposing `CLERK_SECRET_KEY` | Never use secret key in client code; only `NEXT_PUBLIC_*` keys are safe |
 | HIGH | Missing middleware matcher | Include API routes: `matcher: ['/((?!.*\\..*|_next).*)', '/']` |
-| HIGH | ClerkProvider not at root | Must wrap entire app in root layout/App component |
+| HIGH | ClerkProvider placement | Must be inside `<body>` in root layout (Core 2: could wrap `<html>`) |
 | HIGH | Auth routes not public | Allow `/sign-in`, `/sign-up` in middleware config |
 | HIGH | Landing page requires auth | To keep "/" public, exclude it: `matcher: ['/((?!.*\\..*|_next|^/$).*)', '/api/(.*)']` |
 | MEDIUM | Wrong import path | Server code uses `@clerk/nextjs/server`, client uses `@clerk/nextjs` |
+| MEDIUM | Wrong package name | Use `@clerk/react` not `@clerk/clerk-react` (Core 2 naming) |
 
 ## See Also
 
-- `custom-flows/` - Custom sign-in/up components
-- `syncing-users/` - Webhook → database sync
-- `managing-orgs/` - B2B multi-tenant organizations
+- `custom-ui/` - Custom sign-in/up components
+- `webhooks/` - Webhook → database sync
+- `orgs/` - B2B multi-tenant organizations
 - `testing/` - E2E testing setup
 - `nextjs-patterns/` - Advanced Next.js patterns
 

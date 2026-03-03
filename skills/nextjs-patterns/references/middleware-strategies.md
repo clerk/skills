@@ -44,4 +44,23 @@ export default clerkMiddleware(async (auth, req) => {
 });
 ```
 
+## Session Tasks
+
+When session tasks are enabled (e.g., forced password reset, MFA setup), users may have a `pending` session status. You can handle this in middleware:
+
+```typescript
+export default clerkMiddleware(async (auth, req) => {
+  const { sessionStatus } = await auth();
+
+  // Redirect pending sessions to task completion page
+  if (sessionStatus === 'pending') {
+    return NextResponse.redirect(new URL('/sign-in/tasks', req.url));
+  }
+
+  if (isProtectedRoute(req)) await auth.protect();
+});
+```
+
+> **Core 2 ONLY (skip if current SDK):** `sessionStatus` is not available. Session tasks do not exist in Core 2.
+
 [Docs](https://clerk.com/docs/reference/nextjs/clerk-middleware)

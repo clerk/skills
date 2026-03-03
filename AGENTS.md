@@ -12,10 +12,12 @@ skills/
 │   └── clerk.md              # /clerk slash command workflow
 ├── skills/
 │   ├── setup/                # Framework setup & basic auth
-│   ├── custom-ui/            # Custom sign-in/up components
-│   ├── managing-orgs/        # B2B multi-tenant organizations
+│   ├── custom-ui/            # Custom sign-in/up flows & appearance
+│   │   ├── core-2/           # Core 2 custom flow references
+│   │   └── core-3/           # Current custom flow references
+│   ├── orgs/                 # B2B multi-tenant organizations
 │   ├── nextjs-patterns/      # Advanced Next.js patterns
-│   ├── syncing-users/        # Webhook → database sync
+│   ├── webhooks/             # Webhook → database sync
 │   └── testing/              # E2E testing setup
 └── README.md                 # User-facing documentation
 ```
@@ -29,8 +31,8 @@ User Request
     │
     ├─ "Add authentication" → setup/
     ├─ "Custom sign-in UI"  → custom-ui/
-    ├─ "Organizations/RBAC" → managing-orgs/
-    ├─ "Sync users to DB"   → syncing-users/
+    ├─ "Organizations/RBAC" → orgs/
+    ├─ "Sync users to DB"   → webhooks/
     ├─ "Write tests"        → testing/
     └─ "Next.js patterns"   → nextjs-patterns/
 ```
@@ -103,12 +105,14 @@ Use these levels to prioritize guidance:
 ```typescript
 // Server Components (Next.js App Router)
 import { auth } from '@clerk/nextjs/server';
-const { userId } = await auth();  // MUST await
+const { isAuthenticated, userId } = await auth();  // MUST await
 
 // Client Components
 import { useAuth } from '@clerk/nextjs';
-const { userId } = useAuth();  // Hook, no await
+const { isSignedIn, userId } = useAuth();  // Hook, no await
 ```
+
+> **Core 2:** `isAuthenticated` is not available. Check `!!userId` instead.
 
 ### Framework Detection
 
@@ -124,7 +128,7 @@ Check for these files to detect the framework:
 2. **Wrong import path** - Use `@clerk/nextjs/server` for server code
 3. **Middleware matcher** - Must include API routes: `matcher: ['/((?!.*\\..*|_next).*)', '/']`
 4. **Environment variables** - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` must be public
-5. **ClerkProvider missing** - Must wrap app in root layout
+5. **ClerkProvider missing** - Must wrap app in root layout, inside `<body>` in Next.js (Core 2: could wrap `<html>`)
 
 ## Quality Checklist
 
