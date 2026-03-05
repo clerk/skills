@@ -25,7 +25,7 @@ For basic setup, see `setup/`.
 | Reference | Impact |
 |-----------|--------|
 | `references/server-vs-client.md` | CRITICAL - `await auth()` vs hooks |
-| `references/middleware-strategies.md` | HIGH - Public-first vs protected-first |
+| `references/middleware-strategies.md` | HIGH - Public-first vs protected-first (`proxy.ts` in Next.js 16+) |
 | `references/server-actions.md` | HIGH - Protect mutations |
 | `references/api-routes.md` | HIGH - 401 vs 403 |
 | `references/caching-auth.md` | MEDIUM - User-scoped caching |
@@ -79,7 +79,7 @@ import { Show } from '@clerk/nextjs'
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `undefined` userId in Server Component | Missing `await` | `await auth()` not `auth()` |
-| Auth not working on API routes | Missing matcher | Add `'/(api|trpc)(.*)'` to middleware |
+| Auth not working on API routes | Missing matcher | Add `'/(api|trpc)(.*)'` to `proxy.ts` (or `middleware.ts` for Next.js <=15) |
 | Cache returns wrong user's data | Missing userId in key | Include `userId` in `unstable_cache` key |
 | Mutations bypass auth | Unprotected Server Action | Check `auth()` at start of action |
 | Wrong HTTP error code | Confused 401/403 | 401 = not signed in, 403 = no permission |
