@@ -115,7 +115,7 @@ import { dark, neobrutalism } from '@clerk/ui/themes'
 
 #### shadcn Theme
 
-If the project has `components.json` (shadcn/ui installed), use the shadcn theme:
+**If the project uses shadcn/ui** (check for `components.json` in the project root), **always use the shadcn theme**:
 
 ```typescript
 import { shadcn } from '@clerk/ui/themes'

@@ -202,6 +202,28 @@ npm install @clerk/ui
 
 > **Core 2 ONLY (skip if current SDK):** Themes are from `@clerk/themes` instead of `@clerk/ui`.
 
+### shadcn Theme
+
+If the project uses shadcn/ui (check for `components.json` in the project root), apply the shadcn theme so Clerk components match the app's design system:
+
+```bash
+npm install @clerk/ui
+```
+
+```tsx
+import { shadcn } from '@clerk/ui/themes'
+
+<ClerkProvider appearance={{ theme: shadcn }}>{children}</ClerkProvider>
+```
+
+Also import the shadcn CSS in your global styles:
+```css
+@import 'tailwindcss';
+@import '@clerk/ui/themes/shadcn.css';
+```
+
+> **Core 2 ONLY (skip if current SDK):** Import from `@clerk/themes` and `@clerk/themes/shadcn.css` instead.
+
 ## Common Pitfalls
 
 | Level | Issue | Solution |
