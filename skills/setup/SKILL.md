@@ -224,8 +224,6 @@ Also import the shadcn CSS in your global styles:
 
 > **Core 2 ONLY (skip if current SDK):** Import from `@clerk/themes` and `@clerk/themes/shadcn.css` instead.
 
-See [shadcn theme docs](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes#shadcn-theme) for details.
-
 ## Common Pitfalls
 
 | Level | Issue | Solution |
