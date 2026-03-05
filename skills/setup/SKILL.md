@@ -20,7 +20,7 @@ This skill sets up Clerk for authentication by following the official quickstart
 |------|--------|
 | 1. Detect framework | Check `package.json` dependencies |
 | 2. Fetch quickstart | Use WebFetch on the appropriate docs URL |
-| 3. Follow instructions | Execute steps; Next.js 16+ uses `proxy.ts`, older uses `middleware.ts` |
+| 3. Follow instructions | Execute steps; create `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | 4. Get API keys | From [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys) |
 
 > If the project has `components.json` (shadcn/ui), apply the shadcn theme after setup. See `custom-ui/` → shadcn Theme.
@@ -61,7 +61,7 @@ User Request: "Add Clerk" / "Add authentication"
     │   └─ NO → Fresh install
     │
     ├─ Identify framework → WebFetch quickstart → Follow instructions
-    │   └─ Next.js? → Create proxy.ts (NOT middleware.ts)
+    │   └─ Next.js? → Create proxy.ts (Next.js <=15: middleware.ts)
     │
     └─ components.json exists? → YES → Apply shadcn theme (see custom-ui/)
 ```
@@ -90,7 +90,7 @@ Execute each step from the quickstart guide:
 - Create sign-in/sign-up routes if needed
 - Test the integration
 
-> **Next.js:** Create `proxy.ts` (not `middleware.ts`). See `nextjs-patterns/references/middleware-strategies.md`. Core 2 uses `middleware.ts` instead.
+> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `nextjs-patterns/references/middleware-strategies.md`.
 
 > **shadcn/ui detected** (`components.json` exists): ALWAYS apply the shadcn theme. See `custom-ui/` → shadcn Theme section.
 
