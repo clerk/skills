@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Adding Clerk
@@ -20,8 +20,10 @@ This skill sets up Clerk for authentication by following the official quickstart
 |------|--------|
 | 1. Detect framework | Check `package.json` dependencies |
 | 2. Fetch quickstart | Use WebFetch on the appropriate docs URL |
-| 3. Follow instructions | Execute the steps from the official guide |
+| 3. Follow instructions | Execute steps; create `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | 4. Get API keys | From [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys) |
+
+> If the project has `components.json` (shadcn/ui), apply the shadcn theme after setup. See `custom-ui/` → shadcn Theme.
 
 ## Framework Detection
 
@@ -55,17 +57,13 @@ User Request: "Add Clerk" / "Add authentication"
     ├─ Read package.json
     │
     ├─ Existing auth detected?
-    │   │
-    │   ├─ YES → Audit current auth → Create migration plan
-    │   │        → See "Migrating from Another Auth Provider"
-    │   │
+    │   ├─ YES → Audit → Migration plan
     │   └─ NO → Fresh install
     │
-    ├─ Identify framework from dependencies
+    ├─ Identify framework → WebFetch quickstart → Follow instructions
+    │   └─ Next.js? → Create proxy.ts (Next.js <=15: middleware.ts)
     │
-    ├─ WebFetch the appropriate quickstart URL
-    │
-    └─ Follow the official instructions step-by-step
+    └─ components.json exists? → YES → Apply shadcn theme (see custom-ui/)
 ```
 
 ## Setup Process
@@ -88,9 +86,13 @@ Prompt: "Extract the complete setup instructions including all code snippets, fi
 Execute each step from the quickstart guide:
 - Install the required packages
 - Set up environment variables
-- Add the provider/middleware
+- Add the provider and proxy/middleware
 - Create sign-in/sign-up routes if needed
 - Test the integration
+
+> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `nextjs-patterns/references/middleware-strategies.md`.
+
+> **shadcn/ui detected** (`components.json` exists): ALWAYS apply the shadcn theme. See `custom-ui/` → shadcn Theme section.
 
 ### 4. Get API Keys
 

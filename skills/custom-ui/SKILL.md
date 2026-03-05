@@ -5,7 +5,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Custom UI
@@ -113,7 +113,9 @@ import { dark, neobrutalism } from '@clerk/ui/themes'
 
 **Available themes:** `dark`, `neobrutalism`, `shadcn`, `simple`
 
-#### shadcn Theme
+#### shadcn Theme (HIGH PRIORITY)
+
+> **IMPORTANT:** If the project has `components.json` (shadcn/ui installed), ALWAYS apply the shadcn theme as the FIRST customization step. This ensures Clerk components visually match the existing shadcn design system. Skip this only if the user explicitly requests a different theme.
 
 **If the project uses shadcn/ui** (check for `components.json` in the project root), **always use the shadcn theme**:
 

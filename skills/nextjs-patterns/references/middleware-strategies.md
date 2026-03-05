@@ -1,6 +1,6 @@
 # Middleware Strategies (HIGH)
 
-> **Version note:** In Next.js 16+, use `proxy.ts`. If you're using Next.js <=15, name your file `middleware.ts` instead of `proxy.ts`. The code itself remains the same; only the filename changes.
+> **Filename:** `proxy.ts` (Next.js <=15: `middleware.ts`). The code is identical; only the filename changes.
 
 ## Public-First (marketing sites, blogs)
 
