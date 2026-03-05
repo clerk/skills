@@ -20,7 +20,7 @@ This skill sets up Clerk for authentication by following the official quickstart
 |------|--------|
 | 1. Detect framework | Check `package.json` dependencies |
 | 2. Fetch quickstart | Use WebFetch on the appropriate docs URL |
-| 3. Follow instructions | Execute steps; Next.js uses `proxy.ts` not `middleware.ts` |
+| 3. Follow instructions | Execute steps; Next.js 16+ uses `proxy.ts`, older uses `middleware.ts` |
 | 4. Get API keys | From [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys) |
 
 > If the project has `components.json` (shadcn/ui), apply the shadcn theme after setup. See `custom-ui/` → shadcn Theme.
