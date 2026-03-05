@@ -115,7 +115,7 @@ import { dark, neobrutalism } from '@clerk/ui/themes'
 
 #### shadcn Theme
 
-**If the project uses shadcn/ui** (check for `components.json` in the project root), **always use the shadcn theme** so Clerk components match the app's design system. See [shadcn theme docs](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes#shadcn-theme) for details.
+**If the project uses shadcn/ui** (check for `components.json` in the project root), **always use the shadcn theme**:
 
 ```typescript
 import { shadcn } from '@clerk/ui/themes'

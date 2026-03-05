@@ -213,10 +213,6 @@ user.enterpriseAccounts
 
 > **Core 2 ONLY (skip if current SDK):** Uses `strategy: 'saml'` instead of `strategy: 'enterprise_sso'`, and `user.samlAccounts` instead of `user.enterpriseAccounts`.
 
-## Appearance
-
-If the project uses shadcn/ui (check for `components.json`), apply the shadcn theme so Clerk organization components match the app's design system. See `custom-ui/` skill for full theming details and [shadcn theme docs](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes#shadcn-theme).
-
 ## Common Pitfalls
 
 | Symptom | Cause | Solution |
