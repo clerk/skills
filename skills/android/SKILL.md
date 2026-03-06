@@ -2,6 +2,7 @@
 name: clerk-android
 description: Implement Clerk authentication for native Android apps using Kotlin and Jetpack Compose with clerk-android source-guided patterns. Use for prebuilt AuthView/UserButton or custom API-driven auth flows. Do not use for Expo or React Native projects.
 license: MIT
+allowed-tools: WebFetch
 metadata:
   author: clerk
   version: "1.0.0"
