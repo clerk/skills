@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
 ---
 
 # Clerk Skills Router
@@ -61,6 +61,11 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Native iOS Swift and SwiftUI projects
 - ClerkKit and ClerkKitUI implementation guidance
 - Source-driven patterns from `clerk-ios`
+
+**Android / native mobile auth** → Use `clerk-android`
+- Native Android Kotlin and Jetpack Compose projects
+- `clerk-android-api` and `clerk-android-ui` implementation guidance
+- Source-driven patterns from `clerk-android`
 - Do not use for Expo or React Native projects
 
 **Backend REST API** → Use `clerk-backend-api`
@@ -78,6 +83,7 @@ If you know your task, you can directly access:
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
 - `/clerk-swift` - Swift/native iOS
+- `/clerk-android` - Native Android
 - `/clerk-backend-api` - Backend REST API
 
 Or describe what you need and I'll recommend the right one.

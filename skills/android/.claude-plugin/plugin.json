@@ -1,0 +1,14 @@
+{
+  "name": "clerk-android",
+  "description": "Native Android Clerk auth with source-driven Kotlin and Jetpack Compose patterns",
+  "version": "1.0.0",
+  "author": {
+    "name": "Clerk",
+    "email": "support@clerk.com"
+  },
+  "license": "MIT",
+  "homepage": "https://clerk.com/docs",
+  "repository": "https://github.com/clerk/skills",
+  "keywords": ["android", "kotlin", "jetpack-compose", "native-mobile", "clerk-android"],
+  "category": "authentication"
+}
