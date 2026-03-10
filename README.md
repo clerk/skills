@@ -58,6 +58,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
 | `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
 | `clerk-swift`           | Native Swift/iOS auth with ClerkKit          | SwiftUI/UIKit auth in native iOS apps  | Native iOS         |
+| `clerk-android`         | Native Android auth with Clerk               | Kotlin/Compose auth in Android apps    | Native Android     |
 | `/clerk-backend-api`    | Clerk Backend REST API explorer & executor   | Browsing or calling backend API endpoints | API Tool           |
 
 ## Quick Start
@@ -82,6 +83,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Set up organizations for my B2B app"    | `clerk-orgs`            |
 | "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
 | "Add Clerk auth to my SwiftUI iOS app"   | `clerk-swift`           |
+| "Add Clerk auth to my Android app"       | `clerk-android`         |
 | "List all users via the Backend API"     | `clerk-backend-api`     |
 
 ## Repository Structure
@@ -106,6 +108,8 @@ clerk-skills/
 │   ├── testing/                 # E2E testing
 │   │   └── SKILL.md
 │   ├── swift/                   # Native Swift/iOS auth
+│   │   └── SKILL.md
+│   ├── android/                 # Native Android auth
 │   │   └── SKILL.md
 │   └── backend-api/             # Backend REST API
 │       ├── SKILL.md
