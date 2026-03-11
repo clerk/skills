@@ -1,6 +1,6 @@
 ---
 name: clerk-nextjs-patterns
-description: Advanced Next.js patterns - middleware, Server Actions, caching with Clerk.
+description: Implement advanced Next.js authentication patterns with Clerk including route protection via middleware, securing Server Actions and mutations, user-scoped caching strategies, and API route authorization. Use when configuring Clerk middleware, protecting Next.js routes, adding auth to Server Actions, setting up auth caching, or debugging 401/403 errors in Next.js apps.
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -73,6 +73,15 @@ import { Show } from '@clerk/nextjs'
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `custom-ui/core-3/show-component.md` for the full migration table.
+
+## Workflow
+
+1. Detect SDK version from `package.json` (see `clerk` skill version table)
+2. Set up middleware/proxy for route protection (`references/middleware-strategies.md`)
+3. Implement server-side auth checks in Server Components and Server Actions
+4. Add client-side auth with hooks where needed
+5. **Verify**: Confirm protected routes return 401/403 for unauthenticated/unauthorized requests
+6. **Verify**: Confirm cached data includes `userId` in cache keys
 
 ## Common Pitfalls
 

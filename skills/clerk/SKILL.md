@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router that detects SDK versions and routes to the correct implementation skill. Enables secure login, session management, SSO, and multi-tenant auth across platforms. Use when user asks about adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, organizations, syncing users, or testing. Automatically routes to the specific skill based on their task.
 ---
 
 # Clerk Skills Router

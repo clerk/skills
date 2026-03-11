@@ -1,6 +1,6 @@
 ---
 name: clerk-testing
-description: E2E testing for Clerk apps. Use with Playwright or Cypress for auth flow tests.
+description: Set up end-to-end authentication testing for Clerk apps using Playwright or Cypress. Configures test environments, bypasses bot detection with setupClerkTestingToken, and manages auth state persistence. Use when writing login tests, setting up Clerk E2E testing, configuring Playwright or Cypress auth flows, or mocking Clerk sessions in tests.
 allowed-tools: WebFetch
 license: MIT
 metadata:
@@ -32,12 +32,35 @@ Test auth = isolated session state. Each test needs fresh auth context.
 3. Follow official setup instructions
 4. Use `pk_test_*` and `sk_test_*` keys only
 
+## Playwright Quick Setup
+
+```typescript
+// playwright.config.ts
+import { clerkSetup } from '@clerk/testing/playwright'
+import { defineConfig } from '@playwright/test'
+
+export default defineConfig({
+  globalSetup: clerkSetup,
+})
+
+// e2e/auth.spec.ts
+import { setupClerkTestingToken } from '@clerk/testing/playwright'
+import { test, expect } from '@playwright/test'
+
+test('authenticated user can access dashboard', async ({ page }) => {
+  await setupClerkTestingToken({ page })
+  await page.goto('/dashboard')
+  await expect(page.locator('[data-clerk-component]')).toBeVisible()
+})
+```
+
 ## Best Practices
 
 - Use `setupClerkTestingToken()` before navigating to auth pages
 - Use test API keys: `pk_test_xxx`, `sk_test_xxx`
 - Save auth state with `storageState` for faster tests
 - Use `page.waitForSelector('[data-clerk-component]')` for Clerk UI
+- Verify setup by running a simple auth test before building the full test suite
 
 ## Anti-Patterns
 

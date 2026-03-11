@@ -1,6 +1,6 @@
 ---
 name: clerk-setup
-description: Add Clerk authentication to any project by following the official quickstart guides.
+description: Add Clerk authentication to any project by detecting the framework, fetching the official quickstart, configuring middleware and providers, and setting up API keys. Use when adding authentication, installing Clerk, setting up sign-in, migrating from another auth provider, or running a Clerk quickstart. Supports Next.js, React, Remix, Astro, Nuxt, Vue, Express, Fastify, Expo, Android, and iOS.
 license: MIT
 allowed-tools: WebFetch
 metadata:

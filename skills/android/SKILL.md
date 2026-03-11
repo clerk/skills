@@ -150,6 +150,28 @@ Do not hardcode implementation examples in this skill. Inspect current `clerk-an
 9. Implement using selected reference checklist.
 10. Verify using selected reference checklist plus shared gates.
 
+## Minimal Setup Example
+
+```kotlin
+// Application class — initialize Clerk at app startup
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        Clerk.initialize(this, publishableKey = "pk_test_...")
+    }
+}
+
+// Gate UI on initialization
+@Composable
+fun App() {
+    if (Clerk.isInitialized) {
+        AuthView()  // or custom flow
+    } else {
+        CircularProgressIndicator()
+    }
+}
+```
+
 ## Common Pitfalls
 
 | Level | Issue | Prevention |
