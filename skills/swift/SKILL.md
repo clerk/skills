@@ -165,25 +165,16 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 13. Implement using selected reference checklist.
 14. Verify using selected reference checklist plus shared gates.
 
-## Common Pitfalls
+## Critical Reminders
 
-| Level | Issue | Prevention |
-|-------|-------|------------|
-| CRITICAL | Not asking for missing flow choice before implementation | Ask for `prebuilt` vs `custom` and wait before edits |
-| CRITICAL | Not asking for missing publishable key before implementation | Ask for key and wait before edits |
-| CRITICAL | Starting implementation before flow type is confirmed | Confirm flow first and load matching reference |
-| CRITICAL | Using plist/local/env indirection for publishable key without request | Wire key directly in configuration by default |
-| CRITICAL | Skipping `/v1/environment` call before implementation | Always call environment endpoint for both prebuilt and custom flows |
-| CRITICAL | Calling `/v1/environment` before package install + ClerkKitUI `Environment` field inspection | Install `clerk-ios` first, inspect ClerkKitUI `Environment` usage, then call endpoint |
-| HIGH | Installing `clerk-ios` with exact/stale version by default | If missing, install latest available release using up-to-next-major requirement |
-| CRITICAL | Skipping quickstart prerequisite audit | Visit/read quickstart URL from installed `clerk-ios` package README and verify all required setup steps are completed |
-| CRITICAL | Detecting missing quickstart capabilities/domains but not applying them | Add all missing required quickstart capabilities and Associated Domains before completing |
-| CRITICAL | Skipping quickstart associated-domain capability step | Execute quickstart `Add associated domain capability` and ensure `webcredentials:{YOUR_FRONTEND_API_URL}` is present |
-| CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
-| CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
-| CRITICAL | Collapsing custom auth into a single all-fields screen | Follow `AuthView`-style multi-step progression and step-specific field collection |
-| CRITICAL | Guessing custom sequencing/gating/`Environment` usage when uncertain | Reference installed `ClerkKitUI` behavior and mirror it for final implementation |
-| HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
+- Never start implementation without both a confirmed flow type and a valid publishable key
+- Wire publishable key directly in `Clerk.configure` — no plist/env indirection unless requested
+- Always install `clerk-ios` before inspecting `ClerkKitUI` source, and inspect before calling `/v1/environment`
+- Always audit against quickstart prerequisites including Associated Domains (`webcredentials:{YOUR_FRONTEND_API_URL}`)
+- Keep capability/field matrices agent-internal — never persist in project code
+- Custom flows must mirror `AuthView` multi-step structure unless the developer requests otherwise
+- When uncertain about custom sequencing or `Environment` usage, defer to installed `ClerkKitUI` behavior
+- Do not use this skill for Expo or React Native projects
 
 ## See Also
 

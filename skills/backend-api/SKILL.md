@@ -1,8 +1,9 @@
 ---
 name: clerk-backend-api
-description: "Clerk backend REST API"
-argument-hint: "[endpointOrTag] [method]"
+description: Interact with the Clerk Backend REST API to create users, manage sessions, list organizations, handle invitations, and perform CRUD operations on Clerk resources. Use when querying Clerk API endpoints, managing users or orgs via REST, inspecting API schemas, or executing backend auth operations.
 allowed-tools: Bash, Read, Grep, Skill, WebFetch
+metadata:
+  argument-hint: "[endpointOrTag] [method]"
 ---
 
 ## Options context

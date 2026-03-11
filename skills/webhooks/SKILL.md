@@ -1,6 +1,6 @@
 ---
 name: clerk-webhooks
-description: Clerk webhooks for real-time events and data syncing. Listen for user creation, updates, deletion, and organization events. Build event-driven features like database sync, notifications, integrations.
+description: Implement Clerk webhooks for real-time events and data syncing. Listen for user creation, updates, deletion, and organization events. Build event-driven features like database sync, notifications, integrations. Use when setting up webhook endpoints, syncing Clerk users to a database, handling Clerk event callbacks, or building event-driven integrations with Clerk.
 allowed-tools: WebFetch
 license: MIT
 metadata:
@@ -82,6 +82,36 @@ Use correct import and single parameter:
 ```typescript
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
 const evt = await verifyWebhook(req)  // Pass request directly
+```
+
+### Complete Route Handler
+
+```typescript
+// app/api/webhooks/route.ts
+import { verifyWebhook } from '@clerk/nextjs/webhooks'
+
+export async function POST(req: Request) {
+  const evt = await verifyWebhook(req)
+
+  switch (evt.type) {
+    case 'user.created':
+      await db.user.create({
+        data: { clerkId: evt.data.id, email: evt.data.email_addresses[0]?.email_address },
+      })
+      break
+    case 'user.updated':
+      await db.user.update({
+        where: { clerkId: evt.data.id },
+        data: { email: evt.data.email_addresses[0]?.email_address },
+      })
+      break
+    case 'user.deleted':
+      await db.user.delete({ where: { clerkId: evt.data.id! } })
+      break
+  }
+
+  return new Response('OK', { status: 200 })
+}
 ```
 
 ### Type-Safe Events
