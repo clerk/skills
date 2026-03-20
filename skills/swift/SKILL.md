@@ -3,9 +3,16 @@ name: clerk-swift
 description: Implement Clerk authentication for native Swift and iOS apps using ClerkKit and ClerkKitUI source-guided patterns. Use for prebuilt AuthView or custom native flows. Do not use for Expo or React Native projects.
 license: MIT
 allowed-tools: WebFetch
+inputs:
+  - name: CLERK_PUBLISHABLE_KEY
+    description: Clerk publishable key for iOS app configuration
+    required: true
+references:
+  - references/prebuilt.md
+  - references/custom.md
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Clerk Swift (Native iOS)
@@ -23,6 +30,13 @@ Do not activate this skill when either condition is true:
 - The project is React Native.
 
 If Expo/React Native signals are present, route to the general setup skill instead of this one.
+
+## What Do You Need?
+
+| Task | Reference |
+|------|-----------|
+| Prebuilt AuthView / UserButton (fastest) | references/prebuilt.md |
+| Custom API-driven auth flows (full control) | references/custom.md |
 
 ## Quick Start
 
