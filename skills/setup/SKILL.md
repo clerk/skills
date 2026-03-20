@@ -3,9 +3,16 @@ name: clerk-setup
 description: Add Clerk authentication to any project by following the official quickstart guides.
 license: MIT
 allowed-tools: WebFetch
+inputs:
+  - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    description: Clerk publishable key from dashboard
+    required: true
+  - name: CLERK_SECRET_KEY
+    description: Clerk secret key for server-side operations
+    required: true
 metadata:
   author: clerk
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Adding Clerk

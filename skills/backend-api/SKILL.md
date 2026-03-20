@@ -3,6 +3,10 @@ name: clerk-backend-api
 description: "Clerk backend REST API"
 argument-hint: "[endpointOrTag] [method]"
 allowed-tools: Bash, Read, Grep, Skill, WebFetch
+inputs:
+  - name: CLERK_SECRET_KEY
+    description: Clerk secret key (sk_*) for Backend API calls
+    required: true
 ---
 
 ## Options context
