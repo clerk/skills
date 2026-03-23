@@ -3,9 +3,22 @@ name: clerk-custom-ui
 description: Custom authentication flows and component appearance - hooks (useSignIn, useSignUp), themes, colors, fonts, CSS. Use for custom sign-in/sign-up flows, appearance styling, visual customization, branding.
 allowed-tools: WebFetch
 license: MIT
+inputs:
+  - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    description: Clerk publishable key from dashboard
+    required: true
+  - name: CLERK_SECRET_KEY
+    description: Clerk secret key for server-side operations
+    required: true
+references:
+  - core-2/custom-sign-in.md
+  - core-2/custom-sign-up.md
+  - core-3/custom-sign-in.md
+  - core-3/custom-sign-up.md
+  - core-3/show-component.md
 metadata:
   author: clerk
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Custom UI
@@ -17,6 +30,16 @@ metadata:
 This skill covers two areas:
 1. **Custom authentication flows** — build your own sign-in/sign-up UI with hooks
 2. **Appearance customization** — theme, style, and brand Clerk's pre-built components
+
+## What Do You Need?
+
+| Task | Reference |
+|------|-----------|
+| Custom sign-in (Core 2 / LTS) | core-2/custom-sign-in.md |
+| Custom sign-up (Core 2 / LTS) | core-2/custom-sign-up.md |
+| Custom sign-in (Current SDK v7+) | core-3/custom-sign-in.md |
+| Custom sign-up (Current SDK v7+) | core-3/custom-sign-up.md |
+| Show component pattern (Current SDK) | core-3/show-component.md |
 
 ## Custom Flow References
 

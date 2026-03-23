@@ -3,9 +3,16 @@ name: clerk-android
 description: Implement Clerk authentication for native Android apps using Kotlin and Jetpack Compose with clerk-android source-guided patterns. Use for prebuilt AuthView/UserButton or custom API-driven auth flows. Do not use for Expo or React Native projects.
 license: MIT
 allowed-tools: WebFetch
+inputs:
+  - name: CLERK_PUBLISHABLE_KEY
+    description: Clerk publishable key for Android app configuration
+    required: true
+references:
+  - references/prebuilt.md
+  - references/custom.md
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Clerk Android (Native)
@@ -23,6 +30,13 @@ Do not activate this skill when either condition is true:
 - The project is React Native.
 
 If Expo/React Native signals are present, route to the general setup skill instead.
+
+## What Do You Need?
+
+| Task | Reference |
+|------|-----------|
+| Prebuilt AuthView / UserButton (fastest) | references/prebuilt.md |
+| Custom API-driven auth flows (full control) | references/custom.md |
 
 ## Quick Start
 

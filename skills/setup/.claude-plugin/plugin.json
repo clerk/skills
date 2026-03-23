@@ -1,7 +1,7 @@
 {
   "name": "clerk-setup",
   "description": "Add Clerk authentication to any project by following the official quickstart guides",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "author": {
     "name": "Clerk",
     "email": "support@clerk.com"

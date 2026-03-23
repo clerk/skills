@@ -3,9 +3,22 @@ name: clerk-nextjs-patterns
 description: Advanced Next.js patterns - middleware, Server Actions, caching with Clerk.
 license: MIT
 allowed-tools: WebFetch
+inputs:
+  - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    description: Clerk publishable key from dashboard
+    required: true
+  - name: CLERK_SECRET_KEY
+    description: Clerk secret key for server-side operations
+    required: true
+references:
+  - references/server-vs-client.md
+  - references/middleware-strategies.md
+  - references/server-actions.md
+  - references/api-routes.md
+  - references/caching-auth.md
 metadata:
   author: clerk
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Next.js Patterns
@@ -13,6 +26,16 @@ metadata:
 > **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
 For basic setup, see `setup/`.
+
+## What Do You Need?
+
+| Task | Reference |
+|------|-----------|
+| Server vs client auth (`auth()` vs hooks) | references/server-vs-client.md |
+| Configure middleware (public-first vs protected-first) | references/middleware-strategies.md |
+| Protect Server Actions | references/server-actions.md |
+| API route auth (401 vs 403) | references/api-routes.md |
+| Cache auth data (user-scoped caching) | references/caching-auth.md |
 
 ## Impact Levels
 

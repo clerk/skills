@@ -3,9 +3,13 @@ name: clerk-testing
 description: E2E testing for Clerk apps. Use with Playwright or Cypress for auth flow tests.
 allowed-tools: WebFetch
 license: MIT
+inputs:
+  - name: CLERK_TESTING_TOKEN
+    description: Testing token for bypassing Clerk auth in E2E tests
+    required: true
 metadata:
   author: clerk
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Testing
