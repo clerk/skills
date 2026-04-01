@@ -3,6 +3,8 @@ name: clerk-backend-api
 description: Clerk backend REST API
 allowed-tools: Bash, Read, Grep, Skill, WebFetch
 compatibility: Requires CLERK_SECRET_KEY and network access to api.clerk.com
+metadata:
+  version: 1.2.0
 ---
 
 ## Options context

@@ -7,7 +7,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 1.1.0
+  version: 1.2.0
 compatibility: Requires CLERK_WEBHOOK_SECRET (svix signing secret from Clerk dashboard)
 ---
 

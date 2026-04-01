@@ -7,7 +7,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 2.2.0
+  version: 2.3.0
 ---
 
 # Custom UI

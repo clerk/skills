@@ -6,7 +6,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 1.1.0
+  version: 1.2.0
 compatibility: Requires CLERK_TESTING_TOKEN from Clerk dashboard
 ---
 
