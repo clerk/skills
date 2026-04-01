@@ -30,14 +30,14 @@
     {
       "id": 3,
       "prompt": "i want to build a custom sign-in form with email and password fields instead of using the hosted sign-in page. use clerk's useSignIn hook.",
-      "expected_output": "Custom sign-in form using useSignIn() hook with signIn.create() and attemptFirstFactor()",
+      "expected_output": "Custom sign-in form using useSignIn() hook with signIn.password() or signIn.create(), then finalize() or setActive()",
       "scaffold": "react-basic-auth",
       "expectations": [
         "Uses useSignIn hook from @clerk/react",
-        "Calls signIn.create({ identifier: email, password }) to initiate",
-        "Handles the complete status from signIn.status",
-        "Sets active session on success using setActive from useSignIn",
-        "Shows error messages from the clerk error response"
+        "Calls signIn.password({ identifier, password }) or signIn.create({ identifier, password }) to authenticate",
+        "Checks for success before activating the session (via status check, error check, or conditional after the auth call)",
+        "Activates the session using signIn.finalize() or setActive({ session: createdSessionId })",
+        "Catches and displays error messages from the sign-in response"
       ]
     },
     {
@@ -55,15 +55,15 @@
     },
     {
       "id": 5,
-      "prompt": "my react spa has organization support. i need an org switcher in the nav and org-scoped data on the dashboard. show me how to add this.",
-      "expected_output": "Adds OrganizationSwitcher to nav, uses useAuth() orgId to scope dashboard data fetching",
+      "prompt": "i need to add an organization switcher to my react spa so users can switch between their orgs. how do i render the switcher and read the active org id?",
+      "expected_output": "Renders OrganizationSwitcher from @clerk/react and reads orgId from useAuth()",
       "scaffold": "react-basic-auth",
       "expectations": [
-        "Renders <OrganizationSwitcher /> from @clerk/react in the navigation",
-        "Uses orgId from useAuth() to scope data",
-        "Handles null orgId case with a prompt to select or create an org",
-        "Dashboard data fetch includes orgId as a parameter or header",
-        "Does not break existing user authentication logic"
+        "Imports and renders <OrganizationSwitcher /> from @clerk/react",
+        "Uses orgId from useAuth() to get the active organization ID",
+        "Handles the case where orgId is null (no org selected)",
+        "Places the switcher in a visible location (nav, header, or sidebar)",
+        "Imports from @clerk/react not @clerk/nextjs"
       ]
     },
     {
