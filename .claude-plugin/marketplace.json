@@ -1,197 +1,62 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "clerk-skills",
-  "description": "Official Clerk authentication skills for AI coding agents",
   "owner": {
     "name": "Clerk",
     "email": "support@clerk.com"
   },
   "metadata": {
-    "version": "2.0.0",
-    "description": "Complete Clerk authentication toolkit with router for setup, custom UI, Next.js patterns, organizations, webhooks, testing, and native mobile (Swift and Android)"
+    "description": "Official Clerk skills for AI coding agents",
+    "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "clerk",
-      "description": "Clerk authentication router - automatically routes to the right skill based on your task",
-      "version": "2.0.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/clerk",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["clerk", "auth", "router"]
-    },
-    {
-      "name": "clerk-setup",
-      "description": "Add Clerk authentication to any project by following the official quickstart guides",
-      "version": "2.2.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/setup",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["auth", "setup", "quickstart", "framework-detection"],
-      "inputs": [
-        {"name": "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "required": true},
-        {"name": "CLERK_SECRET_KEY", "required": true}
+      "name": "core",
+      "description": "Core Clerk skills: router, setup, custom UI, and API references",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/core/clerk",
+        "./skills/core/setup",
+        "./skills/core/custom-ui",
+        "./skills/core/backend-api"
       ]
     },
     {
-      "name": "clerk-custom-ui",
-      "description": "Custom authentication flows (useSignIn, useSignUp hooks) and component appearance customization",
-      "version": "2.2.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/custom-ui",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["auth", "custom-ui", "appearance", "sign-in", "sign-up", "useSignIn", "useSignUp", "custom-flows", "themes"],
-      "inputs": [
-        {"name": "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "required": true},
-        {"name": "CLERK_SECRET_KEY", "required": true}
+      "name": "framework-patterns",
+      "description": "Framework-specific Clerk integration patterns: middleware, hooks, SSR, composables, and advanced usage",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/framework-patterns/nextjs-patterns",
+        "./skills/framework-patterns/react-patterns",
+        "./skills/framework-patterns/react-router-patterns",
+        "./skills/framework-patterns/vue-patterns",
+        "./skills/framework-patterns/nuxt-patterns",
+        "./skills/framework-patterns/astro-patterns",
+        "./skills/framework-patterns/tanstack-patterns",
+        "./skills/framework-patterns/expo-patterns",
+        "./skills/framework-patterns/chrome-extension-patterns"
       ]
     },
     {
-      "name": "clerk-nextjs-patterns",
-      "description": "Advanced Next.js patterns - middleware, Server Actions, caching with Clerk",
-      "version": "2.2.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/nextjs-patterns",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["nextjs", "patterns", "middleware", "server-actions", "caching"],
-      "inputs": [
-        {"name": "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "required": true},
-        {"name": "CLERK_SECRET_KEY", "required": true}
+      "name": "features",
+      "description": "Clerk feature skills: organizations, webhooks, and testing",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/features/orgs",
+        "./skills/features/webhooks",
+        "./skills/features/testing"
       ]
     },
     {
-      "name": "clerk-orgs",
-      "description": "Clerk Organizations for B2B SaaS - create multi-tenant apps with org switching, role-based access, verified domains, and enterprise SSO",
-      "version": "2.1.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/orgs",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["organizations", "b2b", "saas", "multi-tenant", "rbac", "team-workspace", "sso", "verified-domains"],
-      "inputs": [
-        {"name": "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "required": true},
-        {"name": "CLERK_SECRET_KEY", "required": true}
-      ]
-    },
-    {
-      "name": "clerk-webhooks",
-      "description": "Clerk webhooks for real-time events and data syncing. Listen for user creation, updates, deletion, and organization events",
-      "version": "1.1.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/webhooks",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["webhooks", "events", "sync", "database", "notifications", "integrations"],
-      "inputs": [
-        {"name": "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "required": true},
-        {"name": "CLERK_SECRET_KEY", "required": true},
-        {"name": "CLERK_WEBHOOK_SECRET", "required": true}
-      ]
-    },
-    {
-      "name": "clerk-testing",
-      "description": "E2E testing for Clerk apps. Use with Playwright or Cypress for auth flow tests",
-      "version": "1.1.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/testing",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["testing", "e2e", "playwright", "cypress"],
-      "inputs": [
-        {"name": "CLERK_TESTING_TOKEN", "required": true}
-      ]
-    },
-    {
-      "name": "clerk-swift",
-      "description": "Native Swift/iOS Clerk auth with source-driven ClerkKit and ClerkKitUI patterns",
-      "version": "1.1.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/swift",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["swift", "ios", "swiftui", "native-mobile", "clerkkit", "apple-sign-in"],
-      "inputs": [
-        {"name": "CLERK_PUBLISHABLE_KEY", "required": true}
-      ]
-    },
-    {
-      "name": "clerk-android",
-      "description": "Native Android Clerk auth with source-driven Kotlin and Jetpack Compose patterns",
-      "version": "1.1.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/android",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["android", "kotlin", "jetpack-compose", "native-mobile", "clerk-android"],
-      "inputs": [
-        {"name": "CLERK_PUBLISHABLE_KEY", "required": true}
-      ]
-    },
-    {
-      "name": "clerk-backend-api",
-      "description": "Clerk Backend REST API explorer and executor - browse tags, inspect endpoint schemas, and execute API requests with scope enforcement",
-      "version": "1.1.0",
-      "author": {
-        "name": "Clerk",
-        "email": "support@clerk.com"
-      },
-      "source": "./skills/backend-api",
-      "homepage": "https://clerk.com/docs",
-      "repository": "https://github.com/clerk/skills",
-      "license": "MIT",
-      "category": "authentication",
-      "keywords": ["clerk", "api", "backend", "rest", "openapi", "bapi"],
-      "inputs": [
-        {"name": "CLERK_SECRET_KEY", "required": true}
+      "name": "native-mobile",
+      "description": "Native mobile Clerk auth: Swift/iOS and Android/Kotlin patterns",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/native-mobile/swift",
+        "./skills/native-mobile/android"
       ]
     }
   ]
