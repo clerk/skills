@@ -16,9 +16,9 @@
       "strict": false,
       "skills": [
         "./skills/core/clerk",
-        "./skills/core/setup",
-        "./skills/core/custom-ui",
-        "./skills/core/backend-api"
+        "./skills/core/clerk-setup",
+        "./skills/core/clerk-custom-ui",
+        "./skills/core/clerk-backend-api"
       ]
     },
     {
@@ -27,15 +27,15 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/frameworks/nextjs-patterns",
-        "./skills/frameworks/react-patterns",
-        "./skills/frameworks/react-router-patterns",
-        "./skills/frameworks/vue-patterns",
-        "./skills/frameworks/nuxt-patterns",
-        "./skills/frameworks/astro-patterns",
-        "./skills/frameworks/tanstack-patterns",
-        "./skills/frameworks/expo-patterns",
-        "./skills/frameworks/chrome-extension-patterns"
+        "./skills/frameworks/clerk-nextjs-patterns",
+        "./skills/frameworks/clerk-react-patterns",
+        "./skills/frameworks/clerk-react-router-patterns",
+        "./skills/frameworks/clerk-vue-patterns",
+        "./skills/frameworks/clerk-nuxt-patterns",
+        "./skills/frameworks/clerk-astro-patterns",
+        "./skills/frameworks/clerk-tanstack-patterns",
+        "./skills/frameworks/clerk-expo-patterns",
+        "./skills/frameworks/clerk-chrome-extension-patterns"
       ]
     },
     {
@@ -44,9 +44,9 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/features/orgs",
-        "./skills/features/webhooks",
-        "./skills/features/testing"
+        "./skills/features/clerk-orgs",
+        "./skills/features/clerk-webhooks",
+        "./skills/features/clerk-testing"
       ]
     },
     {
@@ -55,8 +55,8 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/mobile/swift",
-        "./skills/mobile/android"
+        "./skills/mobile/clerk-swift",
+        "./skills/mobile/clerk-android"
       ]
     }
   ]
