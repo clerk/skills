@@ -1,0 +1,83 @@
+{
+  "skill_name": "clerk-chrome-extension-patterns",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "i want to add clerk authentication to my plasmo chrome extension popup. users should be able to sign in and see their profile. show me the full popup.tsx setup.",
+      "expected_output": "popup.tsx with ClerkProvider configured with CRX URL redirects, Show components for signed-in/out states, UserButton",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Uses ClerkProvider from @clerk/chrome-extension with publishableKey",
+        "Sets afterSignOutUrl, signInFallbackRedirectUrl, signUpFallbackRedirectUrl to chrome-extension:// URLs using chrome.runtime.getURL('.')",
+        "Uses Show when='signed-in' and Show when='signed-out' for conditional rendering",
+        "Includes UserButton for signed-in state and SignInButton/SignUpButton for signed-out",
+        "Reads publishableKey from process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "my background service worker needs to make authenticated API calls to my server. how can it access the current user's session token?",
+      "expected_output": "Background script uses message passing from the popup/content script to get the token, or uses chrome.storage to retrieve cached token",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Explains that Clerk context is not available directly in service workers",
+        "Shows message passing pattern: popup/content script sends token to background",
+        "OR shows reading token from chrome.storage.local or chrome.storage.session",
+        "Background script uses chrome.runtime.onMessage.addListener to receive token",
+        "Includes how to make authenticated fetch with the received token"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "my content script needs to check if the user is signed in before injecting a UI overlay into the page. how do i access clerk auth state from a content script?",
+      "expected_output": "Content script sends message to background/popup to check auth state, or reads from chrome.storage",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Explains that Clerk React hooks are NOT available in content scripts (isolated world)",
+        "Uses chrome.runtime.sendMessage to request auth state from background or popup",
+        "OR reads cached auth state from chrome.storage",
+        "Shows how to conditionally inject UI based on the response",
+        "Handles the async nature of message passing"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "my extension needs to work with a web app that uses clerk auth on the same domain. how do i set up cross-origin authentication so the extension can read auth state from the web app?",
+      "expected_output": "Explains syncSessionWithTab option or using webNavigation permissions to read the session from the web app",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "References the syncSessionWithTab prop on ClerkProvider or equivalent cross-origin auth feature",
+        "Mentions required manifest permissions (tabs, webNavigation, cookies, or specific host permissions)",
+        "Explains that the extension and web app must share the same Clerk application",
+        "Shows how to configure ClerkProvider to sync with the active tab's session",
+        "Notes the allowed origins must include the extension URL in Clerk Dashboard"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "i want to persist the clerk session across extension reloads and browser restarts. how do i configure chrome.storage.sync to keep the user signed in?",
+      "expected_output": "Uses tokenCache prop on ClerkProvider with a custom chrome.storage.sync implementation",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Uses the tokenCache prop on ClerkProvider to provide a custom storage backend",
+        "Implements get and set methods using chrome.storage.sync or chrome.storage.local",
+        "Handles the async nature of chrome.storage APIs",
+        "Explains the difference between chrome.storage.sync (cross-device) and chrome.storage.local",
+        "Does NOT use localStorage (not available in service workers)"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "my plasmo extension keeps getting a different CRX ID on each rebuild, which breaks the clerk redirect URLs. how do i create a stable CRX ID?",
+      "expected_output": "Generates an RSA key pair, creates .env.chrome with CRX_PUBLIC_KEY, updates package.json to use it, adds the stable CRX URL to Clerk Dashboard",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Generates an RSA 2048-bit key pair using openssl",
+        "Adds public key to .env.chrome as CRX_PUBLIC_KEY",
+        "Updates package.json to include key field pointing to the env var",
+        "Explains how to derive the CRX ID from the public key",
+        "Mentions adding the chrome-extension://STABLE_CRX_ID URL to Clerk Dashboard allowed origins"
+      ]
+    }
+  ]
+}
