@@ -22,20 +22,20 @@
       ]
     },
     {
-      "name": "framework-patterns",
+      "name": "frameworks",
       "description": "Framework-specific Clerk integration patterns: middleware, hooks, SSR, composables, and advanced usage",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/framework-patterns/nextjs-patterns",
-        "./skills/framework-patterns/react-patterns",
-        "./skills/framework-patterns/react-router-patterns",
-        "./skills/framework-patterns/vue-patterns",
-        "./skills/framework-patterns/nuxt-patterns",
-        "./skills/framework-patterns/astro-patterns",
-        "./skills/framework-patterns/tanstack-patterns",
-        "./skills/framework-patterns/expo-patterns",
-        "./skills/framework-patterns/chrome-extension-patterns"
+        "./skills/frameworks/nextjs-patterns",
+        "./skills/frameworks/react-patterns",
+        "./skills/frameworks/react-router-patterns",
+        "./skills/frameworks/vue-patterns",
+        "./skills/frameworks/nuxt-patterns",
+        "./skills/frameworks/astro-patterns",
+        "./skills/frameworks/tanstack-patterns",
+        "./skills/frameworks/expo-patterns",
+        "./skills/frameworks/chrome-extension-patterns"
       ]
     },
     {
@@ -50,13 +50,13 @@
       ]
     },
     {
-      "name": "native-mobile",
+      "name": "mobile",
       "description": "Native mobile Clerk auth: Swift/iOS and Android/Kotlin patterns",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/native-mobile/swift",
-        "./skills/native-mobile/android"
+        "./skills/mobile/swift",
+        "./skills/mobile/android"
       ]
     }
   ]

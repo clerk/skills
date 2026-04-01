@@ -33,39 +33,66 @@ Skills follow the [Agent Skills](https://agentskills.io/) format.
 ## Install
 
 ```bash
-npx add-skill clerk/skills
+npx skills add clerk/skills
 ```
 
-### Alternative Installation
+### Via Clerk CLI
 
 ```bash
-# Using Vercel's skills CLI
-npx skills add clerk/skills
+clerk init  # auto-installs skills for your framework
+```
 
-# Manual (Claude Code)
+### Manual (Claude Code)
+
+```bash
 git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 ```
 
 ## Skills
 
-| Skill                   | Purpose                                      | When to Use                            | Type               |
-| ----------------------- | -------------------------------------------- | -------------------------------------- | ------------------ |
-| `/clerk`                | **Clerk router** - Routes to the right skill | Always start here                      | Router             |
-| `clerk-setup`           | Add Clerk to any framework                   | New projects, framework setup          | Auth Setup         |
-| `clerk-custom-ui`       | Custom sign-in/up components and appearance  | Building custom forms, styling         | UI Customization   |
-| `clerk-nextjs-patterns` | Advanced Next.js patterns                    | Server Actions, middleware, caching    | Framework Patterns |
-| `clerk-orgs`            | Multi-tenant B2B organizations               | Building team workspaces, RBAC         | B2B SaaS           |
-| `clerk-webhooks`        | Real-time events and data syncing            | Webhooks, database sync, notifications | Data Sync          |
-| `clerk-testing`         | E2E testing for auth flows                   | Writing Playwright/Cypress tests       | Testing            |
-| `clerk-swift`           | Native Swift/iOS auth with ClerkKit          | SwiftUI/UIKit auth in native iOS apps  | Native iOS         |
-| `clerk-android`         | Native Android auth with Clerk               | Kotlin/Compose auth in Android apps    | Native Android     |
-| `/clerk-backend-api`    | Clerk Backend REST API explorer & executor   | Browsing or calling backend API endpoints | API Tool           |
+### Core
+
+| Skill | Purpose | When to Use |
+|-------|---------|-------------|
+| `/clerk` | **Router** - Routes to the right skill | Always start here |
+| `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
+| `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
+| `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
+
+### Framework Patterns
+
+| Skill | Framework | Patterns |
+|-------|-----------|----------|
+| `clerk-nextjs-patterns` | Next.js | Middleware, Server Actions, caching |
+| `clerk-react-patterns` | React | Hooks, auth guards, protected routes |
+| `clerk-react-router-patterns` | React Router | Loaders, actions, route protection |
+| `clerk-vue-patterns` | Vue | Composables, Pinia integration |
+| `clerk-nuxt-patterns` | Nuxt | Server middleware, SSR auth |
+| `clerk-astro-patterns` | Astro | SSR auth, island components |
+| `clerk-tanstack-patterns` | TanStack Start | Server functions, route protection |
+| `clerk-expo-patterns` | Expo | Secure storage, deep linking |
+| `clerk-chrome-extension-patterns` | Chrome Extension | Background scripts, popup auth |
+
+### Features
+
+| Skill | Purpose | When to Use |
+|-------|---------|-------------|
+| `clerk-orgs` | Multi-tenant B2B organizations | Team workspaces, RBAC |
+| `clerk-webhooks` | Real-time events and data syncing | Database sync, notifications |
+| `clerk-testing` | E2E testing for auth flows | Playwright/Cypress tests |
+
+### Native Mobile
+
+| Skill | Platform | Patterns |
+|-------|----------|----------|
+| `clerk-swift` | iOS | ClerkKit, SwiftUI, Apple Sign-In |
+| `clerk-android` | Android | Kotlin, Jetpack Compose |
 
 ## Quick Start
 
 ### 1. Set Up API Keys
 
-Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) → **API Keys** and add them to your `.env`:
+Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) and add them to `.env`:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
@@ -74,49 +101,51 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 ### 2. Ask Your Agent
 
-| You Say                                  | Skill Used              |
-| ---------------------------------------- | ----------------------- |
-| "Add Clerk auth to my Next.js app"       | `clerk-setup`           |
-| "Build custom sign-in form with styling" | `clerk-custom-ui`       |
-| "Sync users to Prisma via webhooks"      | `clerk-webhooks`        |
-| "Add Playwright tests for auth"          | `clerk-testing`         |
-| "Set up organizations for my B2B app"    | `clerk-orgs`            |
-| "Use Server Actions with Clerk"          | `clerk-nextjs-patterns` |
-| "Add Clerk auth to my SwiftUI iOS app"   | `clerk-swift`           |
-| "Add Clerk auth to my Android app"       | `clerk-android`         |
-| "List all users via the Backend API"     | `clerk-backend-api`     |
+| You Say | Skill Used |
+|---------|------------|
+| "Add Clerk auth to my Next.js app" | `clerk-setup` |
+| "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
+| "Add Clerk to my Vue app" | `clerk-vue-patterns` |
+| "Build custom sign-in form" | `clerk-custom-ui` |
+| "Sync users to Prisma via webhooks" | `clerk-webhooks` |
+| "Add Playwright tests for auth" | `clerk-testing` |
+| "Set up organizations for my B2B app" | `clerk-orgs` |
+| "Add Clerk auth to my iOS app" | `clerk-swift` |
 
 ## Repository Structure
 
 ```
 clerk-skills/
 ├── .claude-plugin/
-│   └── marketplace.json         # Plugin registry
+│   └── marketplace.json
 ├── skills/
-│   ├── clerk/                   # Router skill
-│   │   └── SKILL.md
-│   ├── setup/                   # Framework setup
-│   │   └── SKILL.md
-│   ├── custom-ui/               # Component customization
-│   │   └── SKILL.md
-│   ├── nextjs-patterns/         # Next.js patterns
-│   │   └── SKILL.md
-│   ├── orgs/                    # Organizations (B2B)
-│   │   └── SKILL.md
-│   ├── webhooks/                # Webhooks & data sync
-│   │   └── SKILL.md
-│   ├── testing/                 # E2E testing
-│   │   └── SKILL.md
-│   ├── swift/                   # Native Swift/iOS auth
-│   │   └── SKILL.md
-│   ├── android/                 # Native Android auth
-│   │   └── SKILL.md
-│   └── backend-api/             # Backend REST API
-│       ├── SKILL.md
-│       ├── references/          # OpenAPI spec
-│       └── scripts/             # API browsing & execution
+│   ├── core/
+│   │   ├── clerk/                  # Router skill
+│   │   ├── setup/                  # Framework setup
+│   │   ├── custom-ui/              # Component customization
+│   │   └── backend-api/            # REST API explorer
+│   ├── frameworks/
+│   │   ├── nextjs-patterns/
+│   │   ├── react-patterns/
+│   │   ├── react-router-patterns/
+│   │   ├── vue-patterns/
+│   │   ├── nuxt-patterns/
+│   │   ├── astro-patterns/
+│   │   ├── tanstack-patterns/
+│   │   ├── expo-patterns/
+│   │   └── chrome-extension-patterns/
+│   ├── features/
+│   │   ├── orgs/
+│   │   ├── webhooks/
+│   │   └── testing/
+│   └── mobile/
+│       ├── swift/
+│       └── android/
+├── commands/
+│   └── clerk.md
 └── README.md
 ```
+
 ## Using /clerk Command
 
 For agents that support slash commands (Claude Code, OpenCode):
@@ -128,7 +157,6 @@ For agents that support slash commands (Claude Code, OpenCode):
 
 /clerk-backend-api tags
 /clerk-backend-api GET /users
-/clerk-backend-api Users
 ```
 
 ## Resources
@@ -136,7 +164,6 @@ For agents that support slash commands (Claude Code, OpenCode):
 - [Clerk Docs](https://clerk.com/docs)
 - [Dashboard](https://dashboard.clerk.com)
 - [Discord](https://clerk.com/discord)
-- [GitHub Examples](https://github.com/clerk/clerk-examples)
 
 ## Request a Skill
 

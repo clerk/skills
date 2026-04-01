@@ -3,3 +3,4 @@
 !.env.example
 .claude
 .DS_Store
+*-workspace/
