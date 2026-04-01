@@ -3,80 +3,80 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "i want to add clerk authentication to my plasmo chrome extension popup. users should be able to sign in and see their profile. show me the full popup.tsx setup.",
-      "expected_output": "popup.tsx with ClerkProvider configured with CRX URL redirects, Show components for signed-in/out states, UserButton",
+      "prompt": "i need to wrap my chrome extension popup in ClerkProvider from @clerk/chrome-extension. what props does it need for redirect URLs to work inside a chrome extension?",
+      "expected_output": "ClerkProvider with publishableKey, redirect URLs using chrome.runtime.getURL",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
-        "Uses ClerkProvider from @clerk/chrome-extension with publishableKey",
-        "Sets afterSignOutUrl, signInFallbackRedirectUrl, signUpFallbackRedirectUrl to chrome-extension:// URLs using chrome.runtime.getURL('.')",
-        "Uses Show when='signed-in' and Show when='signed-out' for conditional rendering",
-        "Includes UserButton for signed-in state and SignInButton/SignUpButton for signed-out",
-        "Reads publishableKey from process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY"
+        "Imports ClerkProvider from @clerk/chrome-extension (not @clerk/react or @clerk/nextjs)",
+        "Passes publishableKey prop to ClerkProvider",
+        "Uses chrome.runtime.getURL for redirect URL props (afterSignOutUrl, signInFallbackRedirectUrl, or similar)",
+        "Uses SignInButton or SignUpButton for unauthenticated state",
+        "Uses UserButton or user profile component for authenticated state"
       ]
     },
     {
       "id": 2,
       "prompt": "my background service worker needs to make authenticated API calls to my server. how can it access the current user's session token?",
-      "expected_output": "Background script uses message passing from the popup/content script to get the token, or uses chrome.storage to retrieve cached token",
+      "expected_output": "Use createClerkClient from @clerk/chrome-extension/client with background: true to get a fresh session token",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
-        "Explains that Clerk context is not available directly in service workers",
-        "Shows message passing pattern: popup/content script sends token to background",
-        "OR shows reading token from chrome.storage.local or chrome.storage.session",
-        "Background script uses chrome.runtime.onMessage.addListener to receive token",
-        "Includes how to make authenticated fetch with the received token"
+        "Imports createClerkClient from @clerk/chrome-extension/client (not @clerk/chrome-extension)",
+        "Calls createClerkClient with background: true option",
+        "Checks clerk.session before calling getToken()",
+        "Returns true from the chrome.runtime.onMessage listener to keep connection open for async sendResponse",
+        "Explains that background: true keeps the session fresh when popup is closed"
       ]
     },
     {
       "id": 3,
       "prompt": "my content script needs to check if the user is signed in before injecting a UI overlay into the page. how do i access clerk auth state from a content script?",
-      "expected_output": "Content script sends message to background/popup to check auth state, or reads from chrome.storage",
+      "expected_output": "Content script uses message passing to background service worker which uses createClerkClient to get auth state",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
-        "Explains that Clerk React hooks are NOT available in content scripts (isolated world)",
-        "Uses chrome.runtime.sendMessage to request auth state from background or popup",
-        "OR reads cached auth state from chrome.storage",
+        "Explains that Clerk cannot be used directly in content scripts due to origin restrictions",
+        "Uses chrome.runtime.sendMessage to request auth state from background service worker",
+        "Background script uses createClerkClient from @clerk/chrome-extension/client",
         "Shows how to conditionally inject UI based on the response",
-        "Handles the async nature of message passing"
+        "Handles the async nature of message passing with return true in background listener"
       ]
     },
     {
       "id": 4,
-      "prompt": "my extension needs to work with a web app that uses clerk auth on the same domain. how do i set up cross-origin authentication so the extension can read auth state from the web app?",
-      "expected_output": "Explains syncSessionWithTab option or using webNavigation permissions to read the session from the web app",
+      "prompt": "my chrome extension needs to let users sign in with google oauth. how do i set that up?",
+      "expected_output": "OAuth is not supported directly in popup or side panel -- must use syncHost to delegate to a web app",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
-        "References the syncSessionWithTab prop on ClerkProvider or equivalent cross-origin auth feature",
-        "Mentions required manifest permissions (tabs, webNavigation, cookies, or specific host permissions)",
-        "Explains that the extension and web app must share the same Clerk application",
-        "Shows how to configure ClerkProvider to sync with the active tab's session",
-        "Notes the allowed origins must include the extension URL in Clerk Dashboard"
+        "States clearly that OAuth is NOT supported in the popup or side panel",
+        "Explains that OAuth requires a redirect from the Identity Provider which Chrome extensions do not support",
+        "Introduces the syncHost approach to delegate auth to a companion web app",
+        "Mentions adding PLASMO_PUBLIC_CLERK_SYNC_HOST env var",
+        "Mentions adding syncHost prop to ClerkProvider"
       ]
     },
     {
       "id": 5,
-      "prompt": "i want to persist the clerk session across extension reloads and browser restarts. how do i configure chrome.storage.sync to keep the user signed in?",
-      "expected_output": "Uses tokenCache prop on ClerkProvider with a custom chrome.storage.sync implementation",
+      "prompt": "i want my extension to automatically know when the user signs in on my web app without them having to interact with the popup. how?",
+      "expected_output": "Use syncHost prop + host_permissions + add extension ID to allowed_origins via Clerk API",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
-        "Uses the tokenCache prop on ClerkProvider to provide a custom storage backend",
-        "Implements get and set methods using chrome.storage.sync or chrome.storage.local",
-        "Handles the async nature of chrome.storage APIs",
-        "Explains the difference between chrome.storage.sync (cross-device) and chrome.storage.local",
-        "Does NOT use localStorage (not available in service workers)"
+        "Introduces the syncHost feature to sync auth state from web app to extension",
+        "Shows PLASMO_PUBLIC_CLERK_SYNC_HOST env var setup for dev and prod",
+        "Shows adding syncHost prop to ClerkProvider",
+        "Shows host_permissions configuration in package.json manifest",
+        "Shows the curl command to add extension ID to allowed_origins via Clerk API"
       ]
     },
     {
       "id": 6,
-      "prompt": "my plasmo extension keeps getting a different CRX ID on each rebuild, which breaks the clerk redirect URLs. how do i create a stable CRX ID?",
-      "expected_output": "Generates an RSA key pair, creates .env.chrome with CRX_PUBLIC_KEY, updates package.json to use it, adds the stable CRX URL to Clerk Dashboard",
+      "prompt": "every time i rebuild my chrome extension, the extension ID changes and clerk auth breaks because the redirect URLs don't match. how do i fix this?",
+      "expected_output": "Pin the extension ID by providing a consistent key in the manifest, then update Clerk Dashboard with the stable chrome-extension:// URL",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
-        "Generates an RSA 2048-bit key pair using openssl",
-        "Adds public key to .env.chrome as CRX_PUBLIC_KEY",
-        "Updates package.json to include key field pointing to the env var",
-        "Explains how to derive the CRX ID from the public key",
-        "Mentions adding the chrome-extension://STABLE_CRX_ID URL to Clerk Dashboard allowed origins"
+        "Explains that the extension ID changes because Chrome derives it from the key field",
+        "Shows how to pin the extension ID by providing a consistent key via .env.chrome and package.json",
+        "Mentions the CRX_PUBLIC_KEY env var and manifest key field",
+        "Mentions updating the Clerk Dashboard or allowed_origins with the stable chrome-extension:// URL",
+        "Notes that Plasmo Itero can generate the keypair"
       ]
     }
   ]

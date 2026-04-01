@@ -7,7 +7,14 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 2.2.0
+  version: 2.1.0
+  inputs:
+  - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    description: Clerk publishable key from dashboard
+    required: true
+  - name: CLERK_SECRET_KEY
+    description: Clerk secret key for server-side operations
+    required: true
 ---
 
 # Organizations (B2B SaaS)
@@ -94,6 +101,50 @@ if (!has({ role: 'org:admin' })) {
   return <div>Admin access required</div>
 }
 ```
+
+#### Custom Permissions
+
+Create custom roles and permissions in Dashboard → Organizations → Roles. Permission format: `org:resource:action`.
+
+```typescript
+// Server component — check a custom billing permission
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+
+export default async function BillingPage() {
+  const { has } = await auth()
+
+  if (!has({ permission: 'org:billing:manage' })) {
+    redirect('/unauthorized')
+  }
+
+  return <BillingDashboard />
+}
+```
+
+```typescript
+// Middleware — protect an entire route segment
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+
+const isBillingRoute = createRouteMatcher(['/orgs/:slug/billing(.*)'])
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isBillingRoute(req)) {
+    await auth.protect({ permission: 'org:billing:manage' })
+  }
+})
+```
+
+```tsx
+// Client component — conditional rendering
+import { Show } from '@clerk/nextjs'
+
+<Show when={{ permission: 'org:billing:manage' }}>
+  <BillingSettings />
+</Show>
+```
+
+Permission naming convention: `org:resource:action` (e.g., `org:billing:manage`, `org:reports:view`, `org:api_keys:create`). Always prefix with `org:` for organization-scoped permissions.
 
 ### 5. OrganizationSwitcher Component
 
@@ -215,6 +266,82 @@ user.enterpriseAccounts
 
 > **Core 2 ONLY (skip if current SDK):** Uses `strategy: 'saml'` instead of `strategy: 'enterprise_sso'`, and `user.samlAccounts` instead of `user.enterpriseAccounts`.
 
+### Configuring Enterprise SSO per Organization
+
+Enterprise SSO is configured **per organization** in the Clerk Dashboard under Organizations > SSO Connections. Steps:
+
+1. Go to Dashboard → Organizations → select the org → SSO Connections
+2. Add a SAML or OIDC connection with the customer's IdP metadata
+3. Set the **verified domain** for the org — Clerk verifies ownership via DNS TXT record
+4. Once verified, users signing in with that email domain are automatically routed to the SSO flow and joined to the org
+
+```typescript
+// Check if the active user authenticated via enterprise SSO
+import { currentUser } from '@clerk/nextjs/server'
+
+const user = await currentUser()
+const ssoAccount = user?.enterpriseAccounts?.[0]
+
+if (ssoAccount) {
+  console.log(`SSO provider: ${ssoAccount.provider}`)
+  console.log(`SSO domain: ${ssoAccount.emailAddress}`)
+}
+```
+
+Key facts:
+- Strategy name: `enterprise_sso` (used in `signIn.supportedFirstFactors`)
+- Domain verification required: org claims a domain, Clerk verifies via DNS TXT record
+- Users with a verified email domain auto-join the org on first SSO sign-in
+- Each org can have multiple SSO connections (e.g., SAML + OIDC)
+
+## Gotchas
+
+### Capping Org Seats with `maxAllowedMemberships`
+
+Pass `maxAllowedMemberships` when creating an org to cap the number of seats. Attempts to add members beyond the cap will return an error.
+
+```typescript
+const clerk = await clerkClient()
+const org = await clerk.organizations.createOrganization({
+  name: 'Acme Corp',
+  createdBy: userId,
+  maxAllowedMemberships: 10,
+})
+```
+
+You can also update the cap after creation:
+
+```typescript
+await clerk.organizations.updateOrganization(orgId, {
+  maxAllowedMemberships: 25,
+})
+```
+
+### Billing Gates Permissions
+
+When Clerk Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false` if the Feature associated with that permission is not included in the organization's active Plan — even if the user has the permission assigned via their role. Billing gates permissions at the feature level. Ensure the required Feature is attached to the active Plan in Dashboard → Billing → Plans → Features before debugging role assignments.
+
+### Metadata Overwrites (Not Merges)
+
+`updateOrganization({ publicMetadata: { tier: 'enterprise' } })` REPLACES all public metadata, not merges it. Read first, spread, then write.
+
+Wrong:
+```typescript
+await clerk.organizations.updateOrganization(orgId, {
+  publicMetadata: { newField: 'value' },
+})
+```
+
+Right:
+```typescript
+const org = await clerk.organizations.getOrganization(orgId)
+await clerk.organizations.updateOrganization(orgId, {
+  publicMetadata: { ...org.publicMetadata, newField: 'value' },
+})
+```
+
+The same rule applies to `privateMetadata` and to user metadata via `clerkClient.users.updateUser`.
+
 ## Common Pitfalls
 
 | Symptom | Cause | Solution |
@@ -224,6 +351,67 @@ user.enterpriseAccounts
 | Users can access other orgs | Not checking orgSlug matches URL | Verify `orgSlug === params.slug` |
 | Org not appearing in switcher | Organizations not enabled | Enable in Clerk Dashboard → Organizations |
 | Invitations not working | Wrong role configuration | Ensure members have invite role permissions |
+
+## Invitation API
+
+### Send an Invitation (Server Action / Route Handler)
+
+```typescript
+import { clerkClient } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
+
+export async function inviteMember(organizationId: string, emailAddress: string, role: string) {
+  const { has } = await auth()
+
+  if (!has({ permission: 'org:sys_memberships:manage' })) {
+    throw new Error('Not authorized to invite members')
+  }
+
+  const clerk = await clerkClient()
+  const invitation = await clerk.organizations.createOrganizationInvitation({
+    organizationId,
+    emailAddress,
+    role, // e.g. 'org:member' or 'org:admin'
+    redirectUrl: 'https://yourapp.com/accept-invite',
+  })
+
+  return invitation
+}
+```
+
+### List Pending Invitations
+
+```typescript
+const clerk = await clerkClient()
+const { data: invitations } = await clerk.organizations.getOrganizationInvitationList({
+  organizationId,
+  status: ['pending'], // 'pending' | 'accepted' | 'revoked'
+})
+```
+
+### Revoke an Invitation
+
+```typescript
+await clerk.organizations.revokeOrganizationInvitation({
+  organizationId,
+  invitationId,
+  requestingUserId: userId,
+})
+```
+
+### Built-in Invite UI
+
+`<OrganizationSwitcher />` includes a built-in member invitation UI when personal accounts are hidden:
+
+```tsx
+<OrganizationSwitcher
+  hidePersonal
+  afterCreateOrganizationUrl="/orgs/:slug/dashboard"
+  afterSelectOrganizationUrl="/orgs/:slug/dashboard"
+/>
+```
+
+The `<OrganizationProfile />` component also provides a full members management tab with invitation and role management.
 
 ## Workflow
 
