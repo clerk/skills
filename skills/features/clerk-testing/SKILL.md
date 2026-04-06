@@ -56,4 +56,6 @@ Test auth = isolated session state. Each test needs fresh auth context.
 
 ## See Also
 
+- `clerk-setup` - Install Clerk before adding tests
+- `clerk-nextjs-patterns` - Next.js patterns being tested
 - [Demo Repo](https://github.com/clerk/clerk-playwright-nextjs/tree/95c7189a48c24d7e9e9744897040aa9418f68ac2/e2e)
