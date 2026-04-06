@@ -121,42 +121,27 @@ clerk-skills/
 ├── skills/
 │   ├── core/
 │   │   ├── clerk/                  # Router skill
-│   │   ├── setup/                  # Framework setup
-│   │   ├── custom-ui/              # Component customization
-│   │   └── backend-api/            # REST API explorer
+│   │   ├── clerk-setup/            # Framework setup
+│   │   ├── clerk-custom-ui/        # Component customization
+│   │   └── clerk-backend-api/      # REST API explorer
 │   ├── frameworks/
-│   │   ├── nextjs-patterns/
-│   │   ├── react-patterns/
-│   │   ├── react-router-patterns/
-│   │   ├── vue-patterns/
-│   │   ├── nuxt-patterns/
-│   │   ├── astro-patterns/
-│   │   ├── tanstack-patterns/
-│   │   ├── expo-patterns/
-│   │   └── chrome-extension-patterns/
+│   │   ├── clerk-nextjs-patterns/
+│   │   ├── clerk-react-patterns/
+│   │   ├── clerk-react-router-patterns/
+│   │   ├── clerk-vue-patterns/
+│   │   ├── clerk-nuxt-patterns/
+│   │   ├── clerk-astro-patterns/
+│   │   ├── clerk-tanstack-patterns/
+│   │   ├── clerk-expo-patterns/
+│   │   └── clerk-chrome-extension-patterns/
 │   ├── features/
-│   │   ├── orgs/
-│   │   ├── webhooks/
-│   │   └── testing/
+│   │   ├── clerk-orgs/
+│   │   ├── clerk-webhooks/
+│   │   └── clerk-testing/
 │   └── mobile/
-│       ├── swift/
-│       └── android/
-├── commands/
-│   └── clerk.md
+│       ├── clerk-swift/
+│       └── clerk-android/
 └── README.md
-```
-
-## Using /clerk Command
-
-For agents that support slash commands (Claude Code, OpenCode):
-
-```
-/clerk add auth to my Express app
-/clerk sync users to Supabase
-/clerk fix "redirect_uri_mismatch" error
-
-/clerk-backend-api tags
-/clerk-backend-api GET /users
 ```
 
 ## Resources

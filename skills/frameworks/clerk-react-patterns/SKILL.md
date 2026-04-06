@@ -42,7 +42,7 @@ metadata:
 ## Setup
 
 ```
-bun add @clerk/react
+npm install @clerk/react
 ```
 
 `.env`:

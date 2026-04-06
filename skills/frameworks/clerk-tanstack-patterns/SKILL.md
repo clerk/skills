@@ -39,7 +39,7 @@ metadata:
 ## Setup
 
 ```
-bun add @clerk/tanstack-react-start
+npm install @clerk/tanstack-react-start
 ```
 
 `.env`:

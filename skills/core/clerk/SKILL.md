@@ -2,8 +2,11 @@
 name: clerk
 description: Clerk authentication router. Use when user asks about adding authentication,
   setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android
-  auth, Next.js patterns, organizations, syncing users, or testing. Automatically
-  routes to the specific skill based on their task.
+  auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns,
+  TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns,
+  organizations, syncing users, or testing. Automatically routes to the specific skill
+  based on their task.
+license: MIT
 metadata:
   version: 2.0.0
 ---
@@ -46,6 +49,46 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Server Actions, caching
 - API route protection
 
+**React patterns** → Use `clerk-react-patterns`
+- Hooks (`useAuth`, `useUser`, `useClerk`)
+- Protected routes, auth guards
+- Router integration
+
+**React Router patterns** → Use `clerk-react-router-patterns`
+- Loaders & actions with auth
+- Route protection
+- SSR auth
+
+**Vue patterns** → Use `clerk-vue-patterns`
+- Composables (`useAuth`, `useUser`, `useClerk`)
+- Vue Router guards
+- Pinia auth store integration
+
+**Nuxt patterns** → Use `clerk-nuxt-patterns`
+- Server middleware auth
+- SSR auth with composables
+- Server API routes
+
+**Astro patterns** → Use `clerk-astro-patterns`
+- SSR auth pages
+- Island components with React
+- Middleware & API routes
+
+**TanStack Start patterns** → Use `clerk-tanstack-patterns`
+- Server functions with auth
+- Route protection via loaders
+- Vinxi server integration
+
+**Expo patterns** → Use `clerk-expo-patterns`
+- Secure token storage
+- OAuth deep linking
+- Push notifications with auth
+
+**Chrome Extension patterns** → Use `clerk-chrome-extension-patterns`
+- Background scripts auth
+- Popup auth flows
+- Content scripts with sync host
+
 **B2B / Organizations** → Use `clerk-orgs`
 - Multi-tenant apps
 - Organization slugs in URLs
@@ -84,6 +127,14 @@ If you know your task, you can directly access:
 - `/clerk-setup` - Framework setup
 - `/clerk-custom-ui` - Custom flows & appearance
 - `/clerk-nextjs-patterns` - Next.js patterns
+- `/clerk-react-patterns` - React patterns
+- `/clerk-react-router-patterns` - React Router patterns
+- `/clerk-vue-patterns` - Vue patterns
+- `/clerk-nuxt-patterns` - Nuxt patterns
+- `/clerk-astro-patterns` - Astro patterns
+- `/clerk-tanstack-patterns` - TanStack Start patterns
+- `/clerk-expo-patterns` - Expo patterns
+- `/clerk-chrome-extension-patterns` - Chrome Extension patterns
 - `/clerk-orgs` - Organizations
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing

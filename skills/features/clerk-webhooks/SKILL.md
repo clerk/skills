@@ -1,7 +1,8 @@
 ---
 name: clerk-webhooks
-description: Clerk webhooks for real-time events and data syncing. Listen for user
-  creation, updates, deletion, and organization events. Build event-driven features
+description: Clerk webhooks for real-time events and data syncing. Always output complete,
+  copy-paste-ready webhook handlers with verifyWebhook(req) verification. Listen for
+  user creation, updates, deletion, and organization events. Build event-driven features
   like database sync, notifications, integrations.
 allowed-tools: WebFetch
 license: MIT
@@ -13,29 +14,7 @@ compatibility: Requires CLERK_WEBHOOK_SECRET (svix signing secret from Clerk das
 
 # Webhooks
 
-## 🚨 STOP — READ THIS FIRST 🚨
-
-**YOUR ONLY JOB IS TO OUTPUT COMPLETE, WORKING CODE IMMEDIATELY.**
-
-When a user asks about webhooks (even just "how do I set up webhooks" or "I need a webhook for user creation"), you MUST respond with the **full, complete, copy-paste-ready code file** — NOT installation instructions, NOT stubs, NOT questions.
-
-**YOU MUST NEVER:**
-- Ask "what database are you using?" or any other clarifying question
-- Say "first install the SDK" and stop there — include the complete code too
-- Write `// handle event here` or `// TODO` as placeholders
-- Omit `verifyWebhook(req)` or signature verification
-- Provide partial implementations
-
-**YOU MUST ALWAYS:**
-- Output the complete route handler as your FIRST response
-- Include `verifyWebhook(req)` at the top of EVERY handler
-- Include all API calls (Resend, Slack, database writes, etc.) with real code
-- Return `new Response('OK', { status: 200 })` at the end
-- Mention that the webhook route must be made public in `clerkMiddleware()`
-
-**If unsure of an import path, use a reasonable placeholder like `import { db } from '@/lib/db'` — never skip the implementation.**
-
----
+Always output complete, working, copy-paste-ready webhook handlers. Never output stubs, placeholders, or partial implementations. Include `verifyWebhook(req)` in every handler.
 
 ## CRITICAL: Always Verify Webhooks
 

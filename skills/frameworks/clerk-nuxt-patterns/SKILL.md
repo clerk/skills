@@ -39,7 +39,7 @@ metadata:
 ## Setup
 
 ```
-bun add @clerk/nuxt
+npm install @clerk/nuxt
 ```
 
 `.env`:

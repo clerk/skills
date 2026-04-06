@@ -22,4 +22,4 @@ skills/
 2. Place in the correct category directory
 3. Add to `.claude-plugin/marketplace.json` under the matching plugin group
 4. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
-5. Folder names omit the prefix (e.g. `frameworks/clerk-nextjs-patterns/`)
+5. Folder names keep the `clerk-` prefix (e.g. `frameworks/clerk-nextjs-patterns/`)
