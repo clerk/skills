@@ -5,7 +5,7 @@
       "id": 1,
       "prompt": "i need to get all users who signed up in the last 7 days from clerk's backend API. show me how",
       "expected_output": "REST API call to GET /v1/users with date filter, Bearer token auth using CLERK_SECRET_KEY, response parsing and pagination handling",
-      "scaffold": "node-backend",
+      "scaffold": "nextjs-basic-auth",
       "files": [],
       "expectations": [
         "Uses GET /v1/users endpoint",
@@ -19,7 +19,7 @@
       "id": 2,
       "prompt": "use the clerk backend api to create a new organization called 'Acme Corp' and invite user@example.com as an admin",
       "expected_output": "Two API calls: POST /v1/organizations to create org, then POST /v1/organizations/{id}/invitations to invite with admin role",
-      "scaffold": "nextjs-admin",
+      "scaffold": "nextjs-basic-auth",
       "files": [],
       "expectations": [
         "Uses POST /v1/organizations to create the organization with name 'Acme Corp'",
@@ -33,7 +33,7 @@
       "id": 3,
       "prompt": "i need to set custom metadata on a user via clerk's backend api. set their plan to 'pro' and onboarded to true",
       "expected_output": "PATCH /v1/users/{user_id} with public_metadata or private_metadata body, explanation of metadata types and when to use each",
-      "scaffold": "nextjs-admin",
+      "scaffold": "nextjs-basic-auth",
       "files": [],
       "expectations": [
         "Uses PATCH /v1/users/{user_id} endpoint",
@@ -47,7 +47,7 @@
       "id": 4,
       "prompt": "remove a user with id user_abc123 from our clerk instance using the backend api",
       "expected_output": "DELETE /v1/users/{user_id} call with warning about irreversibility, CLERK_BAPI_SCOPES check, and CLERK_SECRET_KEY auth",
-      "scaffold": "node-backend",
+      "scaffold": "nextjs-basic-auth",
       "files": [],
       "expectations": [
         "Uses DELETE /v1/users/{user_id} endpoint with the correct user ID",

@@ -64,7 +64,7 @@ User Request: "Add Clerk" / "Add authentication"
     ├─ Identify framework → WebFetch quickstart → Follow instructions
     │   └─ Next.js? → Create proxy.ts (Next.js <=15: middleware.ts)
     │
-    └─ components.json exists? → YES → Apply shadcn theme (see custom-ui/)
+    └─ components.json exists? → YES → Apply shadcn theme (see clerk-custom-ui)
 ```
 
 ## Setup Process
@@ -91,7 +91,7 @@ Execute each step from the quickstart guide:
 - Create sign-in/sign-up routes if needed
 - Test the integration
 
-> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `clerk-nextjs-patterns` skill, `references/middleware-strategies.md`.
+> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `clerk-nextjs-patterns` → `references/middleware-strategies.md`.
 
 > **shadcn/ui detected** (`components.json` exists): ALWAYS apply the shadcn theme. See `clerk-custom-ui` skill → shadcn Theme section.
 

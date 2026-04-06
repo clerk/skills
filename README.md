@@ -106,6 +106,9 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
+| "Add Clerk to my Nuxt app" | `clerk-nuxt-patterns` |
+| "Add auth to my Expo app" | `clerk-expo-patterns` |
+| "Add Clerk to my Astro site" | `clerk-astro-patterns` |
 | "Build custom sign-in form" | `clerk-custom-ui` |
 | "Sync users to Prisma via webhooks" | `clerk-webhooks` |
 | "Add Playwright tests for auth" | `clerk-testing` |

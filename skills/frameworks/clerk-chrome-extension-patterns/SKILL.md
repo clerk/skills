@@ -55,7 +55,7 @@ metadata:
 ## Quick Start (Plasmo)
 
 ```bash
-pnpm create plasmo --with-tailwindcss --with-src my-extension
+npx create-plasmo --with-tailwindcss --with-src my-extension
 cd my-extension
 npm install @clerk/chrome-extension
 ```

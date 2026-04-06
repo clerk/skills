@@ -25,7 +25,7 @@ Always output complete, working, copy-paste-ready webhook handlers. Never output
 Webhook routes MUST be excluded from Clerk middleware protection. Without this, Clerk returns 401.
 
 ```typescript
-// middleware.ts
+// proxy.ts (Next.js <=15: middleware.ts)
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
@@ -141,9 +141,9 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-**Also include middleware.ts to make the route public:**
+**Also include proxy.ts (Next.js <=15: middleware.ts) to make the route public:**
 ```typescript
-// middleware.ts
+// proxy.ts (Next.js <=15: middleware.ts)
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
 export default clerkMiddleware((auth, req) => {
