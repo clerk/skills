@@ -208,7 +208,7 @@ Returns: OrganizationInvitation object
 
 ## How to execute requests
 
-**ALWAYS use direct `curl` commands.** Do NOT rely on `scripts/execute-request.sh` or other helper scripts that may not exist.
+**ALWAYS execute requests with direct `curl` commands.** Use the spec-extraction scripts (`api-specs-context.sh`, `extract-tags.js`, `extract-endpoint-detail.sh`) to discover endpoints, but make actual API calls with `curl`. Do NOT use `scripts/execute-request.sh` — it's a local dev helper, not for agent use.
 
 Template for GET requests:
 ```bash
@@ -256,7 +256,7 @@ Use the output to determine the latest version and available tags.
 - For write operations (POST/PUT/PATCH/DELETE), check `CLERK_BAPI_SCOPES` before attempting the request. If missing or insufficient, ask the user upfront. Do NOT attempt and fail — ask before executing. This check is MANDATORY.
 - For metadata operations, always explain all three types (public, private, unsafe) and recommend the appropriate one.
 - Pagination: always use `limit` + `offset` and mention that results may be paginated for large datasets.
-- Use direct curl commands for all API calls — do not assume helper scripts exist.
+- Use direct curl commands for all API calls — never use `scripts/execute-request.sh`.
 
 ---
 
