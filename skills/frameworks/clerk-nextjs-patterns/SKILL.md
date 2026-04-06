@@ -25,12 +25,6 @@ For basic setup, see `setup/`.
 | API route auth (401 vs 403) | references/api-routes.md |
 | Cache auth data (user-scoped caching) | references/caching-auth.md |
 
-## Impact Levels
-
-- **CRITICAL** - Breaking bugs, security holes
-- **HIGH** - Common mistakes
-- **MEDIUM** - Optimization
-
 ## References
 
 | Reference | Impact |

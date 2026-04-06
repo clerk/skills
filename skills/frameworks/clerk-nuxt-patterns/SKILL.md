@@ -21,12 +21,6 @@ metadata:
 | useAuth / useUser in components | references/composables.md |
 | SSR-safe auth patterns | references/ssr-auth.md |
 
-## Impact Levels
-
-- **CRITICAL** - Breaking bugs, security holes
-- **HIGH** - Common mistakes
-- **MEDIUM** - Optimization
-
 ## References
 
 | Reference | Impact |

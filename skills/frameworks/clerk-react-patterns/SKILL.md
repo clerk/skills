@@ -24,12 +24,6 @@ metadata:
 | Custom sign-in / sign-up forms | references/custom-flows.md |
 | React Router v6/v7 integration | references/router-integration.md |
 
-## Impact Levels
-
-- **CRITICAL** - Breaking bugs, security holes
-- **HIGH** - Common mistakes
-- **MEDIUM** - Optimization
-
 ## References
 
 | Reference | Impact |

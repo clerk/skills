@@ -21,12 +21,6 @@ metadata:
 | Pass auth to loaders | references/loaders.md |
 | Configure Vinxi + clerkMiddleware | references/vinxi-server.md |
 
-## Impact Levels
-
-- **CRITICAL** - Breaking bugs, security holes
-- **HIGH** - Common mistakes
-- **MEDIUM** - Optimization
-
 ## References
 
 | Reference | Impact |
