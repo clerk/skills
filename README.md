@@ -36,12 +36,6 @@ Skills follow the [Agent Skills](https://agentskills.io/) format.
 npx skills add clerk/skills
 ```
 
-### Via Clerk CLI
-
-```bash
-clerk init  # auto-installs skills for your framework
-```
-
 ### Manual (Claude Code)
 
 ```bash
