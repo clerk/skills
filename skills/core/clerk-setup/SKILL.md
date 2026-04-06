@@ -91,9 +91,9 @@ Execute each step from the quickstart guide:
 - Create sign-in/sign-up routes if needed
 - Test the integration
 
-> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `nextjs-patterns/references/middleware-strategies.md`.
+> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `clerk-nextjs-patterns` skill, `references/middleware-strategies.md`.
 
-> **shadcn/ui detected** (`components.json` exists): ALWAYS apply the shadcn theme. See `custom-ui/` → shadcn Theme section.
+> **shadcn/ui detected** (`components.json` exists): ALWAYS apply the shadcn theme. See `clerk-custom-ui` skill → shadcn Theme section.
 
 ### 4. Get API Keys
 
@@ -242,11 +242,11 @@ Also import the shadcn CSS in your global styles:
 
 ## See Also
 
-- `custom-ui/` - Custom sign-in/up components
-- `webhooks/` - Webhook → database sync
-- `orgs/` - B2B multi-tenant organizations
-- `testing/` - E2E testing setup
-- `nextjs-patterns/` - Advanced Next.js patterns
+- `clerk-custom-ui` - Custom sign-in/up components
+- `clerk-webhooks` - Webhook → database sync
+- `clerk-orgs` - B2B multi-tenant organizations
+- `clerk-testing` - E2E testing setup
+- `clerk-nextjs-patterns` - Advanced Next.js patterns
 
 ## Documentation
 

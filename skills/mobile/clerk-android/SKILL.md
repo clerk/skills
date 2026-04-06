@@ -176,7 +176,7 @@ Do not hardcode implementation examples in this skill. Inspect current `clerk-an
 
 ## See Also
 
-- `../clerk/SKILL.md` for top-level Clerk routing
-- `../setup/SKILL.md` for cross-framework quickstart setup
+- `clerk` skill for top-level Clerk routing
+- `clerk-setup` skill for cross-framework quickstart setup
 - `https://github.com/clerk/clerk-android`
 - `https://clerk.com/docs/android/getting-started/quickstart`

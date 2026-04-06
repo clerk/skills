@@ -212,8 +212,8 @@ Token sources:
 
 ## See Also
 
-- `setup/`
-- `orgs/`
+- `clerk-setup`
+- `clerk-orgs`
 
 ## Docs
 

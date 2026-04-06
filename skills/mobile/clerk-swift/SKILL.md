@@ -197,7 +197,7 @@ Do not hardcode implementation examples in this skill. Inspect current installed
 
 ## See Also
 
-- `../clerk/SKILL.md` for top-level Clerk routing
-- `../setup/SKILL.md` for non-native or cross-framework setup
+- `clerk` skill for top-level Clerk routing
+- `clerk-setup` skill for non-native or cross-framework setup
 - installed `clerk-ios` package `README.md` (source for current iOS quickstart link)
 - `https://github.com/clerk/clerk-ios`

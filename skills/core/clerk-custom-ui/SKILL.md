@@ -12,7 +12,7 @@ metadata:
 
 # Custom UI
 
-> **Prerequisite**: Ensure `ClerkProvider` wraps your app. See `setup/`.
+> **Prerequisite**: Ensure `ClerkProvider` wraps your app. See `clerk-setup` skill.
 >
 > **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. This determines which custom flow references to use below.
 

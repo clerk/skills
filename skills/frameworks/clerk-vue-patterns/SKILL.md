@@ -92,7 +92,7 @@ const { userMemberships, setActive } = useOrganizationList()
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| Composables return `undefined` | Not inside `ClerkProvider` tree | Ensure `clerkPlugin` is installed or `@clerk/nuxt` module added |
+| Composables return `undefined` | Not inside `ClerkProvider` tree | Ensure `app.use(clerkPlugin, { publishableKey })` is called |
 | `userId` reactive but not updating | Destructuring loses reactivity | Use `const { userId } = useAuth()` (toRefs-style composable, reactive) |
 ## Import Map
 
