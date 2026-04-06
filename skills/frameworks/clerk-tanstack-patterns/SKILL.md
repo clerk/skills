@@ -23,12 +23,12 @@ metadata:
 
 ## References
 
-| Reference | Impact |
-|-----------|--------|
-| `references/router-guards.md` | CRITICAL - beforeLoad auth redirect |
-| `references/server-functions.md` | CRITICAL - createServerFn with auth() |
-| `references/loaders.md` | HIGH - Auth context in loaders |
-| `references/vinxi-server.md` | HIGH - clerkMiddleware() setup |
+| Reference | Description |
+|-----------|-------------|
+| `references/router-guards.md` | beforeLoad auth redirect |
+| `references/server-functions.md` | createServerFn with auth() |
+| `references/loaders.md` | Auth context in loaders |
+| `references/vinxi-server.md` | clerkMiddleware() setup |
 
 ## Setup
 

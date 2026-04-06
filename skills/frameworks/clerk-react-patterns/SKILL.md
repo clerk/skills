@@ -26,12 +26,12 @@ metadata:
 
 ## References
 
-| Reference | Impact |
-|-----------|--------|
-| `references/hooks.md` | CRITICAL - useAuth, isLoaded guard |
-| `references/protected-routes.md` | CRITICAL - ProtectedRoute pattern |
-| `references/custom-flows.md` | HIGH - useSignIn, useSignUp flows |
-| `references/router-integration.md` | HIGH - React Router v6/v7 setup |
+| Reference | Description |
+|-----------|-------------|
+| `references/hooks.md` | useAuth, isLoaded guard |
+| `references/protected-routes.md` | ProtectedRoute pattern |
+| `references/custom-flows.md` | useSignIn, useSignUp flows |
+| `references/router-integration.md` | React Router v6/v7 setup |
 
 ## Setup
 

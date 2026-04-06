@@ -13,7 +13,7 @@ metadata:
 
 > **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
-For basic setup, see `setup/`.
+For basic setup, see `clerk-setup` skill.
 
 ## What Do You Need?
 
@@ -27,13 +27,13 @@ For basic setup, see `setup/`.
 
 ## References
 
-| Reference | Impact |
-|-----------|--------|
-| `references/server-vs-client.md` | CRITICAL - `await auth()` vs hooks |
-| `references/middleware-strategies.md` | HIGH - Public-first vs protected-first, `proxy.ts` (Next.js <=15: `middleware.ts`) |
-| `references/server-actions.md` | HIGH - Protect mutations |
-| `references/api-routes.md` | HIGH - 401 vs 403 |
-| `references/caching-auth.md` | MEDIUM - User-scoped caching |
+| Reference | Description |
+|-----------|-------------|
+| `references/server-vs-client.md` | `await auth()` vs hooks |
+| `references/middleware-strategies.md` | Public-first vs protected-first, `proxy.ts` (Next.js <=15: `middleware.ts`) |
+| `references/server-actions.md` | Protect mutations |
+| `references/api-routes.md` | 401 vs 403 |
+| `references/caching-auth.md` | User-scoped caching |
 
 ## Mental Model
 
@@ -77,7 +77,7 @@ import { Show } from '@clerk/nextjs'
 </Show>
 ```
 
-> **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `custom-ui/core-3/show-component.md` for the full migration table.
+> **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `clerk-custom-ui` skill, `core-3/show-component.md` for the full migration table.
 
 ## Common Pitfalls
 

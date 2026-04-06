@@ -1,6 +1,6 @@
 # Composables
 
-All composables come from `@clerk/vue`. In Nuxt, they are auto-imported.
+All composables come from `@clerk/vue`.
 
 ## useAuth
 

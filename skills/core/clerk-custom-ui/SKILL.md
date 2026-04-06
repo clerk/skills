@@ -125,7 +125,7 @@ import { dark, neobrutalism } from '@clerk/ui/themes'
 
 **Available themes:** `dark`, `neobrutalism`, `shadcn`, `simple`
 
-#### shadcn Theme (HIGH PRIORITY)
+#### shadcn Theme
 
 > **IMPORTANT:** If the project has `components.json` (shadcn/ui installed), ALWAYS apply the shadcn theme as the FIRST customization step. This ensures Clerk components visually match the existing shadcn design system. Skip this only if the user explicitly requests a different theme.
 

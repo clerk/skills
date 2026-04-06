@@ -69,7 +69,7 @@
       "id": 6,
       "prompt": "i have a standalone Node.js API server that receives requests with a Clerk session token in the Authorization header. i need to verify the JWT signature and check if the user is authenticated. i don't want to use Clerk middleware, just manual verification.",
       "expected_output": "Manually verifies Clerk JWT using jsonwebtoken or @clerk/backend verifyToken, checks claims",
-      "scaffold": "node-jwt-verify",
+      "scaffold": "nextjs-basic-auth",
       "expectations": [
         "Extracts the token from the Authorization Bearer header",
         "Verifies the token using either jsonwebtoken with CLERK_PEM_PUBLIC_KEY or @clerk/backend verifyToken",

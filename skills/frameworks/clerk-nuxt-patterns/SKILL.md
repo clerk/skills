@@ -23,12 +23,12 @@ metadata:
 
 ## References
 
-| Reference | Impact |
-|-----------|--------|
-| `references/nuxt-middleware.md` | CRITICAL - Route protection, clerkMiddleware() |
-| `references/server-api-routes.md` | HIGH - Nitro server route auth |
-| `references/composables.md` | HIGH - useAuth, useUser, useClerk |
-| `references/ssr-auth.md` | HIGH - SSR hydration, server vs client |
+| Reference | Description |
+|-----------|-------------|
+| `references/nuxt-middleware.md` | Route protection, clerkMiddleware() |
+| `references/server-api-routes.md` | Nitro server route auth |
+| `references/composables.md` | useAuth, useUser, useClerk |
+| `references/ssr-auth.md` | SSR hydration, server vs client |
 
 ## Setup
 

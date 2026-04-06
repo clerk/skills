@@ -24,7 +24,7 @@ This skill sets up Clerk for authentication by following the official quickstart
 | 3. Follow instructions | Execute steps; create `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | 4. Get API keys | From [dashboard.clerk.com](https://dashboard.clerk.com/last-active?path=api-keys) |
 
-> If the project has `components.json` (shadcn/ui), apply the shadcn theme after setup. See `custom-ui/` → shadcn Theme.
+> If the project has `components.json` (shadcn/ui), apply the shadcn theme after setup. See `clerk-custom-ui` skill → shadcn Theme.
 
 ## Framework Detection
 

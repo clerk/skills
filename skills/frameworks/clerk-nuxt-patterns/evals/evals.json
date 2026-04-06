@@ -78,6 +78,45 @@
         "File is placed in server/api/ or server/routes/",
         "Does NOT re-verify the session token manually"
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "i'm adding clerk to my nuxt 3 app. set up the module and protect the /dashboard route so unauthenticated users are redirected to /sign-in.",
+      "expected_output": "Adds @clerk/nuxt to modules in nuxt.config.ts, creates Nuxt route middleware that checks auth and redirects",
+      "scaffold": "nuxt-basic-auth",
+      "expectations": [
+        "Adds @clerk/nuxt to the modules array in nuxt.config.ts",
+        "Creates a route middleware that checks authentication",
+        "Uses useAuth composable inside the middleware",
+        "Redirects unauthenticated users to /sign-in via navigateTo",
+        "Applies the middleware to the /dashboard route"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "my nuxt app has a server API route /api/user-data that should only work for authenticated users. implement the server-side auth check.",
+      "expected_output": "Uses getAuth from @clerk/nuxt/server in the event handler, throws 401 when userId is falsy",
+      "scaffold": "nuxt-basic-auth",
+      "expectations": [
+        "Imports getAuth from @clerk/nuxt/server",
+        "Calls getAuth(event) to get userId",
+        "Throws createError({ statusCode: 401 }) when userId is falsy",
+        "Uses userId in the data fetching logic",
+        "Does NOT use client-side composables in the server route"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "i need to add a global nuxt server middleware that checks auth on all protected routes and redirects to /sign-in. use clerkMiddleware from @clerk/nuxt.",
+      "expected_output": "Creates server/middleware/clerk.ts with clerkMiddleware that checks H3Event context for auth",
+      "scaffold": "nuxt-basic-auth",
+      "expectations": [
+        "Creates server/middleware/clerk.ts",
+        "Uses clerkMiddleware from @clerk/nuxt/server",
+        "Exports the result as default",
+        "Can access auth state via event.context.auth",
+        "Does NOT create the middleware in middleware/ (that is for route middleware, not server middleware)"
+      ]
     }
   ]
 }
