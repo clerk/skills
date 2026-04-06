@@ -57,7 +57,7 @@ metadata:
 ```bash
 pnpm create plasmo --with-tailwindcss --with-src my-extension
 cd my-extension
-pnpm add @clerk/chrome-extension
+npm install @clerk/chrome-extension
 ```
 
 Enable **Native API** in Clerk Dashboard under Native applications. Required for all extension integrations.
