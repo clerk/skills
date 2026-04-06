@@ -65,4 +65,20 @@ const { data } = await useFetch('/api/protected', {
 </script>
 ```
 
+## Pinia State Hydration
+
+When using Pinia with Clerk, hydrate the store with server auth state to avoid client-side flash:
+
+```ts
+// plugins/auth-hydration.ts
+import { useAuthStore } from '@/stores/auth'
+
+export default defineNuxtPlugin(async () => {
+  const store = useAuthStore()
+  await until(store.isLoaded).toBeTruthy()
+})
+```
+
+Stores are created per-request on the server — do NOT store sensitive data (tokens) in Pinia.
+
 [Docs](https://clerk.com/docs/nuxt/getting-started/quickstart)

@@ -62,22 +62,7 @@ export const useOrgStore = defineStore('org', () => {
 })
 ```
 
-## Server-Side State Hydration (Nuxt)
-
-In Nuxt, hydrate the store with server auth state to avoid client-side flash:
-
-```ts
-// plugins/auth-hydration.ts
-import { useAuthStore } from '@/stores/auth'
-
-export default defineNuxtPlugin(async () => {
-  const store = useAuthStore()
-  await until(store.isLoaded).toBeTruthy()
-})
-```
-
 ## CRITICAL
 
 - Do NOT copy `userId` into Pinia state manually — it creates a stale copy. Always return refs directly from composables
 - Pinia store `setup()` function runs inside Vue's setup context — composables work correctly here
-- In Nuxt, stores are created per-request on the server — do NOT store sensitive data (tokens) in Pinia
