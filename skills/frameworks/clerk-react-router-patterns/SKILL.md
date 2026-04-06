@@ -148,6 +148,12 @@ export async function loader(args: Route.LoaderArgs) {
 | `useAuth`, `useUser` | `@clerk/react-router` |
 | `OrganizationSwitcher` | `@clerk/react-router` |
 
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-custom-ui` - Custom flows & appearance
+- `clerk-orgs` - B2B organizations
+
 ## Docs
 
 [React Router SDK](https://clerk.com/docs/react-router/getting-started/quickstart)

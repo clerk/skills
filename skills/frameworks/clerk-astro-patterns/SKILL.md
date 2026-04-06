@@ -106,6 +106,12 @@ CLERK_SECRET_KEY=sk_...
 
 Astro uses `PUBLIC_` prefix for client-exposed variables (not `NEXT_PUBLIC_`).
 
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-custom-ui` - Custom flows & appearance
+- `clerk-orgs` - B2B organizations
+
 ## Docs
 
 [Astro SDK](https://clerk.com/docs/astro/getting-started/quickstart)

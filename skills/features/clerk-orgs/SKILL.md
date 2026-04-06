@@ -421,3 +421,9 @@ The `<OrganizationProfile />` component also provides a full members management 
 4. **Assign roles** - Default member role, promote to admin as needed
 5. **Build protected routes** - Use auth() to check orgSlug and roles
 6. **Use OrganizationSwitcher** - Let users switch between orgs
+
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-webhooks` - Sync org events to your database
+- `clerk-backend-api` - Manage members programmatically

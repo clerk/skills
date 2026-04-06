@@ -158,6 +158,12 @@ export function OrgSwitcher() {
 | `useSSO` | `@clerk/expo` |
 | `useOrganization`, `useOrganizationList` | `@clerk/expo` |
 
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-custom-ui` - Custom flows & appearance
+- `clerk-orgs` - B2B organizations
+
 ## Docs
 
 [Expo SDK](https://clerk.com/docs/expo/getting-started/quickstart)
