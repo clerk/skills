@@ -112,8 +112,6 @@ export const Route = createFileRoute('/dashboard')({
 
 ## See Also
 
-- `references/server-functions.md`
-- `references/router-guards.md`
 - `clerk-setup` - Initial Clerk install
 - `clerk-custom-ui` - Custom flows & appearance
 - `clerk-orgs` - B2B organizations

@@ -107,8 +107,6 @@ const { orgId, orgRole } = useAuth()
 
 ## See Also
 
-- `references/nuxt-middleware.md`
-- `references/server-api-routes.md`
 - `clerk-setup` - Initial Clerk install
 - `clerk-custom-ui` - Custom flows & appearance
 - `clerk-orgs` - B2B organizations

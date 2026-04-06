@@ -145,8 +145,6 @@ export function DataFetcher() {
 
 ## See Also
 
-- `references/hooks.md`
-- `references/protected-routes.md`
 - `clerk-setup` - Initial Clerk install
 - `clerk-custom-ui` - Custom flows & appearance
 - `clerk-orgs` - B2B organizations
