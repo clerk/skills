@@ -355,3 +355,9 @@ const {
 **Local**: Use ngrok to tunnel `localhost:3000` to internet. Add ngrok URL to Dashboard endpoint.
 
 **Production**: Update webhook endpoint URL to production domain. Copy `CLERK_WEBHOOK_SECRET` to production env vars.
+
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-orgs` - Org membership events
+- `clerk-backend-api` - Sync via direct API calls

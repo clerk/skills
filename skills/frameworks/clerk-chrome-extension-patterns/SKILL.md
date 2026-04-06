@@ -373,3 +373,8 @@ const tokenCache = {
 | OAuth through syncHost | Pro + OAuth configured on web app |
 | SAML through syncHost | Enterprise |
 | Bot protection | N/A -- must be disabled for extensions |
+
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-custom-ui` - Custom flows & appearance

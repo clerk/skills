@@ -91,7 +91,7 @@ Execute each step from the quickstart guide:
 - Create sign-in/sign-up routes if needed
 - Test the integration
 
-> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See `clerk-nextjs-patterns` → `references/middleware-strategies.md`.
+> **Next.js:** Create `proxy.ts` (Next.js <=15: `middleware.ts`). See the `clerk-nextjs-patterns` skill for middleware strategies.
 
 > **shadcn/ui detected** (`components.json` exists): ALWAYS apply the shadcn theme. See `clerk-custom-ui` skill → shadcn Theme section.
 

@@ -114,6 +114,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Add Playwright tests for auth" | `clerk-testing` |
 | "Set up organizations for my B2B app" | `clerk-orgs` |
 | "Add Clerk auth to my iOS app" | `clerk-swift` |
+| "Add Clerk auth to my Android app" | `clerk-android` |
 
 ## Repository Structure
 

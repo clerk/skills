@@ -102,6 +102,12 @@ const { userMemberships, setActive } = useOrganizationList()
 | Plugin setup | `@clerk/vue` |
 | Components | `@clerk/vue` |
 
+## See Also
+
+- `clerk-setup` - Initial Clerk install
+- `clerk-custom-ui` - Custom flows & appearance
+- `clerk-orgs` - B2B organizations
+
 ## Docs
 
 - [Vue SDK](https://clerk.com/docs/vue/getting-started/quickstart)
