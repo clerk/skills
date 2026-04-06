@@ -1,13 +1,13 @@
 <p align="center">
   <a href="https://clerk.com?utm_source=github&utm_medium=clerk_skills" target="_blank" rel="noopener noreferrer">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset=".github/dark.webp">
-      <source media="(prefers-color-scheme: light)" srcset=".github/light.webp">
-      <img src=".github/light.webp" alt="Clerk Skills" width="600">
-    </picture>
+    <img src="https://images.clerk.com/static/logo-light-mode-400x400.png" height="64">
   </a>
+  <br />
 </p>
 <div align="center">
+  <h1>
+    Clerk Skills
+  </h1>
   <a href="https://clerk.com/docs">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-clerk-green.svg" />
   </a>
