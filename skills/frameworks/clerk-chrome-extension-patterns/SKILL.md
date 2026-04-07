@@ -7,16 +7,10 @@ description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepa
   headless extension.'
 license: MIT
 allowed-tools: WebFetch
+compatibility: Requires PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY (Plasmo prefix for public env vars) and CLERK_FRONTEND_API.
 metadata:
   author: clerk
   version: 2.0.0
-  inputs:
-  - name: PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY
-    description: Clerk publishable key (Plasmo prefix for public env vars)
-    required: true
-  - name: CLERK_FRONTEND_API
-    description: Clerk frontend API URL (https://YOUR_FRONTEND_API_URL)
-    required: true
   references:
   - references/sync-host.md
   - references/create-clerk-client.md
