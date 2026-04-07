@@ -72,6 +72,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | `clerk-orgs` | Multi-tenant B2B organizations | Team workspaces, RBAC |
+| `clerk-billing` | Subscription billing and feature gating | Pricing tables, plans, per-seat, entitlements |
 | `clerk-webhooks` | Real-time events and data syncing | Database sync, notifications |
 | `clerk-testing` | E2E testing for auth flows | Playwright/Cypress tests |
 
@@ -107,6 +108,8 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Sync users to Prisma via webhooks" | `clerk-webhooks` |
 | "Add Playwright tests for auth" | `clerk-testing` |
 | "Set up organizations for my B2B app" | `clerk-orgs` |
+| "Add subscription billing with pricing table" | `clerk-billing` |
+| "Gate features by plan" | `clerk-billing` |
 | "Add Clerk auth to my iOS app" | `clerk-swift` |
 | "Add Clerk auth to my Android app" | `clerk-android` |
 
@@ -134,6 +137,7 @@ clerk-skills/
 │   │   └── clerk-chrome-extension-patterns/
 │   ├── features/
 │   │   ├── clerk-orgs/
+│   │   ├── clerk-billing/
 │   │   ├── clerk-webhooks/
 │   │   └── clerk-testing/
 │   └── mobile/
