@@ -4,15 +4,17 @@
     {
       "id": 1,
       "prompt": "i have a next.js saas app with clerk auth. i need to add a pricing page that shows subscription plans and lets users subscribe. connect clerk billing and render the pricing table.",
-      "expected_output": "A /pricing route renders <PricingTable /> from @clerk/nextjs, with instructions to connect Stripe in the Clerk Dashboard.",
+      "expected_output": "A /pricing route renders <PricingTable /> from @clerk/nextjs, with instructions to connect Stripe in the Clerk Dashboard and a Beta/version-pinning warning.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "Imports PricingTable from '@clerk/nextjs'",
-        "Renders <PricingTable /> on a /pricing route (page.tsx under app/pricing/)",
-        "Does not call Stripe APIs directly to create checkout sessions",
-        "Mentions enabling Billing in the Clerk Dashboard and connecting a Stripe account",
-        "Mentions that PricingTable handles the checkout redirect automatically"
+        "Creates app/pricing/page.tsx that imports and renders <PricingTable /> from '@clerk/nextjs'",
+        "Warns that Clerk Billing is currently in Beta or experimental and may undergo breaking changes",
+        "Recommends pinning the Clerk SDK version because of the Beta status",
+        "States that Stripe must be explicitly connected in Clerk Dashboard → Billing before PricingTable will populate plans",
+        "States that plans must be created in Dashboard → Billing → Plans before they appear in PricingTable",
+        "Does not import '@clerk/billing' as a separate package (billing APIs ship inside @clerk/nextjs)",
+        "Does not suggest manually calling stripe.checkout.sessions.create or any Stripe API method directly"
       ]
     },
     {
@@ -47,18 +49,18 @@
     {
       "id": 4,
       "prompt": "i want to handle clerk billing webhook events so i can sync subscription status to my database. i need to handle when a subscription is created, when it gets canceled, and when a payment fails or goes past due.",
-      "expected_output": "POST handler at app/api/webhooks/route.ts calls verifyWebhook(req), branches on Clerk event names, and updates the database. Webhook route is excluded from clerkMiddleware.",
+      "expected_output": "POST handler calls verifyWebhook(req) from @clerk/nextjs/webhooks, branches on Clerk's dot-camelCase event names (subscription.created, subscriptionItem.canceled, subscriptionItem.pastDue), and proxy/middleware marks /api/webhooks as public.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "Imports verifyWebhook from '@clerk/nextjs/webhooks'",
-        "Calls verifyWebhook(req) and handles verification failure with a 400 response",
-        "Branches on evt.type === 'subscription.created'",
-        "Branches on evt.type === 'subscriptionItem.canceled'",
-        "Branches on evt.type === 'subscriptionItem.pastDue'",
-        "Does not use Stripe event names like 'customer.subscription.created' or 'invoice.payment_failed'",
-        "Adds /api/webhooks(.*) to createRouteMatcher as a public route in proxy.ts or middleware.ts",
-        "Returns new Response('OK', { status: 200 }) on success"
+        "Imports verifyWebhook from '@clerk/nextjs/webhooks' (the Clerk-provided helper)",
+        "Does NOT import Webhook from 'svix' directly — uses Clerk's verifyWebhook wrapper instead",
+        "Branches on the exact Clerk event name 'subscription.created'",
+        "Branches on the exact Clerk event name 'subscriptionItem.canceled' (camelCase, not 'subscription.canceled' or 'subscriptionItem.cancelled')",
+        "Branches on the exact Clerk event name 'subscriptionItem.pastDue' (camelCase 'pastDue', NOT snake_case 'past_due')",
+        "Does not use Stripe event names like 'customer.subscription.created', 'invoice.payment_failed', or 'customer.subscription.deleted'",
+        "Updates proxy.ts or middleware.ts to add /api/webhooks(.*) to createRouteMatcher so the webhook route is public",
+        "The clerkMiddleware callback is marked async to support await auth.protect()"
       ]
     },
     {
@@ -78,15 +80,17 @@
     {
       "id": 6,
       "prompt": "i have three plans: free, starter, and pro. i want to gate individual features: 'export' is pro-only, 'analytics' is starter and pro. show how to conditionally render ui elements based on feature entitlements, not plan tiers.",
-      "expected_output": "Server component uses has({ feature: 'export' }) and has({ feature: 'analytics' }) from auth() to conditionally render UI. Mentions useAuth() for client components.",
+      "expected_output": "Uses has({ feature: 'export' }) and has({ feature: 'analytics' }) (not has({ plan })), explains the decision rule for feature vs plan gating, warns about the billing-gates-permissions behavior, and notes that feature slugs come from Dashboard → Billing → Features.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "Uses has({ feature: 'export' }) for the export gate",
-        "Uses has({ feature: 'analytics' }) for the analytics gate",
-        "Prefers has({ feature }) over has({ plan }) for gating individual capabilities",
-        "Shows server-side usage with await auth() in a Server Component",
-        "Mentions or shows useAuth() for the equivalent check in a Client Component"
+        "Uses has({ feature: 'export' }) for the export gate (feature, not plan)",
+        "Uses has({ feature: 'analytics' }) for the analytics gate (feature, not plan)",
+        "Never uses has({ plan: ... }) to gate these specific capabilities",
+        "Explains the decision rule: use has({ feature }) for individual capabilities, use has({ plan }) only for tier-level gates like a Pro dashboard",
+        "States that feature slugs are defined in Clerk Dashboard → Billing → Features and must match the code exactly",
+        "Warns that when Billing is enabled, has({ permission: ... }) returns false if the required Feature is not attached to the active Plan (billing gates permissions)",
+        "Does not suggest reading sessionClaims.metadata.plan or parsing plan tier strings directly"
       ]
     },
     {
