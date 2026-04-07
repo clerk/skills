@@ -108,11 +108,11 @@ Define these in Clerk Dashboard → Billing → Plans.
 ## Common Mistake: Checking Plan Without Active Org
 
 ```typescript
-// WRONG — user has no active org, has() checks user subscription
+// WRONG, user has no active org, has() checks user subscription
 const { has } = await auth()
 if (!has({ plan: 'team' })) redirect('/billing')
 
-// CORRECT — check orgId first
+// CORRECT, check orgId first
 const { orgId, has } = await auth()
 if (!orgId) redirect('/sign-in')
 if (!has({ plan: 'team' })) redirect('/billing')

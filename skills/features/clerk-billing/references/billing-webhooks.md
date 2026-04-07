@@ -4,15 +4,15 @@
 
 Billing webhooks use the same `verifyWebhook(req)` pattern as all Clerk webhooks. Register the endpoint in Clerk Dashboard → Webhooks.
 
-Subscribe to these billing events:
+Subscribe to the billing events you care about. Full catalog:
 
-Subscription events:
+Subscription events (4):
 - `subscription.created`
 - `subscription.updated`
 - `subscription.active`
 - `subscription.pastDue`
 
-SubscriptionItem events:
+SubscriptionItem events (9):
 - `subscriptionItem.updated`
 - `subscriptionItem.active`
 - `subscriptionItem.canceled`
@@ -23,7 +23,11 @@ SubscriptionItem events:
 - `subscriptionItem.pastDue`
 - `subscriptionItem.freeTrialEnding`
 
-Payment attempt events have a `type` field: `checkout` or `recurring`.
+Payment attempt events (2):
+- `paymentAttempt.created`
+- `paymentAttempt.updated`
+
+> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`. There is no `subscriptionItem.created` event either; new items surface via `subscription.created` or `subscription.updated`.
 
 ## Complete Billing Webhook Handler
 
@@ -51,10 +55,12 @@ export async function POST(req: NextRequest) {
 	}
 
 	if (evt.type === 'subscription.updated') {
-		const { subscription_id, plan, status } = evt.data
+		// Destructure `seats` so B2B per-seat changes (member add/remove)
+		// stay in sync with your database.
+		const { subscription_id, plan, status, seats } = evt.data
 		await db.subscriptions.update({
 			where: { subscriptionId: subscription_id },
-			data: { plan, status },
+			data: { plan, status, seats },
 		})
 	}
 
@@ -157,7 +163,7 @@ export default clerkMiddleware(async (auth, req) => {
 - `user_id` is set for B2C subscriptions, `org_id` for B2B
 - Both may be present for personal accounts within an org
 - Use `org_id ?? user_id` to get the subscribing entity
-- Always return `200` quickly — handle async work in a queue or background job
+- Always return `200` quickly, handle async work in a queue or background job
 - Use `upsert` in `subscription_created` to handle replay events safely
 - `CLERK_WEBHOOK_SECRET` must match the secret from the Clerk Dashboard endpoint
 

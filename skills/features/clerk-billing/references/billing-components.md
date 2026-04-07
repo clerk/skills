@@ -21,7 +21,7 @@ export default function PricingPage() {
 
 **Key behaviors:**
 - Works as a Server Component (no `'use client'` needed)
-- No Stripe publishable key needed in props — Clerk injects it
+- No Stripe publishable key needed in props, Clerk injects it
 - Respects the active entity: user subscription for personal accounts, org subscription in org context
 
 **Props:**
@@ -32,7 +32,7 @@ export default function PricingPage() {
 
 For most cases, use `<PricingTable />` with no props.
 
-## has() — Plan and Feature Checks
+## has(), Plan and Feature Checks
 
 `has()` is returned by `auth()` (server) and `useAuth()` (client). It checks subscription plans and feature entitlements.
 
@@ -54,7 +54,7 @@ has({ feature: 'export' })  // true if user/org has 'export' feature entitlement
 import { useAuth } from '@clerk/nextjs'
 
 const { has } = useAuth()
-has?.({ plan: 'pro' })       // optional chaining — may be undefined before hydration
+has?.({ plan: 'pro' })       // optional chaining, may be undefined before hydration
 has?.({ feature: 'export' })
 ```
 
