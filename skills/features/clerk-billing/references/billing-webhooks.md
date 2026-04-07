@@ -12,7 +12,8 @@ Subscription events (4):
 - `subscription.active`
 - `subscription.pastDue`
 
-SubscriptionItem events (9):
+SubscriptionItem events (10):
+- `subscriptionItem.created`
 - `subscriptionItem.updated`
 - `subscriptionItem.active`
 - `subscriptionItem.canceled`
@@ -27,7 +28,18 @@ Payment attempt events (2):
 - `paymentAttempt.created`
 - `paymentAttempt.updated`
 
-> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`. There is no `subscriptionItem.created` event either; new items surface via `subscription.created` or `subscription.updated`.
+> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
+
+## Payload Shape (important)
+
+Clerk billing webhook payloads are nested. Common mistakes come from destructuring fields that live deeper than the top level. The canonical shape:
+
+- `evt.data.id`: the subscription or subscription item id (use this as the subscription id reference)
+- `evt.data.payer`: the subscribing entity, with `user_id?` and `organization_id?` (not `org_id`)
+- `evt.data.status`: server-side status string (snake_case, e.g. `past_due`, even though event names are camelCase)
+- `evt.data.items[]`: on subscription events only, the array of subscription items
+- `evt.data.items[i].plan.slug`: the plan slug for a given item (plan is a nested object)
+- On subscriptionItem events, the event data IS the item. There is no `subscription_id` back-reference, so match by `payer` + `plan.slug` or persist item ids independently.
 
 ## Complete Billing Webhook Handler
 
@@ -44,49 +56,57 @@ export async function POST(req: NextRequest) {
 		return new Response('Verification failed', { status: 400 })
 	}
 
-	if (evt.type === 'subscription.created') {
-		const { user_id, org_id, plan, subscription_id, status } = evt.data
-		const entityId = org_id ?? user_id
+	if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
+		const { id, payer, items, status } = evt.data
+		const entityId = payer.organization_id ?? payer.user_id
+		const plan = items[0]?.plan?.slug
 		await db.subscriptions.upsert({
-			where: { entityId },
-			create: { entityId, plan, subscriptionId: subscription_id, status },
-			update: { plan, subscriptionId: subscription_id, status },
+			where: { subscriptionId: id },
+			create: { subscriptionId: id, entityId, plan, status },
+			update: { entityId, plan, status },
 		})
 	}
 
 	if (evt.type === 'subscription.updated') {
-		// Destructure `seats` so B2B per-seat changes (member add/remove)
-		// stay in sync with your database.
-		const { subscription_id, plan, status, seats } = evt.data
+		// For B2B per-seat, seat count is derived from items.length
+		// because Clerk tracks seats as one item per member.
+		const { id, payer, items, status } = evt.data
+		const entityId = payer.organization_id ?? payer.user_id
+		const plan = items[0]?.plan?.slug
 		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { plan, status, seats },
+			where: { subscriptionId: id },
+			data: { entityId, plan, status, seatCount: items.length },
+		})
+	}
+
+	if (evt.type === 'subscription.pastDue') {
+		const { id, status } = evt.data
+		await db.subscriptions.update({
+			where: { subscriptionId: id },
+			data: { status },
 		})
 	}
 
 	if (evt.type === 'subscriptionItem.canceled') {
-		const { subscription_id } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { status: 'canceled' },
+		// Subscription item events carry only the item, not its parent subscription id.
+		// Identify the record by payer + plan slug.
+		const { payer, plan, canceled_at } = evt.data
+		const entityId = payer?.organization_id ?? payer?.user_id
+		await db.subscriptionItems.update({
+			where: { entityId, plan: plan?.slug },
+			data: { status: 'canceled', canceledAt: canceled_at },
 		})
+		// Notify user/org admin of cancellation
 	}
 
 	if (evt.type === 'subscriptionItem.pastDue') {
-		const { subscription_id, user_id, org_id } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { status: 'past_due' },
+		const { payer, plan, past_due_at } = evt.data
+		const entityId = payer?.organization_id ?? payer?.user_id
+		await db.subscriptionItems.update({
+			where: { entityId, plan: plan?.slug },
+			data: { status: 'past_due', pastDueAt: past_due_at },
 		})
-		// Notify user/org admin
-	}
-
-	if (evt.type === 'subscription.active') {
-		const { subscription_id } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { status: 'active' },
-		})
+		// Notify user/org admin of payment failure
 	}
 
 	return new Response('OK', { status: 200 })
@@ -109,70 +129,114 @@ export default clerkMiddleware(async (auth, req) => {
 
 ## Event Payload Reference
 
-### subscription.created / subscription.updated
+Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionItemWebhookEventJSON` in `@clerk/backend`. Key fields:
+
+### subscription.created / subscription.updated / subscription.active / subscription.pastDue
 
 ```typescript
 {
 	type: 'subscription.created',
 	data: {
-		subscription_id: string,
-		user_id: string | null,
-		org_id: string | null,
-		plan: string,
-		status: 'active' | 'trialing' | 'past_due' | 'canceled',
-		seats: number | null,
-		current_period_start: number,
-		current_period_end: number,
+		object: 'billing_subscription',
+		id: string,                    // subscription id
+		status: 'active' | 'past_due' | 'canceled' | 'ended' | 'abandoned' | 'incomplete' | 'expired' | 'upcoming',
+		active_at?: number,
+		canceled_at?: number,
+		ended_at?: number,
+		past_due_at?: number,
+		created_at: number,
+		updated_at: number,
+		latest_payment_id: string,
+		payer_id: string,
+		payer: {
+			object: 'billing_payer',
+			id: string,
+			user_id?: string,           // set for B2C subscriptions
+			organization_id?: string,   // set for B2B subscriptions
+			email: string,
+			first_name?: string,
+			last_name?: string,
+			organization_name?: string,
+			// ...
+		},
+		payment_source_id: string,
+		items: Array<{                  // subscription items (one per plan, one per seat for B2B)
+			id: string,
+			status: string,
+			plan?: { id, name, slug, amount, period, ... },
+			period_start: number,
+			period_end: number | null,
+			canceled_at?: number,
+			past_due_at?: number,
+			// ...
+		}>,
 	}
 }
 ```
 
-### subscriptionItem.canceled
+### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.*
+
+The event data IS the item itself, not the parent subscription:
 
 ```typescript
 {
 	type: 'subscriptionItem.canceled',
 	data: {
-		subscription_id: string,
-		user_id: string | null,
-		org_id: string | null,
-		plan: string,
-		canceled_at: number,
+		object: 'billing_subscription_item',
+		id: string,                    // subscription item id
+		status: string,
+		period_start: number,
+		period_end: number | null,
+		canceled_at?: number,
+		past_due_at?: number,
+		plan?: { id, slug, name, amount, period, ... },
+		plan_id?: string | null,
+		payer?: { user_id?, organization_id?, email, ... },
+		amount: { amount, amount_formatted, currency, currency_symbol },
+		// ...
 	}
 }
 ```
 
-### subscriptionItem.pastDue
+### paymentAttempt.created / paymentAttempt.updated
 
 ```typescript
 {
-	type: 'subscriptionItem.pastDue',
+	type: 'paymentAttempt.created',
 	data: {
-		subscription_id: string,
-		user_id: string | null,
-		org_id: string | null,
-		amount: number,
-		currency: string,
-		failure_reason: string,
+		object: 'billing_payment_attempt',
+		id: string,
+		status: 'pending' | 'paid' | 'failed',
+		charge_type: 'checkout' | 'recurring',
+		failed_reason?: { code: string, decline_code: string },
+		paid_at?: number,
+		failed_at?: number,
+		payer: { user_id?, organization_id?, ... },
+		subscription_items: Array<{ /* same shape as subscriptionItem events */ }>,
+		// ...
 	}
 }
 ```
 
 ## Key Rules
 
-- `user_id` is set for B2C subscriptions, `org_id` for B2B
-- Both may be present for personal accounts within an org
-- Use `org_id ?? user_id` to get the subscribing entity
-- Always return `200` quickly, handle async work in a queue or background job
-- Use `upsert` in `subscription_created` to handle replay events safely
-- `CLERK_WEBHOOK_SECRET` must match the secret from the Clerk Dashboard endpoint
+- The subscribing entity lives at `evt.data.payer`, with `user_id?` (B2C) or `organization_id?` (B2B)
+- The subscription id is `evt.data.id` on subscription events, not a separate `subscription_id` field
+- Plan slug is nested: `evt.data.items[i].plan?.slug` on subscription events, `evt.data.plan?.slug` on item events
+- Status values use snake_case (`past_due`, `active`, `canceled`), even though event names use camelCase (`subscription.pastDue`)
+- Always return `200` quickly. Handle async work in a queue or background job.
+- Use `upsert` in `subscription.created` handlers to tolerate webhook replays
+- `CLERK_WEBHOOK_SECRET` must match the Signing Secret from the Clerk Dashboard endpoint
 
 ## Subscription Status Values
 
 | Status | Meaning |
 |--------|---------|
 | `active` | Subscription is active and paid |
-| `trialing` | In free trial period |
 | `past_due` | Payment failed, grace period |
 | `canceled` | Subscription ended |
-| `incomplete` | Checkout started but not completed |
+| `ended` | Subscription reached the end of its term |
+| `abandoned` | Checkout started but user never completed payment |
+| `incomplete` | Checkout in progress |
+| `expired` | Subscription expired without renewal |
+| `upcoming` | Scheduled subscription not yet active |

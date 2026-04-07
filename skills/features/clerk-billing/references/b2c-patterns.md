@@ -119,14 +119,21 @@ For richer subscription details in client components (status, renewal date, tria
 
 ```tsx
 'use client'
-import { useSubscription } from '@clerk/nextjs'
+import { __experimental_useSubscription as useSubscription } from '@clerk/nextjs/experimental'
 
 export function BillingSummary() {
-	const { data, isLoaded } = useSubscription()
-	if (!isLoaded || !data) return null
-	return <p>Status: {data.status} (renews {data.currentPeriodEnd})</p>
+	const { data, isLoading } = useSubscription()
+	if (isLoading || !data) return null
+	return (
+		<p>
+			Status: {data.status}
+			{data.nextPayment && ` (renews ${data.nextPayment.date.toLocaleDateString()})`}
+		</p>
+	)
 }
 ```
+
+> Billing is Beta, so the hook is exported with the `__experimental_` prefix from `@clerk/nextjs/experimental`.
 
 ## Client-Side Feature Gating
 

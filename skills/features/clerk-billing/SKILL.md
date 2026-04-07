@@ -231,23 +231,25 @@ Client component, full subscription details via `useSubscription()`:
 
 ```tsx
 'use client'
-import { useSubscription } from '@clerk/nextjs'
+import { __experimental_useSubscription as useSubscription } from '@clerk/nextjs/experimental'
 
 export function SubscriptionDetails() {
-	const { data: subscription, isLoaded } = useSubscription()
-	if (!isLoaded) return null
+	const { data: subscription, isLoading } = useSubscription()
+	if (isLoading) return null
 	if (!subscription) return <a href="/pricing">Choose a plan</a>
 
 	return (
 		<div>
 			<p>Status: {subscription.status}</p>
-			<p>Current period ends: {subscription.currentPeriodEnd}</p>
+			{subscription.nextPayment && (
+				<p>Next payment: {subscription.nextPayment.date.toLocaleDateString()}</p>
+			)}
 		</div>
 	)
 }
 ```
 
-> `useSubscription()` is for display only. For authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
+> `useSubscription()` is experimental (Billing is in Beta). Import from `@clerk/nextjs/experimental` with the `__experimental_` prefix. It is for display only; for authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
 
 ### 8. Protect API Routes by Plan
 
@@ -280,6 +282,7 @@ export async function GET() {
 > | Subscription updated | `customer.subscription.updated` | `subscription.updated` |
 > | Subscription active | (none) | `subscription.active` |
 > | Subscription past due | (none) | `subscription.pastDue` |
+> | Subscription item created | (none) | `subscriptionItem.created` |
 > | Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
 > | Subscription item past due | `invoice.payment_failed` | `subscriptionItem.pastDue` |
 > | Subscription item updated | (none) | `subscriptionItem.updated` |
@@ -293,6 +296,8 @@ export async function GET() {
 > | Payment attempt updated | (none) | `paymentAttempt.updated` |
 >
 > Always use Clerk's event names, never Stripe's, in `evt.type` checks.
+
+> **Payload shape.** Clerk billing webhook payloads are nested. The subscribing entity lives under `evt.data.payer` (fields: `user_id?`, `organization_id?`). The plan info is on each item under `evt.data.items[i].plan.slug`. The subscription id is simply `evt.data.id`. Subscription items do not carry a `subscription_id` field back-reference, so in `subscriptionItem.*` handlers you identify the record by the item id (`evt.data.id`) or look up by payer plus plan.
 
 Listen for subscription lifecycle events:
 
@@ -310,38 +315,45 @@ export async function POST(req: NextRequest) {
 	}
 
 	if (evt.type === 'subscription.created') {
-		const { user_id, org_id, plan, subscription_id } = evt.data
-		const entityId = org_id ?? user_id
-		await db.subscriptions.create({
-			data: { entityId, plan, subscriptionId: subscription_id, status: 'active' },
+		const { id, payer, items, status } = evt.data
+		const entityId = payer.organization_id ?? payer.user_id
+		const plan = items[0]?.plan?.slug
+		await db.subscriptions.upsert({
+			where: { subscriptionId: id },
+			create: { subscriptionId: id, entityId, plan, status },
+			update: { entityId, plan, status },
 		})
 	}
 
 	if (evt.type === 'subscription.updated') {
-		// B2B per-seat note: seat count changes for org subscriptions fire here,
-		// so destructure `seats` to keep your DB in sync with member additions.
-		const { user_id, org_id, plan, subscription_id, seats } = evt.data
-		const entityId = org_id ?? user_id
+		// For B2B per-seat, the new seat count is derived from items.length
+		// because Clerk adds or removes items per member.
+		const { id, payer, items, status } = evt.data
+		const entityId = payer.organization_id ?? payer.user_id
+		const plan = items[0]?.plan?.slug
 		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { plan, entityId, seats },
+			where: { subscriptionId: id },
+			data: { entityId, plan, status, seatCount: items.length },
 		})
 	}
 
 	if (evt.type === 'subscriptionItem.canceled') {
-		const { subscription_id } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { status: 'canceled' },
+		// Subscription item events carry only the item, not its parent subscription id.
+		// Match the DB record by payer + plan slug, or persist item ids separately.
+		const { payer, plan, canceled_at } = evt.data
+		const entityId = payer?.organization_id ?? payer?.user_id
+		await db.subscriptionItems.update({
+			where: { entityId, plan: plan?.slug },
+			data: { status: 'canceled', canceledAt: canceled_at },
 		})
 	}
 
 	if (evt.type === 'subscriptionItem.pastDue') {
-		const { user_id, org_id, subscription_id } = evt.data
-		const entityId = org_id ?? user_id
-		await db.subscriptions.update({
-			where: { subscriptionId: subscription_id },
-			data: { status: 'past_due' },
+		const { payer, plan, past_due_at } = evt.data
+		const entityId = payer?.organization_id ?? payer?.user_id
+		await db.subscriptionItems.update({
+			where: { entityId, plan: plan?.slug },
+			data: { status: 'past_due', pastDueAt: past_due_at },
 		})
 	}
 
@@ -477,7 +489,6 @@ When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false`
 
 ## See Also
 
-- `clerk-setup` - Initial Clerk install
 - `clerk-setup` - Initial Clerk install
 - `clerk-orgs` - B2B organizations (required for per-seat billing)
 - `clerk-webhooks` - Webhook signature verification and routing

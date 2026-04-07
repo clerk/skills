@@ -71,26 +71,36 @@ Only admins should manage billing. Use `orgRole` from `auth()` to gate the billi
 
 ```typescript
 if (evt.type === 'subscription.created') {
-	const { org_id, plan, subscription_id, seats } = evt.data
-	if (org_id) {
-		await db.orgSubscriptions.create({
-			data: { orgId: org_id, plan, subscriptionId: subscription_id, seats },
+	const { id, payer, items, status } = evt.data
+	if (payer.organization_id) {
+		const plan = items[0]?.plan?.slug
+		await db.orgSubscriptions.upsert({
+			where: { orgId: payer.organization_id },
+			create: {
+				orgId: payer.organization_id,
+				plan,
+				subscriptionId: id,
+				seats: items.length,
+				status,
+			},
+			update: { plan, subscriptionId: id, seats: items.length, status },
 		})
 	}
 }
 
 if (evt.type === 'subscription.updated') {
-	const { org_id, plan, subscription_id, seats } = evt.data
-	if (org_id) {
+	const { id, payer, items, status } = evt.data
+	if (payer.organization_id) {
+		const plan = items[0]?.plan?.slug
 		await db.orgSubscriptions.update({
-			where: { orgId: org_id },
-			data: { plan, seats },
+			where: { orgId: payer.organization_id },
+			data: { plan, seats: items.length, status },
 		})
 	}
 }
 ```
 
-Use `org_id` field (not `user_id`) when the subscription belongs to an organization.
+Use `payer.organization_id` (nested under `payer`, not a top-level `org_id`) when the subscription belongs to an organization. The seat count is derived from `items.length` because Clerk tracks per-seat billing as one subscription item per member.
 
 ## Plan Naming for B2B
 
