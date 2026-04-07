@@ -6,19 +6,10 @@ description: Clerk Billing for subscription management - integrate Stripe pricin
   usage, invoicing, and subscription lifecycle management.
 allowed-tools: WebFetch
 license: MIT
+compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SECRET. Billing must be enabled in Clerk Dashboard with Stripe connected.
 metadata:
   author: clerk
   version: 1.0.0
-  inputs:
-  - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-    description: Clerk publishable key from dashboard
-    required: true
-  - name: CLERK_SECRET_KEY
-    description: Clerk secret key for server-side operations
-    required: true
-  - name: CLERK_WEBHOOK_SECRET
-    description: Webhook signing secret for billing events
-    required: true
 ---
 
 # Billing
@@ -55,9 +46,9 @@ metadata:
 
 ## Features vs Plans: When to Use Which
 
-**Use `has({ feature: 'slug' })` when gating a specific capability** — export, analytics, API access, audit logs.
+**Use `has({ feature: 'slug' })` when gating a specific capability**, export, analytics, API access, audit logs.
 
-**Use `has({ plan: 'slug' })` when gating a tier** — showing the pro dashboard, checking org subscription level, redirecting free users.
+**Use `has({ plan: 'slug' })` when gating a tier**, showing the pro dashboard, checking org subscription level, redirecting free users.
 
 | Scenario | Correct check |
 |----------|---------------|
@@ -67,7 +58,7 @@ metadata:
 | Check if org has team subscription | `has({ plan: 'team' })` |
 | Gate SSO configuration | `has({ feature: 'sso' })` |
 
-When a user says "gate the export feature" or "gate analytics" — always use `has({ feature })`. Only use `has({ plan })` when the gate is the plan tier itself, not a specific capability within it.
+When a user says "gate the export feature" or "gate analytics", always use `has({ feature })`. Only use `has({ plan })` when the gate is the plan tier itself, not a specific capability within it.
 
 ## Key Patterns
 
@@ -92,7 +83,7 @@ export default function PricingPage() {
 
 ### 2. Check Feature Entitlements (Server-Side)
 
-Gate by individual features — this is the preferred approach for specific capabilities:
+Gate by individual features, this is the preferred approach for specific capabilities:
 
 ```typescript
 import { auth } from '@clerk/nextjs/server'
@@ -112,7 +103,7 @@ export default async function AnalyticsPage() {
 }
 ```
 
-Features are configured in Clerk Dashboard → Billing → Features and assigned to plans. Use `has({ feature })` instead of `has({ plan })` when gating granular capabilities — check the feature, not the plan.
+Features are configured in Clerk Dashboard → Billing → Features and assigned to plans. Use `has({ feature })` instead of `has({ plan })` when gating granular capabilities, check the feature, not the plan.
 
 ### 3. Check Feature Entitlements (Client-Side)
 
@@ -206,29 +197,57 @@ export default async function TeamDashboard() {
 }
 ```
 
-Clerk automatically handles per-seat billing at the organization level — each additional member added to an org increments the seat count in Stripe.
+Clerk automatically handles per-seat billing at the organization level, each additional member added to an org increments the seat count in Stripe.
 
 ### 7. Display Subscription Status
 
-Show the user's current plan in the dashboard:
+Check specific plans with `has({ plan })`, or use `useSubscription()` for full subscription details in client components. Do not read plan information from `sessionClaims` directly, that is not the supported path.
+
+Server component, check for specific plans:
 
 ```typescript
 import { auth } from '@clerk/nextjs/server'
 
 export default async function AccountPage() {
-	const { sessionClaims } = await auth()
+	const { has } = await auth()
 
-	const plan = sessionClaims?.metadata?.plan as string | undefined
+	const currentPlan = has({ plan: 'pro' })
+		? 'pro'
+		: has({ plan: 'starter' })
+			? 'starter'
+			: 'free'
 
 	return (
 		<div>
 			<h2>Current Plan</h2>
-			<p>{plan ? `You are on the ${plan} plan` : 'Free plan'}</p>
-			{!plan && <a href="/pricing">Upgrade</a>}
+			<p>You are on the {currentPlan} plan</p>
+			{currentPlan === 'free' && <a href="/pricing">Upgrade</a>}
 		</div>
 	)
 }
 ```
+
+Client component, full subscription details via `useSubscription()`:
+
+```tsx
+'use client'
+import { useSubscription } from '@clerk/nextjs'
+
+export function SubscriptionDetails() {
+	const { data: subscription, isLoaded } = useSubscription()
+	if (!isLoaded) return null
+	if (!subscription) return <a href="/pricing">Choose a plan</a>
+
+	return (
+		<div>
+			<p>Status: {subscription.status}</p>
+			<p>Current period ends: {subscription.currentPeriodEnd}</p>
+		</div>
+	)
+}
+```
+
+> `useSubscription()` is for display only. For authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
 
 ### 8. Protect API Routes by Plan
 
@@ -253,26 +272,27 @@ export async function GET() {
 
 > **Clerk event names differ from Stripe event names.** Clerk billing webhooks use dot-notation and camelCase, not Stripe's underscore format.
 >
+> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
+>
 > | Intent | Stripe event name | Clerk event name |
 > |--------|------------------|-----------------|
 > | Subscription created | `customer.subscription.created` | `subscription.created` |
 > | Subscription updated | `customer.subscription.updated` | `subscription.updated` |
-> | Subscription canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
-> | Payment failed / past due | `invoice.payment_failed` | `subscriptionItem.pastDue` |
-> | Subscription active | — | `subscription.active` |
-> | Subscription past due | — | `subscription.pastDue` |
-> | Item created | — | `subscriptionItem.created` |
-> | Upcoming renewal | — | `subscriptionItem.upcoming` |
-> | Item active | — | `subscriptionItem.active` |
-> | Item updated | — | `subscriptionItem.updated` |
-> | Subscription ended | — | `subscriptionItem.ended` |
-> | Subscription abandoned | — | `subscriptionItem.abandoned` |
-> | Incomplete subscription | — | `subscriptionItem.incomplete` |
-> | Free trial ending soon | — | `subscriptionItem.freeTrialEnding` |
-> | Payment attempt created | — | `paymentAttempt.created` |
-> | Payment attempt updated | — | `paymentAttempt.updated` |
+> | Subscription active | (none) | `subscription.active` |
+> | Subscription past due | (none) | `subscription.pastDue` |
+> | Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
+> | Subscription item past due | `invoice.payment_failed` | `subscriptionItem.pastDue` |
+> | Subscription item updated | (none) | `subscriptionItem.updated` |
+> | Subscription item active | (none) | `subscriptionItem.active` |
+> | Subscription item upcoming renewal | (none) | `subscriptionItem.upcoming` |
+> | Subscription item ended | (none) | `subscriptionItem.ended` |
+> | Subscription item abandoned | (none) | `subscriptionItem.abandoned` |
+> | Subscription item incomplete | (none) | `subscriptionItem.incomplete` |
+> | Free trial ending soon | (none) | `subscriptionItem.freeTrialEnding` |
+> | Payment attempt created | (none) | `paymentAttempt.created` |
+> | Payment attempt updated | (none) | `paymentAttempt.updated` |
 >
-> Always use Clerk's event names — never Stripe's — in `evt.type` checks.
+> Always use Clerk's event names, never Stripe's, in `evt.type` checks.
 
 Listen for subscription lifecycle events:
 
@@ -298,11 +318,13 @@ export async function POST(req: NextRequest) {
 	}
 
 	if (evt.type === 'subscription.updated') {
-		const { user_id, org_id, plan, subscription_id } = evt.data
+		// B2B per-seat note: seat count changes for org subscriptions fire here,
+		// so destructure `seats` to keep your DB in sync with member additions.
+		const { user_id, org_id, plan, subscription_id, seats } = evt.data
 		const entityId = org_id ?? user_id
 		await db.subscriptions.update({
 			where: { subscriptionId: subscription_id },
-			data: { plan, entityId },
+			data: { plan, entityId, seats },
 		})
 	}
 
@@ -370,7 +392,7 @@ export default async function BillingPage() {
 }
 ```
 
-`<PricingTable />` renders differently for subscribed users — it shows the current plan and allows upgrades or cancellations.
+`<PricingTable />` renders differently for subscribed users, it shows the current plan and allows upgrades or cancellations.
 
 ## Plan and Feature Naming
 
@@ -429,17 +451,17 @@ export async function upgradeAction() {
 
 When `has({ plan: 'pro' })` returns false after checkout:
 
-1. **Verify plan slug** — open Clerk Dashboard → Billing → Plans. The slug must match exactly (case-sensitive). Common mistake: using `'Pro'` instead of `'pro'`.
-2. **Check Stripe connection** — Dashboard → Billing must show a connected Stripe account. Without it, no subscriptions are created.
-3. **Refresh the session** — after Stripe Checkout completes, the session token needs to refresh to include the new plan. Call `await clerk.session?.reload()` or navigate to force a new session.
-4. **Verify subscription exists** — Dashboard → Billing → Subscriptions. If the subscription is missing, the Stripe webhook may have failed.
-5. **Check environment** — ensure `CLERK_SECRET_KEY` is set in production. `has()` on the server requires it.
+1. **Verify plan slug**, open Clerk Dashboard → Billing → Plans. The slug must match exactly (case-sensitive). Common mistake: using `'Pro'` instead of `'pro'`.
+2. **Check Stripe connection**, Dashboard → Billing must show a connected Stripe account. Without it, no subscriptions are created.
+3. **Refresh the session**, after Stripe Checkout completes, the session token needs to refresh to include the new plan. Call `await clerk.session?.reload()` or navigate to force a new session.
+4. **Verify subscription exists**, Dashboard → Billing → Subscriptions. If the subscription is missing, the Stripe webhook may have failed.
+5. **Check environment**, ensure `CLERK_SECRET_KEY` is set in production. `has()` on the server requires it.
 
 Do NOT build a custom subscription tracking system. If `has()` fails, the issue is always configuration, not a missing feature.
 
 ## Billing Gates Permissions
 
-When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false` if the Feature associated with that permission is not included in the organization's active Plan — even if the user has the permission assigned via their role. This is by design: billing gates permissions at the feature level. Always ensure the required Feature is attached to the Plan in Dashboard → Billing → Plans → Features.
+When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false` if the Feature associated with that permission is not included in the organization's active Plan, even if the user has the permission assigned via their role. This is by design: billing gates permissions at the feature level. Always ensure the required Feature is attached to the Plan in Dashboard → Billing → Plans → Features.
 
 ## Common Pitfalls
 
@@ -456,6 +478,6 @@ When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false`
 ## See Also
 
 - `clerk-setup` - Initial Clerk install
+- `clerk-setup` - Initial Clerk install
 - `clerk-orgs` - B2B organizations (required for per-seat billing)
 - `clerk-webhooks` - Webhook signature verification and routing
-- `clerk-custom-ui` - Theming `<PricingTable />` appearance

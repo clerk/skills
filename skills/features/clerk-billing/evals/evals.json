@@ -54,7 +54,7 @@
       "files": [],
       "assertions": [
         "Imports verifyWebhook from '@clerk/nextjs/webhooks' (the Clerk-provided helper)",
-        "Does NOT import Webhook from 'svix' directly — uses Clerk's verifyWebhook wrapper instead",
+        "Does NOT import Webhook from 'svix' directly, uses Clerk's verifyWebhook wrapper instead",
         "Branches on the exact Clerk event name 'subscription.created'",
         "Branches on the exact Clerk event name 'subscriptionItem.canceled' (camelCase, not 'subscription.canceled' or 'subscriptionItem.cancelled')",
         "Branches on the exact Clerk event name 'subscriptionItem.pastDue' (camelCase 'pastDue', NOT snake_case 'past_due')",
@@ -66,12 +66,13 @@
     {
       "id": 5,
       "prompt": "i need a billing settings page where users can see their current plan and upgrade or downgrade their subscription. show current status and let them change plans.",
-      "expected_output": "A protected billing page that renders <PricingTable /> for plan changes and displays the current plan using has() or sessionClaims.",
+      "expected_output": "A protected billing page that renders <PricingTable /> for plan changes and displays the current plan using has({ plan }) or useSubscription().",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
         "Page is guarded by await auth() and requires authentication",
-        "Determines current plan using has({ plan }) or sessionClaims (not a custom DB lookup)",
+        "Determines the current plan using has({ plan }) or the useSubscription() hook",
+        "Does not read sessionClaims.metadata.plan to display the current plan",
         "Renders <PricingTable /> on the same page for plan changes",
         "Does not implement a custom Stripe Customer Portal integration from scratch",
         "Handles the case where the user has no active subscription"
@@ -129,7 +130,7 @@
       "files": [],
       "assertions": [
         "States that Clerk Billing is currently in Beta",
-        "States that Billing is not enabled by default — it must be explicitly enabled in the Dashboard",
+        "States that Billing is not enabled by default, it must be explicitly enabled in the Dashboard",
         "Explains that has({ plan }) returns false when Billing is not enabled regardless of Stripe configuration",
         "Mentions that Beta feature availability may depend on the Clerk plan tier",
         "Does not diagnose this as a code bug before confirming Billing is enabled in Dashboard"
@@ -166,7 +167,7 @@
     {
       "id": 12,
       "prompt": "my enterprise customers need downloadable invoices and a billing portal where they can update payment methods. how do i build this with clerk?",
-      "expected_output": "Render <UserProfile /> (B2C) or <OrganizationProfile /> (B2B) — both include built-in billing management with invoice history and payment methods.",
+      "expected_output": "Render <UserProfile /> (B2C) or <OrganizationProfile /> (B2B), both include built-in billing management with invoice history and payment methods.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [

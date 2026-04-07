@@ -86,16 +86,15 @@ export default async function BillingSuccessPage() {
 
 ## Account Billing Page
 
-Show current plan with the option to upgrade:
+Show current plan with the option to upgrade. Use `has({ plan })` for authorization checks, not `sessionClaims`, which is not the supported path:
 
 ```tsx
 import { PricingTable } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 
 export default async function AccountBillingPage() {
-	const { has, sessionClaims } = await auth()
+	const { has } = await auth()
 
-	const currentPlan = sessionClaims?.metadata?.plan as string | undefined
 	const isPro = has({ plan: 'pro' })
 	const isStarter = has({ plan: 'starter' })
 
@@ -103,8 +102,8 @@ export default async function AccountBillingPage() {
 		<div>
 			<section>
 				<h2>Current Plan</h2>
-				{isPro && <p>Pro — $29/month</p>}
-				{isStarter && <p>Starter — $9/month</p>}
+				{isPro && <p>Pro</p>}
+				{isStarter && <p>Starter</p>}
 				{!isPro && !isStarter && <p>Free</p>}
 			</section>
 			<section>
@@ -113,6 +112,19 @@ export default async function AccountBillingPage() {
 			</section>
 		</div>
 	)
+}
+```
+
+For richer subscription details in client components (status, renewal date, trial end), use the `useSubscription()` hook instead of reading JWT claims:
+
+```tsx
+'use client'
+import { useSubscription } from '@clerk/nextjs'
+
+export function BillingSummary() {
+	const { data, isLoaded } = useSubscription()
+	if (!isLoaded || !data) return null
+	return <p>Status: {data.status} (renews {data.currentPeriodEnd})</p>
 }
 ```
 
@@ -143,7 +155,7 @@ Note: `has` may be `undefined` on initial render. Use optional chaining `has?.()
 
 ## Free Plan Fallback
 
-Users with no subscription are on the free plan. Do NOT check for a plan called `free` — simply check that the paid plan check fails:
+Users with no subscription are on the free plan. Do NOT check for a plan called `free`, simply check that the paid plan check fails:
 
 ```typescript
 const isPro = has({ plan: 'pro' })
@@ -154,4 +166,4 @@ if (isFree) {
 }
 ```
 
-There is no `has({ plan: 'free' })` — `has()` only returns true for paid plans.
+There is no `has({ plan: 'free' })`, `has()` only returns true for paid plans.
