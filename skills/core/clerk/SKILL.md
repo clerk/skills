@@ -1,11 +1,11 @@
 ---
 name: clerk
 description: Clerk authentication router. Use when user asks about adding authentication,
-  setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android
-  auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns,
-  TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns,
-  organizations, syncing users, or testing. Automatically routes to the specific skill
-  based on their task.
+  setting up Clerk, custom sign-in flows, CLI commands, "clerk init", "clerk env pull",
+  "clerk api", "clerk doctor", Swift or native iOS auth, native Android auth, Next.js
+  patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start
+  patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations,
+  syncing users, or testing. Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
   version: 2.0.0
@@ -121,6 +121,12 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Inspect endpoint schemas
 - Execute API requests with scope enforcement
 
+**Clerk CLI (terminal commands)** → Use `clerk-cli`
+- `clerk init`, `clerk auth`, `clerk link`, `clerk env pull`
+- `clerk apps`, `clerk config` management
+- `clerk api` authenticated HTTP requests
+- `clerk doctor`, `clerk whoami`, `clerk open`
+
 ## Quick Navigation
 
 If you know your task, you can directly access:
@@ -141,5 +147,6 @@ If you know your task, you can directly access:
 - `/clerk-swift` - Swift/native iOS
 - `/clerk-android` - Native Android
 - `/clerk-backend-api` - Backend REST API
+- `/clerk-cli` - CLI commands (init, auth, link, env, apps, config, api, doctor)
 
 Or describe what you need and I'll recommend the right one.
