@@ -2,7 +2,7 @@
 
 ## Overview
 
-B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Clerk manages per-seat pricing internally.
+B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Plans can carry a **seat limit** (membership cap) which Clerk enforces on member invites.
 
 > **Create the plan in the Organization Plans tab.** [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans) has two tabs; slugs are scoped per tab. A `team` plan created under *User Plans* will not appear in `<PricingTable for="organization" />`, and vice versa. Plans cannot be moved between tabs — recreate if misplaced.
 
@@ -29,16 +29,17 @@ export default async function TeamDashboard() {
 
 **Always check `orgId` first.** If the user has no active org, `has({ plan })` evaluates against the user's personal subscription (which may not exist).
 
-## Per-Seat Billing
+## Seat-Limit Plans
 
-For per-seat Plans, Clerk manages seat pricing internally at the organization level. Stripe is used only as the payment processor — it does not track Clerk seats as separate Stripe subscription items.
+Clerk Billing's B2B model is **seat-limit plans**, not Stripe-style per-seat metered billing. Each organization plan has a fixed price and an optional membership cap; Clerk enforces the cap at invite/join time. To charge larger orgs more, create tiered plans (e.g. `starter` capped at 5, `team` at 10, `enterprise` unlimited) with increasing fixed prices.
 
-The key invariants:
-- There is only one `active` SubscriptionItem per payer per Plan. **Do not derive seat count from `items.length`.**
-- Adding or removing organization members does not create new SubscriptionItems; Clerk updates the org's single active item's quantity internally.
-- Subscription and plan data are managed in Clerk, not synced to Stripe Billing (Clerk Billing and Stripe Billing are different products).
+Key invariants:
+- **Fixed price per plan**, not auto-scaling per member. Adding members does not increment the org's billing amount on the active plan.
+- **One `active` SubscriptionItem per payer per Plan.** Do not derive seat count from `items.length`.
+- **Seat limit is a Plan property.** Set it when creating the plan in Dashboard → Billing → Plans (Organization Plans tab); it cannot be changed later.
+- When an org exceeds or changes to a plan with a lower limit, existing members stay but new invites are blocked until the org is under cap. See [Plans with seat limits](https://clerk.com/docs/guides/billing/seat-limit-plans) for the exact admin behavior.
 
-No custom seat-counting code is needed — let Clerk own the seat state and read the active Plan via `has({ plan: 'team' })`.
+No custom seat-counting code is needed. Read the active plan with `has({ plan: 'team' })` and let Clerk enforce membership limits.
 
 ## Org Billing Page
 
@@ -101,20 +102,20 @@ if (evt.type === 'subscription.updated') {
 }
 ```
 
-Use `payer.organization_id` (nested under `payer`, not a top-level `org_id`) when the subscription belongs to an organization. Do NOT use `items.length` as a seat count — Clerk manages seats internally and there is only one active SubscriptionItem per payer per Plan.
+Use `payer.organization_id` (nested under `payer`, not a top-level `org_id`) when the subscription belongs to an organization. Do NOT use `items.length` as a seat count — seat limits are set at the plan level and there is only one active SubscriptionItem per payer per Plan.
 
 ## Plan Naming for B2B
 
-Recommended slugs:
+Tier plans by seat cap so bigger orgs pay more:
 
-| Plan | Slug | Seats |
+| Plan | Slug | Seat cap |
 |------|------|-------|
-| Startup | `starter` | 5 seats |
-| Team | `team` | 10 seats |
-| Business | `business` | 25 seats |
-| Enterprise | `enterprise` | unlimited |
+| Startup | `starter` | 5 |
+| Team | `team` | 10 |
+| Business | `business` | 25 |
+| Enterprise | `enterprise` | unlimited (requires B2B Authentication add-on) |
 
-Define these in Clerk Dashboard → Billing → Plans.
+Define these in Clerk Dashboard → Billing → Plans → **Organization Plans** tab, toggle **Seat-based** on when creating. Seat caps above 20 and "unlimited" require the B2B Authentication add-on.
 
 ## Common Mistake: Checking Plan Without Active Org
 

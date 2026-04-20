@@ -36,7 +36,7 @@
     {
       "id": 3,
       "prompt": "my b2b saas lets teams subscribe via their organization. i need per-seat billing where adding org members automatically increments the seat count. show me the org-level plan check to protect team-only routes.",
-      "expected_output": "Server component checks orgId is present then uses has({ plan: 'team' }) to gate org-scoped routes. Explanation states that Clerk manages per-seat billing internally at the organization level and renders the B2B pricing page with <PricingTable for=\"organization\" />.",
+      "expected_output": "Server component checks orgId is present then uses has({ plan: 'team' }) to gate org-scoped routes. Explanation CORRECTS the user's mental model: Clerk Billing uses seat-LIMIT plans (membership caps with fixed per-plan pricing), not Stripe-style per-seat metered billing where the charge scales per member. Recommends tiered plans for charging larger orgs more, and renders the B2B pricing page with <PricingTable for=\"organization\" />.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
@@ -44,7 +44,8 @@
         "Checks that orgId exists before checking the plan",
         "Uses has({ plan: 'team' }) for the org-level entitlement",
         "Redirects to a billing or pricing page when the org lacks the plan",
-        "States that Clerk manages per-seat pricing internally at the organization level (Stripe is used only for payment processing)",
+        "Corrects the user's assumption of auto-incrementing per-seat billing — states Clerk uses seat-LIMIT plans (fixed price per plan + membership cap), not metered pricing that scales per member",
+        "Suggests creating tiered plans (e.g. starter 5 seats, team 10, enterprise unlimited) as the way to charge bigger orgs more",
         "Recommends <PricingTable for=\"organization\" /> for the B2B pricing page",
         "States that the plan must be created under the 'Organization Plans' tab, not 'User Plans'",
         "Does not claim Clerk creates one Stripe subscription item per member, or that seat count equals items.length",

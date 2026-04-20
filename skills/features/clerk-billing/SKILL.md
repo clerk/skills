@@ -1,9 +1,9 @@
 ---
 name: clerk-billing
 description: Clerk Billing for subscription management - render Clerk's PricingTable
-  and in-app checkout drawer, configure subscription plans, per-seat B2B billing,
-  feature entitlements with has(), and billing webhooks. Stripe is used only as
-  the payment processor. Use for SaaS monetization, plan gating, checkout flows,
+  and in-app checkout drawer, configure subscription plans, seat-limit plans for
+  B2B, feature entitlements with has(), and billing webhooks. Stripe is used only
+  as the payment processor. Use for SaaS monetization, plan gating, checkout flows,
   trials, invoicing, and subscription lifecycle management.
 allowed-tools: WebFetch
 license: MIT
@@ -47,7 +47,7 @@ metadata:
 |-----------|-------------|
 | `references/billing-components.md` | `<PricingTable />` and subscription UI |
 | `references/b2c-patterns.md` | B2C subscription billing patterns |
-| `references/b2b-patterns.md` | B2B per-seat billing with organizations |
+| `references/b2b-patterns.md` | B2B billing with organization subscriptions and seat-limit plans |
 | `references/billing-webhooks.md` | Subscription lifecycle event handling |
 
 ## Documentation
@@ -210,7 +210,7 @@ export default async function TeamDashboard() {
 }
 ```
 
-Clerk manages per-seat pricing internally at the organization level. There is only one `active` SubscriptionItem per payer per Plan — do not treat `items.length` as a seat count. Render the B2B pricing page with `<PricingTable for="organization" />`.
+Plans for organizations can carry a **seat limit** (membership cap). Clerk enforces the cap when members try to join or be invited; pricing is per-plan (fixed), not per-member auto-scaling. To charge larger orgs more, tier your plans (e.g. `starter` capped at 5 seats, `team` at 10, `enterprise` unlimited). There is only one `active` SubscriptionItem per payer per Plan — do not treat `items.length` as a seat count. Render the B2B pricing page with `<PricingTable for="organization" />`.
 
 ### 7. Display Subscription Status
 
@@ -435,7 +435,7 @@ Use lowercase slugs matching what you define in the dashboard.
 |----------|---------------|------------|
 | B2C SaaS | Individual user | `has({ plan: 'pro' })` on user session |
 | B2B SaaS | Organization | `has({ plan: 'team' })` on org session |
-| Per-seat | Organization | Clerk auto-increments seats per org member |
+| Seat-limited B2B | Organization | Plan has a seat cap; pricing is per-plan, not per-member — tier your plans for bigger orgs |
 
 For B2B, ensure the user has an active org session. The `has()` check evaluates the active entity (user or org).
 
@@ -515,5 +515,5 @@ When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false`
 ## See Also
 
 - `clerk-setup` - Initial Clerk install
-- `clerk-orgs` - B2B organizations (required for per-seat billing)
+- `clerk-orgs` - B2B organizations (required for B2B billing and seat-limit plans)
 - `clerk-webhooks` - Webhook signature verification and routing
