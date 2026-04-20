@@ -41,6 +41,15 @@ metadata:
 | Membership mode (B2C + B2B coexistence) | `https://dashboard.clerk.com/last-active?path=organizations-settings` |
 | Edit features | Plans → click a plan → Features section (no direct URL) |
 
+## What Do You Need?
+
+| Task | Reference |
+|------|-----------|
+| `<PricingTable />` props, `<CheckoutButton />`, `<Show>` billing patterns | references/billing-components.md |
+| B2C patterns (individual user subscriptions, `Membership optional` prerequisite) | references/b2c-patterns.md |
+| B2B patterns (org subscriptions, seat-limit plans, admin-gated billing UI) | references/b2b-patterns.md |
+| Webhook event catalog, payload shapes, handler templates | references/billing-webhooks.md |
+
 ## References
 
 | Reference | Description |
@@ -311,7 +320,7 @@ export async function GET() {
 
 > **Payload shape.** Clerk billing webhook payloads are nested. The subscribing entity lives under `evt.data.payer` (fields: `user_id?`, `organization_id?`). The plan info is on each item under `evt.data.items[i].plan.slug`. The subscription id is simply `evt.data.id`. Subscription items do not carry a `subscription_id` field back-reference, so in `subscriptionItem.*` handlers you identify the record by the item id (`evt.data.id`) or look up by payer plus plan.
 
-Listen for subscription lifecycle events:
+Minimal handler to anchor the pattern (import from `@clerk/nextjs/webhooks`, verify, branch on Clerk event name):
 
 ```typescript
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
@@ -337,51 +346,14 @@ export async function POST(req: NextRequest) {
 		})
 	}
 
-	if (evt.type === 'subscription.updated') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { entityId, plan, status },
-		})
-	}
-
-	if (evt.type === 'subscriptionItem.canceled') {
-		// Subscription item events carry only the item, not its parent subscription id.
-		// Match the DB record by payer + plan slug, or persist item ids separately.
-		const { payer, plan, canceled_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'canceled', canceledAt: canceled_at },
-		})
-	}
-
-	if (evt.type === 'subscriptionItem.pastDue') {
-		const { payer, plan, past_due_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'past_due', pastDueAt: past_due_at },
-		})
-	}
+	// Add more branches per the event catalog above (subscription.updated,
+	// subscriptionItem.canceled, subscriptionItem.pastDue, etc.)
 
 	return new Response('OK', { status: 200 })
 }
 ```
 
-Make the webhook route public in `proxy.ts` (Next.js <=15: `middleware.ts`):
-
-```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-
-const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
-
-export default clerkMiddleware(async (auth, req) => {
-	if (!isPublicRoute(req)) await auth.protect()
-})
-```
+For the full template covering all 15 events, the TS type declarations from `@clerk/backend`, the `proxy.ts` public-route setup, and the subscription status value table, see `references/billing-webhooks.md`.
 
 ### 10. Upgrade / Downgrade Flow
 
@@ -441,22 +413,7 @@ For B2B, ensure the user has an active org session. The `has()` check evaluates 
 
 ## Checkout Flows
 
-Clerk renders its own checkout drawer automatically through `<PricingTable />` and `<CheckoutButton />`. Do NOT manually create Stripe checkout sessions — Clerk Billing is a separate product from Stripe Billing; Plans and pricing live in Clerk and are not synced to Stripe.
-
-```tsx
-import { PricingTable } from '@clerk/nextjs'
-
-export default function UpgradePage() {
-	return (
-		<div>
-			<h1>Upgrade your plan</h1>
-			<PricingTable />
-		</div>
-	)
-}
-```
-
-To trigger checkout from a server action, redirect to the pricing page:
+Clerk renders its own checkout drawer automatically through `<PricingTable />` and `<CheckoutButton />`. Do NOT manually create Stripe checkout sessions — Clerk Billing is a separate product from Stripe Billing; Plans and pricing live in Clerk and are not synced to Stripe. To trigger checkout from a server action, redirect to a page that renders `<PricingTable />`:
 
 ```typescript
 'use server'
@@ -466,8 +423,6 @@ export async function upgradeAction() {
 	redirect('/pricing')
 }
 ```
-
-`<PricingTable />` renders all plans from Dashboard, opens Clerk's checkout drawer to collect payment (via Stripe), and updates the session. No Stripe API calls needed.
 
 ## Error Signatures (diagnose fast)
 
@@ -484,33 +439,9 @@ When you see any of these errors or symptoms, the fix is almost always a Dashboa
 | `has({ permission: 'org:x:y' })` returns `false` for a user who has the role | The Feature tied to that permission is not included in the organization's active Plan | Add the Feature to the Plan in Dashboard → Billing → Plans → Features |
 | Webhook 401 / signature verification failed | `CLERK_WEBHOOK_SECRET` mismatch or route protected by middleware | Copy the Signing Secret from Dashboard → Webhooks; add the webhook route to `createRouteMatcher(['/api/webhooks(.*)'])` |
 
-## Debugging `has()` Failures
-
-When `has({ plan: 'pro' })` returns false after checkout:
-
-1. **Verify plan slug**, open Clerk Dashboard → Billing → Plans. The slug must match exactly (case-sensitive). Common mistake: using `'Pro'` instead of `'pro'`.
-2. **Check Stripe connection**, Dashboard → Billing must show a connected Stripe account. Without it, no subscriptions are created.
-3. **Refresh the session**, after the checkout drawer completes, the session token needs to refresh to include the new plan. Call `await clerk.session?.reload()` or navigate to force a new session.
-4. **Verify subscription exists**, Dashboard → Billing → Subscriptions. If the subscription is missing, the Stripe webhook may have failed.
-5. **Check environment**, ensure `CLERK_SECRET_KEY` is set in production. `has()` on the server requires it.
-
-Do NOT build a custom subscription tracking system. If `has()` fails, the issue is always configuration, not a missing feature.
-
 ## Billing Gates Permissions
 
 When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false` if the Feature associated with that permission is not included in the organization's active Plan, even if the user has the permission assigned via their role. This is by design: billing gates permissions at the feature level. Always ensure the required Feature is attached to the Plan in Dashboard → Billing → Plans → Features.
-
-## Common Pitfalls
-
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| `has({ plan })` always false | Plan slug mismatch or Billing not connected | Verify exact slug in Dashboard, connect Stripe |
-| `has({ plan })` false after checkout | Session not refreshed | Reload session or navigate after checkout |
-| `<PricingTable />` renders empty | No plans created | Create plans in Dashboard → Billing |
-| Webhook 401 | Route protected by middleware | Add `/api/webhooks` to public routes |
-| Checkout drawer fails in production | Stripe not connected for production instance | Connect a production Stripe account in Dashboard → Billing → Settings |
-| B2B plan check fails | No active org | Ensure user selected org before checking |
-| Works locally, fails in prod | Missing env var | Add `CLERK_SECRET_KEY` to production |
 
 ## See Also
 
