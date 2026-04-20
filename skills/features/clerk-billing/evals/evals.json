@@ -4,17 +4,18 @@
     {
       "id": 1,
       "prompt": "i have a next.js saas app with clerk auth. i need to add a pricing page that shows subscription plans and lets users subscribe. connect clerk billing and render the pricing table.",
-      "expected_output": "A /pricing route renders <PricingTable /> from @clerk/nextjs, with instructions to connect Stripe in the Clerk Dashboard and a Beta/version-pinning warning.",
+      "expected_output": "A /pricing route renders <PricingTable /> from @clerk/nextjs, with instructions to enable Billing in the Clerk Dashboard (dev gateway or Stripe for production) and a version-pinning note for the experimental APIs.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
         "Creates app/pricing/page.tsx that imports and renders <PricingTable /> from '@clerk/nextjs'",
-        "Warns that Clerk Billing is currently in Beta or experimental and may undergo breaking changes",
-        "Recommends pinning the Clerk SDK version because of the Beta status",
-        "States that Stripe must be explicitly connected in Clerk Dashboard → Billing before PricingTable will populate plans",
+        "Recommends pinning the Clerk SDK and clerk-js versions because billing APIs are experimental",
+        "States that Billing must be enabled in Clerk Dashboard → Billing → Settings (dev gateway for development, Stripe account for production payment processing)",
         "States that plans must be created in Dashboard → Billing → Plans before they appear in PricingTable",
+        "Does not claim that plans sync to Stripe Products (Clerk Billing is a separate product from Stripe Billing)",
         "Does not import '@clerk/billing' as a separate package (billing APIs ship inside @clerk/nextjs)",
-        "Does not suggest manually calling stripe.checkout.sessions.create or any Stripe API method directly"
+        "Does not suggest manually calling stripe.checkout.sessions.create or any Stripe API method directly",
+        "Does not claim that PricingTable redirects to Stripe Checkout (it opens Clerk's in-app checkout drawer)"
       ]
     },
     {
@@ -34,7 +35,7 @@
     {
       "id": 3,
       "prompt": "my b2b saas lets teams subscribe via their organization. i need per-seat billing where adding org members automatically increments the seat count. show me the org-level plan check to protect team-only routes.",
-      "expected_output": "Server component checks orgId is present then uses has({ plan: 'team' }) to gate org-scoped routes. Explanation states that Clerk handles per-seat increments automatically.",
+      "expected_output": "Server component checks orgId is present then uses has({ plan: 'team' }) to gate org-scoped routes. Explanation states that Clerk manages per-seat billing internally at the organization level and renders the B2B pricing page with <PricingTable for=\"organization\" />.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
@@ -42,7 +43,9 @@
         "Checks that orgId exists before checking the plan",
         "Uses has({ plan: 'team' }) for the org-level entitlement",
         "Redirects to a billing or pricing page when the org lacks the plan",
-        "States that Clerk automatically increments Stripe seat count when members are added",
+        "States that Clerk manages per-seat pricing internally at the organization level (Stripe is used only for payment processing)",
+        "Recommends <PricingTable for=\"organization\" /> for the B2B pricing page",
+        "Does not claim Clerk creates one Stripe subscription item per member, or that seat count equals items.length",
         "Does not suggest building a manual member counter or seat tracking table"
       ]
     },
@@ -97,12 +100,12 @@
     {
       "id": 7,
       "prompt": "users are subscribing but i'm not seeing their plan in the has() check. how do i debug why has({ plan: 'pro' }) returns false after a successful stripe checkout?",
-      "expected_output": "A debugging checklist: verify exact plan slug, confirm Stripe is connected in Dashboard, refresh the session after checkout, inspect Billing → Subscriptions in Dashboard.",
+      "expected_output": "A debugging checklist: verify exact plan slug, confirm Billing is enabled (and Stripe connected for production), refresh the session after checkout, inspect Billing → Subscriptions in Dashboard.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
         "Mentions that the plan slug in code must match exactly what is defined in Dashboard → Billing → Plans",
-        "Mentions that Stripe must be connected in Clerk Dashboard Billing",
+        "Mentions that Billing must be enabled in Dashboard → Billing → Settings (dev gateway for development, Stripe for production)",
         "Mentions that the session needs to refresh after checkout to include the new plan",
         "Suggests inspecting Clerk Dashboard → Billing → Subscriptions to verify the subscription exists",
         "Does not suggest building a custom subscription tracking system as a workaround"
@@ -115,36 +118,35 @@
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "Primary recommendation uses <PricingTable /> from @clerk/nextjs",
+        "Primary recommendation uses <PricingTable /> (or <CheckoutButton /> from @clerk/nextjs/experimental for a targeted single-plan flow)",
         "Does not call stripe.checkout.sessions.create or equivalent Stripe API methods directly",
         "If a server action is shown, it redirects to a /pricing route that renders PricingTable",
-        "States that PricingTable renders plan selection and initiates checkout automatically",
+        "States that PricingTable renders plan selection and opens Clerk's in-app checkout drawer (no redirect to Stripe Checkout)",
         "Does not replace Clerk's billing integration with a raw Stripe implementation"
       ]
     },
     {
       "id": 9,
       "prompt": "i'm trying to use clerk billing in my production app but i can't find the billing section in the dashboard and has({ plan }) always returns false. is billing broken?",
-      "expected_output": "Explanation that Clerk Billing is in Beta and must be explicitly enabled in the Dashboard. Not available by default on all plan tiers.",
+      "expected_output": "Explanation that Clerk Billing must be explicitly enabled in the Dashboard → Billing → Settings and is not a default feature.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "States that Clerk Billing is currently in Beta",
-        "States that Billing is not enabled by default, it must be explicitly enabled in the Dashboard",
-        "Explains that has({ plan }) returns false when Billing is not enabled regardless of Stripe configuration",
-        "Mentions that Beta feature availability may depend on the Clerk plan tier",
+        "States that Billing is not enabled by default, it must be explicitly enabled in Dashboard → Billing → Settings",
+        "Explains that has({ plan }) returns false when Billing is not enabled regardless of any Stripe configuration",
+        "Mentions that billing APIs are experimental and SDK versions should be pinned",
         "Does not diagnose this as a code bug before confirming Billing is enabled in Dashboard"
       ]
     },
     {
       "id": 10,
       "prompt": "i want to offer a 14-day free trial on my pro plan that automatically converts to a paid subscription. how do i set this up with clerk billing?",
-      "expected_output": "Configure the trial period in Clerk Dashboard → Billing → Plans → Pro. Clerk + Stripe handle the trial-to-paid conversion automatically. Listen for subscriptionItem.freeTrialEnding to notify users.",
+      "expected_output": "Configure the trial period in Clerk Dashboard → Billing → Plans → Pro. Clerk handles the trial-to-paid conversion automatically (Stripe only processes the payment). Listen for subscriptionItem.freeTrialEnding to notify users.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
         "Directs user to configure the trial period in Clerk Dashboard → Billing → Plans",
-        "States that Clerk and Stripe handle the trial-to-paid conversion automatically",
+        "States that Clerk handles the trial-to-paid conversion automatically (Stripe's role is payment processing only)",
         "Mentions the subscriptionItem.freeTrialEnding webhook for notifying users before conversion",
         "Recommends <PricingTable /> as the entry point for users to start the trial",
         "Does not suggest building a custom trial tracking table or cron job"
@@ -153,15 +155,15 @@
     {
       "id": 11,
       "prompt": "i need to charge customers based on the number of api calls they make each month. how do i implement metered/usage-based billing with clerk?",
-      "expected_output": "Explanation that Clerk Billing primarily handles fixed plans and per-seat; metered pricing is configured in Stripe directly and usage reported via Stripe's usage records API. Use has({ feature }) to gate allotments.",
+      "expected_output": "Explanation that Clerk Billing currently supports fixed subscription plans and per-seat (no native metered pricing). For usage-gated SaaS, use has({ feature }) to gate allotments and track consumption in your own datastore; do not bypass Clerk by configuring billing directly in Stripe, because Clerk Plans and Subscriptions do not sync with Stripe Billing.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "Acknowledges that Clerk Billing primarily handles fixed subscription plans and per-seat",
-        "Explains that metered pricing is configured in Stripe directly",
-        "Suggests reporting usage to Stripe via the usage records API from a server route or background job",
-        "Uses has({ feature }) to gate features based on plan allotments",
-        "Does not claim Clerk Billing has a native metered pricing primitive"
+        "Acknowledges that Clerk Billing primarily handles fixed subscription plans and per-seat (no native metered primitive)",
+        "Does not claim Clerk Billing has a native metered pricing primitive",
+        "Does not instruct the user to configure metered pricing directly in Stripe and report usage via Stripe's usage records API as a replacement for Clerk Billing",
+        "Notes that Clerk Plans and Subscriptions do not sync to Stripe Billing, so bypassing Clerk to use Stripe metered billing would split the source of truth",
+        "Uses has({ feature }) to gate features based on plan allotments, with usage tracked in the developer's own datastore"
       ]
     },
     {

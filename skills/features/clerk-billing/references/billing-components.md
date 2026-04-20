@@ -2,7 +2,7 @@
 
 ## PricingTable
 
-The primary billing UI component. Renders subscription plans and initiates Stripe Checkout.
+The primary billing UI component. Renders subscription plans and opens Clerk's in-app checkout drawer when a user selects a plan.
 
 ```tsx
 import { PricingTable } from '@clerk/nextjs'
@@ -15,22 +15,54 @@ export default function PricingPage() {
 **What it does:**
 - Fetches plan data from Clerk Dashboard configuration
 - Renders plan cards with features, pricing, and CTA buttons
-- Handles Stripe Checkout redirect for new subscriptions
+- Opens Clerk's in-app **checkout drawer** on plan selection (Stripe is only the payment processor; Clerk does NOT redirect to Stripe Checkout)
 - Shows current plan for subscribed users with upgrade/downgrade options
 - Handles cancellation flow
 
 **Key behaviors:**
 - Works as a Server Component (no `'use client'` needed)
-- No Stripe publishable key needed in props, Clerk injects it
-- Respects the active entity: user subscription for personal accounts, org subscription in org context
+- No Stripe publishable key needed in props — Clerk manages Stripe under the hood
+- Respects the active entity by default: user subscription for personal accounts, org subscription in org context. Override with `for`.
 
-**Props:**
+**Props (all optional):**
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `checkoutProps` | object | Override Stripe Checkout appearance options |
+| `appearance` | `Appearance` | Style overrides for the component. |
+| `checkoutProps` | `{ appearance: Appearance }` | Style overrides for the checkout drawer (not Stripe Checkout). |
+| `collapseFeatures` | `boolean` | Start with features collapsed. Requires `layout: 'default'`. Defaults to `false`. |
+| `ctaPosition` | `'top' \| 'bottom'` | Placement of the CTA button. Requires `layout: 'default'`. Defaults to `'bottom'`. |
+| `fallback` | `JSX` | UI to show while the pricing table is loading. |
+| `for` | `'user' \| 'organization'` | Which subscriber the table targets. Defaults to `'user'`. **Use `'organization'` for B2B.** |
+| `newSubscriptionRedirectUrl` | `string` | URL to navigate to after checkout completes. |
 
-For most cases, use `<PricingTable />` with no props.
+For most cases, use `<PricingTable />` with no props (or just `for="organization"` for B2B).
+
+## CheckoutButton
+
+For custom checkout UX outside `<PricingTable />`, use `<CheckoutButton />` from `@clerk/nextjs/experimental`. It opens the same checkout drawer for a specific `planId`. Must be wrapped in `<Show when="signed-in">`.
+
+```tsx
+'use client'
+import { Show } from '@clerk/nextjs'
+import { CheckoutButton } from '@clerk/nextjs/experimental'
+
+export function UpgradeCTA() {
+	return (
+		<Show when="signed-in">
+			<CheckoutButton
+				planId="cplan_xxx"
+				planPeriod="annual"
+				for="user"
+				newSubscriptionRedirectUrl="/dashboard"
+				onSubscriptionComplete={() => console.log('subscribed')}
+			/>
+		</Show>
+	)
+}
+```
+
+Key props: `planId` (required), `planPeriod: 'month' | 'annual'`, `for: 'user' | 'organization'`, `onSubscriptionComplete`, `newSubscriptionRedirectUrl`, `checkoutProps: { appearance }`. Throws if `for="organization"` is set with no active Organization.
 
 ## has(), Plan and Feature Checks
 
@@ -91,10 +123,12 @@ import { Show } from '@clerk/nextjs'
 ## Import Reference
 
 ```typescript
-import { PricingTable } from '@clerk/nextjs'
+// Stable
+import { PricingTable, Show, useAuth } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
-import { useAuth } from '@clerk/nextjs'
-import { Show } from '@clerk/nextjs'
+
+// Experimental (Billing)
+import { CheckoutButton, useSubscription } from '@clerk/nextjs/experimental'
 ```
 
-All billing components and utilities are in `@clerk/nextjs` (v6+). No separate billing package needed.
+Stable billing primitives (`PricingTable`, `has()` via `auth()` / `useAuth()`, `<Show>`) live in `@clerk/nextjs` (v6+). Experimental hooks and components (`useSubscription`, `CheckoutButton`, `SubscriptionDetailsButton`) live in `@clerk/nextjs/experimental`. No separate billing package needed.

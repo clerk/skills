@@ -1,12 +1,13 @@
 ---
 name: clerk-billing
-description: Clerk Billing for subscription management - integrate Stripe pricing
-  tables, subscription plans, per-seat B2B billing, feature entitlements, and billing
-  webhooks. Use for SaaS monetization, plan gating, checkout flows, trials, metered
-  usage, invoicing, and subscription lifecycle management.
+description: Clerk Billing for subscription management - render Clerk's PricingTable
+  and in-app checkout drawer, configure subscription plans, per-seat B2B billing,
+  feature entitlements with has(), and billing webhooks. Stripe is used only as
+  the payment processor. Use for SaaS monetization, plan gating, checkout flows,
+  trials, invoicing, and subscription lifecycle management.
 allowed-tools: WebFetch
 license: MIT
-compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SECRET. Billing must be enabled in Clerk Dashboard with Stripe connected.
+compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SECRET. Billing must be enabled in Clerk Dashboard → Billing. Development instances can use the shared Clerk development gateway; production instances require a Stripe account for payment processing.
 metadata:
   author: clerk
   version: 1.0.0
@@ -14,16 +15,14 @@ metadata:
 
 # Billing
 
-> **Beta**: Clerk Billing is currently in Beta. APIs are experimental and may undergo breaking changes. Pin your SDK and clerk-js package versions.
-
-> **Prerequisite**: Enable Billing in Clerk Dashboard → Billing → Connect Stripe. Clerk Billing requires an active Stripe account.
+> **Prerequisite**: Enable Billing from Clerk Dashboard → Billing → Settings. Development instances can use the shared Clerk development gateway; production requires a Stripe account (used for payment processing only — Plans and pricing live in Clerk, not Stripe).
 >
-> **Version**: Clerk Billing is available in `@clerk/nextjs` v6+ (Core 3). The `has({ plan })` and `has({ feature })` checks are NOT available in Core 2.
+> **Version**: Clerk Billing is available in `@clerk/nextjs` v6+ (Core 3). The `has({ plan })` and `has({ feature })` checks are NOT available in Core 2. Pin your SDK and `clerk-js` package versions.
 
 ## Quick Start
 
-1. **Connect Stripe** in Clerk Dashboard → Billing
-2. **Create plans** in Clerk Dashboard → Billing → Plans (maps to Stripe Products)
+1. **Enable Billing** in Clerk Dashboard → Billing → Settings (pick the development gateway or connect a Stripe account for payment processing)
+2. **Create plans** in Clerk Dashboard → Billing → Plans (managed entirely in Clerk, not synced to Stripe)
 3. **Render `<PricingTable />`** on your pricing page
 4. **Gate features** with `has({ plan })` or `has({ feature })` from `auth()`
 5. **Handle billing webhooks** for subscription lifecycle events
@@ -79,7 +78,7 @@ export default function PricingPage() {
 }
 ```
 
-`<PricingTable />` automatically renders all plans configured in the Clerk Dashboard. It handles the Stripe Checkout redirect. No props needed for basic usage.
+`<PricingTable />` automatically renders all plans configured in the Clerk Dashboard. Selecting a plan opens Clerk's in-app checkout drawer; Stripe is used only for payment processing. No props needed for basic usage. For B2B, pass `for="organization"` to render org-level plans instead of user plans.
 
 ### 2. Check Feature Entitlements (Server-Side)
 
@@ -197,7 +196,7 @@ export default async function TeamDashboard() {
 }
 ```
 
-Clerk automatically handles per-seat billing at the organization level, each additional member added to an org increments the seat count in Stripe.
+Clerk manages per-seat pricing internally at the organization level. There is only one `active` SubscriptionItem per payer per Plan — do not treat `items.length` as a seat count. Render the B2B pricing page with `<PricingTable for="organization" />`.
 
 ### 7. Display Subscription Status
 
@@ -231,7 +230,7 @@ Client component, full subscription details via `useSubscription()`:
 
 ```tsx
 'use client'
-import { __experimental_useSubscription as useSubscription } from '@clerk/nextjs/experimental'
+import { useSubscription } from '@clerk/nextjs/experimental'
 
 export function SubscriptionDetails() {
 	const { data: subscription, isLoading } = useSubscription()
@@ -249,7 +248,7 @@ export function SubscriptionDetails() {
 }
 ```
 
-> `useSubscription()` is experimental (Billing is in Beta). Import from `@clerk/nextjs/experimental` with the `__experimental_` prefix. It is for display only; for authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
+> `useSubscription()` lives in the experimental subpath (`@clerk/nextjs/experimental`) — no underscore prefix, the subpath is the experimental signal. It is for display only; for authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
 
 ### 8. Protect API Routes by Plan
 
@@ -282,7 +281,6 @@ export async function GET() {
 > | Subscription updated | `customer.subscription.updated` | `subscription.updated` |
 > | Subscription active | (none) | `subscription.active` |
 > | Subscription past due | (none) | `subscription.pastDue` |
-> | Subscription item created | (none) | `subscriptionItem.created` |
 > | Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
 > | Subscription item past due | `invoice.payment_failed` | `subscriptionItem.pastDue` |
 > | Subscription item updated | (none) | `subscriptionItem.updated` |
@@ -326,14 +324,12 @@ export async function POST(req: NextRequest) {
 	}
 
 	if (evt.type === 'subscription.updated') {
-		// For B2B per-seat, the new seat count is derived from items.length
-		// because Clerk adds or removes items per member.
 		const { id, payer, items, status } = evt.data
 		const entityId = payer.organization_id ?? payer.user_id
 		const plan = items[0]?.plan?.slug
 		await db.subscriptions.update({
 			where: { subscriptionId: id },
-			data: { entityId, plan, status, seatCount: items.length },
+			data: { entityId, plan, status },
 		})
 	}
 
@@ -404,7 +400,7 @@ export default async function BillingPage() {
 }
 ```
 
-`<PricingTable />` renders differently for subscribed users, it shows the current plan and allows upgrades or cancellations.
+`<PricingTable />` renders differently for subscribed users — it shows the current plan and allows upgrades or cancellations, all through Clerk's in-app checkout drawer.
 
 ## Plan and Feature Naming
 
@@ -431,7 +427,7 @@ For B2B, ensure the user has an active org session. The `has()` check evaluates 
 
 ## Checkout Flows
 
-Clerk handles Stripe Checkout automatically through `<PricingTable />`. Do NOT manually create Stripe checkout sessions.
+Clerk renders its own checkout drawer automatically through `<PricingTable />` and `<CheckoutButton />`. Do NOT manually create Stripe checkout sessions — Clerk Billing is a separate product from Stripe Billing; Plans and pricing live in Clerk and are not synced to Stripe.
 
 ```tsx
 import { PricingTable } from '@clerk/nextjs'
@@ -457,7 +453,7 @@ export async function upgradeAction() {
 }
 ```
 
-`<PricingTable />` renders all plans from Dashboard, handles Stripe Checkout redirect, processes payment, and updates the session. No Stripe API calls needed.
+`<PricingTable />` renders all plans from Dashboard, opens Clerk's checkout drawer to collect payment (via Stripe), and updates the session. No Stripe API calls needed.
 
 ## Debugging `has()` Failures
 
@@ -465,7 +461,7 @@ When `has({ plan: 'pro' })` returns false after checkout:
 
 1. **Verify plan slug**, open Clerk Dashboard → Billing → Plans. The slug must match exactly (case-sensitive). Common mistake: using `'Pro'` instead of `'pro'`.
 2. **Check Stripe connection**, Dashboard → Billing must show a connected Stripe account. Without it, no subscriptions are created.
-3. **Refresh the session**, after Stripe Checkout completes, the session token needs to refresh to include the new plan. Call `await clerk.session?.reload()` or navigate to force a new session.
+3. **Refresh the session**, after the checkout drawer completes, the session token needs to refresh to include the new plan. Call `await clerk.session?.reload()` or navigate to force a new session.
 4. **Verify subscription exists**, Dashboard → Billing → Subscriptions. If the subscription is missing, the Stripe webhook may have failed.
 5. **Check environment**, ensure `CLERK_SECRET_KEY` is set in production. `has()` on the server requires it.
 
@@ -483,7 +479,7 @@ When Billing is enabled, `has({ permission: 'org:posts:edit' })` returns `false`
 | `has({ plan })` false after checkout | Session not refreshed | Reload session or navigate after checkout |
 | `<PricingTable />` renders empty | No plans created | Create plans in Dashboard → Billing |
 | Webhook 401 | Route protected by middleware | Add `/api/webhooks` to public routes |
-| Stripe checkout fails | Stripe not connected | Connect Stripe in Dashboard → Billing |
+| Checkout drawer fails in production | Stripe not connected for production instance | Connect a production Stripe account in Dashboard → Billing → Settings |
 | B2B plan check fails | No active org | Ensure user selected org before checking |
 | Works locally, fails in prod | Missing env var | Add `CLERK_SECRET_KEY` to production |
 

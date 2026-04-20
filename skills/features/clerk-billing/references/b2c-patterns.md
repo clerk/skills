@@ -2,7 +2,7 @@
 
 ## Overview
 
-B2C billing in Clerk attaches subscriptions to **individual users**. Each user gets their own Stripe subscription. Use `has({ plan })` on the user session.
+B2C billing in Clerk attaches subscriptions to **individual users**. Each user gets their own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Use `has({ plan })` on the user session.
 
 ## Core Pattern: User Plan Check
 
@@ -40,7 +40,7 @@ export default function PricingPage() {
 }
 ```
 
-`<PricingTable />` is a Server Component. It fetches plan data from Clerk and renders Stripe Checkout buttons. No props required for basic usage.
+`<PricingTable />` is a Server Component. It fetches plan data from Clerk and renders plan cards that open Clerk's in-app checkout drawer on selection. No props required for basic usage.
 
 ## Tiered Feature Gating
 
@@ -66,7 +66,7 @@ export default async function AppPage() {
 
 ## Redirect Pattern After Checkout
 
-After Stripe checkout completes, Clerk refreshes the session with updated plan data. The `<PricingTable />` handles the redirect URL. For custom post-checkout logic:
+After checkout completes in Clerk's drawer, Clerk refreshes the session with updated plan data. Pass `newSubscriptionRedirectUrl` to `<PricingTable />` to navigate after the user confirms. For custom post-checkout logic:
 
 ```typescript
 // app/billing/success/page.tsx
@@ -119,7 +119,7 @@ For richer subscription details in client components (status, renewal date, tria
 
 ```tsx
 'use client'
-import { __experimental_useSubscription as useSubscription } from '@clerk/nextjs/experimental'
+import { useSubscription } from '@clerk/nextjs/experimental'
 
 export function BillingSummary() {
 	const { data, isLoading } = useSubscription()
@@ -133,7 +133,7 @@ export function BillingSummary() {
 }
 ```
 
-> Billing is Beta, so the hook is exported with the `__experimental_` prefix from `@clerk/nextjs/experimental`.
+> The hook lives in the experimental subpath `@clerk/nextjs/experimental` (the subpath is the experimental signal — no underscore prefix needed).
 
 ## Client-Side Feature Gating
 

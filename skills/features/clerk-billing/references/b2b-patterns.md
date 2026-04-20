@@ -2,7 +2,7 @@
 
 ## Overview
 
-B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own Stripe subscription. Clerk handles per-seat billing automatically.
+B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Clerk manages per-seat pricing internally.
 
 ## Core Pattern: Org-Level Plan Check
 
@@ -29,14 +29,14 @@ export default async function TeamDashboard() {
 
 ## Per-Seat Billing
 
-Clerk automatically increments seat count when org members are added:
+For per-seat Plans, Clerk manages seat pricing internally at the organization level. Stripe is used only as the payment processor — it does not track Clerk seats as separate Stripe subscription items.
 
-1. Org subscribes to a seat-based plan
-2. Admin invites a member via `<OrganizationSwitcher />` or invitation API
-3. When the invitation is accepted, Clerk calls Stripe to add a seat
-4. Stripe bills the org for the updated seat count
+The key invariants:
+- There is only one `active` SubscriptionItem per payer per Plan. **Do not derive seat count from `items.length`.**
+- Adding or removing organization members does not create new SubscriptionItems; Clerk updates the org's single active item's quantity internally.
+- Subscription and plan data are managed in Clerk, not synced to Stripe Billing (Clerk Billing and Stripe Billing are different products).
 
-No custom code needed. Clerk handles the Stripe subscription item update.
+No custom seat-counting code is needed — let Clerk own the seat state and read the active Plan via `has({ plan: 'team' })`.
 
 ## Org Billing Page
 
@@ -56,7 +56,7 @@ export default async function OrgBillingPage() {
 		<div>
 			<h1>Team Billing</h1>
 			{isAdmin ? (
-				<PricingTable />
+				<PricingTable for="organization" />
 			) : (
 				<p>Contact your org admin to manage billing.</p>
 			)}
@@ -65,7 +65,7 @@ export default async function OrgBillingPage() {
 }
 ```
 
-Only admins should manage billing. Use `orgRole` from `auth()` to gate the billing UI.
+Only admins should manage billing. Use `orgRole` from `auth()` to gate the billing UI. Pass `for="organization"` to render org-level plans — without it, `<PricingTable />` defaults to `for="user"` and shows personal plans.
 
 ## Webhook: Org Subscription Events
 
@@ -80,10 +80,9 @@ if (evt.type === 'subscription.created') {
 				orgId: payer.organization_id,
 				plan,
 				subscriptionId: id,
-				seats: items.length,
 				status,
 			},
-			update: { plan, subscriptionId: id, seats: items.length, status },
+			update: { plan, subscriptionId: id, status },
 		})
 	}
 }
@@ -94,13 +93,13 @@ if (evt.type === 'subscription.updated') {
 		const plan = items[0]?.plan?.slug
 		await db.orgSubscriptions.update({
 			where: { orgId: payer.organization_id },
-			data: { plan, seats: items.length, status },
+			data: { plan, status },
 		})
 	}
 }
 ```
 
-Use `payer.organization_id` (nested under `payer`, not a top-level `org_id`) when the subscription belongs to an organization. The seat count is derived from `items.length` because Clerk tracks per-seat billing as one subscription item per member.
+Use `payer.organization_id` (nested under `payer`, not a top-level `org_id`) when the subscription belongs to an organization. Do NOT use `items.length` as a seat count — Clerk manages seats internally and there is only one active SubscriptionItem per payer per Plan.
 
 ## Plan Naming for B2B
 

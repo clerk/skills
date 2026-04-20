@@ -12,8 +12,7 @@ Subscription events (4):
 - `subscription.active`
 - `subscription.pastDue`
 
-SubscriptionItem events (10):
-- `subscriptionItem.created`
+SubscriptionItem events (9):
 - `subscriptionItem.updated`
 - `subscriptionItem.active`
 - `subscriptionItem.canceled`
@@ -68,14 +67,12 @@ export async function POST(req: NextRequest) {
 	}
 
 	if (evt.type === 'subscription.updated') {
-		// For B2B per-seat, seat count is derived from items.length
-		// because Clerk tracks seats as one item per member.
 		const { id, payer, items, status } = evt.data
 		const entityId = payer.organization_id ?? payer.user_id
 		const plan = items[0]?.plan?.slug
 		await db.subscriptions.update({
 			where: { subscriptionId: id },
-			data: { entityId, plan, status, seatCount: items.length },
+			data: { entityId, plan, status },
 		})
 	}
 
@@ -160,7 +157,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 			// ...
 		},
 		payment_source_id: string,
-		items: Array<{                  // subscription items (one per plan, one per seat for B2B)
+		items: Array<{                  // subscription items — one active item per payer per Plan
 			id: string,
 			status: string,
 			plan?: { id, name, slug, amount, period, ... },
