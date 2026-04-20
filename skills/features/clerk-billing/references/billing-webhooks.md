@@ -12,12 +12,13 @@ Subscription events (4):
 - `subscription.active`
 - `subscription.pastDue`
 
-SubscriptionItem events (9):
+SubscriptionItem events (10):
 - `subscriptionItem.updated`
 - `subscriptionItem.active`
 - `subscriptionItem.canceled`
 - `subscriptionItem.upcoming`
 - `subscriptionItem.ended`
+- `subscriptionItem.expired`
 - `subscriptionItem.abandoned`
 - `subscriptionItem.incomplete`
 - `subscriptionItem.pastDue`
@@ -223,7 +224,7 @@ The event data IS the item itself, not the parent subscription:
 - Status values use snake_case (`past_due`, `active`, `canceled`), even though event names use camelCase (`subscription.pastDue`)
 - Always return `200` quickly. Handle async work in a queue or background job.
 - Use `upsert` in `subscription.created` handlers to tolerate webhook replays
-- `CLERK_WEBHOOK_SECRET` must match the Signing Secret from the Clerk Dashboard endpoint
+- `CLERK_WEBHOOK_SIGNING_SECRET` must match the Signing Secret from the Clerk Dashboard endpoint
 
 ## Subscription Status Values
 

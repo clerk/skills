@@ -131,4 +131,4 @@ import { auth } from '@clerk/nextjs/server'
 import { CheckoutButton, useSubscription } from '@clerk/nextjs/experimental'
 ```
 
-Stable billing primitives (`PricingTable`, `has()` via `auth()` / `useAuth()`, `<Show>`) live in `@clerk/nextjs` (v6+). Experimental hooks and components (`useSubscription`, `CheckoutButton`, `SubscriptionDetailsButton`) live in `@clerk/nextjs/experimental`. No separate billing package needed.
+Stable billing primitives (`PricingTable`, `has()` via `auth()` / `useAuth()`, `<Show>`) live in `@clerk/nextjs` (v7+, Core 3). Experimental hooks and components (`useSubscription`, `CheckoutButton`, `SubscriptionDetailsButton`, `PlanDetailsButton`) live in `@clerk/nextjs/experimental`. No separate billing package needed.

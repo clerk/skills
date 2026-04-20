@@ -7,7 +7,7 @@ description: Clerk Billing for subscription management - render Clerk's PricingT
   trials, invoicing, and subscription lifecycle management.
 allowed-tools: WebFetch
 license: MIT
-compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SECRET. Billing must be enabled in Clerk Dashboard → Billing. Development instances can use the shared Clerk development gateway; production instances require a Stripe account for payment processing.
+compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SIGNING_SECRET. Billing must be enabled in Clerk Dashboard → Billing. Development instances can use the shared Clerk development gateway; production instances require a Stripe account for payment processing.
 metadata:
   author: clerk
   version: 1.0.0
@@ -311,6 +311,7 @@ export async function GET() {
 > | Subscription item upcoming renewal | (none) | `subscriptionItem.upcoming` |
 > | Subscription item ended | (none) | `subscriptionItem.ended` |
 > | Subscription item abandoned | (none) | `subscriptionItem.abandoned` |
+> | Subscription item expired | (none) | `subscriptionItem.expired` |
 > | Subscription item incomplete | (none) | `subscriptionItem.incomplete` |
 > | Free trial ending soon | (none) | `subscriptionItem.freeTrialEnding` |
 > | Payment attempt created | (none) | `paymentAttempt.created` |
@@ -437,7 +438,7 @@ When you see any of these errors or symptoms, the fix is almost always a Dashboa
 | `has({ plan: 'pro' })` always returns `false` after a successful checkout | Session token hasn't been refreshed to include the new plan | `await clerk.session?.reload()` or navigate to force a new session |
 | `has({ plan: 'pro' })` returns `false` before any subscribe attempt | Plan slug mismatch (case-sensitive), OR Billing not enabled, OR Stripe not connected in production | Verify slug in Dashboard → Billing → Plans; confirm Billing → Settings shows enabled + connected gateway |
 | `has({ permission: 'org:x:y' })` returns `false` for a user who has the role | The Feature tied to that permission is not included in the organization's active Plan | Add the Feature to the Plan in Dashboard → Billing → Plans → Features |
-| Webhook 401 / signature verification failed | `CLERK_WEBHOOK_SECRET` mismatch or route protected by middleware | Copy the Signing Secret from Dashboard → Webhooks; add the webhook route to `createRouteMatcher(['/api/webhooks(.*)'])` |
+| Webhook 401 / signature verification failed | `CLERK_WEBHOOK_SIGNING_SECRET` mismatch or route protected by middleware | Copy the Signing Secret from Dashboard → Webhooks; add the webhook route to `createRouteMatcher(['/api/webhooks(.*)'])` |
 
 ## Billing Gates Permissions
 
