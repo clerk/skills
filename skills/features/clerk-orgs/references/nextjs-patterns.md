@@ -1,18 +1,14 @@
 # Next.js Patterns for Organizations
 
-Framework-specific pieces for `@clerk/nextjs` v7+: middleware-level route protection, `next/navigation`'s `redirect()`, and route matchers for org-scoped URL segments. Conceptual content lives in the main SKILL.md.
+Org-specific adaptations for `@clerk/nextjs`. For generic Next.js patterns (middleware strategies, `auth()` server vs client, 401/403 responses, server action shape, caching) see the `clerk-nextjs-patterns` skill.
 
-For other frameworks see:
-- `clerk-react-patterns` (Vite/CRA)
-- `clerk-astro-patterns`
-- `clerk-nextjs-patterns` (broader Next.js patterns beyond orgs)
+For other frameworks see `clerk-react-patterns`, `clerk-astro-patterns`, `clerk-react-router-patterns`, `clerk-tanstack-patterns`.
 
-## Protecting Routes in Middleware
+## Middleware: Role + Permission Protection
 
-Next.js middleware runs before the request hits your page, so you can reject unauthorized traffic without rendering anything:
+`auth.protect()` accepts the same shape as `has()` — pass `{ role }`, `{ permission }`, or a callback — so middleware can enforce org authorization without any new API:
 
 ```typescript
-// proxy.ts (Next.js 16+) or middleware.ts (Next.js <=15)
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isOrgAdminRoute = createRouteMatcher(['/orgs/:slug/admin(.*)'])
@@ -22,61 +18,33 @@ export default clerkMiddleware(async (auth, req) => {
   if (isOrgAdminRoute(req)) {
     await auth.protect({ role: 'org:admin' })
   }
-
   if (isBillingRoute(req)) {
     await auth.protect({ permission: 'org:sys_billing:manage' })
   }
 })
-
-export const config = {
-  matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
-  ],
-}
 ```
 
-`auth.protect({ ... })` accepts the same shape as `has()` — `{ role }`, `{ permission }`, or a callback `condition: (has) => boolean`.
+Matcher config is the standard one from `clerk-nextjs-patterns` — nothing org-specific about it.
 
-## Server Component Redirects
+## URL Slug Safety Invariant
 
-Use `redirect()` from `next/navigation` to short-circuit rendering after an auth check. `redirect()` throws a special error Next.js handles internally — don't wrap it in try/catch:
+`createRouteMatcher(['/orgs/:slug/(.*)'])` doesn't validate that the URL slug matches the active org. A user with active org `acme` can hit `/orgs/other-org/...` and your data layer will happily reply with `acme`'s data. Always verify on each org-scoped page:
 
 ```typescript
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function AdminPage({ params }: { params: { slug: string } }) {
+export default async function OrgPage({ params }: { params: { slug: string } }) {
   const { orgSlug, has } = await auth()
-
   if (orgSlug !== params.slug) redirect('/dashboard')
   if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
-
   return <AdminContent />
 }
 ```
 
-## Route Matchers with Org Slugs
+The same check applies to API routes and server actions — see below.
 
-`createRouteMatcher` accepts the same path syntax as Next.js App Router dynamic segments — `:slug` captures a path parameter:
-
-```typescript
-const isOrgRoute = createRouteMatcher([
-  '/orgs/:slug',
-  '/orgs/:slug/(.*)',
-])
-```
-
-Note: `:slug` in the matcher is NOT automatically bound to the `orgSlug` from `auth()`. You still need to verify they match inside the page:
-
-```typescript
-const { orgSlug } = await auth()
-if (orgSlug !== params.slug) redirect('/dashboard')
-```
-
-Otherwise a user with an active `acme` org can hit `/orgs/other-org/...` URLs and confuse your data layer.
-
-## Server Actions + Orgs
+## Server Actions: Scope Writes by `orgId`
 
 ```typescript
 'use server'
@@ -91,14 +59,14 @@ export async function createProject(name: string) {
     throw new Error('Not authorized')
   }
 
-  // scope the write by orgId so data can never leak across orgs
+  // Pull orgId from the session, never from client input — prevents cross-org writes
   return db.projects.create({ data: { name, orgId, createdBy: userId } })
 }
 ```
 
-Pattern: **always scope server actions by `orgId`** at the database layer. Don't trust the client to send the right org.
+**Rule:** always bind `orgId` from `auth()` at the database layer. Never trust a client-supplied org identifier.
 
-## API Routes
+## API Route Example
 
 ```typescript
 // app/api/orgs/[slug]/members/route.ts
@@ -128,19 +96,11 @@ export async function GET(
 }
 ```
 
-Return `403` (forbidden) when the user is authenticated but lacks permission; `401` (unauthenticated) when there's no session.
-
-## File Naming
-
-- `proxy.ts` — Next.js 16+ (current)
-- `middleware.ts` — Next.js <=15 (Core 2 era and earlier)
-
-Both use the same `clerkMiddleware` export. Only the filename changed. If you're on Next.js 16 with cache components, `ClerkProvider` must also move inside `<body>` — see the Core 3 upgrade guide.
+(Generic 401 vs 403 response policy lives in `clerk-nextjs-patterns/references/api-routes.md`.)
 
 ## Key Rules
 
-- **Validate `orgSlug === params.slug` on every org-scoped page.** The slug in the URL is an identifier; the active org in the session is the authority. Don't let them diverge.
-- **Scope database writes by `orgId`.** Never trust the client to supply it.
-- **Use `auth.protect()` in middleware**, `redirect()` in server components. Don't try to `redirect()` from middleware — use `NextResponse.redirect()` or let `auth.protect()` handle it.
+- **Validate `orgSlug === params.slug` on every org-scoped surface.** The slug in the URL is an identifier; the active org in the session is the authority. Don't let them diverge.
+- **Bind `orgId` from `auth()` at the database layer.** Never let a client supply it.
+- **Use `auth.protect({ role / permission })` in middleware** for fast-path enforcement; rely on page-level checks for defense in depth.
 - **`redirect()` throws** — it doesn't return. Don't put code after it expecting to run.
-- **Middleware is fast-path protection**, not a replacement for page-level checks. Defense in depth: middleware catches 95%, page-level catches the edge cases.

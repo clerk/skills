@@ -32,7 +32,7 @@ metadata:
 | System permissions catalog, custom roles, role sets | references/roles-permissions.md |
 | Invitation lifecycle (create, list, revoke, built-in UI) | references/invitations.md |
 | Enterprise SSO setup, provider field access, domain verification | references/enterprise-sso.md |
-| Next.js-specific middleware, `redirect()`, route matchers | references/nextjs-patterns.md |
+| Next.js adaptations for orgs (role/permission middleware, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
 
 ## References
 
@@ -41,7 +41,7 @@ metadata:
 | `references/roles-permissions.md` | Default + custom roles, System Permissions catalog, permission naming |
 | `references/invitations.md` | Backend API for invitations + built-in UI |
 | `references/enterprise-sso.md` | SAML/OIDC per-org, domain verification, correct field access |
-| `references/nextjs-patterns.md` | Next.js middleware, `redirect()`, route protection |
+| `references/nextjs-patterns.md` | Next.js adaptations specific to orgs. For generic Next.js patterns see `clerk-nextjs-patterns` skill. |
 
 ## Dashboard shortcuts
 
