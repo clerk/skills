@@ -134,7 +134,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 {
 	type: 'subscription.created',
 	data: {
-		object: 'billing_subscription',
+		object: 'commerce_subscription',
 		id: string,                    // subscription id
 		status: 'active' | 'past_due' | 'canceled' | 'ended' | 'abandoned' | 'incomplete' | 'expired' | 'upcoming',
 		active_at?: number,
@@ -146,7 +146,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 		latest_payment_id: string,
 		payer_id: string,
 		payer: {
-			object: 'billing_payer',
+			object: 'commerce_payer',
 			id: string,
 			user_id?: string,           // set for B2C subscriptions
 			organization_id?: string,   // set for B2B subscriptions
@@ -179,7 +179,7 @@ The event data IS the item itself, not the parent subscription:
 {
 	type: 'subscriptionItem.canceled',
 	data: {
-		object: 'billing_subscription_item',
+		object: 'commerce_subscription_item',
 		id: string,                    // subscription item id
 		status: string,
 		period_start: number,
@@ -201,7 +201,7 @@ The event data IS the item itself, not the parent subscription:
 {
 	type: 'paymentAttempt.created',
 	data: {
-		object: 'billing_payment_attempt',
+		object: 'commerce_payment_attempt',
 		id: string,
 		status: 'pending' | 'paid' | 'failed',
 		charge_type: 'checkout' | 'recurring',

@@ -64,6 +64,7 @@
         "Branches on the exact Clerk event name 'subscriptionItem.canceled' (camelCase, not 'subscription.canceled' or 'subscriptionItem.cancelled')",
         "Branches on the exact Clerk event name 'subscriptionItem.pastDue' (camelCase 'pastDue', NOT snake_case 'past_due')",
         "Does not use Stripe event names like 'customer.subscription.created', 'invoice.payment_failed', or 'customer.subscription.deleted'",
+        "If it inspects evt.data.object, matches against 'commerce_subscription' / 'commerce_subscription_item' / 'commerce_payer' / 'commerce_payment_attempt' — not 'billing_*' variants (the wire format uses commerce_, not billing_)",
         "Updates proxy.ts or middleware.ts to add /api/webhooks(.*) to createRouteMatcher so the webhook route is public",
         "The clerkMiddleware callback is marked async to support await auth.protect()"
       ]
