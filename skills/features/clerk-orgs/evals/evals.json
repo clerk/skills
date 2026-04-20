@@ -23,6 +23,7 @@
 				"Uses has({ role: 'org:admin' }) from auth() rather than comparing orgRole string directly",
 				"Destructures has from the result of await auth() (not from useAuth or a non-awaited call)",
 				"Does NOT hardcode role strings without using Clerk's role system",
+				"If it uses a permission check, uses a canonical System Permission slug like org:sys_memberships:manage, NOT invented slugs like org:manage_members, org:create, or org:update_metadata",
 				"Settings page shows org-level configuration options",
 				"Regular members can still access the dashboard"
 			]
@@ -62,7 +63,8 @@
 				"Mentions configuring Enterprise SSO in the Clerk Dashboard for the specific organization",
 				"Explains that domain verification via DNS TXT record is required before SSO-signed users auto-join the org",
 				"References user.enterpriseAccounts (NOT user.samlAccounts) to access SSO session data",
-				"Shows how to check if a user signed in via SSO (enterpriseAccounts or session data)",
+				"Uses strategy: 'enterprise_sso' (NOT 'saml')",
+				"If accessing provider metadata, reads it from user.enterpriseAccounts[i].enterpriseConnection?.provider (NOT directly from user.enterpriseAccounts[i].provider — that field does not exist on EnterpriseAccount)",
 				"Does NOT suggest implementing SAML from scratch (Clerk handles the protocol)"
 			]
 		},
@@ -86,10 +88,25 @@
 			"scaffold": "nextjs-basic-auth",
 			"expectations": [
 				"Checks the caller has invite permission using has({ permission: 'org:sys_memberships:manage' }) before sending invitations",
-				"Calls clerk.organizations.createOrganizationInvitation with organizationId, emailAddress, role, and redirectUrl",
-				"Lists pending invitations by calling getOrganizationInvitationList with status: ['pending']",
-				"Only authorized users (admins or members with invite permission) can send invitations",
+				"Calls clerk.organizations.createOrganizationInvitation with organizationId, inviterUserId (the calling userId), emailAddress, role, and redirectUrl",
+				"Does NOT omit inviterUserId — it is required for human-initiated invitations",
+				"Lists pending invitations by calling getOrganizationInvitationList with status array",
+				"If filtering status, uses only the canonical values: 'pending', 'accepted', 'revoked', 'expired' (not made-up states)",
+				"Only authorized users (admins or members with org:sys_memberships:manage) can send invitations",
 				"Uses await clerkClient() (not clerkClient directly) to obtain the client instance before making API calls"
+			]
+		},
+		{
+			"id": 9,
+			"prompt": "i enabled organizations in clerk but my b2c users can't access the pricing page anymore. OrganizationSwitcher also doesn't show 'Personal account'. what happened?",
+			"expected_output": "Membership required is the default mode since Aug 22, 2025 — it disables personal accounts. B2C + B2B coexistence needs Membership optional.",
+			"scaffold": "nextjs-basic-auth",
+			"expectations": [
+				"Identifies that Membership required is the DEFAULT mode in Clerk Organizations (since Aug 22, 2025)",
+				"Explains that Membership required disables personal accounts, so users without an active org are excluded from <PricingTable />, <OrganizationSwitcher />'s personal tab, and anything tied to user-level identity",
+				"Directs user to Dashboard → Organizations settings → toggle to Membership optional",
+				"Does NOT suggest changing code before flipping the Dashboard toggle",
+				"Does NOT claim this requires deleting and re-enabling Organizations"
 			]
 		},
 		{
