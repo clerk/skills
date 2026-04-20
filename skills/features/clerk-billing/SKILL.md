@@ -15,17 +15,19 @@ metadata:
 
 # Billing
 
-> **Prerequisite**: Enable Billing from Clerk Dashboard → Billing → Settings. Development instances can use the shared Clerk development gateway; production requires a Stripe account (used for payment processing only — Plans and pricing live in Clerk, not Stripe).
+> **STOP — Dashboard-only prerequisite.** Billing must be enabled from the Clerk Dashboard before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. The Clerk CLI and Backend API do **not** expose a toggle for this today — the only path is [dashboard.clerk.com → your app → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
 >
-> **Version**: Clerk Billing is available in `@clerk/nextjs` v6+ (Core 3). The `has({ plan })` and `has({ feature })` checks are NOT available in Core 2. Pin your SDK and `clerk-js` package versions.
+> **Version**: This skill targets `@clerk/nextjs` v7+ (Core 3) — see `clerk` skill for the version table. Billing in Core 2 (v5–v6) shipped under `__unstable_*` APIs and is not covered here; upgrade to v7+ before using this skill. Pin your SDK and `clerk-js` package versions since billing APIs are still experimental.
 
 ## Quick Start
 
-1. **Enable Billing** in Clerk Dashboard → Billing → Settings (pick the development gateway or connect a Stripe account for payment processing)
+1. **Enable Billing in the Dashboard** — [Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). This is a manual step; there is currently no CLI/API path. Without it, `<PricingTable />` throws `cannot_render_billing_disabled` in development and renders empty in production.
 2. **Create plans** in Clerk Dashboard → Billing → Plans (managed entirely in Clerk, not synced to Stripe)
 3. **Render `<PricingTable />`** on your pricing page
 4. **Gate features** with `has({ plan })` or `has({ feature })` from `auth()`
 5. **Handle billing webhooks** for subscription lifecycle events
+
+Before rendering any billing component, always tell the user to complete step 1 first, and surface the exact Dashboard link (`https://dashboard.clerk.com/last-active?path=billing/settings`). Do not suggest CLI commands, `clerk config patch`, or any PLAPI call — the `billing_settings` key is not exposed in the Platform config schema.
 
 ## References
 
@@ -454,6 +456,19 @@ export async function upgradeAction() {
 ```
 
 `<PricingTable />` renders all plans from Dashboard, opens Clerk's checkout drawer to collect payment (via Stripe), and updates the session. No Stripe API calls needed.
+
+## Error Signatures (diagnose fast)
+
+When you see any of these errors or symptoms, the fix is almost always a Dashboard toggle, not a code change. Do not start editing components.
+
+| Error / symptom | Root cause | Fix |
+|---|---|---|
+| `Clerk: 🔒 The <PricingTable/> component cannot be rendered when billing is disabled.` (code: `cannot_render_billing_disabled`, dev only) | Billing is not enabled for this instance | Enable Billing at [dashboard.clerk.com → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). No CLI path. |
+| `<PricingTable />` renders an empty frame (production) | Billing enabled but no plans created, OR billing not enabled (silently no-op in prod) | Create plans in Dashboard → Billing → Plans; verify Billing is enabled in Settings |
+| `has({ plan: 'pro' })` always returns `false` after a successful checkout | Session token hasn't been refreshed to include the new plan | `await clerk.session?.reload()` or navigate to force a new session |
+| `has({ plan: 'pro' })` returns `false` before any subscribe attempt | Plan slug mismatch (case-sensitive), OR Billing not enabled, OR Stripe not connected in production | Verify slug in Dashboard → Billing → Plans; confirm Billing → Settings shows enabled + connected gateway |
+| `has({ permission: 'org:x:y' })` returns `false` for a user who has the role | The Feature tied to that permission is not included in the organization's active Plan | Add the Feature to the Plan in Dashboard → Billing → Plans → Features |
+| Webhook 401 / signature verification failed | `CLERK_WEBHOOK_SECRET` mismatch or route protected by middleware | Copy the Signing Secret from Dashboard → Webhooks; add the webhook route to `createRouteMatcher(['/api/webhooks(.*)'])` |
 
 ## Debugging `has()` Failures
 

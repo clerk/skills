@@ -10,7 +10,8 @@
       "assertions": [
         "Creates app/pricing/page.tsx that imports and renders <PricingTable /> from '@clerk/nextjs'",
         "Recommends pinning the Clerk SDK and clerk-js versions because billing APIs are experimental",
-        "States that Billing must be enabled in Clerk Dashboard → Billing → Settings (dev gateway for development, Stripe account for production payment processing)",
+        "States that Billing must be enabled in the Clerk Dashboard → Billing → Settings as a MANUAL step BEFORE rendering <PricingTable /> (surfaces the dashboard.clerk.com link or the error signature 'cannot_render_billing_disabled')",
+        "Does not claim that the Clerk CLI or Backend API can enable billing (the billing_settings toggle is Dashboard-only today)",
         "States that plans must be created in Dashboard → Billing → Plans before they appear in PricingTable",
         "Does not claim that plans sync to Stripe Products (Clerk Billing is a separate product from Stripe Billing)",
         "Does not import '@clerk/billing' as a separate package (billing APIs ship inside @clerk/nextjs)",
@@ -128,13 +129,15 @@
     {
       "id": 9,
       "prompt": "i'm trying to use clerk billing in my production app but i can't find the billing section in the dashboard and has({ plan }) always returns false. is billing broken?",
-      "expected_output": "Explanation that Clerk Billing must be explicitly enabled in the Dashboard → Billing → Settings and is not a default feature.",
+      "expected_output": "Explanation that Clerk Billing must be explicitly enabled in Dashboard → Billing → Settings (this is Dashboard-only — the CLI and Backend API cannot toggle it). Mention that <PricingTable /> will throw 'cannot_render_billing_disabled' in development when this step is skipped.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "States that Billing is not enabled by default, it must be explicitly enabled in Dashboard → Billing → Settings",
+        "States that Billing is not enabled by default and must be explicitly enabled in Dashboard → Billing → Settings",
+        "Surfaces the Dashboard link (dashboard.clerk.com) as the only way to toggle billing today",
+        "Mentions the 'cannot_render_billing_disabled' error code or the '<PricingTable /> cannot be rendered when billing is disabled' message as the developer-facing signal",
         "Explains that has({ plan }) returns false when Billing is not enabled regardless of any Stripe configuration",
-        "Mentions that billing APIs are experimental and SDK versions should be pinned",
+        "Does not claim the Clerk CLI, clerk config patch, Backend API, or Platform API can enable billing",
         "Does not diagnose this as a code bug before confirming Billing is enabled in Dashboard"
       ]
     },
