@@ -4,6 +4,10 @@
 
 B2C billing in Clerk attaches subscriptions to **individual users**. Each user gets their own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Use `has({ plan })` on the user session.
 
+> **Prerequisite: personal accounts must be allowed.** If Organizations are enabled, open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and set **Membership options → "Membership optional"**. In "Membership required" mode personal accounts are disabled — `<PricingTable />` silently excludes any user without an active org (no error, no console warning). Check this first when a user reports "subscribe does nothing."
+
+Plans for B2C must be created under the **User Plans** tab in Dashboard → Billing → Plans. A `pro` plan under *Organization Plans* is a separate entity and won't appear in `<PricingTable />`. Plans aren't movable between tabs — recreate if misplaced.
+
 ## Core Pattern: User Plan Check
 
 ```typescript

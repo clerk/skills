@@ -12,7 +12,7 @@
         "Recommends pinning the Clerk SDK and clerk-js versions because billing APIs are experimental",
         "States that Billing must be enabled in the Clerk Dashboard → Billing → Settings as a MANUAL step BEFORE rendering <PricingTable /> (surfaces the dashboard.clerk.com link or the error signature 'cannot_render_billing_disabled')",
         "Does not claim that the Clerk CLI or Backend API can enable billing (the billing_settings toggle is Dashboard-only today)",
-        "States that plans must be created in Dashboard → Billing → Plans before they appear in PricingTable",
+        "States that plans must be created in the matching tab (User Plans for B2C / Organization Plans for B2B); slugs are scoped per tab",
         "Does not claim that plans sync to Stripe Products (Clerk Billing is a separate product from Stripe Billing)",
         "Does not import '@clerk/billing' as a separate package (billing APIs ship inside @clerk/nextjs)",
         "Does not suggest manually calling stripe.checkout.sessions.create or any Stripe API method directly",
@@ -46,6 +46,7 @@
         "Redirects to a billing or pricing page when the org lacks the plan",
         "States that Clerk manages per-seat pricing internally at the organization level (Stripe is used only for payment processing)",
         "Recommends <PricingTable for=\"organization\" /> for the B2B pricing page",
+        "States that the plan must be created under the 'Organization Plans' tab, not 'User Plans'",
         "Does not claim Clerk creates one Stripe subscription item per member, or that seat count equals items.length",
         "Does not suggest building a manual member counter or seat tracking table"
       ]
@@ -85,7 +86,7 @@
     {
       "id": 6,
       "prompt": "i have three plans: free, starter, and pro. i want to gate individual features: 'export' is pro-only, 'analytics' is starter and pro. show how to conditionally render ui elements based on feature entitlements, not plan tiers.",
-      "expected_output": "Uses has({ feature: 'export' }) and has({ feature: 'analytics' }) (not has({ plan })), explains the decision rule for feature vs plan gating, warns about the billing-gates-permissions behavior, and notes that feature slugs come from Dashboard → Billing → Features.",
+      "expected_output": "Uses has({ feature: 'export' }) and has({ feature: 'analytics' }) (not has({ plan })), explains the decision rule for feature vs plan gating, warns about the billing-gates-permissions behavior, and notes that features are created per-plan (inside each plan's edit page in Dashboard → Billing → Plans), not in a global Features page.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
@@ -93,7 +94,8 @@
         "Uses has({ feature: 'analytics' }) for the analytics gate (feature, not plan)",
         "Never uses has({ plan: ... }) to gate these specific capabilities",
         "Explains the decision rule: use has({ feature }) for individual capabilities, use has({ plan }) only for tier-level gates like a Pro dashboard",
-        "States that feature slugs are defined in Clerk Dashboard → Billing → Features and must match the code exactly",
+        "States that features live inside each plan's edit page, not a global Features page (/billing/features does not exist)",
+        "States that the same feature slug can be attached to multiple plans — has({ feature }) matches if the active plan contains that slug",
         "Warns that when Billing is enabled, has({ permission: ... }) returns false if the required Feature is not attached to the active Plan (billing gates permissions)",
         "Does not suggest reading sessionClaims.metadata.plan or parsing plan tier strings directly"
       ]

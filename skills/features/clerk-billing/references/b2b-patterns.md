@@ -4,6 +4,8 @@
 
 B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Clerk manages per-seat pricing internally.
 
+> **Create the plan in the Organization Plans tab.** [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans) has two tabs; slugs are scoped per tab. A `team` plan created under *User Plans* will not appear in `<PricingTable for="organization" />`, and vice versa. Plans cannot be moved between tabs — recreate if misplaced.
+
 ## Core Pattern: Org-Level Plan Check
 
 ```typescript
