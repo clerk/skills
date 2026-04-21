@@ -6,8 +6,8 @@
     "build": "astro build"
   },
   "dependencies": {
-    "astro": "^5.0.0",
+    "astro": "^6.1.8",
     "@clerk/astro": "^2.0.0",
-    "@astrojs/node": "^9.0.0"
+    "@astrojs/node": "^10.0.5"
   }
 }
