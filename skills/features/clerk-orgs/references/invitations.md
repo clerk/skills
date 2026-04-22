@@ -8,9 +8,9 @@ Send, list, revoke. Backend API methods live on `clerkClient().organizations.*`.
 > |---|---|---|
 > | `@clerk/nextjs/server` | `const clerk = await clerkClient()` | `const { userId, has } = await auth()` |
 > | `@clerk/backend` (agnostic) | `const clerk = createClerkClient({ secretKey })` | n/a (verify session with `clerk.verifyToken`) |
-> | `@clerk/astro/server` | `const clerk = clerk(context)` | `const { userId } = locals.auth()` |
-> | `@clerk/nuxt/server` | `const clerk = useClerkClient(event)` | `const { userId } = auth(event)` |
-> | `@clerk/express` | `const clerk = clerkClient()` (after `clerkMiddleware()`) | `const { userId } = getAuth(req)` |
+> | `@clerk/astro/server` | `const clerk = clerkClient(context)` | `const { userId } = context.locals.auth()` |
+> | `@clerk/nuxt/server` | `const clerk = clerkClient(event)` | `const { userId } = event.context.auth()` |
+> | `@clerk/express` | `const clerk = clerkClient` (after `clerkMiddleware()`) | `const { userId } = getAuth(req)` |
 >
 > Examples below use `@clerk/nextjs` as the default flavor.
 
@@ -53,16 +53,16 @@ export async function inviteMember(organizationId: string, emailAddress: string,
 
 ## Bulk Create
 
+Takes the `organizationId` as its first positional arg and an array of per-invitation params as its second:
+
 ```typescript
-await clerk.organizations.createOrganizationInvitationBulk({
-  organizationId,
-  inviterUserId: userId,
-  invitations: [
-    { emailAddress: 'alice@acme.com', role: 'org:admin' },
-    { emailAddress: 'bob@acme.com', role: 'org:member' },
-  ],
-})
+await clerk.organizations.createOrganizationInvitationBulk(organizationId, [
+  { inviterUserId: userId, emailAddress: 'alice@acme.com', role: 'org:admin' },
+  { inviterUserId: userId, emailAddress: 'bob@acme.com', role: 'org:member' },
+])
 ```
+
+Each item accepts the same optional fields as a single `createOrganizationInvitation` call (`redirectUrl`, `publicMetadata`). The bulk endpoint is rate-limited separately at **50 requests/hour** per application instance (vs 250/hr for single create).
 
 ## List Invitations
 
@@ -146,4 +146,4 @@ See `clerk-webhooks` skill for webhook setup + signature verification.
 - Invitations with `status: 'expired'` need to be recreated; they can't be re-sent.
 - The caller needs `org:sys_memberships:manage`. Default `org:admin` has this; `org:member` does not.
 - Revoke by `invitationId`, not by email. Email alone is ambiguous when you've had multiple invites to the same address.
-- Bulk create is rate-limited the same as single create (250/hr application-wide). Batch wisely.
+- Rate limits differ by endpoint: single `createOrganizationInvitation` is 250/hr, `createOrganizationInvitationBulk` is 50/hr. Batch wisely.

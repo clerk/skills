@@ -22,7 +22,7 @@ These are the only built-in Permissions. Use them verbatim; do NOT invent shorte
 | `org:sys_memberships:read` | View the member list |
 | `org:sys_memberships:manage` | Invite, remove, and change roles of members |
 | `org:sys_domains:read` | View Verified Domains |
-| `org:sys_domains:manage` | Add / verify / remove Verified Domains and Enterprise SSO connections |
+| `org:sys_domains:manage` | Add / verify / remove Verified Domains |
 | `org:sys_billing:read` | View billing info (subscription, invoices) |
 | `org:sys_billing:manage` | Manage billing (change plan, payment method) |
 

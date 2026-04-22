@@ -224,7 +224,7 @@ See `clerk-billing` for the full Billing surface and seat-limit plan model.
 
 ## Enterprise SSO
 
-Per-org SAML/OIDC. Configured in Dashboard → Organizations → select org → SSO Connections. Requires domain verification (DNS TXT). Key fact: the `provider` field lives on `enterpriseConnection`, not on `enterpriseAccounts[0]` directly. See `references/enterprise-sso.md` for the correct access path and the verified-domains flow.
+Per-org SAML/OIDC. Configured in Dashboard → Configure → Enterprise Connections (or per-org: Organizations → select org → SSO Connections). The SSO connection owns its domain directly; no separate Verified Domain is required (and the two features are mutually exclusive on the same domain). Auto-join on first SSO sign-in uses JIT Provisioning, not Verified Domains. Key fact: the `provider` field lives on `enterpriseConnection`, not on `enterpriseAccounts[0]` directly. See `references/enterprise-sso.md` for the full flow and correct field access.
 
 ```typescript
 // Strategy name for Enterprise SSO (Core 3)
