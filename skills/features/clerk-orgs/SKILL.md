@@ -80,7 +80,7 @@ if (!orgId) {
 }
 ```
 
-`auth()` is Next.js-specific. Equivalent APIs: `useAuth()` (React/Vue/Nuxt client), `getAuth(event)` (Nuxt/Astro server), composables (Vue). All return the same `orgId`/`orgSlug`/`orgRole` shape.
+`auth()` is Next.js-specific. Equivalent server-side accessors per SDK: `auth(event)` (Nuxt via `event.context.auth()`), `context.locals.auth()` (Astro), `getAuth(req)` (Express, after `clerkMiddleware()`). Client-side: `useAuth()` (React-based SDKs) or composables (Vue/Nuxt). All return the same `orgId` / `orgSlug` / `orgRole` shape.
 
 ### 2. Dynamic Routes with Org Slug
 

@@ -83,21 +83,22 @@ JIT runs on the Enterprise Connection, not on the Verified Domain. The two featu
 
 ## Custom Sign-In Flow with SSO
 
-Typical pattern:
+Typical pattern (Core 3 canonical):
 
 ```typescript
 const { signIn } = useSignIn()
 
-// Start SSO — Clerk redirects to the IdP and back
-await signIn.authenticateWithRedirect({
+const { error } = await signIn.sso({
   strategy: 'enterprise_sso',
   identifier: emailAddress,
-  redirectUrl: '/sso-callback',
-  redirectUrlComplete: '/dashboard',
+  redirectUrl: '/dashboard',                 // where to land on successful sign-in
+  redirectCallbackUrl: '/sign-in/callback',  // where to land when additional requirements are needed
 })
 ```
 
 The `identifier` is the user's email. Clerk uses the domain to route to the correct Enterprise SSO connection. If no matching connection exists, the sign-in falls back to standard email/password or returns an error.
+
+> **Core 2 / legacy:** `signIn.authenticateWithRedirect({ strategy: 'enterprise_sso', identifier, redirectUrl, redirectUrlComplete })` still exists on the SDK for backwards compatibility, but for new code use `signIn.sso()` per the current enterprise-connections custom flow doc.
 
 ## Key Rules
 
