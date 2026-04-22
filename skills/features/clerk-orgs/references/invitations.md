@@ -7,7 +7,7 @@ Send, list, revoke. Backend API methods live on `clerkClient().organizations.*`.
 > | SDK | Get the client | Get the auth context |
 > |---|---|---|
 > | `@clerk/nextjs/server` | `const clerk = await clerkClient()` | `const { userId, has } = await auth()` |
-> | `@clerk/backend` (agnostic) | `const clerk = createClerkClient({ secretKey })` | n/a (verify session with `clerk.verifyToken`) |
+> | `@clerk/backend` (agnostic) | `const clerk = createClerkClient({ secretKey })` | n/a (verify the session token yourself with `verifyToken` imported from `@clerk/backend`) |
 > | `@clerk/astro/server` | `const clerk = clerkClient(context)` | `const { userId } = context.locals.auth()` |
 > | `@clerk/nuxt/server` | `const clerk = clerkClient(event)` | `const { userId } = event.context.auth()` |
 > | `@clerk/express` | `const clerk = clerkClient` (after `clerkMiddleware()`) | `const { userId } = getAuth(req)` |

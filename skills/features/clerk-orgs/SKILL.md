@@ -194,7 +194,7 @@ export default function Page() {
 }
 ```
 
-`TaskChooseOrganization` ships in `@clerk/nextjs`, `@clerk/react`, `@clerk/react-router`, `@clerk/tanstack-react-start`, `@clerk/js-frontend`.
+`TaskChooseOrganization` ships as an imported component in the React-based SDKs (`@clerk/nextjs`, `@clerk/react`, `@clerk/react-router`, `@clerk/tanstack-react-start`). For the JS Frontend SDK (`@clerk/clerk-js`) the equivalent is `clerk.mountTaskChooseOrganization(node)` / `clerk.unmountTaskChooseOrganization(node)`.
 
 > **Core 2 ONLY (skip if current SDK):** Session tasks aren't available. Force an org selection at sign-in by redirecting to a page that renders `<OrganizationSwitcher hidePersonal />`.
 
