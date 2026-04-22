@@ -2,6 +2,18 @@
 
 Send, list, revoke. Backend API methods live on `clerkClient().organizations.*`. All send operations require the caller to have `org:sys_memberships:manage`.
 
+> **Framework wrappers.** Method signatures on `clerk.organizations.*` are identical across SDKs; only the wrapper that gives you the client differs:
+>
+> | SDK | Get the client | Get the auth context |
+> |---|---|---|
+> | `@clerk/nextjs/server` | `const clerk = await clerkClient()` | `const { userId, has } = await auth()` |
+> | `@clerk/backend` (agnostic) | `const clerk = createClerkClient({ secretKey })` | n/a (verify session with `clerk.verifyToken`) |
+> | `@clerk/astro/server` | `const clerk = clerk(context)` | `const { userId } = locals.auth()` |
+> | `@clerk/nuxt/server` | `const clerk = useClerkClient(event)` | `const { userId } = auth(event)` |
+> | `@clerk/express` | `const clerk = clerkClient()` (after `clerkMiddleware()`) | `const { userId } = getAuth(req)` |
+>
+> Examples below use `@clerk/nextjs` as the default flavor.
+
 ## Create Invitation
 
 ```typescript

@@ -1,15 +1,17 @@
 # Enterprise SSO
 
-Per-organization SAML or OIDC. Configured in Dashboard → Organizations → select org → SSO Connections. Domain-verified. Users with a verified email domain auto-join the org on first SSO sign-in.
+Per-organization SAML or OIDC. Configured in the Clerk Dashboard today (future CLI support planned — revisit this ref once the Clerk CLI ships for scripted connection setup). New users from a matching domain auto-join via JIT Provisioning.
 
 ## Configuration Flow
 
-1. Open Dashboard → Organizations → select the org → **SSO Connections**
-2. Add a SAML or OIDC connection with the customer's IdP metadata
-3. Set the **Verified Domain** for the org — Clerk verifies ownership via DNS TXT record
-4. Once verified, users signing in with a matching email domain are routed through the SSO flow and auto-joined to the org
+1. Open Dashboard → Configure → **Enterprise Connections** (or per-org: Organizations → select org → **SSO Connections**).
+2. Add a SAML or OIDC connection and choose which Organization scopes the connection.
+3. Supply the customer's IdP metadata (SAML) or client credentials (OIDC). Clerk generates an ACS URL + Entity ID for the IdP admin to configure on their end.
+4. Set the domain the connection enforces on (e.g. `acme.com`). Clerk routes any sign-in with that email domain through the connection.
 
-Each org can have multiple SSO connections (e.g., SAML + OIDC, or SAML for two different IdPs).
+Each org can have multiple SSO connections (e.g., SAML + OIDC, or SAML for two different IdPs). Each connection covers one domain.
+
+> **Enterprise SSO ≠ Verified Domains.** These are distinct features. A domain used for Enterprise SSO cannot also be a Verified Domain for the same Organization. Use SSO for IdP-mandated auth; use Verified Domains for auto-invite / auto-suggest flows without SSO. See `docs/guides/organizations/add-members/sso.mdx` and `docs/guides/organizations/add-members/verified-domains.mdx`.
 
 Permission required to manage: `org:sys_domains:manage`.
 
@@ -26,7 +28,7 @@ Used in `signIn.supportedFirstFactors` when building custom sign-in flows.
 
 ## Accessing SSO Info on the User
 
-This is where the skill used to hallucinate the wrong shape. The correct access paths:
+`provider` and protocol metadata live on the nested `enterpriseConnection`, not directly on the enterprise account. Correct paths:
 
 ```typescript
 import { currentUser } from '@clerk/nextjs/server'
@@ -63,23 +65,21 @@ ssoAccount.enterpriseConnection?.provider
 
 `enterpriseConnection` is `null` if the connection was deleted after the account was provisioned. Always guard with `?.`.
 
-## Verified Domains
+## Verified Domains (separate feature — short reference)
 
-A Verified Domain is an email domain (e.g. `acme.com`) that the org has proven ownership of via DNS TXT record. Once verified:
+Verified Domains are a different feature from Enterprise SSO and **cannot coexist on the same domain for the same Organization**. Short reference:
 
-- Users with `someone@acme.com` emails can auto-join the org
-- Enterprise SSO connections can be attached to the domain
-- Controlled by `org:sys_domains:manage` Permission
+- Purpose: auto-invite or auto-suggest users from a matching email domain to join an org, without IdP-mandated SSO.
+- Ownership verification: Clerk sends a verification code to an address at that domain (handled inside the `<OrganizationSwitcher />` / `<OrganizationProfile />` flow).
+- Enrollment modes: Manual invitation, Automatic invitation, Automatic suggestion.
+- Permission: `org:sys_domains:manage`.
+- Full reference: [docs/guides/organizations/add-members/verified-domains.mdx](https://clerk.com/docs/guides/organizations/add-members/verified-domains).
 
-Enrollment modes for verified domains:
+## JIT Provisioning (how SSO users auto-join)
 
-| Mode | Behavior |
-|------|----------|
-| Manual invitation | Admin must invite each user individually |
-| Automatic invitation | Clerk auto-sends invitations to anyone signing up with the domain |
-| Automatic suggestion | Matching users see a prompt to join the org |
+When a user signs in via an Enterprise SSO connection scoped to an org, Clerk's [Just-in-Time (JIT) Provisioning](https://clerk.com/docs/guides/configure/auth-strategies/enterprise-connections/jit-provisioning) automatically adds them as a member of that org and assigns the org's Default Role. No invitation is required.
 
-Configure per-domain in Dashboard → Organizations → select org → Verified Domains.
+JIT runs on the Enterprise Connection, not on the Verified Domain. The two features enforce different pathways and are mutually exclusive per-domain.
 
 ## Custom Sign-In Flow with SSO
 
@@ -102,7 +102,8 @@ The `identifier` is the user's email. Clerk uses the domain to route to the corr
 ## Key Rules
 
 - **`provider` is nested.** Always `enterpriseAccounts[i].enterpriseConnection?.provider` — not directly on the account.
-- **Domain verification first.** SSO doesn't work until the org has at least one Verified Domain.
+- **SSO connection owns the domain.** The domain the SSO connection enforces on is set on the connection itself; it does NOT require a separate Verified Domain (and in fact the two features are mutually exclusive per-domain).
 - **Strategy name matters.** Core 3 uses `'enterprise_sso'`; Core 2 used `'saml'`. They are NOT interchangeable.
-- **Multiple connections per org is fine.** Typical enterprise: one SAML connection to Okta + one OIDC to Azure AD for different user segments.
-- **Auto-join on first SSO sign-in.** Users with a matching verified email domain are added to the org without an invitation.
+- **Multiple connections per org is fine.** Typical enterprise: one SAML connection to Okta + one OIDC to Azure AD for different user segments / domains.
+- **Auto-join via JIT Provisioning.** Users who authenticate via an Organization's Enterprise SSO connection are added to the org automatically with the org's Default Role. No invitation step.
+- **Setup is Dashboard-only today.** CLI support is planned; once it ships, scripted connection setup will be possible. Until then, scripted management goes through the Backend API.
