@@ -13,7 +13,7 @@ metadata:
 
 # Organizations (B2B SaaS)
 
-> **STOP — Dashboard-only prerequisite.** Organizations must be enabled in the Clerk Dashboard before any org-related API, hook, or component works. Open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and enable Organizations. Also decide `Membership required` (B2B-only, the default since Aug 22, 2025) vs `Membership optional` (B2C + B2B coexistence). Pick wrong and `<PricingTable />`, `<OrganizationSwitcher />`, and personal-account flows break silently.
+> **STOP — Dashboard-only prerequisite.** Organizations must be enabled in the Clerk Dashboard before any org-related API, hook, or component works. Open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and enable Organizations. Pick the Membership mode deliberately: `Membership required` (default since 2025-08-22) routes signed-in users through the `choose-organization` task and disables personal accounts, while `Membership optional` keeps personal accounts available for B2C + B2B coexistence. Pick `optional` if you need personal subscriptions alongside org subscriptions.
 >
 > **Version**: This skill targets current SDKs (`@clerk/nextjs` v7+, `@clerk/react` v6+ — Core 3). Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts — see `clerk` skill for the full version table.
 
