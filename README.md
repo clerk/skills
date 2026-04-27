@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://clerk.com?utm_source=github&utm_medium=clerk_skills" target="_blank" rel="noopener noreferrer">
-    <img src="https://images.clerk.com/static/logo-light-mode-400x400.png" height="64">
+    <img src="./assets/logo-pixel.svg" height="84">
   </a>
   <br />
 </p>
