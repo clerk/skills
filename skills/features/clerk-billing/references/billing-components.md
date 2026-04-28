@@ -15,21 +15,19 @@ export default function PricingPage() {
 **What it does:**
 - Fetches plan data from Clerk Dashboard configuration
 - Renders plan cards with features, pricing, and CTA buttons
-- Opens Clerk's in-app **checkout drawer** on plan selection (Stripe is only the payment processor; Clerk does NOT redirect to Stripe Checkout)
+- Opens Clerk's in-app **checkout drawer** on plan selection
 - Shows current plan for subscribed users with upgrade/downgrade options
-- Handles cancellation flow
 
 **Key behaviors:**
-- Works as a Server Component (no `'use client'` needed)
-- No Stripe publishable key needed in props — Clerk manages Stripe under the hood
 - Respects the active entity by default: user subscription for personal accounts, org subscription in org context. Override with `for`.
+- For an account-management UI that includes plan switching, cancellations, payment methods, and invoices, render `<UserProfile />` (B2C) or `<OrganizationProfile />` (B2B) instead. Use `<PricingTable />` standalone only when you need a dedicated pricing page.
 
 **Props (all optional):**
 
 | Prop | Type | Description |
 |------|------|-------------|
 | `appearance` | `Appearance` | Style overrides for the component. |
-| `checkoutProps` | `{ appearance: Appearance }` | Style overrides for the checkout drawer (not Stripe Checkout). |
+| `checkoutProps` | `{ appearance: Appearance }` | Style overrides for the checkout drawer. |
 | `collapseFeatures` | `boolean` | Start with features collapsed. Requires `layout: 'default'`. Defaults to `false`. |
 | `ctaPosition` | `'top' \| 'bottom'` | Placement of the CTA button. Requires `layout: 'default'`. Defaults to `'bottom'`. |
 | `fallback` | `JSX` | UI to show while the pricing table is loading. |
@@ -131,4 +129,4 @@ import { auth } from '@clerk/nextjs/server'
 import { CheckoutButton, useSubscription } from '@clerk/nextjs/experimental'
 ```
 
-Stable billing primitives (`PricingTable`, `has()` via `auth()` / `useAuth()`, `<Show>`) live in `@clerk/nextjs` (v7+, Core 3). Experimental hooks and components (`useSubscription`, `CheckoutButton`, `SubscriptionDetailsButton`, `PlanDetailsButton`) live in `@clerk/nextjs/experimental`. No separate billing package needed.
+Stable billing primitives (`PricingTable`, `has()` via `auth()` / `useAuth()`, `<Show>`) live in `@clerk/nextjs`. Experimental hooks and components (`useSubscription`, `CheckoutButton`, `SubscriptionDetailsButton`, `PlanDetailsButton`) live in `@clerk/nextjs/experimental`. No separate billing package needed.

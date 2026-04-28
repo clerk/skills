@@ -4,7 +4,7 @@ description: Clerk authentication router. Use when user asks about adding authen
   setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android
   auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns,
   TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns,
-  organizations, billing, subscriptions, payments, pricing, plans, per-seat pricing,
+  organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing,
   feature entitlements, syncing users, or testing. Automatically routes to the specific
   skill based on their task.
 license: MIT
@@ -99,9 +99,9 @@ All skills are written for the current SDK. When something differs in Core 2, it
 **Billing & Subscriptions** → Use `clerk-billing`
 - `<PricingTable />` component
 - Plan and feature gating with `has()`
-- Per-seat B2B billing with organizations
+- Seat-based B2B billing with organizations
 - Subscription lifecycle webhooks
-- Free trials, metered usage, invoicing
+- Free trials, invoicing
 
 **Webhooks** → Use `clerk-webhooks`
 - Real-time events

@@ -158,7 +158,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 			// ...
 		},
 		payment_source_id: string,
-		items: Array<{                  // subscription items — one active item per payer per Plan
+		items: Array<{                  // subscription items, one active item per payer per Plan
 			id: string,
 			status: string,
 			plan?: { id, name, slug, amount, period, ... },

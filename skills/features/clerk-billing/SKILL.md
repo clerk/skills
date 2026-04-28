@@ -2,9 +2,9 @@
 name: clerk-billing
 description: Clerk Billing for subscription management - render Clerk's PricingTable
   and in-app checkout drawer, configure subscription plans, seat-limit plans for
-  B2B, feature entitlements with has(), and billing webhooks. Stripe is used only
-  as the payment processor. Use for SaaS monetization, plan gating, checkout flows,
-  trials, invoicing, and subscription lifecycle management.
+  B2B, feature entitlements with has(), and billing webhooks. Use for SaaS
+  monetization, plan gating, checkout flows, trials, invoicing, and subscription
+  lifecycle management.
 allowed-tools: WebFetch
 license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SIGNING_SECRET. Billing must be enabled in Clerk Dashboard → Billing. Development instances can use the shared Clerk development gateway; production instances require a Stripe account for payment processing.
@@ -15,19 +15,19 @@ metadata:
 
 # Billing
 
-> **STOP — Dashboard-only prerequisite.** Billing must be enabled from the Clerk Dashboard before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. The Clerk CLI and Backend API do **not** expose a toggle for this today — the only path is [dashboard.clerk.com → your app → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
+> **STOP, Dashboard-only prerequisite.** Billing must be enabled from the Clerk Dashboard before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. The Clerk CLI and Backend API do **not** expose a toggle for this today, the only path is [dashboard.clerk.com → your app → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
 >
-> **Version**: This skill targets `@clerk/nextjs` v7+ (Core 3) — see `clerk` skill for the version table. Billing in Core 2 (v5–v6) shipped under `__unstable_*` APIs and is not covered here; upgrade to v7+ before using this skill. Pin your SDK and `clerk-js` package versions since billing APIs are still experimental.
+> **Note**: Billing APIs are still experimental. Pin your `@clerk/nextjs` and `clerk-js` package versions. See `clerk` skill for the supported version table.
 
 ## Quick Start
 
-1. **Enable Billing** — [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dashboard-only; no CLI or API path. Skipping this throws `cannot_render_billing_disabled` in dev and renders empty in prod.
-2. **Create plans in the matching tab** — [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans). Two tabs, slugs scoped per tab, not movable after creation:
+1. **Enable Billing**, [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dashboard-only; no CLI or API path. Skipping this throws `cannot_render_billing_disabled` in dev and renders empty in prod.
+2. **Create plans in the matching tab**, [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans). Two tabs, slugs scoped per tab, not movable after creation:
    - **User Plans** → `<PricingTable />` (default `for="user"`)
    - **Organization Plans** → `<PricingTable for="organization" />`
 
    Wrong-tab is the #1 cause of an empty `<PricingTable />`. Plans live in Clerk; not synced to Stripe.
-3. **Add features inside a plan** — open the plan in Dashboard → Billing → Plans, use its Features section. No global `/billing/features` page (it 404s). The same slug can attach to multiple plans; `has({ feature: 'export' })` matches if the active plan contains that slug.
+3. **Add features inside a plan**, open the plan in Dashboard → Billing → Plans, use its Features section. Features are scoped per plan, not global. The same slug can attach to multiple plans; `has({ feature: 'export' })` matches if the active plan contains that slug.
 4. **Render `<PricingTable />`** (pass `for="organization"` for B2B).
 5. **Gate access** with `has({ plan })` or `has({ feature })` from `auth()`.
 6. **Handle billing webhooks** for subscription lifecycle.
@@ -77,7 +77,7 @@ metadata:
 | Gate the "Export CSV" button | `has({ feature: 'export' })` |
 | Gate the "Analytics" section | `has({ feature: 'analytics' })` |
 | Gate all of /dashboard/pro | `has({ plan: 'pro' })` |
-| Check if org has team subscription | `has({ plan: 'team' })` |
+| Check if org has team subscription | `has({ plan: 'org:team' })` |
 | Gate SSO configuration | `has({ feature: 'sso' })` |
 
 When a user says "gate the export feature" or "gate analytics", always use `has({ feature })`. Only use `has({ plan })` when the gate is the plan tier itself, not a specific capability within it.
@@ -101,7 +101,7 @@ export default function PricingPage() {
 }
 ```
 
-`<PricingTable />` automatically renders all plans configured in the Clerk Dashboard. Selecting a plan opens Clerk's in-app checkout drawer; Stripe is used only for payment processing. No props needed for basic usage. For B2B, pass `for="organization"` to render org-level plans instead of user plans.
+`<PricingTable />` automatically renders all plans configured in the Clerk Dashboard. Selecting a plan opens Clerk's in-app checkout drawer. No props needed for basic usage. For B2B, pass `for="organization"` to render org-level plans instead of user plans.
 
 ### 2. Check Feature Entitlements (Server-Side)
 
@@ -196,30 +196,11 @@ export function UpgradePrompt() {
 }
 ```
 
-### 6. B2B Per-Seat Billing with Organizations
+### 6. B2B Seat-Based Billing with Organizations
 
-For B2B apps where organizations subscribe:
+Org plans can carry a **seat limit** (membership cap) that Clerk enforces at invite time. Use the `org:` slug prefix on org-side plan checks (e.g. `has({ plan: 'org:team' })`) to keep gating unambiguous. Render the B2B pricing page with `<PricingTable for="organization" />`, and use `<OrganizationProfile />` for the org account billing UI.
 
-```typescript
-import { auth } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
-
-export default async function TeamDashboard() {
-	const { orgId, has } = await auth()
-
-	if (!orgId) {
-		redirect('/sign-in')
-	}
-
-	if (!has({ plan: 'team' })) {
-		redirect('/billing')
-	}
-
-	return <TeamFeatures />
-}
-```
-
-Plans for organizations can carry a **seat limit** (membership cap). Clerk enforces the cap when members try to join or be invited; pricing is per-plan (fixed), not per-member auto-scaling. To charge larger orgs more, tier your plans (e.g. `starter` capped at 5 seats, `team` at 10, `enterprise` unlimited). There is only one `active` SubscriptionItem per payer per Plan — do not treat `items.length` as a seat count. Render the B2B pricing page with `<PricingTable for="organization" />`.
+See `references/b2b-patterns.md` for tiered plan naming, seat-limit invariants, admin-only billing, and webhook handlers.
 
 ### 7. Display Subscription Status
 
@@ -271,7 +252,7 @@ export function SubscriptionDetails() {
 }
 ```
 
-> `useSubscription()` lives in the experimental subpath (`@clerk/nextjs/experimental`) — no underscore prefix, the subpath is the experimental signal. It is for display only; for authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
+> `useSubscription()` is for display only. For authorization checks (gating content or routes), always use `has({ plan })` or `has({ feature })`.
 
 ### 8. Protect API Routes by Plan
 
@@ -387,7 +368,7 @@ export default async function BillingPage() {
 }
 ```
 
-`<PricingTable />` renders differently for subscribed users — it shows the current plan and allows upgrades or cancellations, all through Clerk's in-app checkout drawer.
+`<PricingTable />` renders differently for subscribed users, it shows the current plan and allows upgrades or cancellations, all through Clerk's in-app checkout drawer.
 
 ## Plan and Feature Naming
 
@@ -407,14 +388,14 @@ Use lowercase slugs matching what you define in the dashboard.
 | Scenario | Who subscribes | Plan check |
 |----------|---------------|------------|
 | B2C SaaS | Individual user | `has({ plan: 'pro' })` on user session |
-| B2B SaaS | Organization | `has({ plan: 'team' })` on org session |
-| Seat-limited B2B | Organization | Plan has a seat cap; pricing is per-plan, not per-member — tier your plans for bigger orgs |
+| B2B SaaS | Organization | `has({ plan: 'org:team' })` on org session |
+| Seat-limited B2B | Organization | Plan has a seat cap; pricing is per-plan, not per-member, tier your plans for bigger orgs |
 
 For B2B, ensure the user has an active org session. The `has()` check evaluates the active entity (user or org).
 
 ## Checkout Flows
 
-Clerk renders its own checkout drawer automatically through `<PricingTable />` and `<CheckoutButton />`. Do NOT manually create Stripe checkout sessions — Clerk Billing is a separate product from Stripe Billing; Plans and pricing live in Clerk and are not synced to Stripe. To trigger checkout from a server action, redirect to a page that renders `<PricingTable />`:
+Clerk renders its own checkout drawer automatically through `<PricingTable />` and `<CheckoutButton />`. Plans and pricing live in Clerk. To trigger checkout from a server action, redirect to a page that renders `<PricingTable />`:
 
 ```typescript
 'use server'
@@ -433,10 +414,10 @@ When you see any of these errors or symptoms, the fix is almost always a Dashboa
 |---|---|---|
 | `Clerk: 🔒 The <PricingTable/> component cannot be rendered when billing is disabled.` (code: `cannot_render_billing_disabled`, dev only) | Billing is not enabled for this instance | Enable Billing at [dashboard.clerk.com → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). No CLI path. |
 | `<PricingTable />` renders empty | No plans, OR plan in the wrong tab (User vs Organization), OR Billing not enabled | Create plan in matching tab; pass `for="organization"` for B2B; check Billing Settings |
-| Users can't subscribe to a personal plan on a B2C + B2B app | Membership required mode (default since 2025-08-22) disables personal accounts — signed-in users are forced into `choose-organization` and never land on a personal-subscription state | If you need personal + org subscriptions coexisting: Dashboard → Organizations settings → *Membership optional* |
-| Can't find a Features page | Features are per-plan, not global (`/billing/features` 404s) | Dashboard → Billing → Plans → click plan → Features |
+| Users can't subscribe to a personal plan on a B2C + B2B app | Membership required mode (default since 2025-08-22) disables personal accounts, signed-in users are forced into `choose-organization` and never land on a personal-subscription state | If you need personal + org subscriptions coexisting: Dashboard → Organizations settings → *Membership optional* |
+| Can't find a Features page | Features are per-plan, not global | Dashboard → Billing → Plans → click plan → Features |
 | `has({ plan: 'pro' })` always returns `false` after a successful checkout | Session token hasn't been refreshed to include the new plan | `await clerk.session?.reload()` or navigate to force a new session |
-| `has({ plan: 'pro' })` returns `false` before any subscribe attempt | Plan slug mismatch (case-sensitive), OR Billing not enabled, OR Stripe not connected in production | Verify slug in Dashboard → Billing → Plans; confirm Billing → Settings shows enabled + connected gateway |
+| `has({ plan: 'pro' })` returns `false` before any subscribe attempt | Plan slug mismatch (case-sensitive), OR Billing not enabled, OR payment gateway not connected in production | Verify slug in Dashboard → Billing → Plans; confirm Billing → Settings shows enabled + connected gateway |
 | `has({ permission: 'org:x:y' })` returns `false` for a user who has the role | The Feature tied to that permission is not included in the organization's active Plan | Add the Feature to the Plan in Dashboard → Billing → Plans → Features |
 | Webhook 401 / signature verification failed | `CLERK_WEBHOOK_SIGNING_SECRET` mismatch or route protected by middleware | Copy the Signing Secret from Dashboard → Webhooks; add the webhook route to `createRouteMatcher(['/api/webhooks(.*)'])` |
 

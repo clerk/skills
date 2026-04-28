@@ -36,15 +36,15 @@
     {
       "id": 3,
       "prompt": "my b2b saas lets teams subscribe via their organization. i need per-seat billing where adding org members automatically increments the seat count. show me the org-level plan check to protect team-only routes.",
-      "expected_output": "Server component checks orgId is present then uses has({ plan: 'team' }) to gate org-scoped routes. Explanation CORRECTS the user's mental model: Clerk Billing uses seat-LIMIT plans (membership caps with fixed per-plan pricing), not Stripe-style per-seat metered billing where the charge scales per member. Recommends tiered plans for charging larger orgs more, and renders the B2B pricing page with <PricingTable for=\"organization\" />.",
+      "expected_output": "Server component checks orgId is present then uses has({ plan: 'org:team' }) to gate org-scoped routes. Explanation CORRECTS the user's mental model: Clerk Billing uses seat-LIMIT plans (membership caps with fixed per-plan pricing), not Stripe-style per-seat metered billing where the charge scales per member. Recommends tiered plans for charging larger orgs more, and renders the B2B pricing page with <PricingTable for=\"organization\" />.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
         "Destructures both orgId and has from await auth()",
         "Checks that orgId exists before checking the plan",
-        "Uses has({ plan: 'team' }) for the org-level entitlement",
+        "Uses has({ plan: 'org:team' }) for the org-level entitlement",
         "Redirects to a billing or pricing page when the org lacks the plan",
-        "Corrects the user's assumption of auto-incrementing per-seat billing — states Clerk uses seat-LIMIT plans (fixed price per plan + membership cap), not metered pricing that scales per member",
+        "Corrects the user's assumption of auto-incrementing per-seat billing, states Clerk uses seat-LIMIT plans (fixed price per plan + membership cap), not metered pricing that scales per member",
         "Suggests creating tiered plans (e.g. starter 5 seats, team 10, enterprise unlimited) as the way to charge bigger orgs more",
         "Recommends <PricingTable for=\"organization\" /> for the B2B pricing page",
         "States that the plan must be created under the 'Organization Plans' tab, not 'User Plans'",
@@ -65,7 +65,7 @@
         "Branches on the exact Clerk event name 'subscriptionItem.canceled' (camelCase, not 'subscription.canceled' or 'subscriptionItem.cancelled')",
         "Branches on the exact Clerk event name 'subscriptionItem.pastDue' (camelCase 'pastDue', NOT snake_case 'past_due')",
         "Does not use Stripe event names like 'customer.subscription.created', 'invoice.payment_failed', or 'customer.subscription.deleted'",
-        "If it inspects evt.data.object, matches against 'commerce_subscription' / 'commerce_subscription_item' / 'commerce_payer' / 'commerce_payment_attempt' — not 'billing_*' variants (the wire format uses commerce_, not billing_)",
+        "If it inspects evt.data.object, matches against 'commerce_subscription' / 'commerce_subscription_item' / 'commerce_payer' / 'commerce_payment_attempt', not 'billing_*' variants (the wire format uses commerce_, not billing_)",
         "Updates proxy.ts or middleware.ts to add /api/webhooks(.*) to createRouteMatcher so the webhook route is public",
         "The clerkMiddleware callback is marked async to support await auth.protect()"
       ]
@@ -97,7 +97,7 @@
         "Never uses has({ plan: ... }) to gate these specific capabilities",
         "Explains the decision rule: use has({ feature }) for individual capabilities, use has({ plan }) only for tier-level gates like a Pro dashboard",
         "States that features live inside each plan's edit page, not a global Features page (/billing/features does not exist)",
-        "States that the same feature slug can be attached to multiple plans — has({ feature }) matches if the active plan contains that slug",
+        "States that the same feature slug can be attached to multiple plans, has({ feature }) matches if the active plan contains that slug",
         "Warns that when Billing is enabled, has({ permission: ... }) returns false if the required Feature is not attached to the active Plan (billing gates permissions)",
         "Does not suggest reading sessionClaims.metadata.plan or parsing plan tier strings directly"
       ]
@@ -133,7 +133,7 @@
     {
       "id": 9,
       "prompt": "i'm trying to use clerk billing in my production app but i can't find the billing section in the dashboard and has({ plan }) always returns false. is billing broken?",
-      "expected_output": "Explanation that Clerk Billing must be explicitly enabled in Dashboard → Billing → Settings (this is Dashboard-only — the CLI and Backend API cannot toggle it). Mention that <PricingTable /> will throw 'cannot_render_billing_disabled' in development when this step is skipped.",
+      "expected_output": "Explanation that Clerk Billing must be explicitly enabled in Dashboard → Billing → Settings (this is Dashboard-only, the CLI and Backend API cannot toggle it). Mention that <PricingTable /> will throw 'cannot_render_billing_disabled' in development when this step is skipped.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
@@ -162,11 +162,11 @@
     {
       "id": 11,
       "prompt": "i need to charge customers based on the number of api calls they make each month. how do i implement metered/usage-based billing with clerk?",
-      "expected_output": "Explanation that Clerk Billing currently supports fixed subscription plans and per-seat (no native metered pricing). For usage-gated SaaS, use has({ feature }) to gate allotments and track consumption in your own datastore; do not bypass Clerk by configuring billing directly in Stripe, because Clerk Plans and Subscriptions do not sync with Stripe Billing.",
+      "expected_output": "Explanation that Clerk Billing currently supports fixed subscription plans (no native metered pricing). For usage-gated SaaS, use has({ feature }) to gate allotments and track consumption in your own datastore; do not bypass Clerk by configuring billing directly in Stripe, because Clerk Plans and Subscriptions do not sync with Stripe Billing.",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
-        "Acknowledges that Clerk Billing primarily handles fixed subscription plans and per-seat (no native metered primitive)",
+        "Acknowledges that Clerk Billing primarily handles fixed subscription plans (no native metered primitive)",
         "Does not claim Clerk Billing has a native metered pricing primitive",
         "Does not instruct the user to configure metered pricing directly in Stripe and report usage via Stripe's usage records API as a replacement for Clerk Billing",
         "Notes that Clerk Plans and Subscriptions do not sync to Stripe Billing, so bypassing Clerk to use Stripe metered billing would split the source of truth",

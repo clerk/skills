@@ -2,11 +2,11 @@
 
 ## Overview
 
-B2C billing in Clerk attaches subscriptions to **individual users**. Each user gets their own Clerk subscription (backed by Stripe for payment processing only — Clerk Plans and pricing are not synced to Stripe Billing). Use `has({ plan })` on the user session.
+B2C billing in Clerk attaches subscriptions to **individual users**. Each user gets their own Clerk subscription. Use `has({ plan })` on the user session.
 
-> **Prerequisite: personal accounts must be allowed.** If Organizations are enabled, open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and set **Membership options → "Membership optional"**. In "Membership required" mode personal accounts are disabled — `<PricingTable />` silently excludes any user without an active org (no error, no console warning). Check this first when a user reports "subscribe does nothing."
+> **Prerequisite: personal accounts must be allowed.** If Organizations are enabled, open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and set **Membership options → "Membership optional"**. In "Membership required" mode personal accounts are disabled, `<PricingTable />` silently excludes any user without an active org (no error, no console warning). Check this first when a user reports "subscribe does nothing."
 
-Plans for B2C must be created under the **User Plans** tab in Dashboard → Billing → Plans. A `pro` plan under *Organization Plans* is a separate entity and won't appear in `<PricingTable />`. Plans aren't movable between tabs — recreate if misplaced.
+Plans for B2C must be created under the **User Plans** tab in Dashboard → Billing → Plans. A `pro` plan under *Organization Plans* is a separate entity and won't appear in `<PricingTable />`. Plans aren't movable between tabs, recreate if misplaced.
 
 ## Core Pattern: User Plan Check
 
@@ -44,9 +44,11 @@ export default function PricingPage() {
 }
 ```
 
-`<PricingTable />` is a Server Component. It fetches plan data from Clerk and renders plan cards that open Clerk's in-app checkout drawer on selection. No props required for basic usage.
+`<PricingTable />` fetches plan data from Clerk and renders plan cards that open Clerk's in-app checkout drawer on selection. No props required for basic usage.
 
 ## Tiered Feature Gating
+
+Prefer `has({ feature })` over `has({ plan })` for capability gating: features can move between plans in the Dashboard without a code deploy.
 
 ```typescript
 import { auth } from '@clerk/nextjs/server'
@@ -54,15 +56,16 @@ import { auth } from '@clerk/nextjs/server'
 export default async function AppPage() {
 	const { has } = await auth()
 
-	const isPro = has({ plan: 'pro' })
-	const isStarter = has({ plan: 'starter' })
+	const canAnalytics = has({ feature: 'analytics' })
+	const canExport = has({ feature: 'export' })
+	const canApi = has({ feature: 'api_access' })
 
 	return (
 		<div>
 			<BasicFeature />
-			{(isStarter || isPro) && <AnalyticsDashboard />}
-			{isPro && <ExportButton />}
-			{isPro && <APIAccess />}
+			{canAnalytics && <AnalyticsDashboard />}
+			{canExport && <ExportButton />}
+			{canApi && <APIAccess />}
 		</div>
 	)
 }
@@ -90,34 +93,17 @@ export default async function BillingSuccessPage() {
 
 ## Account Billing Page
 
-Show current plan with the option to upgrade. Use `has({ plan })` for authorization checks, not `sessionClaims`, which is not the supported path:
+Use `<UserProfile />` for the user account billing UI. It renders the current plan, subscription status, payment methods, invoices, and the upgrade / cancellation flow with no custom code:
 
 ```tsx
-import { PricingTable } from '@clerk/nextjs'
-import { auth } from '@clerk/nextjs/server'
+import { UserProfile } from '@clerk/nextjs'
 
-export default async function AccountBillingPage() {
-	const { has } = await auth()
-
-	const isPro = has({ plan: 'pro' })
-	const isStarter = has({ plan: 'starter' })
-
-	return (
-		<div>
-			<section>
-				<h2>Current Plan</h2>
-				{isPro && <p>Pro</p>}
-				{isStarter && <p>Starter</p>}
-				{!isPro && !isStarter && <p>Free</p>}
-			</section>
-			<section>
-				<h2>Change Plan</h2>
-				<PricingTable />
-			</section>
-		</div>
-	)
+export default function AccountPage() {
+	return <UserProfile />
 }
 ```
+
+User Plans configured in Dashboard → Billing → Plans automatically appear inside `<UserProfile />` (in the **Plans** section). Cancellation and plan switching are handled in the same drawer. Only build a custom billing page when you need branded layouts or to embed `<PricingTable />` outside the UserProfile shell.
 
 For richer subscription details in client components (status, renewal date, trial end), use the `useSubscription()` hook instead of reading JWT claims:
 
@@ -136,8 +122,6 @@ export function BillingSummary() {
 	)
 }
 ```
-
-> The hook lives in the experimental subpath `@clerk/nextjs/experimental` (the subpath is the experimental signal — no underscore prefix needed).
 
 ## Client-Side Feature Gating
 
@@ -164,17 +148,3 @@ export function ExportButton() {
 
 Note: `has` may be `undefined` on initial render. Use optional chaining `has?.()`.
 
-## Free Plan Fallback
-
-Users with no subscription are on the free plan. Do NOT check for a plan called `free`, simply check that the paid plan check fails:
-
-```typescript
-const isPro = has({ plan: 'pro' })
-const isFree = !isPro
-
-if (isFree) {
-	return <UpgradePrompt />
-}
-```
-
-There is no `has({ plan: 'free' })`, `has()` only returns true for paid plans.
