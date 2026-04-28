@@ -3,11 +3,7 @@ name: clerk-backend-api
 description: "Clerk Backend REST API explorer and executor. Browse tags, inspect endpoint schemas, and execute authenticated requests. Use when listing users, managing organizations, or calling any Clerk API endpoint."
 allowed-tools: Bash, Read, Grep, Skill, WebFetch
 license: MIT
-metadata:
-  inputs:
-  - name: CLERK_SECRET_KEY
-    description: Clerk secret key (sk_*) for Backend API calls
-    required: true
+compatibility: Requires CLERK_SECRET_KEY (sk_*) for Backend API calls.
 ---
 
 ## Options context
