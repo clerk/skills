@@ -1,4 +1,4 @@
-# Server Actions (HIGH)
+# Server Actions
 
 Server Actions are public endpoints. Always verify auth.
 

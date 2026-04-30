@@ -1,4 +1,4 @@
-# Server vs Client (CRITICAL)
+# Server vs Client
 
 ## CRITICAL: Always `await auth()`
 
