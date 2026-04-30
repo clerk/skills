@@ -112,7 +112,7 @@ import { Show } from '@clerk/nextjs'
 </Show>
 ```
 
-> **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `clerk-custom-ui` skill, `core-3/show-component.md` for the full migration table.
+> **Core 2 ONLY (skip if current SDK):** `<Show>` does not exist. For authentication, use `<SignedIn>` and `<SignedOut>`. For authorization (role / permission), use `<Protect>` with the same prop names (`role`, `permission`, `condition`). Feature- and plan-based variants require Core 3. See `clerk-custom-ui` skill, `core-3/show-component.md` for the full migration table.
 
 ## Common Pitfalls
 

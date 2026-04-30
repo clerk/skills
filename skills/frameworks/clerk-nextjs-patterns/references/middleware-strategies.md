@@ -70,6 +70,8 @@ export default clerkMiddleware(async (auth, req) => {
 
 Prefer permissions over roles — permissions are more granular and easier to reassign across roles in the Dashboard.
 
+> **Core 2 ONLY (skip if current SDK):** Middleware uses synchronous `clerkMiddleware((auth, req) => { auth().protect((has) => ...) })`. Note `auth()` is called as a function (not `auth.protect`) and the callback signature is the same.
+
 ## Token-Based Protection (Machine APIs)
 
 For routes that accept different token types (OAuth tokens, machine-to-machine tokens, API keys), pass a `token` option to `auth.protect()`:
@@ -85,6 +87,8 @@ export default clerkMiddleware(async (auth, req) => {
 ```
 
 Token types: `'session_token'` (default, browser sessions), `'oauth_token'`, `'api_key'`, `'m2m_token'`, `'any'` (accept any valid token).
+
+> **Core 2 ONLY (skip if current SDK):** Token-type protection requires Core 3. In Core 2, `auth().protect()` only accepts a callback (no `token` option) and only validates session tokens.
 
 ## Session Tasks
 
