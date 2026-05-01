@@ -1,6 +1,6 @@
 # Enterprise SSO
 
-Per-organization SAML or OIDC. Configured via [Dashboard → Configure → Enterprise Connections](https://dashboard.clerk.com/last-active?path=user-authentication/enterprise-connections) or via `clerk api -X POST /v1/saml_connections`. New users from a matching domain auto-join via JIT Provisioning.
+Per-organization SAML or OIDC. Configured via [Dashboard → Configure → Enterprise Connections](https://dashboard.clerk.com/last-active?path=user-authentication/enterprise-connections) or via `clerk api -X POST /v1/enterprise_connections` (requires a plan with the SAML feature enabled). New users from a matching domain auto-join via JIT Provisioning.
 
 ## Configuration Flow
 
@@ -107,4 +107,4 @@ The `identifier` is the user's email. Clerk uses the domain to route to the corr
 - **Strategy name matters.** Core 3 uses `'enterprise_sso'`; Core 2 used `'saml'`. They are NOT interchangeable.
 - **Multiple connections per org is fine.** Typical enterprise: one SAML connection to Okta + one OIDC to Azure AD for different user segments / domains.
 - **Auto-join via JIT Provisioning.** Users who authenticate via an Organization's Enterprise SSO connection are added to the org automatically with the org's Default Role. No invitation step.
-- **Two setup paths.** Dashboard for interactive UI, or `clerk api` for scripted setup: `clerk api -X POST /v1/saml_connections` (create), `clerk api -X PATCH /v1/saml_connections/{id}` (update), `clerk api -X DELETE /v1/saml_connections/{id}` (remove). Pass the IdP metadata or client credentials in the request body; Clerk returns the ACS URL + Entity ID in the response.
+- **Two setup paths.** Dashboard for interactive UI, or `clerk api` for scripted setup: `clerk api -X POST /v1/enterprise_connections` (create), `clerk api -X PATCH /v1/enterprise_connections/{id}` (update), `clerk api -X DELETE /v1/enterprise_connections/{id}` (remove). Pass the IdP metadata or client credentials in the request body; Clerk returns the ACS URL + Entity ID in the response. Create / update endpoints require a plan with the SAML feature enabled. The legacy `/v1/saml_connections` endpoint is deprecated, use `/v1/enterprise_connections` instead.

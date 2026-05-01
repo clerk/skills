@@ -36,7 +36,7 @@ If you reassign the Creator Role, ensure the replacement Role has these three at
 
 ## Custom Roles
 
-Up to 10 custom Roles per instance. Create via [Dashboard → Roles & Permissions](https://dashboard.clerk.com/last-active?path=organizations-settings/roles) → **Add role**, or via `clerk api -X POST /v1/role_sets/{role_set_key}/roles`. The key follows `org:<role>` format. Examples:
+Up to 10 custom Roles per instance. Create via [Dashboard → Roles & Permissions](https://dashboard.clerk.com/last-active?path=organizations-settings/roles) → **Add role**, or via `clerk api -X POST /v1/organization_roles` with body `{"name":"Billing Manager","key":"org:billing","description":"..."}`. The key follows `org:<role>` format. Examples:
 
 - `org:billing` — carries `org:sys_billing:manage`
 - `org:reports_viewer` — carries your custom `org:reports:view`
@@ -45,7 +45,7 @@ Up to 10 custom Roles per instance. Create via [Dashboard → Roles & Permission
 
 Naming convention: `org:<resource>:<action>`. Examples: `org:reports:view`, `org:api_keys:create`, `org:posts:edit`.
 
-Create via [Dashboard → Roles & Permissions](https://dashboard.clerk.com/last-active?path=organizations-settings/roles) → **Permissions** tab → **Add permission**, or via `clerk api -X POST /v1/organization_roles/{role_id}/permissions/{permission_id}` to attach an existing permission to a role. Permissions are attached to Roles inside a Role Set.
+Create via [Dashboard → Roles & Permissions](https://dashboard.clerk.com/last-active?path=organizations-settings/roles) → **Permissions** tab → **Add permission**, or via two steps: (1) `clerk api -X POST /v1/organization_permissions` with body `{"name":"Edit Posts","key":"org:posts:edit","description":"..."}` to create the permission, then (2) `clerk api -X POST /v1/organization_roles/{role_id}/permissions/{permission_id}` to attach it to a role. Permissions are attached to Roles inside a Role Set.
 
 ## Role Sets
 
