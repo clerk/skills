@@ -87,9 +87,8 @@ clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>
 
 ### Notes
 
-- This handles **billing config** (toggles + plans + features catalog). **Subscription lifecycle** (users picking a plan, checkout, renewal, cancellation) still flows through `<PricingTable />` + billing webhooks — `clerk-webhooks` skill covers the lifecycle events.
+- This handles **billing config** (toggles + plans + features catalog). **Subscription lifecycle** (users picking a plan, checkout, renewal, cancellation) still flows through `<PricingTable />` + billing webhooks, see `clerk-webhooks` skill for the lifecycle events.
 - Top-level `features` map manipulation and plan-feature attachments (sync) are fully supported via the PLAPI billing config handler.
-- When the friendly `clerk billing` namespace ships ([AIE-823](https://linear.app/clerk/issue/AIE-823)), the raw `clerk api` examples above will swap to ergonomic wrappers.
 
 ## What Do You Need?
 
