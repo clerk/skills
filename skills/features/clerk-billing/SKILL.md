@@ -15,7 +15,7 @@ metadata:
 
 # Billing
 
-> **STOP, Dashboard-only prerequisite.** Billing must be enabled from the Clerk Dashboard before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. The Clerk CLI and Backend API do **not** expose a toggle for this today, the only path is [dashboard.clerk.com → your app → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
+> **STOP, Dashboard-only prerequisite.** Billing must be enabled from the Clerk Dashboard before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. The Enable Billing toggle is Dashboard-only today, the only path is [dashboard.clerk.com → your app → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only. Once enabled, plan and feature configuration can be edited via the CLI, see "Agent-first: Programmatic billing config" below.
 >
 > **Note**: Billing APIs are still experimental. Pin your `@clerk/nextjs` and `clerk-js` package versions. See `clerk` skill for the supported version table.
 
@@ -40,6 +40,46 @@ metadata:
 | Create / edit plans | `https://dashboard.clerk.com/last-active?path=billing/plans` |
 | Membership mode (B2C + B2B coexistence) | `https://dashboard.clerk.com/last-active?path=organizations-settings` |
 | Edit features | Plans → click a plan → Features section (no direct URL) |
+
+## Agent-first: Programmatic billing config
+
+Plans and features live in the instance config and can be edited via PLAPI without touching the Dashboard. Useful for agents seeding plans, replicating config across instances, or version-controlling billing structure.
+
+Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see `clerk-setup`).
+
+### Pull current billing config
+
+```bash
+clerk config pull --keys billing > billing.json
+```
+
+This writes the current billing config (plans + features) for the linked instance to `billing.json`.
+
+### Edit and apply
+
+Edit `billing.json` to add/remove plans or features, then preview the diff and apply:
+
+```bash
+clerk config patch --file billing.json --dry-run
+clerk config patch --file billing.json
+```
+
+Pass `--instance prod` to target the production instance instead of dev.
+
+### Raw PATCH (full control)
+
+For one-shot updates without a config file:
+
+```bash
+clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>/config \
+  -d '{"billing":{"plans":[{"slug":"pro","name":"Pro","amount":2000,"period":"month"}]}}'
+```
+
+### Notes
+
+- **Enable Billing toggle** (the instance-level on/off switch) is still Dashboard-only today — `clerk config patch` can edit plan/feature structure but cannot flip the master toggle.
+- This handles **billing config** (the catalog of plans + features). **Subscription lifecycle** (users picking a plan, checkout, renewal, cancellation) still flows through `<PricingTable />` + billing webhooks — `clerk-webhooks` skill covers the lifecycle events.
+- When the friendly `clerk billing` namespace ships ([AIE-823](https://linear.app/clerk/issue/AIE-823)), the raw `clerk api` examples above will swap to ergonomic wrappers.
 
 ## What Do You Need?
 
