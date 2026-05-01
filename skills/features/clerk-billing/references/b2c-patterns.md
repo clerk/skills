@@ -29,23 +29,6 @@ export default async function ProDashboard() {
 }
 ```
 
-## Full Pricing Page Setup
-
-```tsx
-import { PricingTable } from '@clerk/nextjs'
-
-export default function PricingPage() {
-	return (
-		<main className="max-w-4xl mx-auto py-12">
-			<h1>Choose your plan</h1>
-			<PricingTable />
-		</main>
-	)
-}
-```
-
-`<PricingTable />` fetches plan data from Clerk and renders plan cards that open Clerk's in-app checkout drawer on selection. No props required for basic usage.
-
 ## Tiered Feature Gating
 
 Prefer `has({ feature })` over `has({ plan })` for capability gating: features can be reattached between plans without a code deploy.
