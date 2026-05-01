@@ -13,13 +13,13 @@ metadata:
 
 # Organizations (B2B SaaS)
 
-> **STOP — Dashboard-only prerequisite.** Organizations must be enabled in the Clerk Dashboard before any org-related API, hook, or component works. Open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and enable Organizations. Pick the Membership mode deliberately: `Membership required` (default since 2025-08-22) routes signed-in users through the `choose-organization` task and disables personal accounts, while `Membership optional` keeps personal accounts available for B2C + B2B coexistence. Pick `optional` if you need personal subscriptions alongside org subscriptions.
+> **STOP — prerequisite.** Organizations must be enabled before any org-related API, hook, or component works. Two paths: (1) [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings), or (2) `clerk config patch` with `organization_settings.enabled` (see "Agent-first: Programmatic org management" below). Pick the Membership mode deliberately: `Membership required` (default since 2025-08-22) routes signed-in users through the `choose-organization` task and disables personal accounts, while `Membership optional` keeps personal accounts available for B2C + B2B coexistence. Pick `optional` if you need personal subscriptions alongside org subscriptions.
 >
 > **Version**: This skill targets current SDKs (`@clerk/nextjs` v7+, `@clerk/react` v6+ — Core 3). Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts — see `clerk` skill for the full version table.
 
 ## Quick Start
 
-1. **Enable Organizations** — [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings). Pick `Membership required` (B2B-only) or `Membership optional` (B2C + B2B). Dashboard-only; no CLI path.
+1. **Enable Organizations** — via [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) or `clerk config patch` (see Agent-first section). Pick `Membership required` (B2B-only) or `Membership optional` (B2C + B2B).
 2. **Create an org** — via `<OrganizationSwitcher />`, `<CreateOrganization />`, or programmatically with `clerkClient().organizations.createOrganization()`.
 3. **Protect routes** — read `orgId` / `orgSlug` from `auth()` and gate with `has({ role })` or `has({ permission })`.
 4. **Manage members** — send invitations via Backend API or the built-in `<OrganizationProfile />` tab.
@@ -51,6 +51,78 @@ metadata:
 | Manage roles + permissions | `https://dashboard.clerk.com/last-active?path=organizations-settings/roles` |
 | Create/edit an organization | `https://dashboard.clerk.com/last-active?path=organizations` |
 | Webhooks for org events | `https://dashboard.clerk.com/last-active?path=webhooks` |
+
+## Agent-first: Programmatic org management
+
+Org settings (enable toggle, membership cap, admin delete, domains) are patchable via PLAPI Instance Config. Org CRUD + memberships + invitations live in BAPI. Useful for agents seeding orgs, replicating settings across instances, or version-controlling org structure.
+
+Pre-req: project linked (`clerk auth login` + `clerk link`, see `clerk-setup`).
+
+### Enable Organizations + settings via CLI
+
+```bash
+clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>/config \
+  -d '{"organization_settings":{"enabled":true,"max_allowed_memberships":50,"domains_enabled":true,"admin_delete_enabled":true}}'
+```
+
+### Create / list / delete orgs (BAPI)
+
+```bash
+# Create:
+clerk api -X POST /v1/organizations \
+  -d '{"name":"Acme","slug":"acme","created_by":"user_xxx","max_allowed_memberships":10}'
+
+# List:
+clerk api /v1/organizations --query 'limit=20'
+
+# Get one:
+clerk api /v1/organizations/<org_id>
+
+# Update:
+clerk api -X PATCH /v1/organizations/<org_id> -d '{"name":"Acme Inc."}'
+
+# Delete:
+clerk api -X DELETE /v1/organizations/<org_id>
+```
+
+### Memberships
+
+```bash
+# Add a user to an org:
+clerk api -X POST /v1/organizations/<org_id>/memberships \
+  -d '{"user_id":"user_xxx","role":"org:admin"}'
+
+# List members:
+clerk api /v1/organizations/<org_id>/memberships --query 'limit=50'
+
+# Update role:
+clerk api -X PATCH /v1/organizations/<org_id>/memberships/<user_id> \
+  -d '{"role":"org:member"}'
+
+# Remove:
+clerk api -X DELETE /v1/organizations/<org_id>/memberships/<user_id>
+```
+
+### Invitations
+
+```bash
+# Send:
+clerk api -X POST /v1/organizations/<org_id>/invitations \
+  -d '{"email_address":"alice@example.com","role":"org:member","redirect_url":"https://app.com/accept"}'
+
+# List pending:
+clerk api /v1/organizations/<org_id>/invitations --query 'status=pending'
+
+# Revoke:
+clerk api -X POST /v1/organizations/<org_id>/invitations/<inv_id>/revoke \
+  -d '{"requesting_user_id":"user_xxx"}'
+```
+
+### Notes
+
+- This handles **org config + CRUD**. Subscription / billing for orgs (org plans, seat-limit pricing) flows through `clerk-billing` skill.
+- Roles + permissions catalog is editable in `references/roles-permissions.md`. Custom role creation goes through `clerk config patch` (instance-level role definitions) — see Dashboard's role editor for the UX equivalent.
+- For SSO / verified domain provisioning, see `references/enterprise-sso.md`.
 
 ## Documentation
 
