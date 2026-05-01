@@ -4,7 +4,7 @@
 
 B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own subscription. Plans can carry a **seat limit** (membership cap) which Clerk enforces on member invites.
 
-> **Create the plan in the Organization Plans tab.** [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans) has two tabs; slugs are scoped per tab. A `team` plan created under *User Plans* will not appear in `<PricingTable for="organization" />`, and vice versa. Plans cannot be moved between tabs, recreate if misplaced.
+> **Create the plan in the Organization Plans tab.** [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans) has two tabs; slugs are scoped per tab. A `team` plan created under *User Plans* will not appear in `<PricingTable for="organization" />`, and vice versa. Plans cannot be moved between tabs, recreate if misplaced. (Plans are also creatable via `clerk config patch`, see SKILL.md → Agent-first.)
 
 ## Core Pattern: Org-Level Plan Check
 
@@ -36,7 +36,7 @@ Clerk Billing's B2B model is **seat-limit plans**: each organization plan has a 
 Key invariants:
 - **Fixed price per plan**, not auto-scaling per member. Adding members does not increment the org's billing amount on the active plan.
 - **One `active` SubscriptionItem per payer per Plan.** Do not derive seat count from `items.length`.
-- **Seat limit is a Plan property.** Set it when creating the plan in Dashboard → Billing → Plans (Organization Plans tab); it cannot be changed later.
+- **Seat limit is a Plan property.** Set it when creating the plan (Dashboard → Billing → Plans → Organization Plans tab, or via `clerk config patch`); it cannot be changed later.
 - When an org exceeds or changes to a plan with a lower limit, existing members stay but new invites are blocked until the org is under cap. See [Plans with seat limits](https://clerk.com/docs/guides/billing/seat-limit-plans) for the exact admin behavior.
 
 No custom seat-counting code is needed. Read the active plan with `has({ plan: 'org:team' })` and let Clerk enforce membership limits.
@@ -100,7 +100,7 @@ Tier plans by seat cap so bigger orgs pay more:
 | Business | `org:business` | 25 |
 | Enterprise | `org:enterprise` | unlimited (requires B2B Authentication add-on) |
 
-Define these in Clerk Dashboard → Billing → Plans → **Organization Plans** tab, toggle **Seat-based** on when creating. Use the `org:` prefix in slugs to disambiguate org plans from user plans in code (`has({ plan: 'org:team' })` vs `has({ plan: 'team' })`). Seat caps above 20 and "unlimited" require the B2B Authentication add-on.
+Define these in Clerk Dashboard → Billing → Plans → **Organization Plans** tab (or via `clerk config patch`, see SKILL.md → Agent-first), toggle **Seat-based** on when creating. Use the `org:` prefix in slugs to disambiguate org plans from user plans in code (`has({ plan: 'org:team' })` vs `has({ plan: 'team' })`). Seat caps above 20 and "unlimited" require the B2B Authentication add-on.
 
 ## Common Mistake: Checking Plan Without Active Org
 
