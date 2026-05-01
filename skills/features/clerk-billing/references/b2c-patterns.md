@@ -6,7 +6,7 @@ B2C billing in Clerk attaches subscriptions to **individual users**. Each user g
 
 > **Prerequisite: personal accounts must be allowed.** If Organizations are enabled, open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and set **Membership options → "Membership optional"**. In "Membership required" mode personal accounts are disabled, `<PricingTable />` silently excludes any user without an active org (no error, no console warning). Check this first when a user reports "subscribe does nothing."
 
-Plans for B2C must be created under the **User Plans** tab in Dashboard → Billing → Plans (or via `clerk config patch`, see SKILL.md → Agent-first). A `pro` plan under *Organization Plans* is a separate entity and won't appear in `<PricingTable />`. Plans aren't movable between tabs, recreate if misplaced.
+Plans for B2C must be registered as **User Plans**, not Organization Plans. A `pro` plan registered as an Organization Plan is a separate entity and won't appear in `<PricingTable />`. Plan type isn't changeable, recreate if misplaced.
 
 ## Core Pattern: User Plan Check
 
@@ -48,7 +48,7 @@ export default function PricingPage() {
 
 ## Tiered Feature Gating
 
-Prefer `has({ feature })` over `has({ plan })` for capability gating: features can move between plans without a code deploy (Dashboard or `clerk config patch`).
+Prefer `has({ feature })` over `has({ plan })` for capability gating: features can be reattached between plans without a code deploy.
 
 ```typescript
 import { auth } from '@clerk/nextjs/server'
