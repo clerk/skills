@@ -4,7 +4,7 @@
 
 B2B billing in Clerk attaches subscriptions to **organizations**, not individual users. Each org gets its own subscription. Plans can carry a **seat limit** (membership cap) which Clerk enforces on member invites.
 
-> **Plans must be created as Organization Plans, not User Plans.** Slugs are scoped per type. A `team` plan registered as a User Plan will not appear in `<PricingTable for="organization" />`, and vice versa. Plan type cannot be changed after creation, recreate if misplaced.
+> **Create the plan as an Organization Plan, not a User Plan.** Use [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans) (Organization Plans tab) or `clerk config patch` with `billing.plans`. Slugs are scoped per type. A `team` plan registered under User Plans will not appear in `<PricingTable for="organization" />`, and vice versa. Plan type cannot be changed after creation, recreate if misplaced.
 
 ## Core Pattern: Org-Level Plan Check
 
@@ -36,7 +36,7 @@ Clerk Billing's B2B model is **seat-limit plans**: each organization plan has a 
 Key invariants:
 - **Fixed price per plan**, not auto-scaling per member. Adding members does not increment the org's billing amount on the active plan.
 - **One `active` SubscriptionItem per payer per Plan.** Do not derive seat count from `items.length`.
-- **Seat limit is a Plan property.** Set it when creating the plan; it cannot be changed later.
+- **Seat limit is a Plan property.** Set it when creating the plan (Dashboard → Billing → Plans → Organization Plans tab, or `clerk config patch`); it cannot be changed later.
 - When an org exceeds or changes to a plan with a lower limit, existing members stay but new invites are blocked until the org is under cap. See [Plans with seat limits](https://clerk.com/docs/guides/billing/seat-limit-plans) for the exact admin behavior.
 
 No custom seat-counting code is needed. Read the active plan with `has({ plan: 'org:team' })` and let Clerk enforce membership limits.
@@ -100,7 +100,7 @@ Tier plans by seat cap so bigger orgs pay more:
 | Business | `org:business` | 25 |
 | Enterprise | `org:enterprise` | unlimited (requires B2B Authentication add-on) |
 
-Define these as **Organization Plans** with **Seat-based** pricing enabled. Use the `org:` prefix in slugs to disambiguate org plans from user plans in code (`has({ plan: 'org:team' })` vs `has({ plan: 'team' })`). Seat caps above 20 and "unlimited" require the B2B Authentication add-on.
+Define these via Dashboard → Billing → Plans → **Organization Plans** tab with **Seat-based** toggled on, or via `clerk config patch` with `billing.plans`. Use the `org:` prefix in slugs to disambiguate org plans from user plans in code (`has({ plan: 'org:team' })` vs `has({ plan: 'team' })`). Seat caps above 20 and "unlimited" require the B2B Authentication add-on.
 
 ## Common Mistake: Checking Plan Without Active Org
 
