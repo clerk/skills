@@ -14,9 +14,66 @@ metadata:
 
 > **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts.
 
-This skill sets up Clerk for authentication by following the official quickstart documentation.
+This skill sets up Clerk for authentication by following the official quickstart documentation. For agents, the `clerk` CLI handles most of this end to end — see the next section.
 
-## Quick Reference
+## Agent-first: Provision via CLI
+
+The `clerk` CLI replaces most Dashboard clicks. Three scenarios cover almost everything:
+
+### Scenario A — New project, new Clerk app
+
+```bash
+clerk init --framework <next|react|vue|nuxt|astro|react-router|tanstack-react-start|expressjs|fastify|expo> -y
+```
+
+`clerk init` creates the Clerk app via PLAPI, links the project, writes the framework-specific publishable + secret keys to the right env file (e.g. `.env.local` for Next.js, `.env` for Vite-based projects), and installs the SDK package.
+
+### Scenario B — Existing project, existing Clerk app
+
+```bash
+clerk auth login                      # one-time OAuth (skip if already logged in)
+clerk link                            # autolinks if a CLERK_PUBLISHABLE_KEY is in your .env
+clerk link --app app_xxx              # explicit form, required in agent mode
+clerk env pull                        # writes the framework-detected env vars
+```
+
+### Scenario C — Existing project, new Clerk app
+
+```bash
+clerk auth login
+clerk apps create "My App" --json     # returns the new app_id
+clerk link --app app_xxx
+clerk env pull
+```
+
+### Daily ops
+
+```bash
+clerk env pull                        # refresh keys (uses linked profile)
+clerk env pull --instance prod        # production keys
+clerk doctor --json                   # framework integration health check
+```
+
+### Rotate the secret key (replaces Dashboard rotation)
+
+PLAPI exposes secret-key rotation directly. Use raw `clerk api` until the friendly wrapper ships:
+
+```bash
+clerk api --platform POST /v1/platform/applications/<app_id>/rotate_secret_keys \
+  -d '{"delay_old_secrets_expiration_hours": 24, "reason": "scheduled rotation"}'
+```
+
+`delay_old_secrets_expiration_hours` keeps the old key valid for the grace period so deploys can roll forward without downtime.
+
+### Notes for agents
+
+- `clerk link` (no flags) only autolinks when a `CLERK_PUBLISHABLE_KEY` is already in `.env` / `.env.local`. Without it, agent mode errors out: "Cannot select an application in agent mode." When that happens, run `clerk apps list --json`, and ask the user which `app_id` to link rather than guessing.
+- Pass `--json` on `apps list/create`, `users create`, and `doctor` for parseable output.
+- The CLI auto-detects framework env var names (`VITE_CLERK_PUBLISHABLE_KEY` for Vite, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` for Next.js, etc.) and target file (`.env.development.local` > `.env.local` > `.env`).
+
+## Quick Reference (Dashboard fallback)
+
+If the CLI isn't an option (sandboxed environments, docs walkthroughs), here's the manual Dashboard path:
 
 | Step | Action |
 |------|--------|
@@ -230,6 +287,8 @@ Also import the shadcn CSS in your global styles:
 > **Core 2 ONLY (skip if current SDK):** Import from `@clerk/themes` and `@clerk/themes/shadcn.css` instead.
 
 ## Common Pitfalls
+
+> **Run `clerk doctor` first.** It checks framework integration, env vars, middleware presence, and SDK install status. Fixes a lot of these in one shot.
 
 | Issue | Solution |
 |-------|----------|
