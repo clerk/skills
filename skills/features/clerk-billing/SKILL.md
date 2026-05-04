@@ -15,13 +15,13 @@ metadata:
 
 # Billing
 
-> **STOP, Dashboard-only prerequisite.** Billing must be enabled from the Clerk Dashboard before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. The Clerk CLI and Backend API do **not** expose a toggle for this today, the only path is [dashboard.clerk.com → your app → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
+> **STOP, prerequisite.** Billing must be enabled before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. Two paths: (1) [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings), or (2) `clerk config patch` with `billing.user_enabled` / `billing.organization_enabled` (see "Agent-first: Programmatic billing config" below). Enabling auto-creates default `free_user` / `free_org` plans. Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
 >
 > **Note**: Billing APIs are still experimental. Pin your `@clerk/nextjs` and `clerk-js` package versions. See `clerk` skill for the supported version table.
 
 ## Quick Start
 
-1. **Enable Billing**, [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). Dashboard-only; no CLI or API path. Skipping this throws `cannot_render_billing_disabled` in dev and renders empty in prod.
+1. **Enable Billing**, via [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings) or `clerk config patch` (see Agent-first section). Skipping this throws `cannot_render_billing_disabled` in dev and renders empty in prod.
 2. **Create plans in the matching tab**, [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans). Two tabs, slugs scoped per tab, not movable after creation:
    - **User Plans** → `<PricingTable />` (default `for="user"`)
    - **Organization Plans** → `<PricingTable for="organization" />`
@@ -40,6 +40,55 @@ metadata:
 | Create / edit plans | `https://dashboard.clerk.com/last-active?path=billing/plans` |
 | Membership mode (B2C + B2B coexistence) | `https://dashboard.clerk.com/last-active?path=organizations-settings` |
 | Edit features | Plans → click a plan → Features section (no direct URL) |
+
+## Agent-first: Programmatic billing config
+
+The full billing config (enable toggles, plans, features, plan-feature attachments) is editable via PLAPI without touching the Dashboard. Useful for agents seeding plans, replicating config across instances, or version-controlling billing structure.
+
+Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see `clerk-setup`).
+
+### Enable Billing via CLI
+
+The Enable Billing toggle is writable via `clerk config patch`:
+
+```bash
+# Enable billing for users + orgs in one PATCH (auto-creates free_user and free_org plans):
+clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>/config \
+  -d '{"billing":{"user_enabled":true,"organization_enabled":true}}'
+```
+
+### Pull current billing config
+
+```bash
+clerk config pull --keys billing > billing.json
+```
+
+This writes the current billing config (toggles + plans + features) for the linked instance to `billing.json`.
+
+### Edit and apply
+
+Edit `billing.json` to add/remove plans or features, then preview the diff and apply:
+
+```bash
+clerk config patch --file billing.json --dry-run
+clerk config patch --file billing.json
+```
+
+Pass `--instance prod` to target the production instance instead of dev.
+
+### Raw PATCH (full control)
+
+For one-shot plan/feature updates without a config file:
+
+```bash
+clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>/config \
+  -d '{"billing":{"plans":[{"slug":"pro","name":"Pro","amount":2000,"currency":"usd","payer_type":"user","is_recurring":true}],"features":[{"slug":"export","name":"Export"}]}}'
+```
+
+### Notes
+
+- This handles **billing config** (toggles + plans + features catalog). **Subscription lifecycle** (users picking a plan, checkout, renewal, cancellation) still flows through `<PricingTable />` + billing webhooks, see `clerk-webhooks` skill for the lifecycle events.
+- Top-level `features` map manipulation and plan-feature attachments (sync) are fully supported via the PLAPI billing config handler.
 
 ## What Do You Need?
 

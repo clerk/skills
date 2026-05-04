@@ -6,7 +6,7 @@ B2C billing in Clerk attaches subscriptions to **individual users**. Each user g
 
 > **Prerequisite: personal accounts must be allowed.** If Organizations are enabled, open [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) and set **Membership options → "Membership optional"**. In "Membership required" mode personal accounts are disabled, `<PricingTable />` silently excludes any user without an active org (no error, no console warning). Check this first when a user reports "subscribe does nothing."
 
-Plans for B2C must be created under the **User Plans** tab in Dashboard → Billing → Plans. A `pro` plan under *Organization Plans* is a separate entity and won't appear in `<PricingTable />`. Plans aren't movable between tabs, recreate if misplaced.
+Plans for B2C must be created as **User Plans** (Dashboard → Billing → Plans → User Plans tab, or `clerk config patch` with `billing.plans`). A `pro` plan registered as an Organization Plan is a separate entity and won't appear in `<PricingTable />`. Plan type isn't changeable, recreate if misplaced.
 
 ## Core Pattern: User Plan Check
 
@@ -29,26 +29,9 @@ export default async function ProDashboard() {
 }
 ```
 
-## Full Pricing Page Setup
-
-```tsx
-import { PricingTable } from '@clerk/nextjs'
-
-export default function PricingPage() {
-	return (
-		<main className="max-w-4xl mx-auto py-12">
-			<h1>Choose your plan</h1>
-			<PricingTable />
-		</main>
-	)
-}
-```
-
-`<PricingTable />` fetches plan data from Clerk and renders plan cards that open Clerk's in-app checkout drawer on selection. No props required for basic usage.
-
 ## Tiered Feature Gating
 
-Prefer `has({ feature })` over `has({ plan })` for capability gating: features can move between plans in the Dashboard without a code deploy.
+Prefer `has({ feature })` over `has({ plan })` for capability gating: features can be reattached between plans without a code deploy.
 
 ```typescript
 import { auth } from '@clerk/nextjs/server'
