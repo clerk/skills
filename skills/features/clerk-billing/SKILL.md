@@ -15,13 +15,13 @@ metadata:
 
 # Billing
 
-> **STOP, prerequisite.** Billing must be enabled before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. Two paths: (1) [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings), or (2) `clerk config patch` with `billing.user_enabled` / `billing.organization_enabled` (see "Agent-first: Programmatic billing config" below). Enabling auto-creates default `free_user` / `free_org` plans. Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
+> **STOP, prerequisite.** Billing must be enabled before any `<PricingTable />`, `<CheckoutButton />`, `has({ plan })`, or `has({ feature })` usage works. Two paths: (1) [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings), or (2) `clerk enable billing` (see "Agent-first: Programmatic billing config" below). Enabling auto-creates default `free_user` / `free_org` plans. Dev instances can use the shared Clerk development gateway (no Stripe account needed); production requires a Stripe account for payment processing only.
 >
 > **Note**: Billing APIs are still experimental. Pin your `@clerk/nextjs` and `clerk-js` package versions. See `clerk` skill for the supported version table.
 
 ## Quick Start
 
-1. **Enable Billing**, via [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings) or `clerk config patch` (see Agent-first section). Skipping this throws `cannot_render_billing_disabled` in dev and renders empty in prod.
+1. **Enable Billing**, via [Dashboard → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings) or `clerk enable billing` (see Agent-first section). Skipping this throws `cannot_render_billing_disabled` in dev and renders empty in prod.
 2. **Create plans in the matching tab**, [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans). Two tabs, slugs scoped per tab, not movable after creation:
    - **User Plans** → `<PricingTable />` (default `for="user"`)
    - **Organization Plans** → `<PricingTable for="organization" />`
@@ -49,12 +49,10 @@ Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see
 
 ### Enable Billing via CLI
 
-The Enable Billing toggle is writable via `clerk config patch`:
-
 ```bash
-# Enable billing for users + orgs in one PATCH (auto-creates free_user and free_org plans):
-clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>/config \
-  -d '{"billing":{"user_enabled":true,"organization_enabled":true}}'
+clerk enable billing                # both targets (default, auto-creates free_user + free_org plans)
+clerk enable billing --for org      # org only
+clerk enable billing --for user     # user only
 ```
 
 ### Pull current billing config
@@ -461,7 +459,7 @@ When you see any of these errors or symptoms, the fix is almost always a Dashboa
 
 | Error / symptom | Root cause | Fix |
 |---|---|---|
-| `Clerk: 🔒 The <PricingTable/> component cannot be rendered when billing is disabled.` (code: `cannot_render_billing_disabled`, dev only) | Billing is not enabled for this instance | Enable Billing at [dashboard.clerk.com → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings). No CLI path. |
+| `Clerk: 🔒 The <PricingTable/> component cannot be rendered when billing is disabled.` (code: `cannot_render_billing_disabled`, dev only) | Billing is not enabled for this instance | Enable Billing at [dashboard.clerk.com → Billing → Settings](https://dashboard.clerk.com/last-active?path=billing/settings), or run `clerk enable billing`. |
 | `<PricingTable />` renders empty | No plans, OR plan in the wrong tab (User vs Organization), OR Billing not enabled | Create plan in matching tab; pass `for="organization"` for B2B; check Billing Settings |
 | Users can't subscribe to a personal plan on a B2C + B2B app | Membership required mode (default since 2025-08-22) disables personal accounts, signed-in users are forced into `choose-organization` and never land on a personal-subscription state | If you need personal + org subscriptions coexisting: Dashboard → Organizations settings → *Membership optional* |
 | Can't find a Features page | Features are per-plan, not global | Dashboard → Billing → Plans → click plan → Features |
