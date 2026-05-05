@@ -13,13 +13,13 @@ metadata:
 
 # Organizations (B2B SaaS)
 
-> **STOP — prerequisite.** Organizations must be enabled before any org-related API, hook, or component works. Two paths: (1) [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings), or (2) `clerk config patch` with `organization_settings.enabled` (see "Agent-first: Programmatic org management" below). Pick the Membership mode deliberately: `Membership required` (default since 2025-08-22) routes signed-in users through the `choose-organization` task and disables personal accounts, while `Membership optional` keeps personal accounts available for B2C + B2B coexistence. Pick `optional` if you need personal subscriptions alongside org subscriptions.
+> **STOP — prerequisite.** Organizations must be enabled before any org-related API, hook, or component works. Two paths: (1) [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings), or (2) `clerk enable orgs` (see "Agent-first: Programmatic org management" below). Pick the Membership mode deliberately: `Membership required` (default since 2025-08-22) routes signed-in users through the `choose-organization` task and disables personal accounts, while `Membership optional` keeps personal accounts available for B2C + B2B coexistence. Pick `optional` if you need personal subscriptions alongside org subscriptions.
 >
 > **Version**: This skill targets current SDKs (`@clerk/nextjs` v7+, `@clerk/react` v6+ — Core 3). Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts — see `clerk` skill for the full version table.
 
 ## Quick Start
 
-1. **Enable Organizations** — via [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) or `clerk config patch` (see Agent-first section). Pick `Membership required` (B2B-only) or `Membership optional` (B2C + B2B).
+1. **Enable Organizations** — via [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings) or `clerk enable orgs` (see Agent-first section). Pick `Membership required` (B2B-only) or `Membership optional` (B2C + B2B).
 2. **Create an org** — via `<OrganizationSwitcher />`, `<CreateOrganization />`, or programmatically with `clerkClient().organizations.createOrganization()`.
 3. **Protect routes** — read `orgId` / `orgSlug` from `auth()` and gate with `has({ role })` or `has({ permission })`.
 4. **Manage members** — send invitations via Backend API or the built-in `<OrganizationProfile />` tab.
@@ -61,8 +61,14 @@ Pre-req: project linked (`clerk auth login` + `clerk link`, see `clerk-setup`).
 ### Enable Organizations + settings via CLI
 
 ```bash
+clerk enable orgs
+```
+
+For additional settings (membership cap, verified domains, admin delete), patch the instance config:
+
+```bash
 clerk api --platform PATCH /v1/platform/applications/<app_id>/instances/<ins_id>/config \
-  -d '{"organization_settings":{"enabled":true,"max_allowed_memberships":50,"domains_enabled":true,"admin_delete_enabled":true}}'
+  -d '{"organization_settings":{"max_allowed_memberships":50,"domains_enabled":true,"admin_delete_enabled":true}}'
 ```
 
 ### Create / list / delete orgs (BAPI)
