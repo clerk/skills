@@ -15,6 +15,8 @@ skills/
 ## Plugin Registry
 
 `.claude-plugin/marketplace.json` - Anthropic plugin format with 4 grouped plugins.
+`.codex-plugin/plugin.json` - Codex plugin manifest for the full skills bundle.
+`.agents/plugins/marketplace.json` - Codex marketplace registry for installing the plugin.
 
 ## Contributing
 
@@ -23,3 +25,4 @@ skills/
 3. Add to `.claude-plugin/marketplace.json` under the matching plugin group
 4. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 5. Folder names keep the `clerk-` prefix (e.g. `frameworks/clerk-nextjs-patterns/`)
+6. When adding, removing, or moving skills, keep applicable marketplace manifests in sync.

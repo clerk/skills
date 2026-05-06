@@ -1,0 +1,23 @@
+{
+  "name": "clerk-skills",
+  "version": "1.0.0",
+  "description": "Official Clerk skills for AI coding agents.",
+  "repository": "https://github.com/clerk/skills",
+  "license": "MIT",
+  "keywords": [
+    "clerk",
+    "auth",
+    "nextjs",
+    "expo",
+    "webhooks",
+    "organizations"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Clerk Skills",
+    "shortDescription": "Clerk auth, organizations, testing, and framework guidance",
+    "developerName": "Clerk",
+    "category": "Coding",
+    "capabilities": ["Read"]
+  }
+}

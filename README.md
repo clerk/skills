@@ -32,9 +32,20 @@ Skills follow the [Agent Skills](https://agentskills.io/) format.
 
 ## Install
 
+### Agent Skills
+
 ```bash
 npx skills add clerk/skills
 ```
+
+### Codex
+
+```bash
+codex plugin marketplace add clerk/skills
+```
+
+After adding the marketplace, restart Codex, open `/plugins`, select
+**Clerk Skills**, install and enable `clerk-skills`, then start a new thread.
 
 ### Manual (Claude Code)
 
@@ -117,6 +128,11 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 ```
 clerk-skills/
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json
+├── .codex-plugin/
+│   └── plugin.json
 ├── .claude-plugin/
 │   └── marketplace.json
 ├── skills/
