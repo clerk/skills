@@ -4,6 +4,7 @@ description: Advanced Next.js patterns - middleware, Server Actions, caching wit
   Clerk.
 license: MIT
 allowed-tools: WebFetch
+compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. For manual JWT verification (standalone API servers without Clerk middleware), additionally requires CLERK_JWT_KEY or CLERK_PEM_PUBLIC_KEY.
 metadata:
   author: clerk
   version: 2.2.0
@@ -67,7 +68,9 @@ export default async function Page() {
 
 ### Conditional Rendering with `<Show>`
 
-For client-side conditional rendering based on auth state:
+For client-side conditional rendering based on auth state. `<Show>` covers both authentication checks and authorization (feature, plan, role, permission) in one component.
+
+**Authentication check:**
 
 ```tsx
 import { Show } from '@clerk/nextjs'
@@ -77,7 +80,39 @@ import { Show } from '@clerk/nextjs'
 </Show>
 ```
 
-> **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`. See `clerk-custom-ui` skill, `core-3/show-component.md` for the full migration table.
+**Authorization checks (B2B):**
+
+```tsx
+// Feature-based (preferred — features can move between plans without redeploy)
+<Show when={{ feature: 'analytics' }} fallback={<UpgradePrompt />}>
+  <AnalyticsDashboard />
+</Show>
+
+// Permission-based (preferred over role-based for granular access)
+<Show when={{ permission: 'org:invoices:create' }}>
+  <NewInvoiceButton />
+</Show>
+
+// Plan-based (tier-level gating)
+<Show when={{ plan: 'pro' }}>
+  <ProFeatures />
+</Show>
+
+// Role-based (use sparingly — prefer permission)
+<Show when={{ role: 'org:admin' }}>
+  <AdminPanel />
+</Show>
+```
+
+**Callback for complex logic:**
+
+```tsx
+<Show when={(has) => has({ role: 'org:admin' }) || has({ role: 'org:billing_manager' })}>
+  <BillingActions />
+</Show>
+```
+
+> **Core 2 ONLY (skip if current SDK):** `<Show>` does not exist. For authentication, use `<SignedIn>` and `<SignedOut>`. For authorization (role / permission), use `<Protect>` with the same prop names (`role`, `permission`, `condition`). Feature- and plan-based variants require Core 3. See `clerk-custom-ui` skill, `core-3/show-component.md` for the full migration table.
 
 ## Common Pitfalls
 
@@ -206,8 +241,11 @@ Token sources:
 
 ## See Also
 
-- `clerk-setup`
-- `clerk-orgs`
+- `clerk-setup` - Initial Clerk install
+- `clerk-orgs` - B2B patterns (active org, role/permission gating)
+- `clerk-billing` - Plan and feature entitlements with `has()`
+- `clerk-webhooks` - Sync user/org events to your database
+- `clerk-custom-ui` - Theming and customization for built-in components
 
 ## Docs
 

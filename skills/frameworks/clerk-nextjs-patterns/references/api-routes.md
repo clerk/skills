@@ -1,4 +1,4 @@
-# API Routes (HIGH)
+# API Routes
 
 ## Auth Check Pattern
 
