@@ -1,28 +1,38 @@
 ---
 name: clerk-webhooks
-description: Clerk webhooks for real-time events and data syncing. Always output complete,
-  copy-paste-ready webhook handlers with verifyWebhook(req) verification. Listen for
-  user creation, updates, deletion, and organization events. Build event-driven features
-  like database sync, notifications, integrations.
+description: Clerk webhooks for real-time events and data syncing. Verify with verifyWebhook
+  from the framework-specific package. Handle user, session, organization, billing, and
+  payment events. Build event-driven features like database sync, notifications, and
+  integrations.
 allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
   version: 1.2.0
-compatibility: Requires CLERK_WEBHOOK_SECRET (svix signing secret from Clerk dashboard)
+compatibility: Requires CLERK_WEBHOOK_SIGNING_SECRET (svix signing secret from Clerk dashboard)
 ---
 
 # Webhooks
 
-Always output complete, working, copy-paste-ready webhook handlers. Never output stubs, placeholders, or partial implementations. Include `verifyWebhook(req)` in every handler.
+Output complete, working webhook handlers with `verifyWebhook(req)` verification in every handler.
 
-## CRITICAL: Always Verify Webhooks
+## When to Use Webhooks
 
-**NEVER skip signature verification**, even for notification-only handlers. Always use `verifyWebhook(req)` from `@clerk/nextjs/webhooks`. This uses the `CLERK_WEBHOOK_SECRET` env var automatically.
+Webhooks are **asynchronous and eventually consistent**. Delivery is fast but not guaranteed to be immediate, and may occasionally fail (Svix retries on a fixed schedule). Use them for:
 
-## CRITICAL: Make Webhook Route Public
+- Database sync (a separate users / orgs table that follows Clerk)
+- Notifications (welcome emails, Slack pings, internal alerts)
+- Integrations triggered by lifecycle events
 
-Webhook routes MUST be excluded from Clerk middleware protection. Without this, Clerk returns 401.
+Do NOT rely on webhook delivery as part of a synchronous flow such as onboarding ("user signs up, then we read X from our DB"). For data the user just created, read it from the [Clerk session token](https://clerk.com/docs/guides/sessions/session-tokens) or call the Backend API directly. Webhooks fill the gap when you need data about *other* users or events the session token doesn't carry.
+
+## Verify Every Webhook
+
+Use `verifyWebhook(req)` from the framework-specific package (`@clerk/nextjs/webhooks`, `@clerk/express/webhooks`, etc.). It reads `CLERK_WEBHOOK_SIGNING_SECRET` automatically and throws on bad signatures. Skipping verification, even for notification-only handlers, exposes the endpoint to spoofed events.
+
+## Make the Webhook Route Public
+
+Webhook routes must be excluded from Clerk middleware protection. Without this, Clerk returns 401.
 
 ```typescript
 // proxy.ts (Next.js <=15: middleware.ts)
@@ -30,8 +40,8 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
 
-export default clerkMiddleware((auth, req) => {
-  if (!isPublicRoute(req)) auth().protect()
+export default clerkMiddleware(async (auth, req) => {
+  if (!isPublicRoute(req)) await auth.protect()
 })
 ```
 
@@ -47,7 +57,7 @@ export async function POST(req: NextRequest) {
   // ALWAYS verify - never skip, even for notification-only handlers
   let evt
   try {
-    evt = await verifyWebhook(req) // uses CLERK_WEBHOOK_SECRET automatically
+    evt = await verifyWebhook(req) // uses CLERK_WEBHOOK_SIGNING_SECRET automatically
   } catch (err) {
     console.error('Webhook verification failed:', err)
     return new Response('Verification failed', { status: 400 })
@@ -91,7 +101,7 @@ export async function POST(req: NextRequest) {
 
 ## Full Example: Welcome Email (Resend) + Slack Notification on user.created
 
-**ALWAYS use this COMPLETE pattern — never stub it out:**
+Notification-only handlers still verify the signature. Same pattern as the database-sync handler:
 
 ```typescript
 // app/api/webhooks/route.ts
@@ -105,7 +115,7 @@ export async function POST(req: NextRequest) {
   // Step 1: ALWAYS verify the webhook signature - NEVER skip this
   let evt
   try {
-    evt = await verifyWebhook(req) // uses CLERK_WEBHOOK_SECRET env var
+    evt = await verifyWebhook(req) // uses CLERK_WEBHOOK_SIGNING_SECRET env var
   } catch (err) {
     console.error('Webhook verification failed:', err)
     return new Response('Verification failed', { status: 400 })
@@ -146,8 +156,8 @@ export async function POST(req: NextRequest) {
 // proxy.ts (Next.js <=15: middleware.ts)
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
-export default clerkMiddleware((auth, req) => {
-  if (!isPublicRoute(req)) auth().protect()
+export default clerkMiddleware(async (auth, req) => {
+  if (!isPublicRoute(req)) await auth.protect()
 })
 ```
 
@@ -163,7 +173,7 @@ export async function POST(req: NextRequest) {
   // ALWAYS verify signature - never skip, even for simple handlers
   let evt
   try {
-    evt = await verifyWebhook(req) // uses CLERK_WEBHOOK_SECRET env var
+    evt = await verifyWebhook(req) // uses CLERK_WEBHOOK_SIGNING_SECRET env var
   } catch (err) {
     console.error('Webhook verification failed:', err)
     return new Response('Verification failed', { status: 400 })
@@ -215,59 +225,26 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-## Express.js Webhook Handler
+## Other Frameworks
 
-> **CRITICAL**: Use `express.raw()` NOT `express.json()` for webhook routes. Signature verification requires the raw body bytes. `express.json()` parses the body and breaks verification.
+For Express, Astro, Fastify, Nuxt, React Router, and TanStack Start, use the framework-specific `verifyWebhook` adapter. Each Clerk SDK package ships its own (`@clerk/express/webhooks`, `@clerk/astro/webhooks`, `@clerk/fastify/webhooks`, etc.).
+
+See `references/frameworks.md` for full handler examples per framework.
+
+## Type Narrowing for `evt.data`
+
+`verifyWebhook` returns `WebhookEvent`, a discriminated union of all event types. Narrow with `evt.type` to get type-safe access to `evt.data`:
 
 ```typescript
-import express from 'express'
-import { Webhook } from 'svix'
+const evt = await verifyWebhook(req)
 
-const app = express()
-
-// WRONG - breaks verification because it parses the body:
-// app.use(express.json())
-
-// CORRECT - use raw body for webhook route only:
-app.post('/webhooks/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
-  const webhookSecret = process.env.CLERK_WEBHOOK_SECRET!
-
-  const wh = new Webhook(webhookSecret)
-  let evt: any
-  try {
-    // Svix verifies using raw body bytes + svix headers
-    evt = wh.verify(req.body, {
-      'svix-id': req.headers['svix-id'] as string,
-      'svix-timestamp': req.headers['svix-timestamp'] as string,
-      'svix-signature': req.headers['svix-signature'] as string,
-    })
-  } catch (err) {
-    console.error('Webhook verification failed:', err)
-    return res.status(400).json({ error: 'Verification failed' })
-  }
-
-  if (evt.type === 'user.created') {
-    const { id, email_addresses, first_name, last_name } = evt.data
-    const email = email_addresses[0]?.email_address
-    const name = `${first_name ?? ''} ${last_name ?? ''}`.trim()
-    console.log(`New user: ${name} (${email})`)
-  }
-
-  if (evt.type === 'user.updated') {
-    const { id, email_addresses } = evt.data
-    const email = email_addresses[0]?.email_address
-    console.log(`User updated: ${id}, email: ${email}`)
-  }
-
-  if (evt.type === 'user.deleted') {
-    const { id } = evt.data
-    console.log(`User deleted: ${id}`)
-  }
-
-  // Return 200 status on success
-  return res.status(200).json({ received: true })
-})
+if (evt.type === 'user.created') {
+  // evt.data is now UserJSON, autocompletes id, email_addresses, etc.
+  console.log(evt.data.id)
+}
 ```
+
+For manual typing of nested payloads, import the JSON types from your framework's webhook subpath: `DeletedObjectJSON`, `EmailJSON`, `OrganizationInvitationJSON`, `OrganizationJSON`, `OrganizationMembershipJSON`, `SessionJSON`, `SMSMessageJSON`, `UserJSON`.
 
 ## Payload Field Reference
 
@@ -306,7 +283,7 @@ const {
 
 **User**: `user.created` `user.updated` `user.deleted`
 
-**Session**: `session.created` `session.ended` `session.pending` `session.removed` `session.revoked`
+**Session**: `session.created` `session.ended` `session.removed` `session.revoked`
 
 **Organization**: `organization.created` `organization.updated` `organization.deleted`
 
@@ -317,8 +294,6 @@ const {
 **Organization Invitation**: `organizationInvitation.accepted` `organizationInvitation.created` `organizationInvitation.revoked`
 
 **Communication**: `email.created` `sms.created`
-
-**Invitation**: `invitation.accepted` `invitation.created` `invitation.revoked`
 
 **Waitlist**: `waitlistEntry.created` `waitlistEntry.updated`
 
@@ -352,12 +327,19 @@ const {
 
 ## Testing & Deployment
 
-**Local**: Use ngrok to tunnel `localhost:3000` to internet. Add ngrok URL to Dashboard endpoint.
+**Local**: Tunnel `localhost:3000` to the internet so Clerk can reach the endpoint. Common options: `ngrok`, `localtunnel`, `Cloudflare Tunnel`. Add the public URL to the Dashboard endpoint.
 
-**Production**: Update webhook endpoint URL to production domain. Copy `CLERK_WEBHOOK_SECRET` to production env vars.
+**Production**: Update webhook endpoint URL to production domain. Copy `CLERK_WEBHOOK_SIGNING_SECRET` to production env vars.
+
+## References
+
+| Reference | Description |
+|-----------|-------------|
+| `references/frameworks.md` | Webhook handler examples for Express, Astro, Fastify, Nuxt, React Router, TanStack Start |
 
 ## See Also
 
 - `clerk-setup` - Initial Clerk install
 - `clerk-orgs` - Org membership events
+- `clerk-billing` - Subscription, subscription item, and payment attempt events
 - `clerk-backend-api` - Sync via direct API calls
