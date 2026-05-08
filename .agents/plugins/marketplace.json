@@ -1,7 +1,7 @@
 {
-  "name": "clerk-skills",
+  "name": "clerk",
   "interface": {
-    "displayName": "Clerk Skills"
+    "displayName": "Clerk"
   },
   "plugins": [
     {

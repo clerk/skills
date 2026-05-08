@@ -20,7 +20,7 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Clerk Skills",
+    "displayName": "Clerk",
     "shortDescription": "Clerk auth, organizations, testing, and framework guidance",
     "longDescription": "Official Clerk skills bundle for AI coding agents. Includes a router skill plus framework-specific patterns (Next.js, React, Vue, Nuxt, Astro, TanStack Start, Expo, React Router, Chrome Extension), feature skills (organizations, billing, webhooks, testing), and native mobile guidance (Swift, Android).",
     "developerName": "Clerk",
