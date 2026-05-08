@@ -1,0 +1,39 @@
+{
+  "name": "clerk-skills",
+  "version": "1.0.0",
+  "description": "Official Clerk skills for AI coding agents.",
+  "author": {
+    "name": "Clerk",
+    "email": "ai@clerk.dev",
+    "url": "https://clerk.com"
+  },
+  "homepage": "https://clerk.com",
+  "repository": "https://github.com/clerk/skills",
+  "license": "MIT",
+  "keywords": [
+    "clerk",
+    "auth",
+    "nextjs",
+    "expo",
+    "webhooks",
+    "organizations"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Clerk",
+    "shortDescription": "Clerk auth, organizations, testing, and framework guidance",
+    "longDescription": "Official Clerk skills bundle for AI coding agents. Includes a router skill plus framework-specific patterns (Next.js, React, Vue, Nuxt, Astro, TanStack Start, Expo, React Router, Chrome Extension), feature skills (organizations, billing, webhooks, testing), and native mobile guidance (Swift, Android).",
+    "developerName": "Clerk",
+    "category": "Coding",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://clerk.com",
+    "defaultPrompt": [
+      "Add Clerk auth to my Next.js app",
+      "Set up organizations for my B2B app",
+      "Sync users to Postgres via Clerk webhooks"
+    ],
+    "brandColor": "#6C47FF",
+    "composerIcon": "./assets/clerk-logo.svg",
+    "logo": "./assets/clerk-logo.svg"
+  }
+}
