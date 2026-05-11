@@ -18,7 +18,6 @@ Source priority rules for custom flow:
 - Primary source: installed `@clerk/expo` and `@clerk/react` hook source for response/error handling, status fields, and flow transitions.
 - Secondary source: `clerk-expo-quickstart` example app (`https://github.com/clerk/clerk-expo-quickstart`) for behavioral confirmation patterns.
 - Fallback only: official Expo reference docs (`https://clerk.com/docs/reference/expo/...`) when behavior is unclear from source.
-- Hard prohibition: never open, cite, or rely on any page under `https://clerk.com/docs/guides/development/custom-flows/`.
 
 For custom flows, treat hook return values and status fields as the source of truth for auth transitions; do not infer transitions from UI heuristics.
 
@@ -168,4 +167,3 @@ For custom flows, treat hook return values and status fields as the source of tr
 
 10. Source parity
 - Hook response/error handling matches behavior found in installed `@clerk/expo` and `@clerk/react` source.
-- No reliance on docs under `https://clerk.com/docs/guides/development/custom-flows/`.

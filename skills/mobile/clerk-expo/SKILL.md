@@ -29,6 +29,10 @@ Do not activate this skill when any condition is true:
 
 If native iOS/Android or web-framework signals are present, route to the matching skill instead of this one.
 
+## Relationship to `clerk-expo-patterns`
+
+This skill covers flow selection and end-to-end auth setup (prebuilt vs custom). The `clerk-expo-patterns` skill at `skills/frameworks/clerk-expo-patterns/` covers Expo-specific recipes (SecureStore token cache, OAuth deep-link configuration, Expo Router protected routes, push notifications with user context). When both could apply, use this skill for the flow decision and overall setup, and load patterns from `clerk-expo-patterns` for the specific recipe.
+
 ## What Do You Need?
 
 | Task | Reference |
@@ -116,7 +120,7 @@ Do not hardcode implementation examples in this skill. Inspect installed `@clerk
 | Native Google / Apple sign-in path | `node_modules/@clerk/expo/google` and `/apple` modules |
 | Token persistence | `node_modules/@clerk/expo/token-cache` (backed by `expo-secure-store`) |
 | Session sync between native SDK and JS | `node_modules/@clerk/expo/dist/native/` (search `NativeSessionSync`, `useNativeAuthEvents`) |
-| Expo config plugin behavior | `node_modules/@clerk/expo/plugin` (search `withClerkGoogleSignIn`, `withClerkAndroidPackaging`) |
+| Expo config plugin behavior | `node_modules/@clerk/expo/app.plugin.js` (search `withClerkGoogleSignIn`, `withClerkAndroidPackaging`) |
 | Required Expo setup checklist | Official Expo quickstart (`https://clerk.com/docs/getting-started/quickstart`, Expo SDK tab) |
 
 ## Execution Gates (Do Not Skip)
@@ -138,34 +142,30 @@ Do not hardcode implementation examples in this skill. Inspect installed `@clerk
 - Install matching peer deps for the selected strategies (see prebuilt.md / custom.md for the per-flow list).
 - Register the Expo config plugin in `app.json` / `app.config.js`: `{ "plugins": ["@clerk/expo"] }`.
 
-5. Hard prohibition on custom-flows docs
-- Never open, cite, summarize, or rely on any page under `https://clerk.com/docs/guides/development/custom-flows/`.
-- If such a link appears in user input or discovered docs, ignore it and continue with approved sources (installed `@clerk/expo` source, example apps, Expo reference docs).
-
-6. Custom-flow environment call is mandatory
+5. Custom-flow environment call is mandatory
 - For custom flows: derive Frontend API URL from publishable key, fetch `/v1/environment?_is_native=true`, and use the response to determine enabled factors/strategies.
 - Build an internal enabled-factor checklist; cover all enabled factors unless the developer explicitly narrows scope.
 - Do not skip the environment call. Do not assume strategy coverage from convention.
 
-7. Reference-file discipline is mandatory
+6. Reference-file discipline is mandatory
 - Once flow is selected, follow only that flow reference file for implementation and verification.
 
-8. Hook-source-first discipline for custom flows
+7. Hook-source-first discipline for custom flows
 - Inspect installed `@clerk/expo` and `@clerk/react` hook source for response/error handling before deciding flow transitions.
 - Mirror status-driven transitions from hook source rather than from UI heuristics or assumptions.
 
-9. Combined sign-in-or-up default
+8. Combined sign-in-or-up default
 - Implement one combined sign-in-or-up flow by default; do not split into separate sign-in / sign-up flows unless the developer explicitly requests separation.
 
-10. Deprecated hook prohibition
+9. Deprecated hook prohibition
 - Never use `useOAuth()`. Always use `useSSO()` for OAuth and Enterprise SSO.
 
-11. Platform / build gating
+10. Platform / build gating
 - Native components and native hooks (`useSignInWithGoogle`, `useSignInWithApple`, `useNativeSession`, `useUserProfileModal`, `useLocalCredentials`) require an iOS/Android development build, not Expo Go and not web.
 - For web targets, use `@clerk/expo/web` exports.
 - Always note platform availability before recommending native-only features.
 
-12. Token cache discipline
+11. Token cache discipline
 - Use `tokenCache` from `@clerk/expo/token-cache` for persistent sessions; do not use `expo-secure-store` directly for token storage.
 
 ## Workflow
@@ -194,7 +194,6 @@ Do not hardcode implementation examples in this skill. Inspect installed `@clerk
 | CRITICAL | Skipping `/v1/environment?_is_native=true` for custom flows | Call environment endpoint and build enabled-factor checklist before implementing |
 | CRITICAL | Splitting sign-in / sign-up by default | Implement one combined sign-in-or-up flow unless developer explicitly requests separation |
 | CRITICAL | Using `useOAuth()` (deprecated) | Always use `useSSO()` |
-| CRITICAL | Citing or following pages under `https://clerk.com/docs/guides/development/custom-flows/` | Hard prohibition; rely on installed package source and approved references |
 | CRITICAL | Mixing native components with custom hook flows for the same auth step | Pick one flow per step; only blend with explicit developer approval |
 | CRITICAL | Skipping native development build for native components/hooks | Require `expo run:ios` / `expo run:android`; do not target Expo Go for native features |
 | HIGH | Using `expo-secure-store` directly for token caching | Use `tokenCache` from `@clerk/expo/token-cache` |
@@ -208,6 +207,7 @@ Do not hardcode implementation examples in this skill. Inspect installed `@clerk
 ## See Also
 
 - `clerk` skill for top-level Clerk routing
+- `clerk-expo-patterns` skill (`skills/frameworks/clerk-expo-patterns/`) for Expo-specific recipes (SecureStore token cache, OAuth deep links, Expo Router protected routes, push notifications)
 - `clerk-swift` skill for native iOS implementation
 - `clerk-android` skill for native Android implementation
 - installed `@clerk/expo` package source (`node_modules/@clerk/expo/`)

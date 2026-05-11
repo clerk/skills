@@ -4,7 +4,9 @@ Use this file only when flow type is `prebuilt`.
 
 ## Purpose
 
-Implement Expo / React Native auth with prebuilt @clerk/expo native components (`AuthView`, `InlineAuthView`, `UserButton`, `UserProfileView`) instead of building custom hook-driven UI.
+Implement Expo / React Native auth with prebuilt @clerk/expo native components (`AuthView`, `UserButton`, `UserProfileView`) instead of building custom hook-driven UI.
+
+> Note: native components are in beta per the Clerk Expo docs callout. Flag this to the developer before recommending them as the default for production rollout.
 
 ## Required Patterns
 
@@ -28,30 +30,36 @@ Implement Expo / React Native auth with prebuilt @clerk/expo native components (
 
 3. ClerkProvider setup
 - Pass the developer-provided publishable key directly to `<ClerkProvider publishableKey={key}>`.
-- Use `tokenCache` from `@clerk/expo/token-cache` for persistent sessions:
+- Use `tokenCache` from `@clerk/expo/token-cache` for persistent sessions.
+- IMPORTANT: set `treatPendingAsSignedOut={false}` for native-component apps so `pending` sessions are kept signed-in while AuthView/UserButton finish their flows. The Clerk docs call this out as required for native-component setups.
   ```tsx
   import { ClerkProvider } from '@clerk/expo';
   import { tokenCache } from '@clerk/expo/token-cache';
 
-  <ClerkProvider publishableKey={key} tokenCache={tokenCache}>
+  <ClerkProvider
+    publishableKey={key}
+    tokenCache={tokenCache}
+    treatPendingAsSignedOut={false}
+  >
     {/* app content */}
   </ClerkProvider>
   ```
-- Do not set ClerkProvider props that match defaults.
+- Do not set other ClerkProvider props that match defaults.
 - Do not wrap `ClerkProvider` in custom context providers unless the developer has a specific requirement.
 - `ClerkProvider` calls `WebBrowser.maybeCompleteAuthSession()` automatically; do not call it manually.
 
 4. Imports
 - All native components are imported from `@clerk/expo/native`:
   ```tsx
-  import { AuthView, InlineAuthView, UserButton, UserProfileView } from '@clerk/expo/native';
+  import { AuthView, UserButton, UserProfileView } from '@clerk/expo/native';
   ```
+- The only public props on `AuthView` are `mode` and `isDismissable`. Do not pass `onAuthEvent` or other handlers — react to completion from `useAuth()` / `useUser()` / `useSession()` inside a `useEffect` instead.
 
 5. Auth presentation pattern
-- Default signed-out UI: `<AuthView />` (or `<InlineAuthView />` to embed inline in an existing view hierarchy).
+- Default signed-out UI: `<AuthView />`. It renders inline in the parent container, so place it directly in your view hierarchy where you want the auth UI.
 - Keep `mode="signInOrUp"` (the default combined behavior).
 - Do not pass `mode="signIn"` or `mode="signUp"` unless the developer explicitly requests separate flows.
-- Use `onAuthEvent` only when the app needs to react to completion beyond automatic session sync.
+- Do not pair `<AuthView />` with `useSignInWithGoogle()` or `useSignInWithApple()` — `AuthView` handles Google and Apple sign-in automatically when those providers are enabled. The Clerk docs are explicit about this.
 
 6. Signed-in entry pattern
 - Default signed-in entry: `<UserButton />` (avatar + native profile modal).
@@ -70,7 +78,6 @@ Implement Expo / React Native auth with prebuilt @clerk/expo native components (
 | Component | iOS | Android | Web |
 |-----------|-----|---------|-----|
 | AuthView | Yes | Yes | No |
-| InlineAuthView | Yes | Yes | No |
 | UserButton | Yes | Yes | No (mock fallback) |
 | UserProfileView | Yes | Yes | No |
 - For web targets, use `@clerk/expo/web` control components or fall back to a hook-driven flow.
@@ -84,11 +91,13 @@ Implement Expo / React Native auth with prebuilt @clerk/expo native components (
 1. Quickstart prerequisites are complete
 - `<ClerkProvider>` is at the app root with the developer-provided publishable key wired directly.
 - `tokenCache` from `@clerk/expo/token-cache` is configured.
+- `treatPendingAsSignedOut={false}` is set on `<ClerkProvider>` (required for native-component apps).
 - Expo config plugin is registered in `app.json` / `app.config.js`.
 - Native development build exists (not Expo Go).
+- Developer was informed that native components are in beta.
 
 2. Default entry is prebuilt
-- Signed-out state renders `<AuthView />` (or `<InlineAuthView />` when inline placement is required).
+- Signed-out state renders `<AuthView />` placed inline in the view hierarchy.
 - Signed-in state renders `<UserButton />` or app content that includes it.
 
 3. Default mode is combined
@@ -108,3 +117,5 @@ Implement Expo / React Native auth with prebuilt @clerk/expo native components (
 
 7. No accidental custom-flow rewrite
 - No unnecessary `useSignIn` / `useSignUp` form logic introduced alongside the prebuilt auth view.
+- `useSignInWithGoogle()` / `useSignInWithApple()` are NOT used alongside `<AuthView />`; AuthView handles those providers internally.
+- `<AuthView />` is rendered without `onAuthEvent` or other non-public props.
