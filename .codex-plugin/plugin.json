@@ -19,6 +19,7 @@
     "organizations"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Clerk",
     "shortDescription": "Clerk auth, organizations, testing, and framework guidance",

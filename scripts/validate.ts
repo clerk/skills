@@ -296,6 +296,10 @@ if (isRecord(codexPlugin)) {
     fail(".codex-plugin/plugin.json skills must point to ./skills/");
   }
 
+  if (codexPlugin.mcpServers !== "./.mcp.json") {
+    fail(".codex-plugin/plugin.json mcpServers must point to ./.mcp.json");
+  }
+
   const pluginInterface = codexPlugin.interface;
   if (!isRecord(pluginInterface)) {
     fail(".codex-plugin/plugin.json interface must be an object");
