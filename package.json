@@ -1,0 +1,9 @@
+{
+  "name": "clerk-skills",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "bun run scripts/validate.ts"
+  }
+}

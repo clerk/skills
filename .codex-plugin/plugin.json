@@ -27,6 +27,8 @@
     "category": "Coding",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://clerk.com",
+    "privacyPolicyURL": "https://clerk.com/privacy",
+    "termsOfServiceURL": "https://clerk.com/terms",
     "defaultPrompt": [
       "Add Clerk auth to my Next.js app",
       "Set up organizations for my B2B app",

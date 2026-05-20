@@ -10,54 +10,31 @@
   },
   "plugins": [
     {
-      "name": "core",
-      "description": "Core Clerk skills: router, setup, custom UI, and API references",
+      "name": "clerk-skills",
+      "description": "Official Clerk skills bundle for AI coding agents: auth setup, framework patterns, organizations, billing, webhooks, testing, and native mobile guidance.",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/core/clerk",
-        "./skills/core/clerk-setup",
-        "./skills/core/clerk-custom-ui",
-        "./skills/core/clerk-backend-api"
-      ]
-    },
-    {
-      "name": "frameworks",
-      "description": "Framework-specific Clerk integration patterns: middleware, hooks, SSR, composables, and advanced usage",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/frameworks/clerk-nextjs-patterns",
-        "./skills/frameworks/clerk-react-patterns",
-        "./skills/frameworks/clerk-react-router-patterns",
-        "./skills/frameworks/clerk-vue-patterns",
-        "./skills/frameworks/clerk-nuxt-patterns",
-        "./skills/frameworks/clerk-astro-patterns",
-        "./skills/frameworks/clerk-tanstack-patterns",
-        "./skills/frameworks/clerk-expo-patterns",
-        "./skills/frameworks/clerk-chrome-extension-patterns"
-      ]
-    },
-    {
-      "name": "features",
-      "description": "Clerk feature skills: organizations, billing, webhooks, and testing",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/features/clerk-orgs",
-        "./skills/features/clerk-billing",
-        "./skills/features/clerk-webhooks",
-        "./skills/features/clerk-testing"
-      ]
-    },
-    {
-      "name": "mobile",
-      "description": "Native mobile Clerk auth: Swift/iOS and Android/Kotlin patterns",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/mobile/clerk-swift",
-        "./skills/mobile/clerk-android"
+        "./skills/clerk",
+        "./skills/clerk-setup",
+        "./skills/clerk-custom-ui",
+        "./skills/clerk-backend-api",
+        "./skills/clerk-nextjs-patterns",
+        "./skills/clerk-react-patterns",
+        "./skills/clerk-react-router-patterns",
+        "./skills/clerk-vue-patterns",
+        "./skills/clerk-nuxt-patterns",
+        "./skills/clerk-astro-patterns",
+        "./skills/clerk-tanstack-patterns",
+        "./skills/clerk-expo-patterns",
+        "./skills/clerk-expo",
+        "./skills/clerk-chrome-extension-patterns",
+        "./skills/clerk-orgs",
+        "./skills/clerk-billing",
+        "./skills/clerk-webhooks",
+        "./skills/clerk-testing",
+        "./skills/clerk-swift",
+        "./skills/clerk-android"
       ]
     }
   ]
