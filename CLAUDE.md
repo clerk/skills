@@ -40,7 +40,7 @@ skills/
 
 1. Each skill needs `SKILL.md` with YAML frontmatter (`name`, `description`, `license`)
 2. Place each skill directly in `skills/<skill-name>/`
-3. Add the flat skill path to `.claude-plugin/marketplace.json`
-4. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
-5. Folder names keep the `clerk-` prefix (e.g. `skills/clerk-nextjs-patterns/`)
+3. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
+4. Folder names keep the `clerk-` prefix (e.g. `skills/clerk-nextjs-patterns/`)
+5. Plugin manifests should rely on `skills/` directory discovery where supported; only add explicit manifest paths for non-skill components.
 6. Run `bun run validate` before opening a PR.

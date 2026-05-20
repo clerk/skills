@@ -8,5 +8,22 @@
   },
   "homepage": "https://clerk.com",
   "repository": "https://github.com/clerk/skills",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "clerk",
+    "auth",
+    "authentication",
+    "nextjs",
+    "react",
+    "vue",
+    "nuxt",
+    "astro",
+    "expo",
+    "android",
+    "ios",
+    "organizations",
+    "billing",
+    "webhooks",
+    "mcp"
+  ]
 }

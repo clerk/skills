@@ -13,28 +13,28 @@
       "name": "clerk-skills",
       "description": "Official Clerk skills bundle for AI coding agents: auth setup, framework patterns, organizations, billing, webhooks, testing, and native mobile guidance.",
       "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/clerk",
-        "./skills/clerk-setup",
-        "./skills/clerk-custom-ui",
-        "./skills/clerk-backend-api",
-        "./skills/clerk-nextjs-patterns",
-        "./skills/clerk-react-patterns",
-        "./skills/clerk-react-router-patterns",
-        "./skills/clerk-vue-patterns",
-        "./skills/clerk-nuxt-patterns",
-        "./skills/clerk-astro-patterns",
-        "./skills/clerk-tanstack-patterns",
-        "./skills/clerk-expo-patterns",
-        "./skills/clerk-expo",
-        "./skills/clerk-chrome-extension-patterns",
-        "./skills/clerk-orgs",
-        "./skills/clerk-billing",
-        "./skills/clerk-webhooks",
-        "./skills/clerk-testing",
-        "./skills/clerk-swift",
-        "./skills/clerk-android"
+      "author": {
+        "name": "Clerk",
+        "email": "support@clerk.com"
+      },
+      "repository": "https://github.com/clerk/skills",
+      "license": "MIT",
+      "keywords": [
+        "clerk",
+        "auth",
+        "authentication",
+        "nextjs",
+        "react",
+        "vue",
+        "nuxt",
+        "astro",
+        "expo",
+        "android",
+        "ios",
+        "organizations",
+        "billing",
+        "webhooks",
+        "mcp"
       ]
     }
   ]

@@ -73,6 +73,107 @@ function assertString(value: unknown, path: string) {
   }
 }
 
+function normalizeDirectoryPath(value: string) {
+  return value.replace(/^\.\//, "").replace(/\/$/, "");
+}
+
+function extractFrontmatter(content: string, path: string) {
+  if (!content.startsWith("---\n")) {
+    fail(`${path} must start with YAML frontmatter`);
+    return undefined;
+  }
+
+  const closingIndex = content.indexOf("\n---", 4);
+  if (closingIndex === -1) {
+    fail(`${path} has unterminated YAML frontmatter`);
+    return undefined;
+  }
+
+  return content.slice(4, closingIndex);
+}
+
+function getFrontmatterValue(frontmatter: string, key: string) {
+  const lines = frontmatter.split("\n");
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (!line.startsWith(`${key}:`)) {
+      continue;
+    }
+
+    const inlineValue = line.slice(key.length + 1).trim();
+    if (inlineValue.length > 0) {
+      return inlineValue;
+    }
+
+    const continuation: string[] = [];
+    for (let nextIndex = index + 1; nextIndex < lines.length; nextIndex++) {
+      const nextLine = lines[nextIndex];
+      if (!/^\s+/.test(nextLine)) {
+        break;
+      }
+      continuation.push(nextLine.trim());
+    }
+
+    return continuation.join(" ").trim();
+  }
+
+  return undefined;
+}
+
+function validateSkillFrontmatter(skill: string) {
+  const skillRelativePath = `skills/${skill}/SKILL.md`;
+  const skillPath = join(root, skillRelativePath);
+  const content = readFileSync(skillPath, "utf8");
+  const frontmatter = extractFrontmatter(content, skillRelativePath);
+
+  if (!frontmatter) {
+    return;
+  }
+
+  const name = getFrontmatterValue(frontmatter, "name");
+  if (name !== skill) {
+    fail(`${skillRelativePath} frontmatter name must be ${skill}`);
+  }
+
+  const description = getFrontmatterValue(frontmatter, "description");
+  if (!description) {
+    fail(`${skillRelativePath} frontmatter description must be non-empty`);
+  }
+}
+
+function validateSkillPathList(manifest: string, value: unknown, expectedPaths: string[]) {
+  if (typeof value === "string") {
+    if (normalizeDirectoryPath(value) !== "skills") {
+      fail(`${manifest} skills must point to skills`);
+    }
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    fail(`${manifest} skills must be a string path or an array of paths`);
+    return;
+  }
+
+  const actualPaths = value.filter((skill): skill is string => typeof skill === "string").sort();
+
+  if (actualPaths.length !== value.length) {
+    fail(`${manifest} skills must contain only string paths`);
+  }
+
+  for (const expectedPath of expectedPaths) {
+    if (!actualPaths.includes(expectedPath)) {
+      fail(`${manifest} missing skill path ${expectedPath}`);
+    }
+  }
+
+  for (const skillPath of actualPaths) {
+    if (!existsSync(join(root, skillPath, "SKILL.md"))) {
+      fail(`${manifest} skill path does not resolve: ${skillPath}`);
+    }
+  }
+}
+
 function walkFiles(dir: string): string[] {
   if (!existsSync(join(root, dir))) {
     return [];
@@ -126,7 +227,10 @@ for (const skill of expectedSkills) {
   const skillPath = join(root, "skills", skill, "SKILL.md");
   if (!existsSync(skillPath)) {
     fail(`missing skills/${skill}/SKILL.md`);
+    continue;
   }
+
+  validateSkillFrontmatter(skill);
 }
 
 for (const skill of skillDirs) {
@@ -168,27 +272,9 @@ if (isRecord(claudeMarketplace)) {
       }
 
       const skills = plugin.skills;
-      if (!Array.isArray(skills)) {
-        fail(".claude-plugin plugin skills must be an array");
-      } else {
+      if (skills !== undefined) {
         const expectedPaths = expectedSkills.map((skill) => `./skills/${skill}`);
-        const actualPaths = skills.filter((skill): skill is string => typeof skill === "string").sort();
-
-        if (actualPaths.length !== skills.length) {
-          fail(".claude-plugin plugin skills must contain only string paths");
-        }
-
-        for (const expectedPath of expectedPaths) {
-          if (!actualPaths.includes(expectedPath)) {
-            fail(`.claude-plugin missing skill path ${expectedPath}`);
-          }
-        }
-
-        for (const skillPath of actualPaths) {
-          if (!existsSync(join(root, skillPath, "SKILL.md"))) {
-            fail(`.claude-plugin skill path does not resolve: ${skillPath}`);
-          }
-        }
+        validateSkillPathList(".claude-plugin/marketplace.json", skills, expectedPaths);
       }
     }
   }
@@ -227,28 +313,8 @@ if (isRecord(cursorPlugin)) {
   }
 
   const skills = cursorPlugin.skills;
-  if (!Array.isArray(skills)) {
-    fail(".cursor-plugin/plugin.json skills must be an array");
-  } else {
-    const expectedPaths = expectedSkills.map((skill) => `skills/${skill}`);
-    const actualPaths = skills.filter((skill): skill is string => typeof skill === "string").sort();
-
-    if (actualPaths.length !== skills.length) {
-      fail(".cursor-plugin/plugin.json skills must contain only string paths");
-    }
-
-    for (const expectedPath of expectedPaths) {
-      if (!actualPaths.includes(expectedPath)) {
-        fail(`.cursor-plugin/plugin.json missing skill path ${expectedPath}`);
-      }
-    }
-
-    for (const skillPath of actualPaths) {
-      if (!existsSync(join(root, skillPath, "SKILL.md"))) {
-        fail(`.cursor-plugin/plugin.json skill path does not resolve: ${skillPath}`);
-      }
-    }
-  }
+  const expectedPaths = expectedSkills.map((skill) => `skills/${skill}`);
+  validateSkillPathList(".cursor-plugin/plugin.json", skills, expectedPaths);
 }
 
 const dotMcp = parsedJson.get(".mcp.json");
@@ -300,6 +366,7 @@ if (failures.length > 0) {
 console.log("Validation passed:");
 console.log(`- ${expectedSkills.length} flat skills found`);
 console.log("- skills/clerk/SKILL.md orchestrator exists");
+console.log("- skill frontmatter names and descriptions are valid");
 console.log("- JSON manifests parse");
-console.log("- plugin manifests use flat skill paths");
+console.log("- plugin manifests resolve the flat skills directory");
 console.log("- Clerk MCP config is wired");

@@ -30,26 +30,5 @@
   ],
   "license": "MIT",
   "logo": "assets/clerk-logo.svg",
-  "skills": [
-    "skills/clerk",
-    "skills/clerk-backend-api",
-    "skills/clerk-custom-ui",
-    "skills/clerk-setup",
-    "skills/clerk-billing",
-    "skills/clerk-orgs",
-    "skills/clerk-testing",
-    "skills/clerk-webhooks",
-    "skills/clerk-astro-patterns",
-    "skills/clerk-chrome-extension-patterns",
-    "skills/clerk-expo-patterns",
-    "skills/clerk-expo",
-    "skills/clerk-nextjs-patterns",
-    "skills/clerk-nuxt-patterns",
-    "skills/clerk-react-patterns",
-    "skills/clerk-react-router-patterns",
-    "skills/clerk-tanstack-patterns",
-    "skills/clerk-vue-patterns",
-    "skills/clerk-android",
-    "skills/clerk-swift"
-  ]
+  "skills": "skills"
 }
