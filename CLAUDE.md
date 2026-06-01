@@ -1,16 +1,18 @@
 # Clerk Skills
 
-AI agent skills for Clerk authentication. 18 skills across 4 categories.
+AI agent skills for Clerk authentication. 21 public skills across 4 categories, plus internal maintenance skills under `.agents/skills/`.
 
 ## Structure
 
 ```
 skills/
-├── core/                          # clerk, setup, custom-ui, backend-api
+├── core/                          # clerk, cli, setup, custom-ui, backend-api
 ├── frameworks/            # nextjs, react, vue, nuxt, astro, tanstack, expo, react-router, chrome-extension
 ├── features/                      # orgs, webhooks, testing
 └── mobile/                 # swift, android
 ```
+
+Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.claude/skills/` with a symlink to the same directory.
 
 ## Plugin Registry
 

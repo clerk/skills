@@ -60,6 +60,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
+| `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, deploy checks |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
 | `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
@@ -109,6 +110,7 @@ CLERK_SECRET_KEY=sk_test_xxx
 
 | You Say | Skill Used |
 |---------|------------|
+| "List Clerk users" | `clerk-cli` |
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
@@ -138,6 +140,7 @@ clerk-skills/
 ├── skills/
 │   ├── core/
 │   │   ├── clerk/                  # Router skill
+│   │   ├── clerk-cli/              # CLI operations
 │   │   ├── clerk-setup/            # Framework setup
 │   │   ├── clerk-custom-ui/        # Component customization
 │   │   └── clerk-backend-api/      # REST API explorer
