@@ -20,7 +20,6 @@ This task needs a complete command inventory, not a quick grep pass. Build the s
 
 - **CLI source of truth**: a `clerk/cli` checkout containing `packages/cli-core/src/commands/**`, plus `packages/cli-core/src/cli.ts`, `cli-program.ts`, `mode.ts`, and any referenced files in `packages/cli-core/src/lib/`.
 - **Target skill**: `skills/core/clerk-cli/SKILL.md` and `skills/core/clerk-cli/references/*.md`.
-- **Template markers**: preserve placeholders such as `{{CLI_VERSION}}` if present. Do not expand them.
 
 ## Source Checkout Resolution
 
@@ -122,7 +121,6 @@ If invoked with `--apply`, apply `drift` and `gap` edits directly, then list `po
 - Never invent flags. If a flag appears in tests but not in the command parser, mark it for human review.
 - Preserve the existing `clerk-cli` skill's terse, third-person voice.
 - Do not use em dashes in proposals or edits.
-- Preserve `{{CLI_VERSION}}` and other template markers verbatim.
 - Keep `skills/core/clerk-cli/SKILL.md` near the 500-line guidance. Move detailed material to `references/` instead of bloating the main skill.
 - Do not treat the installed `clerk` binary as authoritative over source. Use `--help` only to confirm generated presentation when source and tests leave ambiguity.
 - Do not commit or print secrets. If the audit touches env guidance, preserve the repository's 1Password and no-plaintext-secret rules.
