@@ -1,12 +1,13 @@
 # Clerk Skills
 
-AI agent skills for Clerk authentication. 20 flat skills in one installable bundle.
+AI agent skills for Clerk authentication. 21 flat public skills in one installable bundle, plus internal maintenance skills under `.agents/skills/`.
 
 ## Structure
 
 ```
 skills/
 ├── clerk/                         # orchestrator/router skill
+├── clerk-cli/
 ├── clerk-setup/
 ├── clerk-custom-ui/
 ├── clerk-backend-api/
@@ -27,6 +28,8 @@ skills/
 ├── clerk-swift/
 └── clerk-android/
 ```
+
+Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.claude/skills/` with a symlink to the same directory.
 
 ## Plugin Registry
 

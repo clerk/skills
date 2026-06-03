@@ -1,6 +1,9 @@
 .vscode
 .env*
 !.env.example
-.claude
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/audit-clerk-skill
 .DS_Store
 *-workspace/

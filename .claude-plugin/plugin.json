@@ -1,6 +1,6 @@
 {
   "name": "clerk-skills",
-  "description": "Official Clerk skills bundle for AI coding agents: auth setup, framework patterns, organizations, billing, webhooks, testing, and native mobile guidance.",
+  "description": "Official Clerk skills bundle for AI coding agents: CLI operations, auth setup, framework patterns, organizations, billing, webhooks, testing, and native mobile guidance.",
   "version": "1.0.0",
   "author": {
     "name": "Clerk",
@@ -13,6 +13,7 @@
     "clerk",
     "auth",
     "authentication",
+    "cli",
     "nextjs",
     "react",
     "vue",

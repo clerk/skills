@@ -6,6 +6,7 @@ const clerkMcpUrl = "https://mcp.clerk.dev/mcp";
 
 const expectedSkills = [
   "clerk",
+  "clerk-cli",
   "clerk-setup",
   "clerk-custom-ui",
   "clerk-backend-api",
