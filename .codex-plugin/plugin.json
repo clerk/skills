@@ -20,6 +20,7 @@
     "organizations"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Clerk",
     "shortDescription": "Clerk auth, organizations, testing, and framework guidance",
@@ -28,6 +29,8 @@
     "category": "Coding",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://clerk.com",
+    "privacyPolicyURL": "https://clerk.com/privacy",
+    "termsOfServiceURL": "https://clerk.com/terms",
     "defaultPrompt": [
       "List Clerk users with the Clerk CLI",
       "Add Clerk auth to my Next.js app",

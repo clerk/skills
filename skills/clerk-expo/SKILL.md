@@ -31,7 +31,7 @@ If native iOS/Android or web-framework signals are present, route to the matchin
 
 ## Relationship to `clerk-expo-patterns`
 
-This skill covers flow selection and end-to-end auth setup (prebuilt vs custom). The `clerk-expo-patterns` skill at `skills/frameworks/clerk-expo-patterns/` covers Expo-specific recipes (SecureStore token cache, OAuth deep-link configuration, Expo Router protected routes, push notifications with user context). When both could apply, use this skill for the flow decision and overall setup, and load patterns from `clerk-expo-patterns` for the specific recipe.
+This skill covers flow selection and end-to-end auth setup (prebuilt vs custom). The `clerk-expo-patterns` skill at `skills/clerk-expo-patterns/` covers Expo-specific recipes (SecureStore token cache, OAuth deep-link configuration, Expo Router protected routes, push notifications with user context). When both could apply, use this skill for the flow decision and overall setup, and load patterns from `clerk-expo-patterns` for the specific recipe.
 
 ## What Do You Need?
 
@@ -207,7 +207,7 @@ Do not hardcode implementation examples in this skill. Inspect installed `@clerk
 ## See Also
 
 - `clerk` skill for top-level Clerk routing
-- `clerk-expo-patterns` skill (`skills/frameworks/clerk-expo-patterns/`) for Expo-specific recipes (SecureStore token cache, OAuth deep links, Expo Router protected routes, push notifications)
+- `clerk-expo-patterns` skill (`skills/clerk-expo-patterns/`) for Expo-specific recipes (SecureStore token cache, OAuth deep links, Expo Router protected routes, push notifications)
 - `clerk-swift` skill for native iOS implementation
 - `clerk-android` skill for native Android implementation
 - installed `@clerk/expo` package source (`node_modules/@clerk/expo/`)

@@ -1,0 +1,35 @@
+{
+  "name": "clerk",
+  "version": "0.2.0",
+  "description": "Clerk authentication toolkit for Cursor - CLI operations, setup guides, MCP server, and specialized skills for frameworks, mobile apps, organizations, billing, webhooks, testing, and more.",
+  "author": {
+    "name": "Clerk",
+    "email": "ai@clerk.dev"
+  },
+  "homepage": "https://clerk.com",
+  "keywords": [
+    "clerk",
+    "auth",
+    "authentication",
+    "cli",
+    "nextjs",
+    "react",
+    "vue",
+    "nuxt",
+    "astro",
+    "expo",
+    "android",
+    "ios",
+    "organizations",
+    "billing",
+    "webhooks",
+    "b2b",
+    "saas",
+    "rbac",
+    "middleware",
+    "mcp"
+  ],
+  "license": "MIT",
+  "logo": "assets/clerk-logo.svg",
+  "skills": "skills"
+}
