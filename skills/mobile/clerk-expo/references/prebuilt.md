@@ -53,7 +53,7 @@ Implement Expo / React Native auth with prebuilt @clerk/expo native components (
   ```tsx
   import { AuthView, UserButton, UserProfileView } from '@clerk/expo/native';
   ```
-- The only public props on `AuthView` are `mode` and `isDismissable`. Do not pass `onAuthEvent` or other handlers — react to completion from `useAuth()` / `useUser()` / `useSession()` inside a `useEffect` instead.
+- The only public props on `AuthView` are `mode` and `isDismissible`. Do not pass `onAuthEvent` or other handlers — react to completion from `useAuth()` / `useUser()` / `useSession()` inside a `useEffect` instead.
 
 5. Auth presentation pattern
 - Default signed-out UI: `<AuthView />`. It renders inline in the parent container, so place it directly in your view hierarchy where you want the auth UI.
