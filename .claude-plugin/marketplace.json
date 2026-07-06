@@ -35,7 +35,6 @@
         "./skills/frameworks/clerk-nuxt-patterns",
         "./skills/frameworks/clerk-astro-patterns",
         "./skills/frameworks/clerk-tanstack-patterns",
-        "./skills/frameworks/clerk-expo-patterns",
         "./skills/frameworks/clerk-chrome-extension-patterns"
       ]
     },
@@ -53,12 +52,13 @@
     },
     {
       "name": "mobile",
-      "description": "Native mobile Clerk auth: Swift/iOS and Android/Kotlin patterns",
+      "description": "Mobile Clerk auth: Swift/iOS, Android/Kotlin, and Expo/React Native patterns",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/mobile/clerk-swift",
-        "./skills/mobile/clerk-android"
+        "./skills/mobile/clerk-android",
+        "./skills/mobile/clerk-expo"
       ]
     }
   ]

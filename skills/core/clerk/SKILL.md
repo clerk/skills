@@ -86,10 +86,11 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Route protection via loaders
 - Vinxi server integration
 
-**Expo patterns** → Use `clerk-expo-patterns`
-- Secure token storage
-- OAuth deep linking
-- Push notifications with auth
+**Expo / React Native auth** → Use `clerk-expo`
+- Prebuilt native components (AuthView, UserButton)
+- Custom flows: email, password, SMS/phone OTP, MFA
+- OAuth/SSO and native Google/Apple sign-in
+- Expo Router protected routes, token storage, push notifications
 
 **Chrome Extension patterns** → Use `clerk-chrome-extension-patterns`
 - Background scripts auth
@@ -148,7 +149,7 @@ If you know your task, you can directly access:
 - `/clerk-nuxt-patterns` - Nuxt patterns
 - `/clerk-astro-patterns` - Astro patterns
 - `/clerk-tanstack-patterns` - TanStack Start patterns
-- `/clerk-expo-patterns` - Expo patterns
+- `/clerk-expo` - Expo / React Native
 - `/clerk-chrome-extension-patterns` - Chrome Extension patterns
 - `/clerk-orgs` - Organizations
 - `/clerk-billing` - Billing & subscriptions

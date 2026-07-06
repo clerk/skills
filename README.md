@@ -76,7 +76,6 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-nuxt-patterns` | Nuxt | Server middleware, SSR auth |
 | `clerk-astro-patterns` | Astro | SSR auth, island components |
 | `clerk-tanstack-patterns` | TanStack Start | Server functions, route protection |
-| `clerk-expo-patterns` | Expo | Secure storage, deep linking |
 | `clerk-chrome-extension-patterns` | Chrome Extension | Background scripts, popup auth |
 
 ### Features
@@ -94,6 +93,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 |-------|----------|----------|
 | `clerk-swift` | iOS | ClerkKit, SwiftUI, Apple Sign-In |
 | `clerk-android` | Android | Kotlin, Jetpack Compose |
+| `clerk-expo` | Expo / React Native | Native components, custom flows, SMS OTP, OAuth |
 
 ## Quick Start
 
@@ -115,7 +115,8 @@ CLERK_SECRET_KEY=sk_test_xxx
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
 | "Add Clerk to my Nuxt app" | `clerk-nuxt-patterns` |
-| "Add auth to my Expo app" | `clerk-expo-patterns` |
+| "Add auth to my Expo app" | `clerk-expo` |
+| "Add phone SMS auth to my Expo app" | `clerk-expo` |
 | "Add Clerk to my Astro site" | `clerk-astro-patterns` |
 | "Build custom sign-in form" | `clerk-custom-ui` |
 | "Sync users to Prisma via webhooks" | `clerk-webhooks` |
@@ -152,7 +153,6 @@ clerk-skills/
 │   │   ├── clerk-nuxt-patterns/
 │   │   ├── clerk-astro-patterns/
 │   │   ├── clerk-tanstack-patterns/
-│   │   ├── clerk-expo-patterns/
 │   │   └── clerk-chrome-extension-patterns/
 │   ├── features/
 │   │   ├── clerk-orgs/
@@ -161,7 +161,8 @@ clerk-skills/
 │   │   └── clerk-testing/
 │   └── mobile/
 │       ├── clerk-swift/
-│       └── clerk-android/
+│       ├── clerk-android/
+│       └── clerk-expo/
 └── README.md
 ```
 

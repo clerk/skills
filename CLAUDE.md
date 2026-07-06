@@ -7,9 +7,9 @@ AI agent skills for Clerk authentication. 21 public skills across 4 categories, 
 ```
 skills/
 ├── core/                          # clerk, cli, setup, custom-ui, backend-api
-├── frameworks/            # nextjs, react, vue, nuxt, astro, tanstack, expo, react-router, chrome-extension
+├── frameworks/            # nextjs, react, vue, nuxt, astro, tanstack, react-router, chrome-extension
 ├── features/                      # orgs, webhooks, testing
-└── mobile/                 # swift, android
+└── mobile/                 # swift, android, expo
 ```
 
 Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.claude/skills/` with a symlink to the same directory.
