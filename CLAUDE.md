@@ -1,6 +1,6 @@
 # Clerk Skills
 
-AI agent skills for Clerk authentication. 21 public skills across 4 categories, plus internal maintenance skills under `.agents/skills/`.
+AI agent skills for Clerk authentication. 20 public skills across 4 categories, plus internal maintenance skills under `.agents/skills/`.
 
 ## Structure
 
