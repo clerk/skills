@@ -25,7 +25,7 @@
         "Calls finalize({ navigate }) when status is complete instead of setActive({ session })",
         "Does NOT use the legacy API (prepareFirstFactor, attemptFirstFactor, isLoaded from the hook)",
         "Renders <View nativeID=\"clerk-captcha\" /> on the sign-up screen",
-        "Shows the code-entry step based on signUp.status === 'missing_requirements' and unverifiedFields including phone_number"
+        "Shows the code-entry step only after a code was successfully sent (gated via signUp.status/unverifiedFields or explicit step state)"
       ]
     },
     {
