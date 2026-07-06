@@ -5,5 +5,6 @@
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/audit-clerk-skill
+!.claude/skills/audit-expo-skill
 .DS_Store
 *-workspace/
