@@ -1,19 +1,19 @@
 ---
 name: clerk-react-router-patterns
-description: 'React Router v7 patterns with Clerk — rootAuthLoader, getAuth in loaders,
+description: 'React Router v7/v8 patterns with Clerk — rootAuthLoader, getAuth in loaders,
   clerkMiddleware, protected routes, SSR user data, org switching. Triggers on: react-router
   auth, rootAuthLoader, getAuth loader, react-router protected route, loader authentication,
-  SSR auth react-router.'
+  SSR auth react-router, useNavigate may be used only in the context of a Router.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # React Router Patterns
 
-SDK: `@clerk/react-router` v3+. Requires React Router v7.9+.
+SDK: `@clerk/react-router` v3.5+. Supports React Router v7.9+ and v8.
 
 ## What Do You Need?
 
@@ -23,9 +23,91 @@ SDK: `@clerk/react-router` v3+. Requires React Router v7.9+.
 | Protected routes and redirects | references/protected-routes.md |
 | SSR user data and session | references/ssr-auth.md |
 
+## React Router v7 vs v8
+
+Check the installed `react-router` major version before scaffolding — the config differs:
+
+| | v7.9+ | v8+ |
+|--|--|--|
+| Middleware API | Opt-in: set `future: { v8_middleware: true }` in `react-router.config.ts` | Always on — do NOT set the flag (v8 removed it) |
+| `ssr.noExternal` workaround (below) | Not needed | **Required** |
+
+## Minimal Setup
+
+### 1. vite.config.ts (v8 only — REQUIRED)
+
+React Router v8 ships development/production conditional exports. In `react-router dev`,
+Vite externalizes `@clerk/react-router` for SSR, so Node resolves the production build of
+react-router while the app code gets the development build — two module instances, two
+Router contexts. Every request then fails during SSR with:
+
+```
+Error: useNavigate() may be used only in the context of a <Router> component.
+```
+
+**`npm ls react-router` shows a single copy — that does NOT rule this out.** The
+duplication is per export condition, not per installed copy. Do not chase duplicate
+installs; add the workaround (upstream issue:
+https://github.com/remix-run/react-router/issues/15232):
+
+```ts
+import { reactRouter } from '@react-router/dev/vite'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [reactRouter()],
+  ssr: {
+    noExternal: ['@clerk/react-router'],
+  },
+})
+```
+
+### 2. root.tsx
+
+```tsx
+import { Outlet } from 'react-router'
+import { rootAuthLoader, clerkMiddleware } from '@clerk/react-router/server'
+import { ClerkProvider } from '@clerk/react-router'
+import type { Route } from './+types/root'
+
+export const middleware: Route.MiddlewareFunction[] = [clerkMiddleware()]
+
+export async function loader(args: Route.LoaderArgs) {
+  return rootAuthLoader(args)
+}
+
+export default function App({ loaderData }: Route.ComponentProps) {
+  return (
+    <ClerkProvider loaderData={loaderData}>
+      <Outlet />
+    </ClerkProvider>
+  )
+}
+```
+
+There is no `ClerkApp` HOC in `@clerk/react-router` (that was the `@clerk/remix` API).
+Render `<ClerkProvider loaderData={loaderData}>` inside the default export and pass it
+the root route's `loaderData`.
+
+### 3. react-router.config.ts (v7 only)
+
+```ts
+import type { Config } from '@react-router/dev/config'
+
+export default {
+  future: {
+    v8_middleware: true,
+  },
+} satisfies Config
+```
+
+On v8, omit the `future` block entirely — the flag no longer exists.
+
+> **Required**: `rootAuthLoader` must be called in `root.tsx`'s loader. Without it, `getAuth` throws in nested loaders.
+
 ## Mental Model
 
-React Router v7 uses a middleware + loader pipeline. Clerk plugs into both layers:
+React Router v7/v8 uses a middleware + loader pipeline. Clerk plugs into both layers:
 
 - **Middleware** (`clerkMiddleware()`) — runs on every request, attaches auth to context
 - **`rootAuthLoader`** — required in `root.tsx` to pass Clerk state to the client
@@ -37,33 +119,6 @@ Request → clerkMiddleware() → rootAuthLoader → page loader → component
            attaches auth      injects state     getAuth(args)
            to context         to response       reads context
 ```
-
-## Minimal Setup
-
-### 1. root.tsx
-
-```tsx
-import { rootAuthLoader } from '@clerk/react-router/server'
-import { ClerkApp } from '@clerk/react-router'
-import type { Route } from './+types/root'
-
-export async function loader(args: Route.LoaderArgs) {
-  return rootAuthLoader(args)
-}
-
-export default ClerkApp(function App() {
-  return <Outlet />
-})
-```
-
-### 2. Middleware (root route or entry.server.ts)
-
-```tsx
-import { clerkMiddleware } from '@clerk/react-router/server'
-export const middleware = [clerkMiddleware()]
-```
-
-> **Required**: `rootAuthLoader` must be called in `root.tsx`'s loader. Without it, `getAuth` throws in nested loaders.
 
 ## Auth in Loaders
 
@@ -132,7 +187,10 @@ export async function loader(args: Route.LoaderArgs) {
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `clerkMiddleware() not detected` | Missing middleware | Export `middleware = [clerkMiddleware()]` from root route |
+| `useNavigate() may be used only in the context of a <Router>` thrown from ClerkProvider during SSR in dev (v8) | Vite dev SSR externalizes `@clerk/react-router`, which then loads react-router's production build while the app uses the development build — two Router contexts. A single copy in `npm ls` does not rule this out. | Add `ssr: { noExternal: ['@clerk/react-router'] }` to `vite.config.ts`. Do NOT downgrade to v7 |
+| Build error: `ClerkApp` is not exported | `ClerkApp` does not exist in `@clerk/react-router` | Use `<ClerkProvider loaderData={loaderData}>` in root.tsx's default export |
+| `clerkMiddleware() not detected` | Missing middleware (or on v7, missing `v8_middleware` future flag) | Export `middleware = [clerkMiddleware()]` from root route; on v7 also set `future: { v8_middleware: true }` |
+| Unknown future flag error/warning (v8) | `v8_middleware` flag left in `react-router.config.ts` after upgrading | Remove the `future.v8_middleware` entry — middleware is always on in v8 |
 | `getAuth` returns empty userId | `rootAuthLoader` not called | Call `rootAuthLoader(args)` in `root.tsx` loader |
 | Infinite redirect loop | Redirect target is also protected | Exclude `/sign-in` from protection check |
 | `redirect` not working in action | Using `Response` instead of `throw redirect()` | Use `throw redirect('/path')` from `react-router` |
@@ -144,7 +202,7 @@ export async function loader(args: Route.LoaderArgs) {
 | `getAuth` | `@clerk/react-router/server` |
 | `rootAuthLoader` | `@clerk/react-router/server` |
 | `clerkMiddleware` | `@clerk/react-router/server` |
-| `ClerkApp` | `@clerk/react-router` |
+| `ClerkProvider` | `@clerk/react-router` |
 | `useAuth`, `useUser` | `@clerk/react-router` |
 | `OrganizationSwitcher` | `@clerk/react-router` |
 
