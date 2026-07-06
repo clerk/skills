@@ -112,7 +112,7 @@ Password-based instances only — it replays stored credentials. Confirm the exa
 
 ## Passkeys
 
-Dev build only. Install `@clerk/expo-passkeys`, pass it to the provider, and enable passkeys in the dashboard:
+Dev build only. Install the separate `@clerk/expo-passkeys` package, then import from the `@clerk/expo/passkeys` subpath — the subpath re-exports the peer package (this install/import pairing is intentional and matches the docs). Pass it to the provider and enable passkeys in the dashboard:
 
 ```tsx
 import { passkeys } from '@clerk/expo/passkeys'

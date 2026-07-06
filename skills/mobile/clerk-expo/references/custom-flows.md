@@ -23,7 +23,7 @@ Build your own auth UI with `useSignIn()` / `useSignUp()`. Works everywhere incl
 - **`finalize({ navigate })`** — converts a `complete` sign-in/up into the active session. Replaces `setActive({ session })`.
 - **`reset()`** — clears the attempt so the user can start over (local-only, no API call).
 
-Never generate the legacy shape for new code: `isLoaded`, `signIn.create()` + `prepareFirstFactor()`/`attemptFirstFactor()`, `setActive({ session: createdSessionId })`. That API lives at `@clerk/expo/legacy` and is only for maintaining code that already uses it. (`signIn.create()` still exists on the new resource but is for advanced cases — prefer the factor-specific methods.)
+Never generate the legacy shape for new code: `isLoaded`/`setActive` destructured from `useSignIn()`/`useSignUp()` (the current hooks don't return them — `isLoaded` from `useAuth()`/`useUser()` is fine), or `signIn.create()` chained with `prepareFirstFactor()`/`attemptFirstFactor()` + `setActive({ session: createdSessionId })`. That API lives at `@clerk/expo/legacy` and is only for maintaining code that already uses it. (`signIn.create()` still exists on the new resource but is for advanced cases — prefer the factor-specific methods.)
 
 If the installed `@clerk/expo` is older than 3.4 and hooks don't have this shape, tell the developer and offer to upgrade rather than writing legacy code.
 
@@ -108,17 +108,20 @@ Sign-in:
 const { signIn, errors, fetchStatus } = useSignIn()
 
 const handleSubmit = async () => {
-  const { error } = await signIn.create({ identifier: phoneNumber })
-  if (!error) await signIn.phoneCode.sendCode({ phoneNumber })
+  // Creates the sign-in attempt AND sends the SMS in one call — no signIn.create() needed
+  const { error } = await signIn.phoneCode.sendCode({ phoneNumber })
+  if (error) return // surface errors.fields
 }
 
 const handleVerify = async () => {
   await signIn.phoneCode.verifyCode({ code })
   if (signIn.status === 'complete') await signIn.finalize({ navigate: navigateAfterAuth })
 }
+
+// Resend: signIn.phoneCode.sendCode() with no args — the sign-in already exists
 ```
 
-Email OTP is the same shape: `emailCode.sendCode()` / `emailCode.verifyCode()` on sign-in, `sendEmailCode()` / `verifyEmailCode()` on sign-up verifications.
+Email OTP is the same shape: `emailCode.sendCode({ emailAddress })` (also self-creating) / `emailCode.verifyCode({ code })` on sign-in, `sendEmailCode()` / `verifyEmailCode()` on sign-up verifications.
 
 ## Combined sign-in-or-up
 
