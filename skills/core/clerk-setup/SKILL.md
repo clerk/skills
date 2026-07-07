@@ -311,13 +311,13 @@ Also import the shadcn CSS in your global styles:
 - `clerk-nuxt-patterns` - Nuxt patterns
 - `clerk-astro-patterns` - Astro patterns
 - `clerk-tanstack-patterns` - TanStack Start patterns
-- `clerk-expo-patterns` - Expo patterns
 - `clerk-chrome-extension-patterns` - Chrome Extension patterns
 - `clerk-orgs` - B2B multi-tenant organizations
 - `clerk-webhooks` - Webhook → database sync
 - `clerk-testing` - E2E testing setup
 - `clerk-swift` - Native iOS auth
 - `clerk-android` - Native Android auth
+- `clerk-expo` - Expo / React Native auth
 - `clerk-backend-api` - Backend REST API explorer
 
 ## Documentation
