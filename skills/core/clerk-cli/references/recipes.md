@@ -122,16 +122,18 @@ clerk api /organizations/org_abc123/memberships/user_xyz -X DELETE --dry-run
 clerk api /organizations/org_abc123/invitations -d '{"email_address":"new@acme.com","role":"org:member"}'
 ```
 
-If organization endpoints return `organization_not_enabled_in_instance`, enable the feature first:
+If organization endpoints return `organization_not_enabled_in_instance`, enable the feature first with the dedicated toggle:
 
 ```sh
 # Inspect org settings
 clerk api /instance/organization_settings
 
 # Preview, then enable organizations for this instance
-clerk api /instance/organization_settings -X PATCH -d '{"enabled":true}' --dry-run
-clerk api /instance/organization_settings -X PATCH -d '{"enabled":true}' --yes
+clerk enable orgs --dry-run
+clerk enable orgs --yes
 ```
+
+For org settings the toggle flags don't cover, fall back to `clerk config patch --json '{"organization_settings":{...}}'`. Deeper org workflows (roles, memberships, components) live in the `clerk-orgs` skill.
 
 ## Sessions
 
@@ -141,8 +143,29 @@ clerk api '/sessions?user_id=user_abc123&status=active'
 
 # Revoke a session
 clerk api /sessions/sess_abc123/revoke -X POST
+```
 
-# Create an impersonation / sign-in token (for testing)
+## Impersonation (sign in as a user)
+
+Impersonation goes through `clerk impersonate` (alias `imp`): it creates an actor token stamped `cli:<your-email>` so every impersonation session is traceable. Requires `clerk auth login`.
+
+```sh
+# Print the sign-in URL for a user (agent-safe: no browser, no prompt)
+clerk imp user_abc123 --print
+
+# Resolve by exact email instead of user ID
+clerk imp alice@example.com --print
+
+# Short-lived token, no confirmation prompt
+clerk imp user_abc123 --yes --expires-in 900
+
+# Revoke a pending actor token (the id is printed at creation - capture it then)
+clerk imp revoke act_abc123
+```
+
+To mint a one-time **sign-in token** instead - for building custom token sign-in flows, signing in *as* the user with no actor audit trail - use the raw API:
+
+```sh
 clerk api /sign_in_tokens -d '{"user_id":"user_abc123"}'
 ```
 
@@ -165,6 +188,29 @@ clerk api /jwt_templates -d '{
   "lifetime": 60
 }'
 ```
+
+## Webhooks (local testing)
+
+`listen` talks only to the Svix relay and `verify` is pure local HMAC - neither needs auth or a linked project.
+
+```sh
+# 1. Mint a token and open a pinned tunnel that forwards deliveries to your handler.
+#    The command prints a relay inbox URL (https://webhooks.clerk.com/in/c_.../).
+clerk webhooks listen --token "$(clerk webhooks token)" --forward-to http://localhost:3000/api/webhooks
+
+# 2. Add that relay URL as a webhook endpoint in the Clerk Dashboard.
+#    Real events now stream to your terminal and forward to your local handler.
+#    svix-* headers are preserved, so verifyWebhook() in your handler still
+#    verifies against that endpoint's signing secret.
+
+# 3. Capture events for replay/verification (agent mode emits NDJSON automatically)
+clerk webhooks listen --forward-to http://localhost:3000/api/webhooks --json > events.ndjson
+
+# 4. Verify a saved delivery offline against the endpoint's signing secret
+clerk webhooks verify --secret whsec_... --delivery @event.json
+```
+
+Pin the token (`--token`) whenever you want the inbox URL to survive across machines and restarts - otherwise the relay URL can change and the Dashboard endpoint needs re-pointing.
 
 ## Instance configuration
 

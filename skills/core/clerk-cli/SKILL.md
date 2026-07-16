@@ -1,13 +1,15 @@
 ---
 name: clerk-cli
 description: >-
-  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management,
-  deploy verification, instance config, env keys, and any Clerk Backend or Platform API
-  call. Use when the user mentions Clerk management tasks, "list clerk users", "create a
-  clerk user", "update organization", "pull clerk config", "clerk env pull",
-  "clerk doctor", "clerk deploy", "clerk deploy status", "clerk api", or any ad-hoc
-  Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution,
-  app/instance targeting, and formatting automatically.
+  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session
+  management, impersonation, local webhook testing, deploy verification,
+  instance config, env keys, feature toggles, and any Clerk Backend, Platform,
+  or Frontend API call. Use when the user mentions Clerk management tasks,
+  "list clerk users", "impersonate a user", "test webhooks locally",
+  "enable orgs", "enable billing",
+  "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", or any ad-hoc
+  Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key
+  resolution, app/instance targeting, and formatting automatically.
 license: MIT
 ---
 
@@ -107,6 +109,7 @@ If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <c
 | **Instance config**             | Manage the configuration (social providers, session lifetimes, etc.) for a specific instance | `config pull`, `config schema`, `config patch`, `config put`   |
 | **Backend API (default)**       | Runtime data: users, orgs, sessions, invitations, JWT templates, webhooks                    | `clerk api <path>`                                             |
 | **Platform API (`--platform`)** | Account-level: applications, instances, billing                                              | `clerk api --platform <path>`                                  |
+| **Frontend API (`--fapi`)**     | The instance's public client-facing API (what clerk-js calls)                                | `clerk api --fapi <path>`                                      |
 
 A project is "linked" to an application via `clerk link`. Once linked, most commands auto-resolve the target app and dev instance from the repo's git remote. To target something else, pass `--app <id>` and/or `--instance dev|prod|<instance_id>`. See [references/auth.md](references/auth.md) for the full resolution order.
 
@@ -153,7 +156,13 @@ clerk api /users --include
 
 # Platform API (account-level, not tenant data)
 clerk api /v1/platform/applications --platform
+
+# Frontend API (the instance's public client-facing API — what clerk-js calls.
+# Unauthenticated; --fapi and --platform cannot be combined, --secret-key is ignored)
+clerk api --fapi /environment
 ```
+
+In human mode, `clerk api` with no arguments opens an interactive request builder; in agent mode it prints usage guidance and exits `0` — always pass an endpoint (or `ls`) explicitly from scripts.
 
 For instance config, prefer the dedicated `clerk config ...` commands over raw Platform API `/config` paths. They handle dry-run, diffing, and confirmation more cleanly than the raw endpoint form.
 
@@ -210,9 +219,16 @@ node -e 'const d=require("/tmp/users.json"); console.log(d.data.length, d.hasMor
 | `clerk users list`            | List users via curated BAPI flags. JSON output (default when piped or in agent mode) is `{data, hasMore}` so callers can paginate without `/users/count`. `--limit` defaults to 100 (max 250).                                                                                                                      | `--limit`, `--offset`, `--query`, `--email-address`, `--phone-number`, `--username`, `--user-id`, `--external-id`, `--order-by`, `--json`, `--app`, `--instance`, `--secret-key` |
 | `clerk users create`          | Create a user from curated flags or a raw BAPI body. Confirmation prompt unless `--yes`.                                                                                                                                                                                                                            | `--email`, `--phone`, `--username`, `--password`, `--first-name`, `--last-name`, `--external-id`, `-d, --data`, `--file`, `--dry-run`, `--yes`, `--json`                         |
 | `clerk users open [user-id]`  | Open a user's dashboard page. Agent mode requires `user-id` and prints a JSON descriptor instead of launching a browser.                                                                                                                                                                                            | (see `--help`)                                                                                                                                                                   |
+| `clerk impersonate [user]`    | Sign in as a user for debugging: creates a short-lived actor token and prints the sign-in URL. Alias: `clerk imp`. Requires `clerk auth login` (no `--secret-key`-only bypass) — every token is stamped `cli:<email>` for auditability. `[user]` accepts a `user_...` ID, exact email, or fuzzy search term. On production it bypasses the user's MFA and may count against the impersonation quota — confirm with the user first. | `--print`, `--open`, `--yes`, `--expires-in <seconds>` (default 3600), `--actor <context>`, `--app`, `--instance`                                                                |
+| `clerk impersonate revoke <actor-token-id>` | Revoke a pending actor token. The token `id` is printed only at creation (the Backend API has no actor-token list endpoint), so capture it then.                                                                                                                                                      | `--app`, `--instance`                                                                                                                                                            |
 | `clerk open [subpath]`        | Open the linked app's dashboard in a browser. Agent mode: prints a JSON descriptor instead of opening.                                                                                                                                                                                                              | (see `--help`)                                                                                                                                                                   |
 | `clerk deploy`                | Human-mode production deploy wizard. Agent mode: emits a read-only JSON handoff and tells the agent whether to ask the human to run the wizard, wait for provisioning, finish OAuth, or do nothing.                                                                                                                 | `--mode agent`, `--mode human`, `--verbose`                                                                                                                                      |
 | `clerk deploy status`         | Read-only deploy verification. Triggers a DNS check, reports aggregate domain and OAuth readiness, and exits `0` only when complete. Agent mode does one quick check by default; pass `--wait` to keep waiting.                                                                                                     | `--mode agent`, `--wait`, `--verbose`                                                                                                                                            |
+| `clerk webhooks listen`       | First-party local webhook tunnel (like `stripe listen`): opens a Svix relay inbox URL and forwards each delivery to your local handler. No auth, no linked project, no Clerk API. Full flow in [references/recipes.md](references/recipes.md#webhooks-local-testing).                                                 | `--forward-to <url>` (required), `--token <c_token>`, `-H, --header <k:v>` (repeatable), `--json` (NDJSON)                                                                       |
+| `clerk webhooks token`        | Mint a relay token (`c_` + 10 base62 chars) to pin a stable `listen` inbox URL across machines: `clerk webhooks listen --token "$(clerk webhooks token)" --forward-to ...`.                                                                                                                                          | `--json`                                                                                                                                                                         |
+| `clerk webhooks verify`       | Verify a webhook signature offline (pure local HMAC, no auth): from a saved `listen` event line (`--delivery @event.json`) or from the four raw values.                                                                                                                                                             | `--secret <whsec>` (required), `--delivery @file`, `--payload @file`, `--id`, `--timestamp`, `--signature`, `--json`                                                             |
+| `clerk enable orgs` / `clerk disable orgs` | Toggle Organizations on the instance. For org features, components, and API usage, see the `clerk-orgs` skill.                                                                                                                                                                                         | `--force-selection`, `--auto-create`, `--max-members <n>`, `--domains`, `--dry-run`, `--yes`, `--app`, `--instance`                                                              |
+| `clerk enable billing` / `clerk disable billing` | Toggle billing for users and/or orgs (defaults to both). For plans, pricing components, and entitlements, see the `clerk-billing` skill.                                                                                                                                                         | `--for <orgs\|users>`, `--dry-run`, `--yes`, `--no-skills` (enable only), `--app`, `--instance`                                                                                  |
 | `clerk doctor`                | Health check (CLI version, login, link, env, config, completion; plus host-execution probe in agent mode).                                                                                                                                                                                                          | `--json`, `--spotlight`, `--verbose`, `--fix`                                                                                                                                    |
 | `clerk api [path]`            | Authenticated HTTP to Backend/Platform API.                                                                                                                                                                                                                                                                         | `-X`, `-d`, `--file`, `--dry-run`, `--yes`, `--include`, `--app`, `--secret-key`, `--instance`, `--platform`                                                                     |
 | `clerk api ls [filter]`       | Discover endpoints from the bundled OpenAPI catalog.                                                                                                                                                                                                                                                                | (see `--help`)                                                                                                                                                                   |
@@ -233,6 +249,8 @@ The CLI auto-detects agent mode when stdout is not a TTY, or when `--mode agent`
 - **`init` never selects or creates a real Clerk app for you in agent mode unless authenticated or given a target.** Pass `--app <id>` (or pre-link the project) to authenticate and link a real app, or pass `--keyless` to use auto-generated temporary development keys when bootstrapping a new project on a keyless-capable framework. Without either, agent mode prints manual setup guidance and exits cleanly.
 - **`unlink` requires `--yes` in agent mode.** This preserves the same safety bar as other destructive commands while still letting an agent complete the unlink non-interactively.
 - **Mutations still require `--yes`** unless you accept per-call confirmation is impossible.
+- **`impersonate` requires the `[user]` positional in agent mode.** If a search term matches multiple users, it exits `2` listing candidate user IDs — retry with a specific `user_...` ID. Output is a JSON object (`{url, id, userId, actor, ...}`); surface `url` to the user and capture `id` — it is the only chance to record the revoke handle.
+- **`webhooks listen` is long-running.** Run it in the background. In agent mode (or with `--json`) it emits NDJSON: one `ready` line (`{type:"ready", relay_url, forward_to}`), then one `event` line per delivery — each event line can be fed back to `clerk webhooks verify --delivery`.
 - **`doctor --fix` is ignored.** Parse `doctor --json` output's `remedy` field and act on it yourself.
 - **`apps list` and `apps create` default to JSON** when piped.
 - **`users` defaults to JSON when piped, like `apps`.** `clerk users list` and `clerk users create` emit JSON in agent mode. Bare `clerk users` (no subcommand) is a usage error in agent mode - pass `list`, `create`, or `open` explicitly. `clerk users open` requires the `user-id` positional in agent mode and prints a JSON descriptor instead of launching a browser.

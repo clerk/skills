@@ -327,7 +327,13 @@ const {
 
 ## Testing & Deployment
 
-**Local**: Tunnel `localhost:3000` to the internet so Clerk can reach the endpoint. Common options: `ngrok`, `localtunnel`, `Cloudflare Tunnel`. Add the public URL to the Dashboard endpoint.
+**Local**: Use the Clerk CLI's first-party tunnel — no auth or linked project needed:
+
+```sh
+clerk webhooks listen --token "$(clerk webhooks token)" --forward-to http://localhost:3000/api/webhooks
+```
+
+Add the printed relay URL (`https://webhooks.clerk.com/in/c_.../`) as a webhook endpoint in the Dashboard — events don't flow until you do. `svix-*` headers are preserved, so `verifyWebhook()` works against that endpoint's signing secret as usual. Flags, offline signature checks (`clerk webhooks verify`), and agent-mode behavior are in the `clerk-cli` skill. Without the CLI, tunnel `localhost:3000` yourself (`ngrok`, `localtunnel`, `Cloudflare Tunnel`) and add the public URL to the Dashboard endpoint.
 
 **Production**: Update webhook endpoint URL to production domain. Copy `CLERK_WEBHOOK_SIGNING_SECRET` to production env vars.
 
@@ -339,6 +345,7 @@ const {
 
 ## See Also
 
+- `clerk-cli` - `clerk webhooks listen`/`verify` for local webhook testing
 - `clerk-setup` - Initial Clerk install
 - `clerk-orgs` - Org membership events
 - `clerk-billing` - Subscription, subscription item, and payment attempt events
