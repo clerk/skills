@@ -5,7 +5,8 @@ description: Clerk authentication router. Use when user asks about Clerk CLI ope
   auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt
   patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router
   patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments,
-  pricing, plans, seat-based pricing, feature entitlements, syncing users, or testing.
+  pricing, plans, seat-based pricing, feature entitlements, syncing users, testing,
+  impersonating a user, or testing webhooks locally.
   Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
@@ -42,7 +43,9 @@ All skills are written for the current SDK. When something differs in Core 2, it
 **Operating Clerk from the CLI** → Use `clerk-cli`
 - Auth, linking, `doctor`, and environment pulls
 - User, org, session, app, and instance management
-- Backend and Platform API calls through `clerk api`
+- Impersonating a user (`clerk impersonate`) and local webhook testing (`clerk webhooks listen`)
+- Feature toggles (`clerk enable orgs`, `clerk enable billing`)
+- Backend, Platform, and Frontend API calls through `clerk api`
 - Deploy handoff and deploy status verification
 
 **Custom sign-in/sign-up UI** → Use `clerk-custom-ui`
