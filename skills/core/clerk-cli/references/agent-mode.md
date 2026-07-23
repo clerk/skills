@@ -83,10 +83,10 @@ clerk init --input-json '{"framework":"next","yes":true}'
 clerk config pull --input-json '{"keys":["auth_email","session"]}'  # arrays → repeated flags
 clerk init --input-json @init-opts.json                             # read JSON from a file
 clerk init --input-json -                                           # read JSON from stdin
-echo '{"framework":"next","yes":true}' | clerk init                 # auto-detect piped stdin
+echo '{"framework":"next","yes":true}' | clerk init --input-json -  # same, over a pipe
 ```
 
-When `--input-json` is omitted and stdin is piped (not a TTY), the CLI automatically reads JSON from stdin - no flag needed. This lets agents pipe options directly: `echo '{"yes":true}' | clerk init`.
+Stdin is read **only** with the explicit `-` marker (`--input-json -`). Bare piped stdin is never consumed, so shell loops and self-reading commands (`cat body.json | clerk api …`) are untouched.
 
 Positional arguments (e.g. the `<name>` in `clerk apps create <name>`) cannot come from JSON - only flag-style options can.
 
