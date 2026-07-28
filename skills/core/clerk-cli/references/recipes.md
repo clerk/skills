@@ -94,7 +94,7 @@ clerk users create -d '{
 
 When signing in as either user in a browser or Playwright, enter `424242` at the OTP prompt.
 
-These patterns only apply to development instances. In production, client trust blocks sign-in regardless of suffix or number, and using real-looking test addresses is highly discouraged. Test addresses and numbers do not count against the dev-instance monthly caps (20 SMS, 100 emails). See [Clerk's test emails and phones reference](https://clerk.com/docs/guides/development/testing/test-emails-and-phones) for the full contract.
+These patterns only apply to development instances. In production, Device Trust blocks sign-in regardless of suffix or number, and using real-looking test addresses is highly discouraged. Test addresses and numbers do not count against the dev-instance monthly caps (20 SMS, 100 emails). See [Clerk's test emails and phones reference](https://clerk.com/docs/guides/development/testing/test-emails-and-phones) for the full contract.
 
 ## Organizations
 
