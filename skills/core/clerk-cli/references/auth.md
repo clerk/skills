@@ -115,7 +115,11 @@ OAuth 2.0 PKCE flow against the Clerk OAuth system instance (`https://clerk.cler
 5. Fetches user info from `/oauth/userinfo`.
 6. Stores the token in the OS credential store.
 
-In agent mode, if already authenticated, it's a no-op. If not, it prints guidance rather than opening a browser.
+In agent mode, if already authenticated, it's a no-op. If not, it runs the full flow above anyway: it opens a
+browser and binds a localhost callback, so it is **not** unattended and will stall in a sandbox that cannot
+reach a browser. There is no agent-mode branch that prints guidance instead. For headless flows, set
+`CLERK_PLATFORM_API_KEY` rather than calling `clerk auth login`.
+
 In a sandbox, even the "already authenticated" check can be false if the
 keychain or fallback credential file is blocked, so rerun on the host before
 trusting a sandboxed auth failure.
