@@ -7,7 +7,7 @@ allowed-tools: WebFetch
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY (or framework-specific equivalents like VITE_CLERK_PUBLISHABLE_KEY for Vite-based apps). Keys can be auto-generated via Keyless on first SDK initialization, or pulled from the Clerk Dashboard. Requires Node.js 20.9.0 or higher.
 metadata:
   author: clerk
-  version: 2.3.0
+  version: 2.4.0
 ---
 
 # Adding Clerk
@@ -26,7 +26,9 @@ The `clerk` CLI replaces most Dashboard clicks. Three scenarios cover almost eve
 clerk init --framework <next|react|vue|nuxt|astro|react-router|tanstack-react-start|expressjs|fastify|expo> -y
 ```
 
-`clerk init` creates the Clerk app via PLAPI, links the project, writes the framework-specific publishable + secret keys to the right env file (e.g. `.env.local` for Next.js, `.env` for Vite-based projects), and installs the SDK package.
+`clerk init` installs the SDK, wires the project up, and writes the framework-specific publishable + secret keys to the right env file (e.g. `.env.local` for Next.js, `.env` for Vite-based projects).
+
+**No login required.** When not authenticated, `clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) defaults to minting a temporary **keyless** application — no Clerk account, no browser, no flag needed. Add `--template <b2b-saas|b2c-saas|native|waitlist>` to pre-configure it. Do not run `clerk auth login` first. When authenticated (or with `--app` / `--login`), it creates and links a real app via PLAPI instead. A later `clerk auth login` claims the keyless app into the account.
 
 ### Scenario B — Existing project, existing Clerk app
 
@@ -67,6 +69,7 @@ clerk api --platform POST /v1/platform/applications/<app_id>/rotate_secret_keys 
 
 ### Notes for agents
 
+- Keyless projects are configurable without an account: `config pull/patch`, `enable orgs`, `env pull`, `whoami`, and `clerk api` all work with just the local keyless keys (also discovered from `.clerk/.tmp/keyless.json` when the SDK minted the app itself). Billing requires a claimed app.
 - `clerk link` (no flags) only autolinks when a `CLERK_PUBLISHABLE_KEY` is already in `.env` / `.env.local`. Without it, agent mode errors out: "Cannot select an application in agent mode." When that happens, run `clerk apps list --json`, and ask the user which `app_id` to link rather than guessing.
 - Pass `--json` on `apps list/create`, `users create`, and `doctor` for parseable output.
 - The CLI auto-detects framework env var names (`VITE_CLERK_PUBLISHABLE_KEY` for Vite, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` for Next.js, etc.) and target file (`.env.development.local` > `.env.local` > `.env`).

@@ -34,6 +34,14 @@ When you run `clerk api --platform ...`, or any command that already uses PLAPI 
 
 Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth login` for local interactive development.
 
+## Keyless: operating without an account
+
+Neither auth path is required to bootstrap or configure a project. `clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) defaults to minting an unclaimed **keyless** application when unauthenticated — no login, no platform key, no browser.
+
+On a keyless project, the CLI resolves the instance secret key locally — from `CLERK_SECRET_KEY`, the project's `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an application a Clerk SDK minted for itself) — and these commands work with that key alone, against the Backend API: `whoami`, `env pull`, `config pull/schema/patch/put`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`. Account credentials are deliberately not part of the decision: only `--app` or a linked profile selects the account path, so being logged in doesn't break keyless targeting.
+
+Account-only operations remain: `apps`, `impersonate`, billing (`enable billing` refuses on an unclaimed app), and `clerk link` (there is no app ID to link pre-claim). A later `clerk auth login` claims the keyless app into the account via the `.clerk/keyless.json` breadcrumb.
+
 ## Host vs sandbox behavior
 
 These auth and targeting rules only produce trustworthy results when the CLI
@@ -65,7 +73,7 @@ targeting result. A sandboxed run can misreport:
 
 Rerun the same command on the host before acting on it.
 
-> **`config` commands do not accept `--secret-key`.** They target the Platform API and authenticate via the PLAPI chain above (`CLERK_PLATFORM_API_KEY` or the stored OAuth token). If you need to script `config pull/schema/patch/put` in CI, export `CLERK_PLATFORM_API_KEY`; a Backend API `sk_...` key will not work.
+> **`config` commands do not accept `--secret-key`.** With `--app` or a linked profile they target the Platform API and authenticate via the PLAPI chain above (`CLERK_PLATFORM_API_KEY` or the stored OAuth token) — script that in CI by exporting `CLERK_PLATFORM_API_KEY`. On a keyless project (no `--app`, no link) they instead go through the Backend API with the locally discovered instance secret key, so no account is needed; account-only settings that BAPI has no route for are refused with an explanation.
 
 ## Project linking
 
@@ -132,7 +140,7 @@ Clears the stored token. No API calls.
 
 ### `clerk whoami`
 
-Hits `GET /oauth/userinfo` with the stored token and prints the email. Exits with a message if not logged in.
+Hits `GET /oauth/userinfo` with the stored token and prints the email. On a keyless project it works without a login: it reports the unclaimed application resolved from the local keys instead. Exits with a message only when there is neither a session nor keyless state.
 
 ## Environment variables the CLI honors
 
@@ -150,7 +158,7 @@ Hits `GET /oauth/userinfo` with the stored token and prints the email. Exits wit
 
 | Symptom                             | Likely cause                                                  | Fix                                                          |
 | ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `Not authenticated`                 | No token stored, no `CLERK_PLATFORM_API_KEY`                  | `clerk auth login` or export `CLERK_PLATFORM_API_KEY`        |
+| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but first check whether the command works keyless (see above); most instance-level commands need no account |
 | `No Clerk project linked`           | Running a command that needs a linked profile with no `--app` | `clerk link` or pass `--app <id>`                            |
 | `Invalid secret key prefix`         | Passed `ak_...` where `sk_...` expected (or vice versa)       | Check which API the command hits; pass the matching key type |
 | `Unauthorized` from API             | Key belongs to a different instance                           | Verify `--instance` and ensure the key matches               |

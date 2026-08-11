@@ -8,7 +8,7 @@ license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. Organizations must be enabled in Clerk Dashboard → Organizations. Membership mode (required vs optional) must match the B2B vs B2C + B2B coexistence story of your app.
 metadata:
   author: clerk
-  version: 3.0.0
+  version: 3.1.0
 ---
 
 # Organizations (B2B SaaS)
@@ -56,7 +56,7 @@ metadata:
 
 Org settings (enable toggle, membership cap, admin delete, domains) are patchable via PLAPI Instance Config. Org CRUD + memberships + invitations live in BAPI. Useful for agents seeding orgs, replicating settings across instances, or version-controlling org structure.
 
-Pre-req: project linked (`clerk auth login` + `clerk link`, see `clerk-setup`).
+Pre-req: a linked project (`clerk auth login` + `clerk link`, see `clerk-setup`) — or a keyless project: `clerk enable orgs` and org CRUD via `clerk api` work on an unclaimed keyless app with no login at all.
 
 ### Enable Organizations + settings via CLI
 

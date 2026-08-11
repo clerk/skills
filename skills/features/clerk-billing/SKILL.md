@@ -10,7 +10,7 @@ license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, and CLERK_WEBHOOK_SIGNING_SECRET. Billing must be enabled in Clerk Dashboard → Billing. Development instances can use the shared Clerk development gateway; production instances require a Stripe account for payment processing.
 metadata:
   author: clerk
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Billing
@@ -45,7 +45,7 @@ metadata:
 
 The full billing config (enable toggles, plans, features, plan-feature attachments) is editable via PLAPI without touching the Dashboard. Useful for agents seeding plans, replicating config across instances, or version-controlling billing structure.
 
-Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see `clerk-setup`).
+Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see `clerk-setup`). Billing is account-only — unlike orgs, it cannot be enabled on an unclaimed keyless app; claim the app first.
 
 ### Enable Billing via CLI
 
