@@ -34,6 +34,23 @@ When you run `clerk api --platform ...`, or any command that already uses PLAPI 
 
 Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth login` for local interactive development.
 
+## Keyless: operating without an account
+
+`clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) mints an unclaimed **keyless** application when unauthenticated — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--keyless`.
+
+The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an app a Clerk SDK minted for itself) and works against BAPI:
+
+| Works keyless                                                                                          | Needs a claimed app                                              |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `whoami`¹, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`² | `apps`, `impersonate`, `link`, `enable billing`, `config schema/put` |
+
+¹ Signed in, `whoami` reports the account and drops the `keyless` object — don't use it to read back `keyless.instanceId`.
+² Returns the one-time claim URL, not a dashboard link. That token is credential-equivalent: never put it in a log, commit, or PR. `users open` needs a claimed app.
+
+**It follows the key, not the app.** No `--app` and no link means keyless, with any `sk_` key — `sk_live_` included, claimed or not. In an unlinked repo a production key in `.env.local` is what gets mutated, unconfirmed in agent mode. Pass `--app <id>` when you mean a real application.
+
+`clerk auth login` auto-claims only what `clerk init` created (`.clerk/keyless.json`). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
+
 ## Host vs sandbox behavior
 
 These auth and targeting rules only produce trustworthy results when the CLI
@@ -65,7 +82,7 @@ targeting result. A sandboxed run can misreport:
 
 Rerun the same command on the host before acting on it.
 
-> **`config` commands do not accept `--secret-key`.** They target the Platform API and authenticate via the PLAPI chain above (`CLERK_PLATFORM_API_KEY` or the stored OAuth token). If you need to script `config pull/schema/patch/put` in CI, export `CLERK_PLATFORM_API_KEY`; a Backend API `sk_...` key will not work.
+> **`config` commands do not accept `--secret-key`.** With `--app` or a link they hit PLAPI via the chain above — export `CLERK_PLATFORM_API_KEY` to script this in CI. Keyless, `pull`/`patch` hit BAPI with the local key; settings BAPI has no route for are refused with an explanation.
 
 ## Project linking
 
@@ -132,7 +149,7 @@ Clears the stored token. No API calls.
 
 ### `clerk whoami`
 
-Hits `GET /oauth/userinfo` with the stored token and prints the email. Exits with a message if not logged in.
+Hits `GET /oauth/userinfo` and prints the email. With no usable session it reports the keyless application from local keys instead, and errors only when there is neither.
 
 ## Environment variables the CLI honors
 
@@ -150,7 +167,7 @@ Hits `GET /oauth/userinfo` with the stored token and prints the email. Exits wit
 
 | Symptom                             | Likely cause                                                  | Fix                                                          |
 | ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `Not authenticated`                 | No token stored, no `CLERK_PLATFORM_API_KEY`                  | `clerk auth login` or export `CLERK_PLATFORM_API_KEY`        |
+| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the keyless table first; most instance commands need no account |
 | `No Clerk project linked`           | Running a command that needs a linked profile with no `--app` | `clerk link` or pass `--app <id>`                            |
 | `Invalid secret key prefix`         | Passed `ak_...` where `sk_...` expected (or vice versa)       | Check which API the command hits; pass the matching key type |
 | `Unauthorized` from API             | Key belongs to a different instance                           | Verify `--instance` and ensure the key matches               |
