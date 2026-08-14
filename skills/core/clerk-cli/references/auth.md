@@ -36,15 +36,20 @@ Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth lo
 
 ## Keyless: operating without an account
 
-Neither auth path is required to bootstrap or configure a project. `clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) defaults to minting an unclaimed **keyless** application when unauthenticated — no login, no platform key, no browser.
+`clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) mints an unclaimed **keyless** application when unauthenticated — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--keyless`.
 
-On a keyless project, the CLI resolves the instance secret key locally — from `CLERK_SECRET_KEY`, the project's `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an application a Clerk SDK minted for itself) — and these commands work with that key alone, against the Backend API: `whoami`, `env pull`, `config pull/patch`, `enable/disable orgs`, `users` (except `users open`), `api`, `doctor`, `open` (claim link only). Account credentials are deliberately not part of the decision: only `--app` or a linked profile selects the account path, so being logged in doesn't break keyless targeting. `whoami` is the one exception — with a usable session it reports the account and omits the `keyless` object entirely, so don't use it to recover `keyless.instanceId` on a signed-in machine.
+The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an app a Clerk SDK minted for itself) and works against BAPI:
 
-**This path is key-directed, not app-directed.** The CLI does not verify that the resolved application is unclaimed, and does not check its environment: it takes the keyless branch whenever there is no `--app` and no linked profile, and accepts any key starting with `sk_` — `sk_live_` included. In an unlinked project, a production key sitting in `.env.local` is what these commands will read and mutate, with no confirmation in agent mode. Pass `--app <id>` or `clerk link` whenever you mean a specific real application.
+| Works keyless                                                                                          | Needs a claimed app                                              |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `whoami`¹, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`² | `apps`, `impersonate`, `link`, `enable billing`, `config schema/put` |
 
-`clerk open` on a keyless project returns a one-time claim URL (`/apps/claim?token=…`), not a dashboard deep link. That token is credential-equivalent: whoever opens it claims the application, its users, and its keys. Surface it to the user and nowhere else — never a log, commit, PR body, or issue comment. `.clerk/keyless.json` and `.clerk/.tmp/keyless.json` hold live keys and deserve the same care.
+¹ Signed in, `whoami` reports the account and drops the `keyless` object — don't use it to read back `keyless.instanceId`.
+² Returns the one-time claim URL, not a dashboard link. That token is credential-equivalent: never put it in a log, commit, or PR. `users open` needs a claimed app.
 
-Account-only operations remain: `apps`, `impersonate`, billing (`enable billing` refuses on an unclaimed app), `clerk link` (there is no app ID to link pre-claim), and `config schema` / `config put` — the schema describes the account-level config document and `put` replaces it, and an unclaimed application has no such document, so both refuse with an explanation. A later `clerk auth login` auto-claims only an application `clerk init` created, via the `.clerk/keyless.json` breadcrumb. An app a Clerk SDK minted for itself (`.clerk/.tmp/keyless.json`) has no breadcrumb — login will not claim it, and may create an unrelated default app instead; claim it through `clerk open` or the Dashboard claim URL.
+**It follows the key, not the app.** No `--app` and no link means keyless, with any `sk_` key — `sk_live_` included, claimed or not. In an unlinked repo a production key in `.env.local` is what gets mutated, unconfirmed in agent mode. Pass `--app <id>` when you mean a real application.
+
+`clerk auth login` auto-claims only what `clerk init` created (`.clerk/keyless.json`). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
 
 ## Host vs sandbox behavior
 
@@ -77,7 +82,7 @@ targeting result. A sandboxed run can misreport:
 
 Rerun the same command on the host before acting on it.
 
-> **`config` commands do not accept `--secret-key`.** With `--app` or a linked profile they target the Platform API and authenticate via the PLAPI chain above (`CLERK_PLATFORM_API_KEY` or the stored OAuth token) — script that in CI by exporting `CLERK_PLATFORM_API_KEY`. On a keyless project (no `--app`, no link) `config pull` and `config patch` instead go through the Backend API with the locally discovered instance secret key, so no account is needed; account-only settings that BAPI has no route for are refused with an explanation. `config schema` and `config put` are not available pre-claim — they read and replace the account-level config document, which an unclaimed application has none of.
+> **`config` commands do not accept `--secret-key`.** With `--app` or a link they hit PLAPI via the chain above — export `CLERK_PLATFORM_API_KEY` to script this in CI. Keyless, `pull`/`patch` hit BAPI with the local key; settings BAPI has no route for are refused with an explanation.
 
 ## Project linking
 
@@ -144,7 +149,7 @@ Clears the stored token. No API calls.
 
 ### `clerk whoami`
 
-Hits `GET /oauth/userinfo` with the stored token and prints the email. On a keyless project it works without a login: it reports the unclaimed application resolved from the local keys instead. Exits with a message only when there is neither a session nor keyless state.
+Hits `GET /oauth/userinfo` and prints the email. With no usable session it reports the keyless application from local keys instead, and errors only when there is neither.
 
 ## Environment variables the CLI honors
 
@@ -162,7 +167,7 @@ Hits `GET /oauth/userinfo` with the stored token and prints the email. On a keyl
 
 | Symptom                             | Likely cause                                                  | Fix                                                          |
 | ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but first check whether the command works keyless (see above); most instance-level commands need no account |
+| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the keyless table first; most instance commands need no account |
 | `No Clerk project linked`           | Running a command that needs a linked profile with no `--app` | `clerk link` or pass `--app <id>`                            |
 | `Invalid secret key prefix`         | Passed `ak_...` where `sk_...` expected (or vice versa)       | Check which API the command hits; pass the matching key type |
 | `Unauthorized` from API             | Key belongs to a different instance                           | Verify `--instance` and ensure the key matches               |
