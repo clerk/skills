@@ -38,9 +38,9 @@ Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth lo
 
 Neither auth path is required to bootstrap or configure a project. `clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) defaults to minting an unclaimed **keyless** application when unauthenticated — no login, no platform key, no browser.
 
-On a keyless project, the CLI resolves the instance secret key locally — from `CLERK_SECRET_KEY`, the project's `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an application a Clerk SDK minted for itself) — and these commands work with that key alone, against the Backend API: `whoami`, `env pull`, `config pull/schema/patch/put`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`. Account credentials are deliberately not part of the decision: only `--app` or a linked profile selects the account path, so being logged in doesn't break keyless targeting.
+On a keyless project, the CLI resolves the instance secret key locally — from `CLERK_SECRET_KEY`, the project's `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an application a Clerk SDK minted for itself) — and these commands work with that key alone, against the Backend API: `whoami`, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`. Account credentials are deliberately not part of the decision: only `--app` or a linked profile selects the account path, so being logged in doesn't break keyless targeting.
 
-Account-only operations remain: `apps`, `impersonate`, billing (`enable billing` refuses on an unclaimed app), and `clerk link` (there is no app ID to link pre-claim). A later `clerk auth login` claims the keyless app into the account via the `.clerk/keyless.json` breadcrumb.
+Account-only operations remain: `apps`, `impersonate`, billing (`enable billing` refuses on an unclaimed app), `clerk link` (there is no app ID to link pre-claim), and `config schema` / `config put` — the schema describes the account-level config document and `put` replaces it, and an unclaimed application has no such document, so both refuse with an explanation. A later `clerk auth login` claims the keyless app into the account via the `.clerk/keyless.json` breadcrumb.
 
 ## Host vs sandbox behavior
 
@@ -73,7 +73,7 @@ targeting result. A sandboxed run can misreport:
 
 Rerun the same command on the host before acting on it.
 
-> **`config` commands do not accept `--secret-key`.** With `--app` or a linked profile they target the Platform API and authenticate via the PLAPI chain above (`CLERK_PLATFORM_API_KEY` or the stored OAuth token) — script that in CI by exporting `CLERK_PLATFORM_API_KEY`. On a keyless project (no `--app`, no link) they instead go through the Backend API with the locally discovered instance secret key, so no account is needed; account-only settings that BAPI has no route for are refused with an explanation.
+> **`config` commands do not accept `--secret-key`.** With `--app` or a linked profile they target the Platform API and authenticate via the PLAPI chain above (`CLERK_PLATFORM_API_KEY` or the stored OAuth token) — script that in CI by exporting `CLERK_PLATFORM_API_KEY`. On a keyless project (no `--app`, no link) `config pull` and `config patch` instead go through the Backend API with the locally discovered instance secret key, so no account is needed; account-only settings that BAPI has no route for are refused with an explanation. `config schema` and `config put` are not available pre-claim — they read and replace the account-level config document, which an unclaimed application has none of.
 
 ## Project linking
 

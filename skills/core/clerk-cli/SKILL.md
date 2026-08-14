@@ -105,9 +105,9 @@ If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <c
 
 `clerk init` does **not** require `clerk auth login`. On a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router), an unauthenticated run — every agent run, and human bootstrap — mints an unclaimed **keyless** application with temporary development keys by default: no Clerk account, no browser, no flag needed. `--template <b2b-saas|b2c-saas|native|waitlist>` pre-configures the keyless app at creation.
 
-Once keyless keys exist (in the env file, or in `.clerk/.tmp/keyless.json` when a Clerk SDK minted the app itself), these commands operate on the instance with the secret key alone — still no account: `whoami`, `env pull`, `config pull/schema/patch/put`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`. Login state doesn't change this: only `--app` or a linked profile selects the account path.
+Once keyless keys exist (in the env file, or in `.clerk/.tmp/keyless.json` when a Clerk SDK minted the app itself), these commands operate on the instance with the secret key alone — still no account: `whoami`, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`. Login state doesn't change this: only `--app` or a linked profile selects the account path.
 
-Reserve `clerk auth login` for what actually needs an account: claiming the keyless app into a Clerk account, linking a real app (`--app`, `clerk link`), `apps`, `impersonate`, and billing (`enable billing` refuses on an unclaimed app and says why).
+Reserve `clerk auth login` for what actually needs an account: claiming the keyless app into a Clerk account, linking a real app (`--app`, `clerk link`), `apps`, `impersonate`, billing (`enable billing` refuses on an unclaimed app and says why), and `config schema` / `config put` — both describe or replace the account-level config document, which an unclaimed app has none of, so they refuse too.
 
 ## The mental model
 
