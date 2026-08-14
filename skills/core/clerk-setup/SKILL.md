@@ -28,7 +28,7 @@ clerk init --framework <next|react|vue|nuxt|astro|react-router|tanstack-react-st
 
 `clerk init` installs the SDK, wires the project up, and writes the framework-specific publishable + secret keys to the right env file (e.g. `.env.local` for Next.js, `.env` for Vite-based projects).
 
-**No login required.** When not authenticated, `clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) defaults to minting a temporary **keyless** application — no Clerk account, no browser, no flag needed. Add `--template <b2b-saas|b2c-saas|native|waitlist>` to pre-configure it. Do not run `clerk auth login` first. When authenticated (or with `--app` / `--login`), it creates and links a real app via PLAPI instead. A later `clerk auth login` claims the keyless app into the account.
+**No login required.** When not authenticated, `clerk init` on a keyless-capable framework (Next.js, Astro, Nuxt, TanStack Start, React Router) defaults to minting a temporary **keyless** application — no Clerk account, no browser, no flag needed. That default covers every agent run and human bootstrap (a new or empty project); a signed-out human running `init` inside an *existing* project still gets the browser login, so pass `--keyless` there to force keyless. Add `--template <b2b-saas|b2c-saas|native|waitlist>` to pre-configure it — `--template` and `--fresh` are usage errors on any run that does not resolve to keyless, including when you are simply signed in. Do not run `clerk auth login` first. When authenticated (or with `--app` / `--login`), it creates and links a real app via PLAPI instead. A later `clerk auth login` claims the keyless app, but only one that `clerk init` created.
 
 ### Scenario B — Existing project, existing Clerk app
 
