@@ -45,7 +45,7 @@ metadata:
 
 The full billing config (enable toggles, plans, features, plan-feature attachments) is editable via PLAPI without touching the Dashboard. Useful for agents seeding plans, replicating config across instances, or version-controlling billing structure.
 
-Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see `clerk-setup`). Billing is account-only — unlike orgs, it cannot be enabled on an unclaimed keyless app; claim the app first.
+Pre-req: project linked to the Clerk app (`clerk auth login` + `clerk link`, see `clerk-setup`). Billing is account-only — unlike orgs, it cannot be enabled on an unclaimed app; claim the app first.
 
 ### Enable Billing via CLI
 
