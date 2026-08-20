@@ -107,7 +107,7 @@ If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <c
 
 Two things to know before you use it: the no-account path follows whatever `sk_` key is local — `sk_live_` included, claimed or not — so pass `--app <id>` when you mean a real app; and `clerk open` returns a credential-equivalent claim URL, never safe to paste into a log or PR.
 
-Which commands need an account, and the full rules: [auth.md](references/auth.md#operating-without-an-account).
+Which commands need an account, and the full rules: [auth.md](references/auth.md#accountless-operating-without-an-account).
 
 ## The mental model
 

@@ -34,9 +34,9 @@ When you run `clerk api --platform ...`, or any command that already uses PLAPI 
 
 Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth login` for local interactive development.
 
-## Operating without an account
+## Accountless: operating without an account
 
-`clerk init` mints an unclaimed application with temporary development keys when unauthenticated (supported for Next.js, Astro, Nuxt, TanStack Start, and React Router) — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--keyless`.
+`clerk init` mints a claimable, accountless app (which saves temporary development keys) when unauthenticated (supported for Next.js, Astro, Nuxt, TanStack Start, and React Router) — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--keyless`.
 
 The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an app an older Clerk SDK minted for itself) and works against BAPI:
 
