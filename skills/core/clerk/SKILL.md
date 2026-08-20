@@ -37,7 +37,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 
 **Adding Clerk to your project** → Use `clerk-setup`
 - Framework detection and quickstart
-- Environment setup, API keys, Keyless flow
+- Environment setup, API keys, temporary dev keys via `clerk init`
 - Migration from other auth providers
 
 **Operating Clerk from the CLI** → Use `clerk-cli`
