@@ -22,6 +22,8 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 
 ## Contributing
 
+`skills/core/clerk-setup/SKILL.md` and `skills/core/clerk-cli/references/setup.md` are generated from `clerk/clerk`'s `clerk-docs/prompts/cli-setup.md`. Do not hand-edit them. The weekday `refresh-agent-prompts.yml` workflow opens or updates a rolling PR; change the canonical Markdown prompt in `clerk/clerk` instead.
+
 1. Each skill needs `SKILL.md` with YAML frontmatter (`name`, `description`, `license`)
 2. Place in the correct category directory
 3. Add to `.claude-plugin/marketplace.json` under the matching plugin group

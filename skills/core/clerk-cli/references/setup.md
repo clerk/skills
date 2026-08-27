@@ -1,13 +1,3 @@
----
-name: clerk-setup
-description: Set up Clerk authentication in an existing project or a newly scaffolded application using the canonical Clerk CLI flow.
-license: MIT
-allowed-tools: Bash Read Edit
-metadata:
-  author: clerk
-  version: 3.0.0
----
-
 <!-- Generated from clerk/clerk@main:clerk-docs/prompts/cli-setup.md. Do not edit manually. -->
 
 # Add Clerk Authentication

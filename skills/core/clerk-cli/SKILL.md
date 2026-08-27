@@ -17,6 +17,8 @@ license: MIT
 
 The `clerk` binary is a pre-authenticated gateway to Clerk's Backend API and Platform API, plus project-level tooling (auth, linking, env pulls, instance config). When the user asks anything that touches a Clerk resource, reach for `clerk` first instead of hand-rolling `curl`.
 
+For setup or `init` requests, read [references/setup.md](references/setup.md) first and follow it as the source of truth. Its package-runner and init-first flow takes precedence over the general operational prerequisites below.
+
 > This skill targets clerk `latest`. If `clerk --version` disagrees with the latest available CLI, refresh it with `clerk update`, or invoke the latest through a package runner such as `bunx clerk@latest`. The binary is always the source of truth, so run `clerk <command> --help` to verify anything this skill claims.
 
 ## Execution environment (prefer the host, understand the sandbox warning)
@@ -86,9 +88,9 @@ Yarn Classic (v1) has no `dlx`; treat those projects as "no preferred runner" an
 
 The published npm package is **`clerk`**, not `@clerk/cli`. Never teach `npm install -g clerk` as the primary path. If the global CLI is stale or behaves differently from this skill, either upgrade the global install or fall back to the `latest` runner form above.
 
-## Prerequisites (run at session start)
+## Prerequisites (run at session start for non-setup operations)
 
-Before running any other Clerk command in a session, verify the CLI is authenticated, linked, and healthy:
+Except when following the setup reference, verify the CLI is authenticated, linked, and healthy before running other Clerk commands in a session:
 
 ```sh
 clerk --version               # confirm the binary is on PATH
@@ -253,7 +255,7 @@ The CLI auto-detects agent mode when stdout is not a TTY, or when `--mode agent`
 - **Host-sensitive operations emit a sandbox warning once per invocation.** Home-directory Clerk state, keychain access, networked Clerk calls, browser launch, and localhost OAuth callback setup can trigger the warning shown above. If it appears, rerun the same command on the host before trusting the result.
 - **If your harness does not clearly present as agent mode, force it.** Use `--mode agent` or `CLERK_MODE=agent` when you want the CLI's non-interactive behavior and sandbox warning path to apply deterministically.
 - **`link` supports deterministic agent flows.** In agent mode, `clerk link --app <id>` links directly. Without `--app`, the CLI will try silent key-based autolink first; if it cannot determine the app unambiguously, it exits and tells you to pass `--app`.
-- **`init` needs no login — do not log in first.** An unauthenticated agent run mints an unclaimed app with temporary dev keys: no flag, no account, no browser. `--app <id>` or a pre-link targets a real app instead; `--keyless` forces the temporary-keys path over both a session and an existing link. A framework without temporary-key support and no app target prints manual guidance and exits cleanly. Flag exclusivity is in the command table above.
+- **For `init`, follow the generated setup reference.** It owns framework-support, keyless, app-linking, and login-order guidance so those instructions stay synchronized with Clerk's docs prompts.
 - **`--fresh` is destructive.** It replaces the temporary app and overwrites the env keys and `.clerk/keyless.json` with no prompt, orphaning the previous app and its users. Never pass it just to re-run `init`.
 - **`unlink` requires `--yes` in agent mode.** It gates on `isAgent() && !options.yes` and exits with a usage error without it. This is the exception, not the pattern - see the next bullet.
 - **Only `unlink` actually requires `--yes`.** Every other confirmation gate is written as `isHuman() && !options.yes`, so agent mode skips it outright: the mutation executes with no prompt and no error. Passing `--yes` is harmless but changes nothing. Do not treat it as a safety gate - `--dry-run` is the real one.
@@ -283,6 +285,7 @@ Full matrix and sandbox details in [references/agent-mode.md](references/agent-m
 
 ## References
 
+- [references/setup.md](references/setup.md) - generated canonical setup and initialization flow, including auth migration checks.
 - [references/auth.md](references/auth.md) - auth flow, key resolution order, host-vs-sandbox behavior, `--app`/`--instance` targeting, Backend vs Platform API.
 - [references/recipes.md](references/recipes.md) - copy-pasteable recipes for common Clerk tasks.
 - [references/agent-mode.md](references/agent-mode.md) - agent-mode behavior matrix, sandbox warning semantics, exit codes, error format.
