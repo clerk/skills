@@ -29,11 +29,27 @@ jobs:
     steps:
       - uses: actions/github-script@v8
         env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.head_ref }}
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           REFRESH_BRANCH: ${{ env.REFRESH_BRANCH }}
         with:
           script: |
+            try {
+              await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: '.github/workflows/refresh-agent-prompts.yml',
+                ref: process.env.BASE_SHA
+              })
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('Bootstrap PR — generated-file guard is not present on the base branch yet.')
+                return
+              }
+              throw error
+            }
+
             const sameRepo = process.env.HEAD_REPO === `${context.repo.owner}/${context.repo.repo}`
             if (sameRepo && process.env.HEAD_REF === process.env.REFRESH_BRANCH) {
               core.info('Refresh branch — generated-file guard passes.')
