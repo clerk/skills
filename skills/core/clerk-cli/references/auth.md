@@ -36,7 +36,7 @@ Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth lo
 
 ## Accountless: operating without an account
 
-`clerk init` mints a claimable, accountless app (which saves temporary development keys) when unauthenticated — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--keyless`.
+`clerk init` mints a claimable, accountless app (which saves temporary development keys) when unauthenticated — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--accountless` (`--keyless` remains a deprecated compatibility alias).
 
 The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an app an older Clerk SDK minted for itself) and works against BAPI:
 
@@ -49,7 +49,7 @@ The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, 
 
 **It follows the key, not the app.** No `--app` and no link means the CLI uses whatever local `sk_` key it finds — `sk_live_` included, claimed or not. In an unlinked repo a production key in `.env.local` is what gets mutated, unconfirmed in agent mode. Pass `--app <id>` when you mean a real application.
 
-`clerk auth login` auto-claims only what `clerk init` created (`.clerk/keyless.json`). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
+`clerk auth login` auto-claims only what `clerk init` created (recorded in the legacy `.clerk/keyless.json` breadcrumb). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
 
 ## Host vs sandbox behavior
 

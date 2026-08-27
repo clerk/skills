@@ -28,3 +28,5 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 4. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 5. Folder names keep the `clerk-` prefix (e.g. `frameworks/clerk-nextjs-patterns/`)
 6. When adding, removing, or moving skills, keep applicable marketplace manifests in sync.
+
+`skills/core/clerk-setup/SKILL.md` and `skills/core/clerk-cli/references/setup.md` are generated from `clerk/clerk/clerk-docs/prompts/cli-setup.md` by `.github/workflows/refresh-agent-prompts.yml`. Change the canonical prompt in `clerk/clerk`; do not hand-edit the generated files.

@@ -1,14 +1,3 @@
----
-name: clerk-setup
-description: Add Clerk authentication to any project by following the official quickstart
-  guides.
-license: MIT
-allowed-tools: WebFetch
-metadata:
-  author: clerk
-  version: 2.3.0
----
-
 <!-- Generated from clerk/clerk@main:clerk-docs/prompts/cli-setup.md. Do not edit by hand. -->
 
 # Add Clerk Authentication

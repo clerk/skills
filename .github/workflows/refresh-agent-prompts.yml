@@ -1,0 +1,126 @@
+name: Refresh agent prompts
+
+# Requires CLERK_REPO_READ_TOKEN (read clerk/clerk) and CLERK_AUTOMATION_TOKEN
+# (write contents and pull requests in clerk/skills) on the Clerk Cookie account.
+
+on:
+  pull_request:
+    branches: main
+    paths:
+      - "skills/core/clerk-setup/SKILL.md"
+      - "skills/core/clerk-cli/references/setup.md"
+  schedule:
+    - cron: "43 9 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REFRESH_BRANCH: agent-prompts-refresh
+
+jobs:
+  guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v8
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REFRESH_BRANCH: ${{ env.REFRESH_BRANCH }}
+        with:
+          script: |
+            const sameRepo = process.env.HEAD_REPO === `${context.repo.owner}/${context.repo.repo}`
+            if (sameRepo && process.env.HEAD_REF === process.env.REFRESH_BRANCH) {
+              core.info('Refresh branch — generated-file guard passes.')
+              return
+            }
+
+            const marker = '<!-- agent-prompts-generated-guard -->'
+            const body = `${marker}\n\n⚠️ **Clerk setup skill content is generated from \`clerk/clerk/clerk-docs/prompts/cli-setup.md\`.**\n\nChange the canonical prompt in \`clerk/clerk\`, then run the **Refresh agent prompts** workflow. Direct edits here will be overwritten.`
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            })
+            const existing = comments.find(
+              (comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(marker)
+            )
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body
+              })
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body
+              })
+            }
+
+            core.setFailed('Clerk setup skill content is generated from clerk/clerk — see the PR comment.')
+
+  refresh:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    concurrency:
+      group: refresh-agent-prompts
+      cancel-in-progress: false
+    steps:
+      - name: Checkout skills
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: skills-repo
+          persist-credentials: false
+
+      - name: Checkout canonical prompt
+        uses: actions/checkout@v6
+        with:
+          repository: clerk/clerk
+          ref: main
+          token: ${{ secrets.CLERK_REPO_READ_TOKEN }}
+          path: clerk
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Generate setup skill content
+        run: node skills-repo/scripts/sync-agent-prompts.mjs clerk skills-repo
+
+      - name: Read source revision
+        id: source
+        working-directory: clerk
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.CLERK_AUTOMATION_TOKEN }}
+          path: skills-repo
+          base: main
+          branch: ${{ env.REFRESH_BRANCH }}
+          title: "chore: refresh setup skills from clerk-docs"
+          commit-message: "chore: refresh setup skills from clerk-docs"
+          body: |
+            Automated refresh of Clerk setup skill content from `clerk/clerk`.
+
+            Source revision: [`${{ steps.source.outputs.sha }}`](https://github.com/clerk/clerk/commit/${{ steps.source.outputs.sha }})
+          add-paths: |
+            skills/core/clerk-setup/SKILL.md
+            skills/core/clerk-cli/references/setup.md
