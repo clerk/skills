@@ -1,4 +1,4 @@
-# Clerk CLI - Agent Mode Reference
+# Clerk CLI - Agent mode reference
 
 The Clerk CLI has a first-class "agent" mode that's designed for non-interactive and AI-driven use. Read this before writing scripts or letting an LLM drive the CLI.
 
