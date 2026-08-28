@@ -21,6 +21,11 @@ jobs:
           fetch-depth: 0
       - name: Reject hand edits to generated prompts
         run: |
+          if ! git cat-file -e "${{ github.event.pull_request.base.sha }}:.github/workflows/refresh-agent-prompts.yml"; then
+            echo 'Skipping the generated-file guard while the refresh workflow is being introduced.'
+            exit 0
+          fi
+
           if git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" | grep -Eq '^(skills/core/clerk-setup/SKILL\.md|skills/core/clerk-cli/references/setup\.md)$'; then
             echo 'Setup instructions are generated from clerk/clerk. Edit clerk-docs/prompts/cli-setup.md instead.'
             exit 1
