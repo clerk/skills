@@ -1,4 +1,4 @@
-# Clerk CLI - Authentication & Targeting Reference
+# Clerk CLI - Authentication & targeting reference
 
 Everything you need to know about how the CLI authenticates, resolves keys, and targets the right application/instance.
 
@@ -36,7 +36,7 @@ Set `CLERK_PLATFORM_API_KEY` for CI and scripted agent usage. Use `clerk auth lo
 
 ## Accountless: operating without an account
 
-`clerk init` mints a claimable, accountless app (which saves temporary development keys) when unauthenticated — no login, no platform key, no browser. That covers every agent run and human bootstrap; a signed-out human in an *existing* project gets the login flow unless they pass `--keyless`.
+On a framework with accountless support, `clerk init` mints a claimable, accountless app (which saves temporary development keys) for an unauthenticated bootstrap with no `--app`, or for an unauthenticated agent run with no `--app` or existing project link — no login, no platform key, no browser. A signed-out human in an *existing* project gets the login flow unless they pass `--accountless` (`--keyless` remains a deprecated compatibility alias).
 
 The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, or `.clerk/.tmp/keyless.json` (an app an older Clerk SDK minted for itself) and works against BAPI:
 
@@ -44,12 +44,12 @@ The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, 
 | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
 | `whoami`¹, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`² | `apps`, `impersonate`, `link`, `enable billing`, `config schema/put` |
 
-¹ Signed in, `whoami` reports the account and drops the `keyless` object — don't use it to read back `keyless.instanceId`.
+¹ `whoami --json` reports the instance under `accountless` (canonical, CLI 3.3+), with `keyless` kept as a deprecated alias carrying the same object. Signed in, `whoami` reports the account and drops both — don't use it to read back `accountless.instanceId`.
 ² Returns the one-time claim URL, not a dashboard link. That token is credential-equivalent: never put it in a log, commit, or PR. `users open` needs a claimed app.
 
 **It follows the key, not the app.** No `--app` and no link means the CLI uses whatever local `sk_` key it finds — `sk_live_` included, claimed or not. In an unlinked repo a production key in `.env.local` is what gets mutated, unconfirmed in agent mode. Pass `--app <id>` when you mean a real application.
 
-`clerk auth login` auto-claims only what `clerk init` created (`.clerk/keyless.json`). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
+`clerk auth login` auto-claims only what `clerk init` created (recorded in the `.clerk/keyless.json` breadcrumb — the filename keeps the old name for compatibility). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
 
 ## Host vs sandbox behavior
 
@@ -167,7 +167,7 @@ Hits `GET /oauth/userinfo` and prints the email. With no usable session it repor
 
 | Symptom                             | Likely cause                                                  | Fix                                                          |
 | ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the no-account table first; most instance commands need no account |
+| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the accountless table first; most instance commands need no account |
 | `No Clerk project linked`           | Running a command that needs a linked profile with no `--app` | `clerk link` or pass `--app <id>`                            |
 | `Invalid secret key prefix`         | Passed `ak_...` where `sk_...` expected (or vice versa)       | Check which API the command hits; pass the matching key type |
 | `Unauthorized` from API             | Key belongs to a different instance                           | Verify `--instance` and ensure the key matches               |
