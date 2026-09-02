@@ -8,7 +8,7 @@ on:
     paths:
       - '.github/workflows/refresh-agent-prompts.yml'
       - 'scripts/sync-agent-prompts.mjs'
-      - 'skills/core/clerk-setup/SKILL.md'
+      - 'skills/core/clerk-setup/references/setup.md'
       - 'skills/core/clerk-cli/references/setup.md'
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
             exit 0
           fi
 
-          if git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" | grep -Eq '^(skills/core/clerk-setup/SKILL\.md|skills/core/clerk-cli/references/setup\.md)$'; then
+          if git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" | grep -Eq '^skills/core/(clerk-setup|clerk-cli)/references/setup\.md$'; then
             echo 'Setup instructions are generated from clerk/clerk. Edit clerk-docs/prompts/cli-setup.md instead.'
             exit 1
           fi
@@ -60,5 +60,5 @@ jobs:
           title: 'chore: refresh agent prompts'
           body: Generated from `clerk/clerk@${{ steps.source.outputs.sha }}`.
           add-paths: |
-            skills/core/clerk-setup/SKILL.md
+            skills/core/clerk-setup/references/setup.md
             skills/core/clerk-cli/references/setup.md

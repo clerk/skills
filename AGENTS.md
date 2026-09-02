@@ -22,7 +22,7 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 
 ## Contributing
 
-`skills/core/clerk-setup/SKILL.md` and `skills/core/clerk-cli/references/setup.md` are generated from `clerk/clerk`'s `clerk-docs/prompts/cli-setup.md`. Do not hand-edit them. The weekday `refresh-agent-prompts.yml` workflow opens or updates a rolling PR; change the canonical Markdown prompt in `clerk/clerk` instead.
+`skills/core/clerk-setup/references/setup.md` and `skills/core/clerk-cli/references/setup.md` are generated from `clerk/clerk`'s `clerk-docs/prompts/cli-setup.md`. Do not hand-edit them. The weekday `refresh-agent-prompts.yml` workflow opens or updates a rolling PR; change the canonical Markdown prompt in `clerk/clerk` instead. The `clerk-setup/SKILL.md` wrapper remains hand-maintained because it owns version detection, Core 2 compatibility, and upgrade guidance.
 
 1. Each skill needs `SKILL.md` with YAML frontmatter (`name`, `description`, `license`)
 2. Place in the correct category directory
