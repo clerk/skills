@@ -97,16 +97,25 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 ## Quick Start
 
-### 1. Set Up API Keys
+### 1. Ask Your Agent to Add Clerk
 
-Get your keys from the [Clerk Dashboard](https://dashboard.clerk.com/) and add them to `.env`:
+After installing Clerk Skills, ask your coding agent to add Clerk authentication
+to your app. For setup requests, the `clerk-setup` skill should start with:
 
 ```bash
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
-CLERK_SECRET_KEY=sk_test_xxx
+npx -y clerk@latest init
 ```
 
-### 2. Ask Your Agent
+`clerk init` can start without a Clerk account or browser login when
+`clerk-setup` runs as an unauthenticated agent on a framework that supports
+accountless development keys and there is no `--app` or existing project link.
+In that path, it creates an unclaimed development application, writes temporary
+keys to the app's env file, and leaves a local claim breadcrumb so
+`clerk auth login` can connect it to a Clerk account later. If the framework
+requires real API keys, provide an app with `--app <id>` or link the project
+first.
+
+### 2. Example Requests
 
 | You Say | Skill Used |
 |---------|------------|
