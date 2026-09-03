@@ -100,20 +100,13 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 ### 1. Ask Your Agent to Add Clerk
 
 After installing Clerk Skills, ask your coding agent to add Clerk authentication
-to your app. For setup requests, the `clerk-setup` skill should start with:
+to your app. The [`clerk-setup`](skills/core/clerk-setup/SKILL.md#agent-first-provision-via-cli)
+skill covers three paths: a new project and Clerk app, an existing project and
+Clerk app, or a new Clerk app for an existing project.
 
-```bash
-npx -y clerk@latest init
-```
-
-`clerk init` can start without a Clerk account or browser login when
-`clerk-setup` runs as an unauthenticated agent on a framework that supports
-accountless development keys and there is no `--app` or existing project link.
-In that path, it creates an unclaimed development application, writes temporary
-keys to the app's env file, and leaves a local claim breadcrumb so
-`clerk auth login` can connect it to a Clerk account later. If the framework
-requires real API keys, provide an app with `--app <id>` or link the project
-first.
+For a new project, `clerk init` can start without a Clerk account or browser
+login. See [Scenario A: Getting started without an account](skills/core/clerk-setup/SKILL.md#getting-started-without-an-account)
+for how temporary keys and later account claiming work.
 
 ### 2. Example Requests
 

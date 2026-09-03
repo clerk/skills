@@ -28,6 +28,8 @@ clerk init --framework <next|react|vue|nuxt|astro|react-router|tanstack-react-st
 
 `clerk init` installs the SDK, wires the project up, and writes the framework-specific publishable + secret keys to the right env file (e.g. `.env.local` for Next.js, `.env` for Vite-based projects).
 
+#### Getting started without an account
+
 **No login required.** Unauthenticated, `clerk init` writes temporary development keys to the project's env file — no account, no browser, no flag. Don't run `clerk auth login` first. Authenticated (or with `--app` / `--login`) it creates and links a real app via PLAPI instead.
 
 `--template <b2b-saas|b2c-saas|native|waitlist>` pre-configures the temporary app. Caveats — a signed-out human in an *existing* project still gets the login flow unless they pass `--keyless`; `--template`/`--fresh` error on any run that targets a real app; login only auto-claims what `clerk init` created. See [clerk-cli](../clerk-cli/references/auth.md#accountless-operating-without-an-account).
