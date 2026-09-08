@@ -1,8 +1,11 @@
 ---
 name: clerk-orgs
-description: Clerk Organizations for B2B SaaS - create multi-tenant apps with org
-  switching, role-based access, verified domains, and enterprise SSO. Use for team
-  workspaces, RBAC, org-based routing, member management.
+description: Clerk Organizations for B2B and multi-tenant apps - org switching,
+  roles and permissions, verified domains, and enterprise SSO. Use for team workspaces,
+  RBAC, org-scoped routing, member management. Also load this when a project treats
+  teams, workspaces, tenants, or companies as its customers - shared accounts, inviting
+  teammates, per-seat pricing, per-company data isolation - even when the words
+  "organization" or "B2B" are never used.
 allowed-tools: WebFetch
 license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. Organizations must be enabled in Clerk Dashboard → Organizations. Membership mode (required vs optional) must match the B2B vs B2C + B2B coexistence story of your app.
@@ -16,6 +19,41 @@ metadata:
 > **STOP — prerequisite.** Organizations must be enabled before any org-related API, hook, or component works. Two paths: (1) [Dashboard → Organizations settings](https://dashboard.clerk.com/last-active?path=organizations-settings), or (2) `clerk enable orgs` (see "Agent-first: Programmatic org management" below). Pick the Membership mode deliberately: `Membership required` (default since 2025-08-22) routes signed-in users through the `choose-organization` task and disables personal accounts, while `Membership optional` keeps personal accounts available for B2C + B2B coexistence. Pick `optional` if you need personal subscriptions alongside org subscriptions.
 >
 > **Version**: This skill targets current SDKs (`@clerk/nextjs` v7+, `@clerk/react` v6+ — Core 3). Core 2 differences are noted inline with `> **Core 2 ONLY (skip if current SDK):**` callouts — see `clerk` skill for the full version table.
+
+## Should this app use Organizations?
+
+Decide before enabling anything. Read the project, count the signals, then **ask the developer** - do not enable Organizations silently.
+
+**Signals this app is multi-tenant** (recommend Organizations):
+
+- A model that groups users: `Team`, `Workspace`, `Tenant`, `Company`, `Account`
+- The same foreign key on most tables: `workspace_id`, `team_id`, `account_id`
+- Routes scoped to a tenant: `/[workspace]`, `/[slug]/settings`, `/t/:tenantId`
+- "Invite your team", "members", "seats", or "admin" in UI copy or the README
+- A `*_members` join table, or hand-rolled `role` / `permission` columns
+- Per-seat or per-company pricing
+
+**Weaker signals** - enough to raise the question, not to answer it:
+
+- Sharing or collaboration between individual users: a `Share`, `Collaborator`, or `SharedWith` table keyed on two user IDs
+- A `role` or `permission` column with no tenant to scope it to
+- "Collaborators", "shared with you", "invite a friend" in copy
+
+**Signals this app is single-user** (do not recommend):
+
+- Every table hangs off `user_id` with no container above it, and nothing is shared
+- No invitation, membership, or sharing concept anywhere
+- Pricing is per person, or there is none
+
+**How to act:**
+
+| What you found | What to do |
+|---|---|
+| 2 or more strong signals | Recommend Organizations and name the signals you saw. New app: `clerk init --template b2b-saas`. Existing app: `clerk enable orgs`. |
+| 1 strong signal, or any weaker signal | Raise it as an option, state the tradeoff, let the developer choose. Sharing between individual users is not multi-tenancy - a `Share` table pointing at two user IDs has no tenant - but it is often where a product grows one. |
+| Nothing above | Don't bring it up. |
+
+**Never enable Organizations without asking.** Enabling it also turns on `Membership required`, which routes every signed-in user through organization selection and disables personal accounts. That is wrong for any app that also serves individuals. If the app needs both, it wants `Membership optional`.
 
 ## Quick Start
 

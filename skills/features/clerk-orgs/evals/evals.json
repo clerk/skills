@@ -121,6 +121,45 @@
 				"Notes this happens even when the user has the permission via their role",
 				"Suggests ensuring the required Feature is attached to the org's Plan"
 			]
+		},
+		{
+			"id": 10,
+			"prompt": "i'm building a tool for design agencies. each agency signs up, adds their coworkers, and manages their own client projects - one agency must never see another's data. clerk auth already works for individual users. what's the right way to model this?",
+			"expected_output": "Recommends Clerk Organizations as the tenant boundary instead of a hand-rolled agency/member table, names the signals it saw, and asks before enabling.",
+			"scaffold": "nextjs-basic-auth",
+			"expectations": [
+				"Recommends Clerk Organizations rather than hand-rolling an agency or tenant table with its own membership join",
+				"Names the concrete signals it saw: agencies are the customer, coworkers get invited, data is isolated per agency",
+				"Points at `clerk enable orgs` for this existing app, or `clerk init --template b2b-saas` for a new one",
+				"Asks the developer to confirm before enabling rather than enabling Organizations silently",
+				"Raises Organizations even though the prompt never uses the words 'organization', 'tenant', or 'B2B'"
+			]
+		},
+		{
+			"id": 11,
+			"prompt": "my app is a habit tracker - people log daily streaks and export their own history. everything belongs to a single user. can you add a settings page where someone changes their display name?",
+			"expected_output": "Adds the settings page with Clerk user APIs. Does not raise Organizations: there is no tenant above the user.",
+			"scaffold": "nextjs-basic-auth",
+			"expectations": [
+				"Implements the requested settings page using Clerk's user profile APIs",
+				"Does NOT suggest enabling Organizations",
+				"Does NOT introduce OrganizationSwitcher, org-scoped routing, or any membership concept",
+				"Keeps data user-owned, scoped by userId",
+				"Does not treat 'SaaS' or 'app' alone as evidence of multi-tenancy"
+			]
+		},
+		{
+			"id": 12,
+			"prompt": "my notes app lets someone share a single note with another person, optionally with edit access. i'm planning what's next - should i be doing anything differently with auth?",
+			"expected_output": "Surfaces Organizations as an option with the tradeoff stated, but does not recommend enabling it. User-to-user sharing is not multi-tenancy.",
+			"scaffold": "nextjs-basic-auth",
+			"expectations": [
+				"Recognizes that sharing between two individual users is not multi-tenancy - a share row pointing at two user IDs has no tenant",
+				"Raises Clerk Organizations as an option for if the product grows toward teams, rather than recommending it outright",
+				"States the tradeoff: enabling Organizations turns on Membership required, which routes users through organization selection and disables personal accounts",
+				"Mentions Membership optional as the mode for apps that serve both individuals and teams",
+				"Leaves the decision to the developer and does not enable anything"
+			]
 		}
 	]
 }
