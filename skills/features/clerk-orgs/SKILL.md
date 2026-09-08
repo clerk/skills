@@ -8,7 +8,7 @@ license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. Organizations must be enabled in Clerk Dashboard → Organizations. Membership mode (required vs optional) must match the B2B vs B2C + B2B coexistence story of your app.
 metadata:
   author: clerk
-  version: 3.1.0
+  version: 3.1.1
 ---
 
 # Organizations (B2B SaaS)
@@ -79,7 +79,7 @@ clerk api -X POST /v1/organizations \
   -d '{"name":"Acme","slug":"acme","created_by":"user_xxx","max_allowed_memberships":10}'
 
 # List:
-clerk api /v1/organizations --query 'limit=20'
+clerk api '/v1/organizations?limit=20'
 
 # Get one:
 clerk api /v1/organizations/<org_id>
@@ -99,7 +99,7 @@ clerk api -X POST /v1/organizations/<org_id>/memberships \
   -d '{"user_id":"user_xxx","role":"org:admin"}'
 
 # List members:
-clerk api /v1/organizations/<org_id>/memberships --query 'limit=50'
+clerk api '/v1/organizations/<org_id>/memberships?limit=50'
 
 # Update role:
 clerk api -X PATCH /v1/organizations/<org_id>/memberships/<user_id> \
@@ -117,7 +117,7 @@ clerk api -X POST /v1/organizations/<org_id>/invitations \
   -d '{"email_address":"alice@example.com","role":"org:member","redirect_url":"https://app.com/accept"}'
 
 # List pending:
-clerk api /v1/organizations/<org_id>/invitations --query 'status=pending'
+clerk api '/v1/organizations/<org_id>/invitations?status=pending'
 
 # Revoke:
 clerk api -X POST /v1/organizations/<org_id>/invitations/<inv_id>/revoke \
