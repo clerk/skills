@@ -38,7 +38,13 @@ All skills are written for the current SDK. When something differs in Core 2, it
 **Adding Clerk to your project** → Use `clerk-setup`
 - Framework detection and quickstart
 - Environment setup, API keys, Keyless flow
-- Migration from other auth providers
+- Planning a switch from another auth provider
+
+**Migrating users into Clerk** → Use `clerk-migrate`
+- Exporting users from Auth0, Supabase, Firebase, Auth.js, Better Auth, or Clerk
+- Importing them with `clerk migrate run`, and undoing a bad run
+- Writing a transformer for a platform with no built-in
+- Development → production instance migrations
 
 **Operating Clerk from the CLI** → Use `clerk-cli`
 - Auth, linking, `doctor`, and environment pulls
@@ -144,6 +150,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 If you know your task, you can directly access:
 - `/clerk-setup` - Framework setup
 - `/clerk-cli` - CLI operations and Clerk resource management
+- `/clerk-migrate` - Migrating users in from another auth provider
 - `/clerk-custom-ui` - Custom flows & appearance
 - `/clerk-nextjs-patterns` - Next.js patterns
 - `/clerk-react-patterns` - React patterns
