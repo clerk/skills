@@ -104,8 +104,8 @@ to your app. The [`clerk-setup`](skills/core/clerk-setup/SKILL.md#agent-first-pr
 skill covers three paths: a new project and Clerk app, an existing project and
 Clerk app, or a new Clerk app for an existing project.
 
-For a new project, `clerk init` can start without a Clerk account or browser
-login. See [Scenario A: Getting started without an account](skills/core/clerk-setup/SKILL.md#getting-started-without-an-account)
+For a new project on a supported framework, `clerk init` can start without a
+Clerk account or browser login. See [Scenario A: Getting started without an account](skills/core/clerk-setup/SKILL.md#getting-started-without-an-account)
 for how temporary keys and later account claiming work.
 
 ### 2. Example Requests
