@@ -12,7 +12,7 @@
         "Creates middleware.ts (or proxy.ts for Next.js 16+) with clerkMiddleware export",
         "Creates or updates .env.local with NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY",
         "Does NOT install @clerk/clerk-react or any non-Next.js Clerk package",
-        "Mentions getting API keys from dashboard.clerk.com or keyless dev mode"
+        "Mentions getting API keys from dashboard.clerk.com or via `clerk init` temporary development keys"
       ]
     },
     {

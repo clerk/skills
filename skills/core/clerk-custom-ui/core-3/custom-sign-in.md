@@ -114,7 +114,7 @@ const { error } = await signIn.resetPasswordEmailCode.submitPassword({
 })
 ```
 
-## Client Trust
+## Device Trust
 
 When a user signs in with a valid password from a new device without MFA enabled, the sign-in status becomes `needs_client_trust`. This requires an additional verification step:
 

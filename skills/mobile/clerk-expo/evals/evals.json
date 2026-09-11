@@ -56,7 +56,7 @@
     {
       "id": 5,
       "prompt": "build a custom email/password sign in screen for my expo app with clerk, i don't want the prebuilt UI",
-      "expected_output": "Custom flow with the current API: signIn.password({ emailAddress, password }), errors.fields for display, fetchStatus to disable the button, finalize on complete, MFA/client-trust branches handled",
+      "expected_output": "Custom flow with the current API: signIn.password({ emailAddress, password }), errors.fields for display, fetchStatus to disable the button, finalize on complete, MFA/Device Trust branches handled",
       "expectations": [
         "Destructures { signIn, errors, fetchStatus } from useSignIn()",
         "Calls signIn.password({ emailAddress, password }) and checks the returned error",
