@@ -1,0 +1,28 @@
+name: Check Clerk docs links
+
+on:
+  pull_request:
+    paths:
+      - skills/**
+      - .github/actions/check-docs-links/**
+      - .github/workflows/check-docs-links.yml
+  push:
+    branches:
+      - main
+    paths:
+      - skills/**
+      - .github/actions/check-docs-links/**
+      - .github/workflows/check-docs-links.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check-docs-links:
+    name: Check Clerk docs links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test link checker
+        run: node --test .github/actions/check-docs-links/check-docs-links.test.mjs
+      - uses: ./.github/actions/check-docs-links
