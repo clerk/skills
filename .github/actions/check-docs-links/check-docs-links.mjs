@@ -5,9 +5,10 @@ import { pathToFileURL } from "node:url";
 const DEFAULT_PATHS = "skills/**/*.md";
 const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
 const DOCS_URL = /https:\/\/clerk\.com\/docs(?:\/[^\s<>"'`\\)\]}]*)?/g;
+const manifestMetadataCache = new WeakMap();
 
 function escapeRegExp(character) {
-  return /[|\\{}()[\]^$+?.]/.test(character) ? `\\${character}` : character;
+  return /[|\\{}()[\]^$+*?.]/.test(character) ? `\\${character}` : character;
 }
 
 export function expandBraces(pattern) {
@@ -119,7 +120,7 @@ function normalizePathname(pathname) {
     : withoutMarkdownExtension;
 }
 
-function dynamicRedirectMatches(pathname, source) {
+function compileDynamicRedirect(source) {
   let expression = "^";
 
   for (let index = 0; index < source.length; index += 1) {
@@ -130,21 +131,33 @@ function dynamicRedirectMatches(pathname, source) {
 
     const parameter = source
       .slice(index)
-      .match(/^:([A-Za-z0-9_]+)(?:\(([^)]+)\))?(\*)?/);
+      .match(/^:([A-Za-z0-9_]+)(?:\(([^)]+)\))?([*+?])?/);
     if (!parameter) {
       expression += ":";
       continue;
     }
 
-    expression += parameter[2]
-      ? `(?:${parameter[2]})`
-      : parameter[3]
-        ? ".*"
-        : "[^/]+";
+    const valuePattern = parameter[2] ? `(?:${parameter[2]})` : "[^/]+";
+    const modifier = parameter[3];
+    const repeatedPattern = `${valuePattern}(?:/${valuePattern})*`;
+
+    if ((modifier === "*" || modifier === "?") && expression.endsWith("/")) {
+      expression = expression.slice(0, -1);
+      expression += `(?:/${modifier === "*" ? repeatedPattern : valuePattern})?`;
+    } else if (modifier === "*") {
+      expression += `(?:${repeatedPattern})?`;
+    } else if (modifier === "+") {
+      expression += repeatedPattern;
+    } else if (modifier === "?") {
+      expression += `(?:${valuePattern})?`;
+    } else {
+      expression += valuePattern;
+    }
+
     index += parameter[0].length - 1;
   }
 
-  return new RegExp(`${expression}$`).test(pathname);
+  return new RegExp(`${expression}$`);
 }
 
 function inferredSdkSegments(routes = {}) {
@@ -161,7 +174,23 @@ function inferredSdkSegments(routes = {}) {
   return sdkSegments;
 }
 
-function redirectPathCandidates(pathname, routes) {
+function manifestMetadata(manifest) {
+  const cached = manifestMetadataCache.get(manifest);
+  if (cached) {
+    return cached;
+  }
+
+  const metadata = {
+    sdkSegments: inferredSdkSegments(manifest.routes),
+    dynamicRedirectMatchers: (manifest.redirects?.dynamic ?? []).map(
+      (redirect) => compileDynamicRedirect(redirect.source),
+    ),
+  };
+  manifestMetadataCache.set(manifest, metadata);
+  return metadata;
+}
+
+function redirectPathCandidates(pathname, sdkSegments) {
   const candidates = [pathname];
   const match = pathname.match(/^\/docs\/([^/]+)(\/.+)$/);
 
@@ -169,7 +198,7 @@ function redirectPathCandidates(pathname, routes) {
   // redirect map, then restores the SDK on the destination. Infer those SDKs
   // from the manifest's paired scoped and unscoped routes so this action does
   // not need its own hard-coded SDK registry.
-  if (match && inferredSdkSegments(routes).has(match[1])) {
+  if (match && sdkSegments.has(match[1])) {
     candidates.push(`/docs${match[2]}`);
   }
 
@@ -177,12 +206,12 @@ function redirectPathCandidates(pathname, routes) {
 }
 
 function isRedirect(pathname, manifest) {
-  return redirectPathCandidates(pathname, manifest.routes ?? {}).some(
+  const metadata = manifestMetadata(manifest);
+
+  return redirectPathCandidates(pathname, metadata.sdkSegments).some(
     (candidate) =>
       Boolean(manifest.redirects?.static?.[candidate]) ||
-      (manifest.redirects?.dynamic ?? []).some((redirect) =>
-        dynamicRedirectMatches(candidate, redirect.source),
-      ),
+      metadata.dynamicRedirectMatchers.some((matcher) => matcher.test(candidate)),
   );
 }
 
@@ -191,7 +220,13 @@ export function validateLink(rawUrl, manifest) {
   const pathname = normalizePathname(url.pathname);
 
   if (Object.hasOwn(manifest.routes ?? {}, pathname)) {
-    const anchor = decodeURIComponent(url.hash.slice(1));
+    let anchor;
+    try {
+      anchor = decodeURIComponent(url.hash.slice(1));
+    } catch {
+      return { status: "invalid", reason: "malformed anchor" };
+    }
+
     if (!anchor || manifest.routes[pathname].includes(anchor)) {
       return { status: "valid" };
     }

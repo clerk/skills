@@ -30,6 +30,26 @@ const manifest = {
         destination: "/docs/reference/hooks/:path*",
         permanent: true,
       },
+      {
+        source: "/docs/releases/:path+",
+        destination: "/docs/changelog/:path+",
+        permanent: true,
+      },
+      {
+        source: "/docs/optional/:slug?",
+        destination: "/docs/destination/:slug?",
+        permanent: true,
+      },
+      {
+        source: "/docs/framework/:sdk(nextjs|react)",
+        destination: "/docs/:sdk/getting-started/quickstart",
+        permanent: true,
+      },
+      {
+        source: "/docs/literal/*",
+        destination: "/docs/destination",
+        permanent: true,
+      },
     ],
   },
 };
@@ -112,6 +132,13 @@ describe("validateLink", () => {
         reason: "heading #missing does not exist",
       },
     );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/getting-started/quickstart#install-clerk%zz",
+        manifest,
+      ),
+      { status: "invalid", reason: "malformed anchor" },
+    );
   });
 
   it("warns for static and dynamic redirects", () => {
@@ -139,6 +166,31 @@ describe("validateLink", () => {
     );
   });
 
+  it("supports dynamic redirect modifiers and escapes bare stars", () => {
+    for (const pathname of [
+      "/docs/releases/2026/september",
+      "/docs/optional",
+      "/docs/optional/value",
+      "/docs/framework/react",
+      "/docs/literal/*",
+    ]) {
+      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
+        status: "redirect",
+      });
+    }
+
+    for (const pathname of [
+      "/docs/releases",
+      "/docs/framework/vue",
+      "/docs/literal/anything",
+    ]) {
+      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
+        status: "invalid",
+        reason: "page does not exist",
+      });
+    }
+  });
+
   it("does not strip unknown top-level path segments for redirects", () => {
     assert.deepEqual(
       validateLink(
@@ -151,7 +203,7 @@ describe("validateLink", () => {
 });
 
 describe("run", () => {
-  it("fails with a GitHub annotation containing the offending file, line, and URL", async () => {
+  it("annotates each invalid link and continues after a malformed anchor", async () => {
     const directory = await mkdtemp(
       path.join(os.tmpdir(), "check-docs-links-"),
     );
@@ -162,7 +214,7 @@ describe("run", () => {
       await mkdir(path.join(directory, "skills"));
       await writeFile(
         path.join(directory, "skills", "broken.md"),
-        "First line\nhttps://clerk.com/docs/does-not-exist\n",
+        "First line\nhttps://clerk.com/docs/nextjs/getting-started/quickstart#install-clerk%zz\nhttps://clerk.com/docs/does-not-exist\n",
       );
       console.error = (message) => errors.push(message);
 
@@ -172,7 +224,7 @@ describe("run", () => {
           manifestUrl: `data:application/json,${encodeURIComponent(JSON.stringify(manifest))}`,
           paths: "skills/**/*.md",
         }),
-        /Found 1 invalid Clerk docs link/,
+        /Found 2 invalid Clerk docs links/,
       );
     } finally {
       console.error = originalConsoleError;
@@ -181,7 +233,11 @@ describe("run", () => {
 
     assert.match(
       errors.join("\n"),
-      /::error file=skills\/broken\.md,line=2::https:\/\/clerk\.com\/docs\/does-not-exist — page does not exist/,
+      /::error file=skills\/broken\.md,line=2::https:\/\/clerk\.com\/docs\/nextjs\/getting-started\/quickstart#install-clerk%25zz — malformed anchor/,
+    );
+    assert.match(
+      errors.join("\n"),
+      /::error file=skills\/broken\.md,line=3::https:\/\/clerk\.com\/docs\/does-not-exist — page does not exist/,
     );
   });
 });
