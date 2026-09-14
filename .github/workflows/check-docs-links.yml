@@ -1,18 +1,11 @@
 name: Check Clerk docs links
 
 on:
+  # This check is required by the main ruleset, so it must report a result for every PR.
   pull_request:
-    paths:
-      - skills/**
-      - .github/actions/check-docs-links/**
-      - .github/workflows/check-docs-links.yml
   push:
     branches:
       - main
-    paths:
-      - skills/**
-      - .github/actions/check-docs-links/**
-      - .github/workflows/check-docs-links.yml
 
 permissions:
   contents: read
