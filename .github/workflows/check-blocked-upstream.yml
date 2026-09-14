@@ -1,0 +1,23 @@
+name: Check blocked upstream
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+
+jobs:
+  check-blocked-upstream:
+    name: Check blocked upstream
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test blocked-upstream check
+        run: node --test .github/scripts/check-blocked-upstream.test.mjs
+      - name: Check blocked-upstream label
+        run: node .github/scripts/check-blocked-upstream.mjs
