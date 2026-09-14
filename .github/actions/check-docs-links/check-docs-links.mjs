@@ -147,13 +147,42 @@ function dynamicRedirectMatches(pathname, source) {
   return new RegExp(`${expression}$`).test(pathname);
 }
 
-function isRedirect(pathname, redirects = {}) {
-  if (redirects.static?.[pathname]) {
-    return true;
+function inferredSdkSegments(routes = {}) {
+  const routePaths = new Set(Object.keys(routes));
+  const sdkSegments = new Set();
+
+  for (const routePath of routePaths) {
+    const match = routePath.match(/^\/docs\/([^/]+)(\/.+)$/);
+    if (match && routePaths.has(`/docs${match[2]}`)) {
+      sdkSegments.add(match[1]);
+    }
   }
 
-  return (redirects.dynamic ?? []).some((redirect) =>
-    dynamicRedirectMatches(pathname, redirect.source),
+  return sdkSegments;
+}
+
+function redirectPathCandidates(pathname, routes) {
+  const candidates = [pathname];
+  const match = pathname.match(/^\/docs\/([^/]+)(\/.+)$/);
+
+  // Clerk's runtime strips recognized SDK segments before matching the compact
+  // redirect map, then restores the SDK on the destination. Infer those SDKs
+  // from the manifest's paired scoped and unscoped routes so this action does
+  // not need its own hard-coded SDK registry.
+  if (match && inferredSdkSegments(routes).has(match[1])) {
+    candidates.push(`/docs${match[2]}`);
+  }
+
+  return candidates;
+}
+
+function isRedirect(pathname, manifest) {
+  return redirectPathCandidates(pathname, manifest.routes ?? {}).some(
+    (candidate) =>
+      Boolean(manifest.redirects?.static?.[candidate]) ||
+      (manifest.redirects?.dynamic ?? []).some((redirect) =>
+        dynamicRedirectMatches(candidate, redirect.source),
+      ),
   );
 }
 
@@ -170,7 +199,7 @@ export function validateLink(rawUrl, manifest) {
     return { status: "invalid", reason: `heading #${anchor} does not exist` };
   }
 
-  if (isRedirect(pathname, manifest.redirects)) {
+  if (isRedirect(pathname, manifest)) {
     return { status: "redirect" };
   }
 

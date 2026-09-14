@@ -14,10 +14,14 @@ import {
 
 const manifest = {
   routes: {
+    "/docs/guides/customizing-clerk/appearance-prop/options": [],
+    "/docs/nextjs/guides/customizing-clerk/appearance-prop/options": [],
     "/docs/nextjs/getting-started/quickstart": ["install-clerk"],
   },
   redirects: {
     static: {
+      "/docs/guides/customizing-clerk/appearance-prop/layout":
+        "/docs/guides/customizing-clerk/appearance-prop/options",
       "/docs/nextjs/quickstart": "/docs/nextjs/getting-started/quickstart",
     },
     dynamic: [
@@ -118,6 +122,30 @@ describe("validateLink", () => {
     assert.deepEqual(
       validateLink("https://clerk.com/docs/hooks/use-auth", manifest),
       { status: "redirect" },
+    );
+  });
+
+  it("warns for SDK-scoped forms of compact redirects", () => {
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/layout",
+        manifest,
+      ),
+      { status: "redirect" },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/hooks/use-auth", manifest),
+      { status: "redirect" },
+    );
+  });
+
+  it("does not strip unknown top-level path segments for redirects", () => {
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/not-an-sdk/guides/customizing-clerk/appearance-prop/layout",
+        manifest,
+      ),
+      { status: "invalid", reason: "page does not exist" },
     );
   });
 });
