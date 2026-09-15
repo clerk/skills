@@ -258,4 +258,47 @@ describe("run", () => {
       /::error file=skills\/broken\.md,line=3::https:\/\/clerk\.com\/docs\/does-not-exist — page does not exist/,
     );
   });
+
+  it("retries when reading the manifest body fails transiently", async () => {
+    const directory = await mkdtemp(
+      path.join(os.tmpdir(), "check-docs-links-"),
+    );
+    const originalFetch = globalThis.fetch;
+    let attempts = 0;
+
+    try {
+      await mkdir(path.join(directory, "skills"));
+      await writeFile(
+        path.join(directory, "skills", "ok.md"),
+        "https://clerk.com/docs/nextjs/getting-started/quickstart\n",
+      );
+
+      globalThis.fetch = async () => {
+        attempts += 1;
+        // First attempt: an ok response whose body fails to decode, as a
+        // truncated response would.
+        if (attempts === 1) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => {
+              throw new Error("Unexpected end of JSON input");
+            },
+          };
+        }
+        return { ok: true, status: 200, json: async () => manifest };
+      };
+
+      await run({
+        cwd: directory,
+        manifestUrl: "https://example.test/links.json",
+        paths: "skills/**/*.md",
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+      await rm(directory, { recursive: true, force: true });
+    }
+
+    assert.equal(attempts, 2);
+  });
 });

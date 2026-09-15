@@ -273,7 +273,9 @@ async function loadManifest(manifestUrl) {
       });
 
       if (response.ok) {
-        return response.json();
+        // Await here so a truncated body or JSON-decode failure is caught and
+        // retried, rather than rejecting outside this loop after one attempt.
+        return await response.json();
       }
 
       lastError = new Error(
