@@ -94,6 +94,24 @@ describe("extractDocsLinks", () => {
       [],
     );
   });
+
+  it("ignores clerk.com paths that only share the /docs prefix", () => {
+    assert.deepEqual(
+      extractDocsLinks(
+        "https://clerk.com/docs-broken and https://clerk.com/docsearch/foo",
+      ),
+      [],
+    );
+  });
+
+  it("captures root-level anchors and query strings", () => {
+    assert.deepEqual(extractDocsLinks("https://clerk.com/docs#missing"), [
+      { line: 1, url: "https://clerk.com/docs#missing" },
+    ]);
+    assert.deepEqual(extractDocsLinks("https://clerk.com/docs?sdk=nextjs"), [
+      { line: 1, url: "https://clerk.com/docs?sdk=nextjs" },
+    ]);
+  });
 });
 
 describe("validateLink", () => {

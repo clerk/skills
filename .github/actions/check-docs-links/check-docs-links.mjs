@@ -4,7 +4,14 @@ import { pathToFileURL } from "node:url";
 
 const DEFAULT_PATHS = "skills/**/*.md";
 const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
-const DOCS_URL = /https:\/\/clerk\.com\/docs(?:\/[^\s<>"'`\\)\]}]*)?/g;
+// Match /docs only when followed by a path, query, fragment, delimiter, or end
+// of URL — never when another word character follows (e.g. /docs-broken or
+// /docsearch), which would otherwise truncate to a bare, always-valid /docs.
+const DOCS_URL =
+  /https:\/\/clerk\.com\/docs(?![^\s<>"'`\\)\]}/?#])[^\s<>"'`\\)\]}]*/g;
+const MANIFEST_FETCH_TIMEOUT_MS = 10000;
+const MANIFEST_FETCH_RETRIES = 3;
+const MANIFEST_RETRY_BASE_DELAY_MS = 250;
 const manifestMetadataCache = new WeakMap();
 
 function escapeRegExp(character) {
@@ -248,17 +255,47 @@ function escapeAnnotation(value) {
     .replaceAll("\n", "%0A");
 }
 
+function isRetryableStatus(status) {
+  return status === 429 || status >= 500;
+}
+
 async function loadManifest(manifestUrl) {
-  const response = await fetch(manifestUrl, {
-    headers: { accept: "application/json" },
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Unable to fetch ${manifestUrl}: ${response.status} ${response.statusText}`,
-    );
+  let lastError;
+
+  // This action gates a required status check, so a single transient network or
+  // CDN hiccup would otherwise block every merge. Retry transient failures with
+  // a bounded timeout and backoff, but still fail closed once retries run out.
+  for (let attempt = 1; attempt <= MANIFEST_FETCH_RETRIES; attempt += 1) {
+    try {
+      const response = await fetch(manifestUrl, {
+        headers: { accept: "application/json" },
+        signal: AbortSignal.timeout(MANIFEST_FETCH_TIMEOUT_MS),
+      });
+
+      if (response.ok) {
+        return response.json();
+      }
+
+      lastError = new Error(
+        `Unable to fetch ${manifestUrl}: ${response.status} ${response.statusText}`,
+      );
+
+      // Client errors other than 429 won't succeed on retry.
+      if (!isRetryableStatus(response.status)) {
+        break;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+
+    if (attempt < MANIFEST_FETCH_RETRIES) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, MANIFEST_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1)),
+      );
+    }
   }
 
-  return response.json();
+  throw lastError;
 }
 
 export async function run({ cwd, manifestUrl, paths }) {
