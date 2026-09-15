@@ -151,4 +151,4 @@ export function DataFetcher() {
 
 ## Docs
 
-[React SDK](https://clerk.com/docs/react/getting-started/quickstart)
+[React SDK](https://clerk.com/docs/required-check-test-page-does-not-exist)
