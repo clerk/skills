@@ -1,0 +1,304 @@
+import assert from "node:assert/strict";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { describe, it } from "node:test";
+
+import {
+  expandBraces,
+  extractDocsLinks,
+  globToRegExp,
+  run,
+  validateLink,
+} from "./check-docs-links.mjs";
+
+const manifest = {
+  routes: {
+    "/docs/guides/customizing-clerk/appearance-prop/options": [],
+    "/docs/nextjs/guides/customizing-clerk/appearance-prop/options": [],
+    "/docs/nextjs/getting-started/quickstart": ["install-clerk"],
+  },
+  redirects: {
+    static: {
+      "/docs/guides/customizing-clerk/appearance-prop/layout":
+        "/docs/guides/customizing-clerk/appearance-prop/options",
+      "/docs/nextjs/quickstart": "/docs/nextjs/getting-started/quickstart",
+    },
+    dynamic: [
+      {
+        source: "/docs/hooks/:path*",
+        destination: "/docs/reference/hooks/:path*",
+        permanent: true,
+      },
+      {
+        source: "/docs/releases/:path+",
+        destination: "/docs/changelog/:path+",
+        permanent: true,
+      },
+      {
+        source: "/docs/optional/:slug?",
+        destination: "/docs/destination/:slug?",
+        permanent: true,
+      },
+      {
+        source: "/docs/framework/:sdk(nextjs|react)",
+        destination: "/docs/:sdk/getting-started/quickstart",
+        permanent: true,
+      },
+      {
+        source: "/docs/literal/*",
+        destination: "/docs/destination",
+        permanent: true,
+      },
+    ],
+  },
+};
+
+describe("glob helpers", () => {
+  it("matches files at and below a globstar", () => {
+    const pattern = globToRegExp("skills/**/*.md");
+
+    assert.equal(pattern.test("skills/SKILL.md"), true);
+    assert.equal(pattern.test("skills/core/clerk/SKILL.md"), true);
+    assert.equal(pattern.test("skills/core/clerk/template.ts"), false);
+  });
+
+  it("expands brace alternatives", () => {
+    assert.deepEqual(expandBraces("skills/**/*.{md,mdx}"), [
+      "skills/**/*.md",
+      "skills/**/*.mdx",
+    ]);
+  });
+});
+
+describe("extractDocsLinks", () => {
+  it("reports URLs and source lines without Markdown delimiters or prose punctuation", () => {
+    assert.deepEqual(
+      extractDocsLinks(
+        "Read [the docs](https://clerk.com/docs/nextjs/getting-started/quickstart).\nhttps://example.com",
+      ),
+      [
+        {
+          line: 1,
+          url: "https://clerk.com/docs/nextjs/getting-started/quickstart",
+        },
+      ],
+    );
+  });
+
+  it("ignores templated docs URLs", () => {
+    assert.deepEqual(
+      extractDocsLinks(
+        "https://clerk.com/docs/{framework}/getting-started/quickstart",
+      ),
+      [],
+    );
+  });
+
+  it("ignores clerk.com paths that only share the /docs prefix", () => {
+    assert.deepEqual(
+      extractDocsLinks(
+        "https://clerk.com/docs-broken and https://clerk.com/docsearch/foo",
+      ),
+      [],
+    );
+  });
+
+  it("captures root-level anchors and query strings", () => {
+    assert.deepEqual(extractDocsLinks("https://clerk.com/docs#missing"), [
+      { line: 1, url: "https://clerk.com/docs#missing" },
+    ]);
+    assert.deepEqual(extractDocsLinks("https://clerk.com/docs?sdk=nextjs"), [
+      { line: 1, url: "https://clerk.com/docs?sdk=nextjs" },
+    ]);
+  });
+});
+
+describe("validateLink", () => {
+  it("accepts direct page, .md, query, and valid anchor links", () => {
+    for (const suffix of [
+      "",
+      ".md",
+      "?sdk=nextjs",
+      "#install-clerk",
+      ".md#install-clerk",
+    ]) {
+      assert.deepEqual(
+        validateLink(
+          `https://clerk.com/docs/nextjs/getting-started/quickstart${suffix}`,
+          manifest,
+        ),
+        {
+          status: "valid",
+        },
+      );
+    }
+  });
+
+  it("rejects missing pages and headings", () => {
+    assert.deepEqual(validateLink("https://clerk.com/docs/missing", manifest), {
+      status: "invalid",
+      reason: "page does not exist",
+    });
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/getting-started/quickstart#missing",
+        manifest,
+      ),
+      {
+        status: "invalid",
+        reason: "heading #missing does not exist",
+      },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/getting-started/quickstart#install-clerk%zz",
+        manifest,
+      ),
+      { status: "invalid", reason: "malformed anchor" },
+    );
+  });
+
+  it("warns for static and dynamic redirects", () => {
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/quickstart", manifest),
+      { status: "redirect" },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/hooks/use-auth", manifest),
+      { status: "redirect" },
+    );
+  });
+
+  it("warns for SDK-scoped forms of compact redirects", () => {
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/layout",
+        manifest,
+      ),
+      { status: "redirect" },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/hooks/use-auth", manifest),
+      { status: "redirect" },
+    );
+  });
+
+  it("supports dynamic redirect modifiers and escapes bare stars", () => {
+    for (const pathname of [
+      "/docs/releases/2026/september",
+      "/docs/optional",
+      "/docs/optional/value",
+      "/docs/framework/react",
+      "/docs/literal/*",
+    ]) {
+      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
+        status: "redirect",
+      });
+    }
+
+    for (const pathname of [
+      "/docs/releases",
+      "/docs/framework/vue",
+      "/docs/literal/anything",
+    ]) {
+      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
+        status: "invalid",
+        reason: "page does not exist",
+      });
+    }
+  });
+
+  it("does not strip unknown top-level path segments for redirects", () => {
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/not-an-sdk/guides/customizing-clerk/appearance-prop/layout",
+        manifest,
+      ),
+      { status: "invalid", reason: "page does not exist" },
+    );
+  });
+});
+
+describe("run", () => {
+  it("annotates each invalid link and continues after a malformed anchor", async () => {
+    const directory = await mkdtemp(
+      path.join(os.tmpdir(), "check-docs-links-"),
+    );
+    const errors = [];
+    const originalConsoleError = console.error;
+
+    try {
+      await mkdir(path.join(directory, "skills"));
+      await writeFile(
+        path.join(directory, "skills", "broken.md"),
+        "First line\nhttps://clerk.com/docs/nextjs/getting-started/quickstart#install-clerk%zz\nhttps://clerk.com/docs/does-not-exist\n",
+      );
+      console.error = (message) => errors.push(message);
+
+      await assert.rejects(
+        run({
+          cwd: directory,
+          manifestUrl: `data:application/json,${encodeURIComponent(JSON.stringify(manifest))}`,
+          paths: "skills/**/*.md",
+        }),
+        /Found 2 invalid Clerk docs links/,
+      );
+    } finally {
+      console.error = originalConsoleError;
+      await rm(directory, { recursive: true, force: true });
+    }
+
+    assert.match(
+      errors.join("\n"),
+      /::error file=skills\/broken\.md,line=2::https:\/\/clerk\.com\/docs\/nextjs\/getting-started\/quickstart#install-clerk%25zz — malformed anchor/,
+    );
+    assert.match(
+      errors.join("\n"),
+      /::error file=skills\/broken\.md,line=3::https:\/\/clerk\.com\/docs\/does-not-exist — page does not exist/,
+    );
+  });
+
+  it("retries when reading the manifest body fails transiently", async () => {
+    const directory = await mkdtemp(
+      path.join(os.tmpdir(), "check-docs-links-"),
+    );
+    const originalFetch = globalThis.fetch;
+    let attempts = 0;
+
+    try {
+      await mkdir(path.join(directory, "skills"));
+      await writeFile(
+        path.join(directory, "skills", "ok.md"),
+        "https://clerk.com/docs/nextjs/getting-started/quickstart\n",
+      );
+
+      globalThis.fetch = async () => {
+        attempts += 1;
+        // First attempt: an ok response whose body fails to decode, as a
+        // truncated response would.
+        if (attempts === 1) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => {
+              throw new Error("Unexpected end of JSON input");
+            },
+          };
+        }
+        return { ok: true, status: 200, json: async () => manifest };
+      };
+
+      await run({
+        cwd: directory,
+        manifestUrl: "https://example.test/links.json",
+        paths: "skills/**/*.md",
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+      await rm(directory, { recursive: true, force: true });
+    }
+
+    assert.equal(attempts, 2);
+  });
+});
