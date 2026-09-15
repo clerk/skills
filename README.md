@@ -62,6 +62,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
 | `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, deploy checks |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
+| `clerk-migrate` | Migrate users into Clerk | Importing users from another auth provider, dev → prod |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
 | `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
 
@@ -114,6 +115,7 @@ for how temporary keys and later account claiming work.
 |---------|------------|
 | "List Clerk users" | `clerk-cli` |
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
+| "Migrate my users from Auth0 to Clerk" | `clerk-migrate` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
 | "Add Clerk to my Nuxt app" | `clerk-nuxt-patterns` |
@@ -145,6 +147,7 @@ clerk-skills/
 │   │   ├── clerk/                  # Router skill
 │   │   ├── clerk-cli/              # CLI operations
 │   │   ├── clerk-setup/            # Framework setup
+│   │   ├── clerk-migrate/          # User migration
 │   │   ├── clerk-custom-ui/        # Component customization
 │   │   └── clerk-backend-api/      # REST API explorer
 │   ├── frameworks/

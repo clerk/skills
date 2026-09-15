@@ -11,13 +11,14 @@
   "plugins": [
     {
       "name": "core",
-      "description": "Core Clerk skills: router, CLI operations, setup, custom UI, and API references",
+      "description": "Core Clerk skills: router, CLI operations, setup, user migration, custom UI, and API references",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/core/clerk",
         "./skills/core/clerk-cli",
         "./skills/core/clerk-setup",
+        "./skills/core/clerk-migrate",
         "./skills/core/clerk-custom-ui",
         "./skills/core/clerk-backend-api"
       ]
