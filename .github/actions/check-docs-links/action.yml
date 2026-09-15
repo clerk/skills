@@ -1,0 +1,22 @@
+name: Check Clerk docs links
+description: Validate clerk.com/docs links against the published docs link manifest
+
+inputs:
+  path:
+    description: Newline-separated glob patterns for files to check
+    required: false
+    default: skills/**/*.md
+  manifest-url:
+    description: URL of the Clerk docs link manifest
+    required: false
+    default: https://clerk.com/docs/links.json
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Clerk docs links
+      shell: bash
+      env:
+        CLERK_DOCS_LINK_PATHS: ${{ inputs.path }}
+        CLERK_DOCS_MANIFEST_URL: ${{ inputs.manifest-url }}
+      run: node "$GITHUB_ACTION_PATH/check-docs-links.mjs"
