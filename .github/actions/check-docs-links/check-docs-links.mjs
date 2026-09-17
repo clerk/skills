@@ -259,7 +259,7 @@ function isRetryableStatus(status) {
   return status === 429 || status >= 500;
 }
 
-async function loadManifest(manifestUrl) {
+export async function loadManifest(manifestUrl) {
   let lastError;
 
   // This action gates a required status check, so a single transient network or

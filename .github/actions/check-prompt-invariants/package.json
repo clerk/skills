@@ -1,0 +1,12 @@
+{
+  "name": "check-prompt-invariants",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "mdast-util-to-string": "4.0.0",
+    "remark": "15.0.1",
+    "remark-frontmatter": "5.0.0",
+    "remark-gfm": "4.0.0",
+    "unist-util-visit": "5.0.0"
+  }
+}

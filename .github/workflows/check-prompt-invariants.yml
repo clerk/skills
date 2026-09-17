@@ -1,0 +1,19 @@
+name: Check prompt invariants
+
+on:
+  # This will become a required check, so it must report a result for every PR.
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  check-prompt-invariants:
+    name: Check prompt invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/check-prompt-invariants

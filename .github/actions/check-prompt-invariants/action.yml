@@ -1,0 +1,28 @@
+name: Check prompt invariants
+description: Validate the canonical Clerk setup prompt's mechanical invariants
+
+inputs:
+  prompt-path:
+    description: Path to the canonical setup skill
+    required: false
+    default: skills/core/clerk-setup/SKILL.md
+  manifest-url:
+    description: URL of the Clerk docs link manifest
+    required: false
+    default: https://clerk.com/docs/links.json
+
+runs:
+  using: composite
+  steps:
+    - name: Install prompt checker dependencies
+      shell: bash
+      run: npm ci --ignore-scripts --prefix "$GITHUB_ACTION_PATH"
+    - name: Test prompt checker
+      shell: bash
+      run: node --test "$GITHUB_ACTION_PATH/check-prompt-invariants.test.mjs"
+    - name: Validate canonical setup prompt
+      shell: bash
+      env:
+        CLERK_SETUP_PROMPT_PATH: ${{ inputs.prompt-path }}
+        CLERK_DOCS_MANIFEST_URL: ${{ inputs.manifest-url }}
+      run: node "$GITHUB_ACTION_PATH/check-prompt-invariants.mjs"

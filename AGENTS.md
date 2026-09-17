@@ -22,6 +22,8 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 
 ## Contributing
 
+Read `STYLEGUIDE.md` before editing agent-facing setup instructions. It separates semantic review rules from the mechanical prompt invariants enforced in CI.
+
 1. Each skill needs `SKILL.md` with YAML frontmatter (`name`, `description`, `license`)
 2. Place in the correct category directory
 3. Add to `.claude-plugin/marketplace.json` under the matching plugin group
