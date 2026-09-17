@@ -43,6 +43,12 @@ Additional fields on the failure events (`sms.failed`, `sms.undeliverable`):
 The payload never carries the message body, the verification code, or the
 provider's name.
 
+The failure-only fields (`reason`, `raw_error`, `rejected_before_send`) can be
+selected or filtered **only under a concrete `type`** (`sms.failed` /
+`sms.undeliverable`). Under the `sms.*` wildcard the request is validated
+against the intersection of all five schemas — the common fields above — so
+asking for `reason` there returns a 422.
+
 Any of these fields is usable as an exact-match query filter —
 `payload_filter[phone_number]`, `payload_filter[user_id]`, etc. — when the
 request also sets a `type`. URL-encode values (the `+` of an E.164 number

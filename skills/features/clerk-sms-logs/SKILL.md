@@ -38,6 +38,9 @@ clerk api "/logs?type=sms.failed&event_time_after=${SINCE}&limit=20"
 # One phone number's SMS history (exact-match payload filter)
 clerk api "/logs?type=sms.*&payload_filter[phone_number]=%2B14155550100&event_time_after=${SINCE}"
 
+# Why a number's sends failed — concrete type unlocks reason/raw_error
+clerk api "/logs?type=sms.failed&payload_filter[phone_number]=%2B14155550100&event_time_after=${SINCE}&payload_fields=phone_number,reason,raw_error,rejected_before_send"
+
 # Every event for one message, by its trace
 clerk api "/logs?type=sms.*&trace_id=<trace_id>&event_time_after=${SINCE}"
 ```
@@ -70,10 +73,19 @@ Key query parameters (all optional except where a playbook step needs one):
 | `limit`, `starting_after`, `ending_before` | Cursor pagination. |
 
 The list response omits the decoded payload by default; add `payload_fields`
-(comma-separated leaf paths, e.g. `payload_fields=phone_number,reason`) to
-include specific fields, or fetch one row in full with
-`GET /v1/logs/{event_time_ms}:{event_id}`. Discover a type's filterable and
-selectable fields with `GET /v1/logs/schemas?type=sms.failed`.
+(comma-separated leaf paths) to include specific fields, or fetch one row in
+full with `GET /v1/logs/{event_time_ms}:{event_id}`.
+
+**`reason`, `raw_error`, and `rejected_before_send` exist only on the failure
+events**, so they are selectable (and filterable) only when `type` is the
+concrete `sms.failed` or `sms.undeliverable`. Under the `sms.*` wildcard,
+`payload_fields` and `payload_filter` are validated against the *intersection*
+of all five schemas — the common fields (`phone_number`, `user_id`,
+`phone_number_id`, `slug`, `verification_id`, `source_type`, `purpose`,
+`channel`) — and asking for `reason` there is a 422. Use `sms.*` to see a
+number's whole timeline; switch to `type=sms.failed` to read why it failed.
+Discover the exact allowed fields for any type with
+`GET /v1/logs/schemas?type=sms.failed` (or `?type=sms.*` for the intersection).
 
 > These `logs` endpoints are newer and require the feature enabled on the
 > instance; if a call 404s or returns nothing, confirm SMS logs are on for
