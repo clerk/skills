@@ -28,23 +28,33 @@ The Backend API `logs` endpoints take a secret key (`sk_*`). The simplest
 caller is the **Clerk CLI**, which injects auth for you:
 
 ```bash
-# All SMS lifecycle events, newest first
-clerk api "/logs?type=sms.*&limit=20"
+# SMS lifecycle events in the last 24h, newest first
+SINCE=$(( ($(date +%s) - 86400) * 1000 ))
+clerk api "/logs?type=sms.*&event_time_after=${SINCE}&limit=20"
 
-# Just failures
-clerk api "/logs?type=sms.failed&limit=20"
+# Just failures, same window
+clerk api "/logs?type=sms.failed&event_time_after=${SINCE}&limit=20"
 
 # One phone number's SMS history (exact-match payload filter)
-clerk api "/logs?type=sms.*&payload_filter[phone_number]=%2B14155550100"
+clerk api "/logs?type=sms.*&payload_filter[phone_number]=%2B14155550100&event_time_after=${SINCE}"
 
 # Every event for one message, by its trace
-clerk api "/logs?type=sms.*&trace_id=<trace_id>"
+clerk api "/logs?type=sms.*&trace_id=<trace_id>&event_time_after=${SINCE}"
 ```
+
+**Always bound the time range.** These logs are high-volume, so start with a
+narrow `event_time_after` (and `event_time_before` when you know roughly when
+the SMS was sent) and widen only if you come up empty — don't scan the whole
+retention window to find one message. Keep `limit` modest (10–50) and page
+with the returned cursor rather than raising it. The endpoint queries in
+adaptive time windows, so a short or empty page inside your range is normal:
+follow `starting_after` until the response reports no next page.
 
 Or call the Backend API directly:
 
 ```bash
-curl -s "https://api.clerk.com/v1/logs?type=sms.failed&limit=20" \
+SINCE=$(( ($(date +%s) - 86400) * 1000 ))
+curl -s "https://api.clerk.com/v1/logs?type=sms.failed&event_time_after=${SINCE}&limit=20" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY" \
   | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin), indent=2))"
 ```
@@ -56,7 +66,7 @@ Key query parameters (all optional except where a playbook step needs one):
 | `type` | Event type: concrete (`sms.failed`) or trailing wildcard (`sms.*`). Required to use `payload_filter`. |
 | `payload_filter[<field>]` | Exact match on a payload field, e.g. `payload_filter[user_id]=user_123`. URL-encode values (a `+` in an E.164 number becomes `%2B`). |
 | `trace_id` | Correlate every event of one message. |
-| `event_time_after` / `event_time_before` | Unix ms bounds. |
+| `event_time_after` / `event_time_before` | Unix ms bounds. Set at least `event_time_after` on every query — see the note above. |
 | `limit`, `starting_after`, `ending_before` | Cursor pagination. |
 
 The list response omits the decoded payload by default; add `payload_fields`
