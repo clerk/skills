@@ -43,6 +43,11 @@ Additional fields on the failure events (`sms.failed`, `sms.undeliverable`):
 The payload never carries the message body, the verification code, or the
 provider's name.
 
+Any of these fields is usable as an exact-match query filter —
+`payload_filter[phone_number]`, `payload_filter[user_id]`, etc. — when the
+request also sets a `type`. URL-encode values (the `+` of an E.164 number
+becomes `%2B`). See the SKILL for the query examples.
+
 ## Failure reasons
 
 `reason` is drawn from one fixed set. The last three only ever appear on a

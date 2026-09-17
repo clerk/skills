@@ -1,12 +1,12 @@
 ---
 name: clerk-sms-logs
 description: Debug Clerk-delivered SMS (phone verification codes, OTPs) using the sms.* Application Logs. Understand the delivery lifecycle — sms.accepted, sms.delivered, sms.failed, sms.undeliverable, sms.unconfirmed — read the normalized failure reason, and follow one message across events by its trace. Use when a user reports "I never got the code", a phone number won't verify, or SMS delivery to a country/carrier looks broken.
-allowed-tools: WebFetch
+allowed-tools: Bash, WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 1.0.0
-compatibility: SMS Application Logs are visible in the Clerk Dashboard for instances with the feature enabled. The events cover Clerk-delivered SMS only (delivered_by_clerk); customer-managed SMS delivery is out of scope.
+  version: 1.1.0
+compatibility: Query the logs via the Backend API (needs CLERK_SECRET_KEY, sk_*) or the Clerk CLI (clerk api), and read them in the Clerk Dashboard. Available on instances with the feature enabled. Covers Clerk-delivered SMS only (delivered_by_clerk); customer-managed SMS delivery is out of scope.
 ---
 
 # SMS Logs
@@ -17,9 +17,57 @@ instance's behalf — phone verification codes, OTPs, password-reset codes — s
 you can tell a stuck sign-up from a carrier rejection from a Clerk-side block
 without guessing.
 
-Read these in the **Clerk Dashboard → Application Logs**, filtered to the
-`sms.*` event types. They are delivery telemetry about end-user activity, not
-dashboard actions.
+Read them two ways: in the **Clerk Dashboard → Application Logs** (filter to
+the `sms.*` event types), or programmatically over the **Backend API**
+(`GET /v1/logs`) — the same data, scriptable for a repeatable investigation.
+They are delivery telemetry about end-user activity, not dashboard actions.
+
+## Querying the logs
+
+The Backend API `logs` endpoints take a secret key (`sk_*`). The simplest
+caller is the **Clerk CLI**, which injects auth for you:
+
+```bash
+# All SMS lifecycle events, newest first
+clerk api "/logs?type=sms.*&limit=20"
+
+# Just failures
+clerk api "/logs?type=sms.failed&limit=20"
+
+# One phone number's SMS history (exact-match payload filter)
+clerk api "/logs?type=sms.*&payload_filter[phone_number]=%2B14155550100"
+
+# Every event for one message, by its trace
+clerk api "/logs?type=sms.*&trace_id=<trace_id>"
+```
+
+Or call the Backend API directly:
+
+```bash
+curl -s "https://api.clerk.com/v1/logs?type=sms.failed&limit=20" \
+  -H "Authorization: Bearer $CLERK_SECRET_KEY" \
+  | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin), indent=2))"
+```
+
+Key query parameters (all optional except where a playbook step needs one):
+
+| Param | Purpose |
+|-------|---------|
+| `type` | Event type: concrete (`sms.failed`) or trailing wildcard (`sms.*`). Required to use `payload_filter`. |
+| `payload_filter[<field>]` | Exact match on a payload field, e.g. `payload_filter[user_id]=user_123`. URL-encode values (a `+` in an E.164 number becomes `%2B`). |
+| `trace_id` | Correlate every event of one message. |
+| `event_time_after` / `event_time_before` | Unix ms bounds. |
+| `limit`, `starting_after`, `ending_before` | Cursor pagination. |
+
+The list response omits the decoded payload by default; add `payload_fields`
+(comma-separated leaf paths, e.g. `payload_fields=phone_number,reason`) to
+include specific fields, or fetch one row in full with
+`GET /v1/logs/{event_time_ms}:{event_id}`. Discover a type's filterable and
+selectable fields with `GET /v1/logs/schemas?type=sms.failed`.
+
+> These `logs` endpoints are newer and require the feature enabled on the
+> instance; if a call 404s or returns nothing, confirm SMS logs are on for
+> the instance before treating an empty result as "no such SMS".
 
 ## The five lifecycle events
 
@@ -41,10 +89,10 @@ but the carrier bounced it; `unconfirmed` means nobody knows.
 
 ## Debugging playbook
 
-**"The user never received the code."** Filter Application Logs to `sms.*`
-and find the message — search by the phone number or the user id (see
-[references/events.md](references/events.md) for the payload fields you can
-filter on). Then read the latest event for that message:
+**"The user never received the code."** Find the message — query `sms.*`
+filtered by the phone number or user id (`payload_filter[phone_number]` /
+`payload_filter[user_id]`, per the section above). Then read the latest event
+for that message:
 
 1. **No `sms.*` event at all** → the send was never attempted. This is usually
    upstream: the verification wasn't created, or the number was blocked before
