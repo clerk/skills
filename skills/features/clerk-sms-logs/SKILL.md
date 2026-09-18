@@ -36,7 +36,8 @@ clerk api "/logs?type=sms.*&event_time_after=${SINCE}&limit=20"
 clerk api "/logs?type=sms.failed&event_time_after=${SINCE}&limit=20"
 
 # One phone number's SMS history (exact-match payload filter)
-clerk api "/logs?type=sms.*&payload_filter[phone_number]=%2B14155550100&event_time_after=${SINCE}"
+# channel=sms keeps WhatsApp off the timeline — see the note below
+clerk api "/logs?type=sms.*&payload_filter[phone_number]=%2B14155550100&payload_filter[channel]=sms&event_time_after=${SINCE}"
 
 # Why a number's sends failed — concrete type unlocks reason/raw_error
 clerk api "/logs?type=sms.failed&payload_filter[phone_number]=%2B14155550100&event_time_after=${SINCE}&payload_fields=phone_number,reason,raw_error,rejected_before_send"
@@ -52,6 +53,11 @@ retention window to find one message. Keep `limit` modest (10–50) and page
 with the returned cursor rather than raising it. The endpoint queries in
 adaptive time windows, so a short or empty page inside your range is normal:
 follow `starting_after` until the response reports no next page.
+
+**WhatsApp rides the same `sms.*` family** (one pipeline; the `channel` payload
+field is `sms` or `whatsapp`), so a phone-number timeline can mix both
+transports. This skill covers SMS — add `payload_filter[channel]=sms` to scope
+to it, or read the `channel` field to tell them apart.
 
 Or call the Backend API directly:
 
@@ -103,7 +109,7 @@ without a visible intermediate.
 | `sms.delivered` | The carrier confirmed delivery to the handset. | Yes (success) |
 | `sms.failed` | The send stopped before handoff, or the provider rejected it outright. Carries a `reason`. | Yes (failure) |
 | `sms.undeliverable` | The carrier reported it could not deliver after the provider accepted it. Carries a `reason`. | Yes (failure) |
-| `sms.unconfirmed` | The provider explicitly reported an unknown/unconfirmed outcome. No delivery evidence either way. | Yes (indeterminate) |
+| `sms.unconfirmed` | The provider explicitly reported an unknown/unconfirmed outcome. No delivery evidence either way. | No — a later `delivered`/`undeliverable` can still supersede it |
 
 The mental model: `accepted → delivered` is the happy path. `failed` means it
 never got out (or was refused at the door); `undeliverable` means it got out
@@ -113,13 +119,17 @@ but the carrier bounced it; `unconfirmed` means nobody knows.
 
 **"The user never received the code."** Find the message — query `sms.*`
 filtered by the phone number or user id (`payload_filter[phone_number]` /
-`payload_filter[user_id]`, per the section above). Then read the latest event
-for that message:
+`payload_filter[user_id]`, plus `payload_filter[channel]=sms` to keep WhatsApp
+out, per the section above). Then read the latest event for that message:
 
-1. **No `sms.*` event at all** → the send was never attempted. This is usually
-   upstream: the verification wasn't created, or the number was blocked before
-   the SMS pipeline (check Protect / bot-detection events). It is not an SMS
-   delivery problem.
+1. **No `sms.*` event at all** → the logs don't establish that a send was
+   attempted. Rule out a gap in the query first: confirm SMS logs are enabled
+   for the instance, that your time bounds cover the send, and that you paged
+   the cursor to the end (these logs are best-effort — see Scope). Once the
+   logs are trustworthy and still empty, the cause is usually upstream: the
+   verification wasn't created, or the number was blocked before the SMS
+   pipeline (check Protect / bot-detection events). It is not an SMS delivery
+   problem.
 2. **`sms.failed`** → read the `reason`. If `rejected_before_send` is present,
    Clerk stopped it (country block, monthly limit, rate limit) — the fix is on
    your configuration, not the carrier. Otherwise the provider refused it; see
@@ -130,8 +140,10 @@ for that message:
 4. **`sms.undeliverable`** → the carrier bounced it after accepting. Read the
    `reason`; `destination_unreachable` / `invalid_phone_number` point at the
    number itself.
-5. **`sms.unconfirmed`** → no delivery signal exists. Don't infer success or
-   failure; if the user didn't get it, have them retry.
+5. **`sms.unconfirmed`** → no delivery signal exists *yet*. It isn't terminal:
+   a later `sms.delivered` or `sms.undeliverable` can still supersede it, so
+   re-query the trace before concluding. Don't infer success or failure; if a
+   definitive event hasn't arrived and the user didn't get it, have them retry.
 
 **"SMS to <country> is broken."** Look for `sms.failed` with
 `reason = country_not_supported` (Clerk blocks the country) or

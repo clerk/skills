@@ -56,9 +56,13 @@ becomes `%2B`). See the SKILL for the query examples.
 
 ## Failure reasons
 
-`reason` is drawn from one fixed set. The last three only ever appear on a
-**pre-send rejection** — Clerk stopped the send itself, so `sms.failed` also
-carries `rejected_before_send: true` and there is never a `raw_error`.
+`reason` is drawn from one fixed set. `country_not_supported` and
+`monthly_limit_reached` only ever appear on a **pre-send rejection** — Clerk
+stopped the send itself, so `sms.failed` also carries
+`rejected_before_send: true` and there is no `raw_error`. `rate_limited` can be
+either side: Clerk's own throttle (pre-send, `rejected_before_send: true`, no
+`raw_error`) or a provider 429 (no `rejected_before_send`, and a `raw_error`
+may be present). The `rejected_before_send` boolean disambiguates — see below.
 
 | Reason | Side | Meaning |
 |--------|------|---------|
@@ -72,7 +76,7 @@ carries `rejected_before_send: true` and there is never a `raw_error`.
 | `unknown` | provider | The provider reported a failure with no classifiable cause. |
 | `country_not_supported` | Clerk (pre-send) | The destination country is blocked for this instance. |
 | `monthly_limit_reached` | Clerk (pre-send) | The instance's monthly SMS limit is exhausted (development instances). |
-| `rate_limited` | Clerk (pre-send) | Clerk's per-number / prefix-growth throttle stopped the send. |
+| `rate_limited` | Clerk (pre-send) or provider | Clerk's per-number / prefix-growth throttle stopped the send (`rejected_before_send: true`), or a provider 429 refused it (no `rejected_before_send`). |
 
 ### `rejected_before_send` — why it matters
 
