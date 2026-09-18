@@ -42,8 +42,8 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Native iOS and macOS apps in Xcode, through the iOS setup prompt
 
 **Migrating users into Clerk** → Use `clerk-migrate`
-- Exporting users from Auth0, Supabase, Firebase, Auth.js, Better Auth, or Clerk
-- Importing them with `clerk migrate run`, and undoing a bad run
+- Exporting users from Auth0, Supabase, Firebase, Auth.js, Better Auth, WorkOS, or Clerk
+- Importing them with `clerk migrate import`, and undoing a bad run
 - Writing a transformer for a platform with no built-in
 - Development → production instance migrations
 
