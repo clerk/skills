@@ -206,8 +206,8 @@ Check `package.json` for existing auth libraries:
    - **Session handling** - Existing sessions will terminate on switch
 
    > **Moving the users themselves → use the `clerk-migrate` skill.** It covers
-   > `clerk migrate export` for Auth0, Supabase, Firebase, Auth.js, Better Auth
-   > and Clerk, then `clerk migrate run` to import — including password digests,
+   > `clerk migrate export` for Auth0, Supabase, Firebase, Auth.js, Better Auth,
+   > WorkOS and Clerk, then `clerk migrate import` to import — including password digests,
    > `external_id` stamping, and undoing a bad run. Do not hand-roll a Backend
    > API import script.
 

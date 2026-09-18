@@ -1,6 +1,6 @@
 # Transformers
 
-A transformer maps one platform's export onto Clerk's user schema. Six ship with the CLI. For anything else you write a small file and pass it with `--transformer-file` — you do not edit, fork, or clone anything.
+A transformer maps one platform's export onto Clerk's user schema. Seven ship with the CLI. For anything else you write a small file and pass it with `--transformer-file` — you do not edit, fork, or clone anything.
 
 ```sh
 clerk migrate transformers list          # the built-ins
@@ -21,6 +21,7 @@ The mapping that matters most is **how each platform records verification**, bec
 | `authjs`     | `id`          | `email_verified`                                 | timestamp | none                         |
 | `betterauth` | `user_id`     | `email_verified`, `phone_number_verified`        | boolean   | `password_hash`, bcrypt      |
 | `firebase`   | `localId`     | `emailVerified`                                  | boolean   | `passwordHash` + `passwordSalt`, `scrypt_firebase` |
+| `workos`     | `id`          | `email_verified`                                 | boolean   | none — WorkOS returns no digest, so no hasher default |
 
 - **Boolean style** treats `true`, `1`, `"true"` and `"1"` as verified — and, importantly, the string `"false"` as *not* verified, which is what a CSV export produces.
 - **Timestamp style** treats any real date as verified; `""`, `null` and `\N` are not.
@@ -31,13 +32,14 @@ Beyond identifiers:
 - **`auth0`** maps `user_metadata` → `publicMetadata` and `app_metadata` → `privateMetadata`, `given_name`/`family_name` → first and last name.
 - **`supabase`** maps `raw_user_meta_data` → `publicMetadata`, and recovers a first/last name from the metadata display name when the columns are empty. Discord's `#1234` discriminator is stripped.
 - **`authjs`** and **`betterauth`** split a single `name` column into first and last name.
+- **`workos`** maps `first_name`/`last_name`, `metadata` → `publicMetadata`, and `created_at`. WorkOS has no phone or username, so there is nothing else to carry. The optional `identities` array from `--with-identities` is informational only — it is not imported.
 - **`firebase`** splits `displayName`, and combines `passwordHash` with `passwordSalt` and the project's four hash parameters into one digest. A user with a hash but no salt (or the reverse) has both dropped — half a credential produces an account nobody can sign in to.
 
 Summarize the relevant rows for the user before importing. The verification column is the one worth spelling out.
 
 ## Writing one for another platform
 
-Do this when the file matches no signature in the routing table and the fields are clearly not one of the six. Ask first — a custom transformer is a file the user has to keep.
+Do this when the file matches no signature in the routing table and the fields are clearly not one of the seven. Ask first — a custom transformer is a file the user has to keep.
 
 ### Ask these five questions before writing anything
 
@@ -81,7 +83,7 @@ export default {
 Run it with:
 
 ```sh
-clerk migrate run --transformer-file ./my-platform.ts --file users.json
+clerk migrate import --transformer-file ./my-platform.ts --file users.json
 clerk migrate transformers list --transformer-file ./my-platform.ts   # verify it loads
 ```
 
@@ -109,6 +111,15 @@ preTransform: (filePath, fileType) => {
 ```
 
 Return `{ filePath }` to leave the file alone, or `{ filePath, data }` to supply the parsed users directly.
+
+### Hook signatures
+
+| Hook            | Signature                                               | Notes                                                         |
+| --------------- | ------------------------------------------------------- | ------------------------------------------------------------- |
+| `preTransform`  | `(filePath, fileType) => { filePath, data? }`           | May be `async`. Runs before field mapping.                    |
+| `postTransform` | `(user, context) => void`                               | Mutates one mapped user. `context.firebaseHashConfig` is only set for Firebase runs. |
+
+`description` is optional for a custom transformer and defaults to `Custom transformer`.
 
 ### Load errors
 
@@ -145,6 +156,6 @@ Every user must end up with at least one identifier — email, phone, or usernam
 
 ## After writing one
 
-1. `clerk migrate transformers list --transformer-file ./my-platform.ts` — confirms it loads and shows what it maps to `userId`.
+1. `clerk migrate transformers list --transformer-file ./my-platform.ts` — confirms it loads. It lists the file as `myplatform  My Platform (custom — ./my-platform.ts)` and ends `7 built-in transformers plus 1 loaded from --transformer-file`. Add `--json` to see which source field maps to `userId`.
 2. Summarize the mapping for the user, verification rules included.
-3. Run the import **without `-y`** so the Migration Readiness report prints, and relay it.
+3. Follow [Step 3 of the import flow](../SKILL.md#step-3-get-confirmation-then-run): get a yes first, and run **without `-y`** so the Migration Readiness report prints. It is the fastest way to find out the mapping produced users the destination won't accept.
