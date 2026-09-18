@@ -205,6 +205,12 @@ Check `package.json` for existing auth libraries:
    - **External IDs** - Store legacy user IDs as `external_id` in Clerk
    - **Session handling** - Existing sessions will terminate on switch
 
+   > **Moving the users themselves → use the `clerk-migrate` skill.** It covers
+   > `clerk migrate export` for Auth0, Supabase, Firebase, Auth.js, Better Auth,
+   > WorkOS and Clerk, then `clerk migrate import` to import — including password digests,
+   > `external_id` stamping, and undoing a bad run. Do not hand-roll a Backend
+   > API import script.
+
 3. **Choose migration strategy**:
    - **Big bang** - Switch all users at once (simpler, requires maintenance window)
    - **Trickle migration** - Run both systems temporarily (lower risk, higher complexity)
