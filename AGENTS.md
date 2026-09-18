@@ -1,12 +1,12 @@
 # Clerk Skills
 
-AI agent skills for Clerk authentication. 20 public skills across 4 categories, plus internal maintenance skills under `.agents/skills/`.
+AI agent skills for Clerk authentication. 21 public skills across 4 categories, plus internal maintenance skills under `.agents/skills/`.
 
 ## Structure
 
 ```
 skills/
-├── core/                          # clerk, cli, setup, custom-ui, backend-api
+├── core/                          # clerk, cli, setup, custom-ui, mosaic, backend-api
 ├── frameworks/            # nextjs, react, vue, nuxt, astro, tanstack, react-router, chrome-extension
 ├── features/                      # orgs, webhooks, testing
 └── mobile/                 # swift, android, expo

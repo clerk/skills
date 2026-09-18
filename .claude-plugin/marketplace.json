@@ -19,6 +19,7 @@
         "./skills/core/clerk-cli",
         "./skills/core/clerk-setup",
         "./skills/core/clerk-custom-ui",
+        "./skills/core/clerk-mosaic",
         "./skills/core/clerk-backend-api"
       ]
     },

@@ -53,6 +53,11 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Appearance and styling (themes, colors, layout)
 - `<Show>` component for conditional rendering
 
+**Styling Mosaic components** → Use `clerk-mosaic`
+- `--cl-*` design token variables and `.cl-*` slot classes
+- Stylesheet import, cascade layers, dark mode
+- Experimental: `@clerk/*/experimental/mosaic`
+
 **Advanced Next.js patterns** → Use `clerk-nextjs-patterns`
 - Server vs Client auth APIs
 - Middleware strategies
@@ -145,6 +150,7 @@ If you know your task, you can directly access:
 - `/clerk-setup` - Framework setup
 - `/clerk-cli` - CLI operations and Clerk resource management
 - `/clerk-custom-ui` - Custom flows & appearance
+- `/clerk-mosaic` - Styling Mosaic components (experimental)
 - `/clerk-nextjs-patterns` - Next.js patterns
 - `/clerk-react-patterns` - React patterns
 - `/clerk-react-router-patterns` - React Router patterns

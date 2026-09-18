@@ -63,6 +63,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 | `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, deploy checks |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
+| `clerk-mosaic` | Styling Mosaic components with CSS | Theming `--cl-*` tokens and `.cl-*` slots (experimental) |
 | `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
 
 ### Framework Patterns
@@ -121,6 +122,7 @@ for how temporary keys and later account claiming work.
 | "Add phone SMS auth to my Expo app" | `clerk-expo` |
 | "Add Clerk to my Astro site" | `clerk-astro-patterns` |
 | "Build custom sign-in form" | `clerk-custom-ui` |
+| "Match Clerk's UserButton to our design system" | `clerk-mosaic` |
 | "Sync users to Prisma via webhooks" | `clerk-webhooks` |
 | "Add Playwright tests for auth" | `clerk-testing` |
 | "Set up organizations for my B2B app" | `clerk-orgs` |
@@ -146,6 +148,7 @@ clerk-skills/
 │   │   ├── clerk-cli/              # CLI operations
 │   │   ├── clerk-setup/            # Framework setup
 │   │   ├── clerk-custom-ui/        # Component customization
+│   │   ├── clerk-mosaic/           # Mosaic CSS theming
 │   │   └── clerk-backend-api/      # REST API explorer
 │   ├── frameworks/
 │   │   ├── clerk-nextjs-patterns/
