@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const DEFAULT_PATHS = "skills/**/*.md";
+const DEFAULT_PATHS = "plugins/clerk/skills/**/*.md";
 const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
 // Match /docs only when followed by a path, query, fragment, delimiter, or end
 // of URL — never when another word character follows (e.g. /docs-broken or

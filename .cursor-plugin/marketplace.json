@@ -1,12 +1,8 @@
 {
-  "name": "clerk-skills",
+  "name": "clerk",
   "owner": {
     "name": "Clerk",
-    "email": "support@clerk.com"
-  },
-  "metadata": {
-    "description": "Official Clerk skills for AI coding agents",
-    "version": "1.0.0"
+    "email": "ai@clerk.dev"
   },
   "plugins": [
     {
@@ -14,11 +10,5 @@
       "source": "./plugins/clerk",
       "description": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server."
     }
-  ],
-  "renames": {
-    "core": "clerk",
-    "frameworks": "clerk",
-    "features": "clerk",
-    "mobile": "clerk"
-  }
+  ]
 }

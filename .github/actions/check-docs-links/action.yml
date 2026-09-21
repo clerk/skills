@@ -5,7 +5,7 @@ inputs:
   path:
     description: Newline-separated glob patterns for files to check
     required: false
-    default: skills/**/*.md
+    default: plugins/clerk/skills/**/*.md
   manifest-url:
     description: URL of the Clerk docs link manifest
     required: false

@@ -12,14 +12,14 @@ metadata:
 
 # Clerk CLI Skill Audit
 
-Cross-check `skills/core/clerk-cli/` in this repository against the actual Clerk CLI source and propose precise edits where the skill has drifted. The CLI is the source of truth; the skill is maintainer documentation that must track it.
+Cross-check `plugins/clerk/skills/clerk-cli/` in this repository against the actual Clerk CLI source and propose precise edits where the skill has drifted. The CLI is the source of truth; the skill is maintainer documentation that must track it.
 
 This task needs a complete command inventory, not a quick grep pass. Build the source model first, then compare it to the skill's current claims.
 
 ## Inputs
 
 - **CLI source of truth**: a `clerk/cli` checkout containing `packages/cli-core/src/commands/**`, plus `packages/cli-core/src/cli.ts`, `cli-program.ts`, `mode.ts`, and any referenced files in `packages/cli-core/src/lib/`.
-- **Target skill**: `skills/core/clerk-cli/SKILL.md` and `skills/core/clerk-cli/references/*.md`.
+- **Target skill**: `plugins/clerk/skills/clerk-cli/SKILL.md` and `plugins/clerk/skills/clerk-cli/references/*.md`.
 
 ## Source Checkout Resolution
 
@@ -66,7 +66,7 @@ Prefer reading source over running the binary. When runtime behavior is unclear,
 
 ### 2. Extract the Skill's Claims
 
-Read `skills/core/clerk-cli/SKILL.md` and each file under `skills/core/clerk-cli/references/`. Extract every concrete claim:
+Read `plugins/clerk/skills/clerk-cli/SKILL.md` and each file under `plugins/clerk/skills/clerk-cli/references/`. Extract every concrete claim:
 
 - Commands in the core command table and invocation guidance.
 - Flags named in prose, tables, and examples.
@@ -102,7 +102,7 @@ Treat skill shrinkage as a valid proposal when it reduces drift risk. The goal i
 
 Emit a review-ready proposal. For each change include:
 
-- Path, such as `skills/core/clerk-cli/SKILL.md` or `skills/core/clerk-cli/references/agent-mode.md`.
+- Path, such as `plugins/clerk/skills/clerk-cli/SKILL.md` or `plugins/clerk/skills/clerk-cli/references/agent-mode.md`.
 - Severity: `drift`, `gap`, or `polish`.
 - Why, with a source citation such as `packages/cli-core/src/commands/<cmd>/<file>.ts:<line>`.
 - Target location in this repository.
@@ -121,7 +121,7 @@ If invoked with `--apply`, apply `drift` and `gap` edits directly, then list `po
 - Never invent flags. If a flag appears in tests but not in the command parser, mark it for human review.
 - Preserve the existing `clerk-cli` skill's terse, third-person voice.
 - Do not use em dashes in proposals or edits.
-- Keep `skills/core/clerk-cli/SKILL.md` near the 500-line guidance. Move detailed material to `references/` instead of bloating the main skill.
+- Keep `plugins/clerk/skills/clerk-cli/SKILL.md` near the 500-line guidance. Move detailed material to `references/` instead of bloating the main skill.
 - Do not treat the installed `clerk` binary as authoritative over source. Use `--help` only to confirm generated presentation when source and tests leave ambiguity.
 - Do not commit or print secrets. If the audit touches env guidance, preserve the repository's 1Password and no-plaintext-secret rules.
 
@@ -135,14 +135,14 @@ Return the proposal as:
 ## Summary
 <counts per bucket, plus the largest drift>
 
-## skills/core/clerk-cli/SKILL.md
+## plugins/clerk/skills/clerk-cli/SKILL.md
 ### <section name>
 - [drift|gap|polish] <one-line description>
   - source: packages/cli-core/src/commands/<...>:<line>
-  - target: skills/core/clerk-cli/SKILL.md:<line>
+  - target: plugins/clerk/skills/clerk-cli/SKILL.md:<line>
   - change: <diff or concise before/after>
 
-## skills/core/clerk-cli/references/<file>.md
+## plugins/clerk/skills/clerk-cli/references/<file>.md
 ...
 
 ## New files
