@@ -37,6 +37,22 @@ Do not modify or remove existing auth without approval.
 
 Migration guide: https://clerk.com/docs/guides/development/migrating/overview
 
+## Use an existing Clerk application (optional)
+
+Only follow this branch when the user asks to use an existing Clerk application. Have them authenticate from their host terminal before targeting account-level resources:
+
+```bash
+npx -y clerk@latest auth login
+```
+
+If they supplied an application ID, keep it for the appropriate `init` command below. Otherwise, list the applications:
+
+```bash
+npx -y clerk@latest apps list --json
+```
+
+Show the names and IDs, ask which application to use, and pass the selected ID as `--app <application_id>` to `init`. Never choose an application for them.
+
 ## Step 1a: Existing project
 
 From the project root:
@@ -45,7 +61,7 @@ From the project root:
 npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. Don't pass `--framework` or `--pm` unless asked. Only list apps to link a user-requested existing application (Step 1c).
+`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
 
 ## Step 1b: Empty directory
 
@@ -63,15 +79,28 @@ For a signed-out user on a supported framework, `init` provisions a claimable ap
 
 Frameworks without accountless support need real API keys. There, `init` applies what setup it can and prints the remaining steps.
 
-To link an existing Clerk application, add `--app <application_id>` — but only when the user supplies the ID. If they want to link and have no ID, run `npx -y clerk@latest apps list --json`, show the names and IDs, and ask. Never choose an application for them.
-
 ## Step 2: Fall back to docs when init is incomplete
 
 If `init` reports the framework is unsupported or undetected, follow the quickstart instead.
 
 `init` scaffolds Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, Fastify, iOS, and Android.
 
-Use `https://clerk.com/docs/<slug>/getting-started/quickstart.md?manual=1`. Keep the init ID for `astro`, `nuxt`, `react-router`, `react`, `vue`, `fastify`, `expo`, `ios`, and `android`. Map `next` -> `nextjs`, `@tanstack/react-start` -> `tanstack-react-start`, `vite` or vanilla JS -> `js-frontend`, and `express` -> `expressjs`. Chrome extensions use `chrome-extension`.
+Use the matching direct quickstart:
+
+- Next.js: https://clerk.com/docs/nextjs/getting-started/quickstart.md?manual=1
+- React: https://clerk.com/docs/react/getting-started/quickstart.md?manual=1
+- React Router: https://clerk.com/docs/react-router/getting-started/quickstart.md?manual=1
+- Nuxt: https://clerk.com/docs/nuxt/getting-started/quickstart.md?manual=1
+- TanStack Start: https://clerk.com/docs/tanstack-react-start/getting-started/quickstart.md?manual=1
+- Astro: https://clerk.com/docs/astro/getting-started/quickstart.md?manual=1
+- Vue: https://clerk.com/docs/vue/getting-started/quickstart.md?manual=1
+- JavaScript or Vite: https://clerk.com/docs/js-frontend/getting-started/quickstart.md?manual=1
+- Expo: https://clerk.com/docs/expo/getting-started/quickstart.md?manual=1
+- Express: https://clerk.com/docs/expressjs/getting-started/quickstart.md?manual=1
+- Fastify: https://clerk.com/docs/fastify/getting-started/quickstart.md?manual=1
+- iOS: https://clerk.com/docs/ios/getting-started/quickstart.md?manual=1
+- Android: https://clerk.com/docs/android/getting-started/quickstart.md?manual=1
+- Chrome extension: https://clerk.com/docs/chrome-extension/getting-started/quickstart.md?manual=1
 
 Everything else: https://clerk.com/llms.txt
 

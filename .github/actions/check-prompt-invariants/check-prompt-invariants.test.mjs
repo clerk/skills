@@ -12,11 +12,44 @@ const manifest = {
   },
   redirects: { dynamic: [], static: {} },
 };
+const canonicalQuickstartPaths = [
+  "android",
+  "astro",
+  "chrome-extension",
+  "expo",
+  "expressjs",
+  "fastify",
+  "ios",
+  "js-frontend",
+  "nextjs",
+  "nuxt",
+  "react-router",
+  "react",
+  "tanstack-react-start",
+  "vue",
+];
+const canonicalManifest = {
+  routes: Object.fromEntries(
+    canonicalQuickstartPaths.map((slug) => [
+      `/docs/${slug}/getting-started/quickstart`,
+      [],
+    ]),
+  ),
+  redirects: { dynamic: [], static: {} },
+};
 const shellCommandSeparators = ["&&", "||", ";", "&", "|"];
+const defaultQuickstartUrl =
+  "https://clerk.com/docs/nextjs/getting-started/quickstart.md";
 
-function options(content, customManifest = manifest) {
+function options(
+  content,
+  customManifest = manifest,
+  includeDefaultQuickstart = true,
+) {
   return {
-    content,
+    content: includeDefaultQuickstart
+      ? `${content}\n${defaultQuickstartUrl}`
+      : content,
     filePath: "skills/core/clerk-setup/SKILL.md",
     manifest: customManifest,
   };
@@ -26,9 +59,17 @@ function codeFence(content, info = "bash") {
   return ["```" + info, content, "```"].join("\n");
 }
 
-function assertViolation(content, expected, customManifest = manifest) {
+function assertViolation(
+  content,
+  expected,
+  customManifest = manifest,
+  includeDefaultQuickstart = true,
+) {
   assert.throws(
-    () => validatePromptInvariants(options(content, customManifest)),
+    () =>
+      validatePromptInvariants(
+        options(content, customManifest, includeDefaultQuickstart),
+      ),
     (error) => error.message.includes(expected),
   );
 }
@@ -76,6 +117,27 @@ for (const command of [
     );
   });
 }
+
+for (const command of [
+  "sudo clerk init",
+  "env FOO=bar clerk init",
+  "command clerk init",
+]) {
+  test(`rejects a prefixed bare CLI command alongside valid init: ${command}`, () => {
+    assertViolation(
+      `${codeFence("npx clerk@latest init")}\n${codeFence(command)}`,
+      "package runner",
+    );
+  });
+}
+
+test("accepts a package-runner command behind a shell prefix", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants(
+      options(codeFence("env FOO=bar npx clerk@latest init")),
+    ),
+  );
+});
 
 test("rejects global CLI installation in prose", () => {
   assertViolation(
@@ -189,6 +251,22 @@ test("requires setup guidance to include an initialization fence", () => {
   );
 });
 
+for (const fallback of [
+  "",
+  "https://clerk.com/docs/<slug>/getting-started/quickstart.md?manual=1",
+]) {
+  test(`requires a concrete framework quickstart link instead of ${
+    fallback || "no link"
+  }`, () => {
+    assertViolation(
+      `${codeFence("npx clerk@latest init")}\n${fallback}`,
+      "include at least one concrete framework quickstart",
+      manifest,
+      false,
+    );
+  });
+}
+
 for (const subcommand of ["initialize", "init-extra"]) {
   test(`does not treat ${subcommand} as init`, () => {
     assertViolation(
@@ -274,6 +352,6 @@ for (const suffix of [".mdx", ".md-old"]) {
 test("the canonical setup skill passes the invariant checker", async () => {
   const content = await readFile("skills/core/clerk-setup/SKILL.md", "utf8");
   assert.doesNotThrow(() =>
-    validatePromptInvariants(options(content, { routes: {}, redirects: {} })),
+    validatePromptInvariants(options(content, canonicalManifest, false)),
   );
 });

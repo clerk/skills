@@ -31,6 +31,8 @@ const loginCommand = new RegExp(
 // Preserve command order within a line so every chained Clerk invocation is
 // validated independently.
 const shellCommandSeparator = /\s*(?:&&|\|\||[;&|])\s*/;
+const shellCommandPrefix =
+  /^(?:sudo|command|env(?:\s+(?:-\S+|[A-Za-z_][A-Za-z0-9_]*=\S+))*)\s+/;
 const globalCliInstall =
   /\b(?:(?:npm\s+(?:install|i)|pnpm\s+add|bun\s+add)\s+(?:(?:--global|-g)\s+[^\n`]*\bclerk\b|[^\n`]*\bclerk\b[^\n`]*\s(?:--global|-g)\b)|yarn\s+global\s+add\s+[^\n`]*\bclerk\b)/i;
 const frameworkQuickstartUrl =
@@ -85,9 +87,14 @@ function markdownDetails(content) {
 
         for (const shellCommand of line.split(shellCommandSeparator)) {
           const command = shellCommand.trim().replace(/^\$\s+/, "");
-          if (clerkCommand.test(command)) {
+          let normalizedCommand = command;
+          while (shellCommandPrefix.test(normalizedCommand)) {
+            normalizedCommand = normalizedCommand.replace(shellCommandPrefix, "");
+          }
+          if (clerkCommand.test(normalizedCommand)) {
             commands.push({
               command,
+              normalizedCommand,
               headings: headings.map(({ text }) => text),
               line: lineNumber,
               type: node.type,
@@ -136,8 +143,8 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
     report("do not install the Clerk CLI globally", line);
   }
 
-  for (const { command, line } of commands) {
-    if (packageRunnerCommand.test(command) === false) {
+  for (const { command, normalizedCommand, line } of commands) {
+    if (packageRunnerCommand.test(normalizedCommand) === false) {
       report(
         `use a package runner with clerk@latest instead of \`${command}\``,
         line,
@@ -146,8 +153,8 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
   }
 
   const fencedCommands = commands.filter(({ type }) => type === "code");
-  const firstInitIndex = fencedCommands.findIndex(({ command }) =>
-    initCommand.test(command),
+  const firstInitIndex = fencedCommands.findIndex(({ normalizedCommand }) =>
+    initCommand.test(normalizedCommand),
   );
   if (firstInitIndex === -1) {
     report("include Clerk initialization in setup guidance");
@@ -155,8 +162,8 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
     const requiredLogin = fencedCommands
       .slice(0, firstInitIndex)
       .find(
-        ({ command, headings }) =>
-          loginCommand.test(command) &&
+        ({ normalizedCommand, headings }) =>
+          loginCommand.test(normalizedCommand) &&
           headings.some((heading) => /\(optional\)/i.test(heading)) === false,
       );
     if (requiredLogin) {
@@ -165,6 +172,10 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
         requiredLogin.line,
       );
     }
+  }
+
+  if (quickstartUrls.length === 0) {
+    report("include at least one concrete framework quickstart .md link");
   }
 
   for (const quickstartUrl of quickstartUrls) {
