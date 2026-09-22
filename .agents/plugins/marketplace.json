@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "clerk-skills",
+      "name": "clerk",
       "source": {
-        "source": "url",
-        "url": "https://github.com/clerk/skills.git"
+        "source": "local",
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",

@@ -1,0 +1,27 @@
+{
+  "name": "clerk",
+  "displayName": "Clerk",
+  "version": "0.1.0",
+  "description": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server.",
+  "author": {
+    "name": "Clerk",
+    "email": "ai@clerk.dev"
+  },
+  "homepage": "https://clerk.com/docs",
+  "repository": "https://github.com/clerk/skills",
+  "license": "MIT",
+  "logo": "assets/clerk-logo.svg",
+  "keywords": [
+    "clerk",
+    "auth",
+    "authentication",
+    "user-management",
+    "organizations",
+    "billing",
+    "webhooks",
+    "nextjs",
+    "react",
+    "expo",
+    "mcp"
+  ]
+}

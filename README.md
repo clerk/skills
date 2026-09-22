@@ -32,25 +32,45 @@ Skills follow the [Agent Skills](https://agentskills.io/) format.
 
 ## Install
 
+The `clerk` plugin bundles every skill plus the [Clerk MCP server](https://mcp.clerk.com/mcp). `npx skills` installs the skills alone, into any agent.
+
 ### Agent Skills
 
 ```bash
 npx skills add clerk/skills
 ```
 
+### Claude Code
+
+```bash
+/plugin marketplace add clerk/skills
+/plugin install clerk@clerk-skills
+```
+
+To get updates automatically, open `/plugin`, go to **Marketplaces**, select `clerk-skills`, and enable auto-update.
+
 ### Codex
 
 ```bash
 codex plugin marketplace add clerk/skills
+codex plugin add clerk@clerk
 ```
 
-After adding the marketplace, restart Codex, open `/plugins`, select
-**Clerk Skills**, install and enable `clerk-skills`, then start a new thread.
+`clerk` replaces the earlier `clerk-skills@clerk` plugin, which no longer updates. To switch, run `codex plugin remove clerk-skills@clerk`, then add `clerk@clerk`.
 
-### Manual (Claude Code)
+### Cursor
 
 ```bash
-git clone https://github.com/clerk/skills ~/.claude/skills/clerk
+cursor-agent plugin marketplace add https://github.com/clerk/skills
+```
+
+Then install `clerk` from `/plugin`, or from **Customize** in the editor.
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add clerk/skills
+copilot plugin install clerk@clerk-skills
 ```
 
 ## Skills
@@ -100,12 +120,12 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 ### 1. Ask Your Agent to Add Clerk
 
 After installing Clerk Skills, ask your coding agent to add Clerk authentication
-to your app. The [`clerk-setup`](skills/core/clerk-setup/SKILL.md#agent-first-provision-via-cli)
+to your app. The [`clerk-setup`](skills/clerk-setup/SKILL.md#agent-first-provision-via-cli)
 skill covers three paths: a new project and Clerk app, an existing project and
 Clerk app, or a new Clerk app for an existing project.
 
 For a new project on a supported framework, `clerk init` can start without a
-Clerk account or browser login. See [Scenario A: Getting started without an account](skills/core/clerk-setup/SKILL.md#getting-started-without-an-account)
+Clerk account or browser login. See [Scenario A: Getting started without an account](skills/clerk-setup/SKILL.md#getting-started-without-an-account)
 for how temporary keys and later account claiming work.
 
 ### 2. Example Requests
@@ -132,39 +152,20 @@ for how temporary keys and later account claiming work.
 ## Repository Structure
 
 ```
-clerk-skills/
-├── .agents/
-│   └── plugins/
-│       └── marketplace.json
-├── .codex-plugin/
-│   └── plugin.json
-├── .claude-plugin/
-│   └── marketplace.json
-├── skills/
-│   ├── core/
-│   │   ├── clerk/                  # Router skill
-│   │   ├── clerk-cli/              # CLI operations
-│   │   ├── clerk-setup/            # Framework setup
-│   │   ├── clerk-custom-ui/        # Component customization
-│   │   └── clerk-backend-api/      # REST API explorer
-│   ├── frameworks/
-│   │   ├── clerk-nextjs-patterns/
-│   │   ├── clerk-react-patterns/
-│   │   ├── clerk-react-router-patterns/
-│   │   ├── clerk-vue-patterns/
-│   │   ├── clerk-nuxt-patterns/
-│   │   ├── clerk-astro-patterns/
-│   │   ├── clerk-tanstack-patterns/
-│   │   └── clerk-chrome-extension-patterns/
-│   ├── features/
-│   │   ├── clerk-orgs/
-│   │   ├── clerk-billing/
-│   │   ├── clerk-webhooks/
-│   │   └── clerk-testing/
-│   └── mobile/
-│       ├── clerk-swift/
-│       ├── clerk-android/
-│       └── clerk-expo/
+clerk-skills/                           # the repo root is the plugin root
+├── skills/                             # one folder per skill, flat
+│   ├── clerk/                          # Router skill
+│   ├── clerk-setup/
+│   ├── clerk-nextjs-patterns/
+│   └── ...
+├── plugin.json                         # Agent Plugins 1.0.0 manifest
+├── mcp.json                            # Agent Plugins MCP config
+├── .mcp.json                           # Claude Code and older Codex MCP config
+├── .claude-plugin/                     # plugin.json + marketplace.json
+├── .cursor-plugin/                     # plugin.json + marketplace.json
+├── .codex-plugin/plugin.json
+├── .agents/plugins/marketplace.json    # Codex marketplace
+├── scripts/check.py                    # keeps the manifests consistent
 └── README.md
 ```
 
