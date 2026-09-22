@@ -112,7 +112,10 @@ for (const command of [
   "npm i --location=global clerk",
   "pnpm add --global clerk",
   "pnpm add clerk --global",
+  "pnpm i -g clerk",
   "bun install -g clerk",
+  "bun i -g clerk",
+  "npm -g install clerk",
 ]) {
   test(`rejects global CLI installation: ${command}`, () => {
     assertViolation(
@@ -139,8 +142,12 @@ test("does not treat scoped Clerk packages or isolated CLI names as commands", (
 
 for (const command of [
   "npx --yes clerk init",
+  "npx -p clerk clerk init",
+  "npx --no-install clerk init",
   "bunx --bun clerk init",
   "npm exec clerk init",
+  "npm exec --yes clerk init",
+  "pnpm dlx --silent clerk init",
 ]) {
   test(`rejects an unversioned runner command beside valid init: ${command}`, () => {
     assertViolation(
@@ -154,6 +161,9 @@ for (const command of [
   "npx --yes clerk@latest init",
   "bunx --bun clerk@latest init",
   "npm exec clerk@latest init",
+  "npm exec --package=clerk@latest -- clerk init",
+  "npx -p clerk@latest clerk init",
+  "pnpm dlx --silent clerk@latest init",
 ]) {
   test(`accepts a pinned runner command: ${command}`, () => {
     assert.doesNotThrow(() => validatePromptInvariants(options(codeFence(command))));
@@ -186,6 +196,28 @@ test("rejects global CLI installation in prose", () => {
     `${codeFence("npx clerk@latest init")}\nInstall it with npm install -g clerk if needed.`,
     "globally",
   );
+});
+
+test("rejects a global CLI installation followed immediately by prose punctuation", () => {
+  assertViolation(
+    `${codeFence("npx clerk@latest init")}\nRun npm install -g clerk.`,
+    "globally",
+  );
+});
+
+test("recognizes a versioned init command split across shell continuation lines", () => {
+  const command = ["npx \\", "clerk@latest init"].join("\n");
+  assert.doesNotThrow(() => validatePromptInvariants(options(codeFence(command))));
+});
+
+test("rejects an unversioned command split across shell continuation lines", () => {
+  const command = ["npx \\", "clerk init"].join("\n");
+  assertViolation(`${codeFence("npx clerk@latest init")}\n${codeFence(command)}`, "package runner");
+});
+
+test("rejects a global install split across shell continuation lines", () => {
+  const command = ["npm install \\", "-g clerk"].join("\n");
+  assertViolation(`${codeFence("npx clerk@latest init")}\n${codeFence(command)}`, "globally");
 });
 
 for (const command of [

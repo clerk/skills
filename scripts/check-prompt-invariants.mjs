@@ -41,6 +41,40 @@ function commandSegments(line) {
   return segments.filter((segment) => segment.length > 0);
 }
 
+function logicalLines(value, startLine) {
+  const lines = [];
+  let pending = "";
+  let pendingLine = startLine;
+  let continuing = false;
+
+  for (const [offset, line] of value.split("\n").entries()) {
+    if (!continuing) pendingLine = startLine + offset;
+    continuing = line.endsWith("\\");
+    pending += continuing ? line.slice(0, -1) : line;
+    if (!continuing) {
+      lines.push({ text: pending, line: pendingLine });
+      pending = "";
+    }
+  }
+  if (continuing) lines.push({ text: pending, line: pendingLine });
+  return lines;
+}
+
+function runnerOptions(command, startIndex) {
+  let index = startIndex;
+  let packageName;
+  while (command[index]?.startsWith("-")) {
+    const option = command[index++];
+    if (option === "--") break;
+    if (option === "-p" || option === "--package") {
+      packageName = command[index++];
+    } else if (option.startsWith("--package=")) {
+      packageName = option.slice("--package=".length);
+    }
+  }
+  return { index, packageName };
+}
+
 function unwrapCommand(tokens) {
   let remaining = tokens[0] === "$" ? tokens.slice(1) : tokens;
   while (remaining.length) {
@@ -64,46 +98,55 @@ function clerkInvocation(tokens) {
   const command = unwrapCommand(tokens);
   let index = 0;
   let runner = false;
+  let packageName;
 
   if (command[0] === "npx" || command[0] === "bunx") {
     runner = true;
-    index = 1;
-    while (["-y", "--yes", "--bun"].includes(command[index])) index++;
+    ({ index, packageName } = runnerOptions(command, 1));
   } else if (
     ["pnpm", "yarn"].includes(command[0]) &&
     command[1] === "dlx"
   ) {
     runner = true;
-    index = 2;
+    ({ index, packageName } = runnerOptions(command, 2));
   } else if (command[0] === "npm" && command[1] === "exec") {
     runner = true;
-    index = command[2] === "--" ? 3 : 2;
+    ({ index, packageName } = runnerOptions(command, 2));
   }
 
-  const name = command[index];
+  const name = packageName ?? command[index];
+  if (packageName && command[index] !== "clerk") return null;
   if (!/^clerk(?:@[^\s]+)?$/.test(name ?? "") || command.length <= index + 1) {
     return null;
   }
   return { name, runner, args: command.slice(index + 1) };
 }
 
-function isGlobalCliInstall(tokens) {
+function isGlobalCliInstall(tokens, prose = false) {
   const command = unwrapCommand(tokens);
-  const [manager, action, ...args] = command;
+  const manager = command[0];
+  let actionIndex = 1;
+  while (command[actionIndex]?.startsWith("-")) {
+    actionIndex += command[actionIndex] === "--location" ? 2 : 1;
+  }
+  const action = command[actionIndex];
+  const args = command.slice(actionIndex + 1);
   const install =
     (manager === "npm" && ["install", "i", "add"].includes(action)) ||
-    (manager === "pnpm" && ["add", "install"].includes(action)) ||
-    (manager === "bun" && ["add", "install"].includes(action)) ||
+    (manager === "pnpm" && ["add", "install", "i"].includes(action)) ||
+    (manager === "bun" && ["add", "install", "i"].includes(action)) ||
     (manager === "yarn" && action === "global" && args[0] === "add");
   if (!install) return false;
 
   const global =
     (manager === "yarn" && action === "global") ||
-    args.some((arg, index) =>
+    command.slice(1).some((arg, index, flags) =>
       ["-g", "--global", "--location=global"].includes(arg) ||
-      (arg === "--location" && args[index + 1] === "global"),
+      (arg === "--location" && flags[index + 1] === "global"),
     );
-  return global && args.some((arg) => /^clerk(?:@[^\s]+)?$/.test(arg));
+  return global && args.some((arg) =>
+    /^clerk(?:@[^\s]+)?$/.test(prose ? arg.replace(/[.,;:!?]+$/, "") : arg),
+  );
 }
 
 function valueStartLine(content, node) {
@@ -144,15 +187,14 @@ function markdownDetails(content) {
       }
 
       const startLine = valueStartLine(content, node);
-      for (const [lineOffset, line] of node.value.split("\n").entries()) {
-        const lineNumber = startLine + lineOffset;
+      for (const { text: line, line: lineNumber } of logicalLines(node.value, startLine)) {
         if (node.type === "text") {
           // Prose can still recommend a full install command. Start at each
           // package-manager token instead of treating isolated words as CLI use.
           for (const segment of commandSegments(line)) {
             for (const [index, token] of segment.entries()) {
               if (["npm", "pnpm", "bun", "yarn"].includes(token) &&
-                isGlobalCliInstall(segment.slice(index))) {
+                isGlobalCliInstall(segment.slice(index), true)) {
                 globalInstalls.push(lineNumber);
               }
             }
