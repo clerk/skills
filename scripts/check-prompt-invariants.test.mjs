@@ -171,6 +171,18 @@ for (const command of [
 }
 
 for (const command of [
+  "npm exec --package=other -- clerk init",
+  "npx -p other clerk init",
+]) {
+  test(`rejects a Clerk binary even when another package is selected: ${command}`, () => {
+    assertViolation(
+      `${codeFence("npx clerk@latest init")}\n${codeFence(command)}`,
+      "package runner",
+    );
+  });
+}
+
+for (const command of [
   "sudo clerk init",
   "env FOO=bar clerk init",
   "command clerk init",

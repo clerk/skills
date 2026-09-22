@@ -114,8 +114,11 @@ function clerkInvocation(tokens) {
     ({ index, packageName } = runnerOptions(command, 2));
   }
 
-  const name = packageName ?? command[index];
-  if (packageName && command[index] !== "clerk") return null;
+  const executable = command[index];
+  const name =
+    packageName && /^clerk(?:@[^\s]+)?$/.test(packageName) && executable === "clerk"
+      ? packageName
+      : executable;
   if (!/^clerk(?:@[^\s]+)?$/.test(name ?? "") || command.length <= index + 1) {
     return null;
   }
