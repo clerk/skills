@@ -108,14 +108,55 @@ test("parses skill frontmatter separately from the prompt body", () => {
 for (const command of [
   "npm install -g clerk",
   "npm install clerk -g",
+  "npm add -g clerk",
+  "npm i --location=global clerk",
   "pnpm add --global clerk",
   "pnpm add clerk --global",
+  "bun install -g clerk",
 ]) {
   test(`rejects global CLI installation: ${command}`, () => {
     assertViolation(
       `${codeFence("npx clerk@latest init")}\nRun \`${command}\`.`,
       "globally",
     );
+  });
+}
+
+test("does not treat scoped Clerk packages or isolated CLI names as commands", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants(
+      options(
+        [
+          codeFence("npx clerk@latest init"),
+          "The package is `clerk` or `clerk@latest`.",
+          "Use `npm install -g @clerk/ui` for this SDK package.",
+          codeFence("pnpm add --global @clerk/nextjs"),
+        ].join("\n"),
+      ),
+    ),
+  );
+});
+
+for (const command of [
+  "npx --yes clerk init",
+  "bunx --bun clerk init",
+  "npm exec clerk init",
+]) {
+  test(`rejects an unversioned runner command beside valid init: ${command}`, () => {
+    assertViolation(
+      `${codeFence("npx clerk@latest init")}\n${codeFence(command)}`,
+      "package runner",
+    );
+  });
+}
+
+for (const command of [
+  "npx --yes clerk@latest init",
+  "bunx --bun clerk@latest init",
+  "npm exec clerk@latest init",
+]) {
+  test(`accepts a pinned runner command: ${command}`, () => {
+    assert.doesNotThrow(() => validatePromptInvariants(options(codeFence(command))));
   });
 }
 
@@ -372,4 +413,13 @@ test("the canonical setup skill passes the invariant checker", async () => {
   assert.doesNotThrow(() =>
     validatePromptInvariants(options(content, canonicalManifest, false)),
   );
+});
+
+test("the canonical init commands avoid installing skills globally", async () => {
+  const content = await readFile(PROMPT_PATH, "utf8");
+  const initCommands = content.match(/^npx -y clerk@latest init[^\n]*$/gm) ?? [];
+  assert.equal(initCommands.length, 2);
+  for (const command of initCommands) {
+    assert.match(command, /(?:^|\s)--no-skills(?:\s|$)/);
+  }
 });

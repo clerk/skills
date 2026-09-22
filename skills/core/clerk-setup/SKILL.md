@@ -68,17 +68,17 @@ Show the names and IDs, ask which application to use, and pass the selected ID a
 From the project root:
 
 ```bash
-npx -y clerk@latest init
+npx -y clerk@latest init --no-skills
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
+`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. `--no-skills` skips the CLI's automatic global skill installation; this skill already provides the setup guidance. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
 
 ## Step 1b: Empty directory
 
 Ask which framework and package manager to use, defaulting to Next.js and npm:
 
 ```bash
-npx -y clerk@latest init --framework <framework> --pm <package-manager>
+npx -y clerk@latest init --framework <framework> --pm <package-manager> --no-skills
 ```
 
 `init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory.

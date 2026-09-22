@@ -5,6 +5,7 @@ import { toString } from "mdast-util-to-string";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
+import { parse as parseShell } from "shell-quote";
 import { visit } from "unist-util-visit";
 import {
   DEFAULT_MANIFEST_URL,
@@ -14,29 +15,96 @@ import {
 
 export const PROMPT_PATH = "skills/core/clerk-setup/SKILL.md";
 
-const packageRunnerPattern = String.raw`(?:npx(?:\s+-y)?|pnpm\s+dlx|bunx|yarn\s+dlx)`;
-const clerkCommandPattern = String.raw`clerk(?:@[^\s]+)?`;
-const clerkCommand = new RegExp(
-  `^(?:${packageRunnerPattern}\\s+)?${clerkCommandPattern}(?:\\s|$)`,
-);
-const packageRunnerCommand = new RegExp(
-  `^${packageRunnerPattern}\\s+clerk@latest(?:\\s|$)`,
-);
-const initCommand = new RegExp(
-  `${packageRunnerPattern}\\s+clerk@latest\\s+init(?![\\w-])`,
-);
-const loginCommand = new RegExp(
-  `${packageRunnerPattern}\\s+clerk@latest\\s+auth\\s+login(?![\\w-])`,
-);
-// Preserve command order within a line so every chained Clerk invocation is
-// validated independently.
-const shellCommandSeparator = /\s*(?:&&|\|\||[;&|])\s*/;
-const shellCommandPrefix =
-  /^(?:sudo|command|env(?:\s+(?:-\S+|[A-Za-z_][A-Za-z0-9_]*=\S+))*)\s+/;
-const globalCliInstall =
-  /\b(?:(?:npm\s+(?:install|i)|pnpm\s+add|bun\s+add)\s+(?:(?:--global|-g)\s+[^\n`]*\bclerk\b|[^\n`]*\bclerk\b[^\n`]*\s(?:--global|-g)\b)|yarn\s+global\s+add\s+[^\n`]*\bclerk\b)/i;
 const frameworkQuickstartUrl =
   /https:\/\/clerk\.com\/docs\/[^\s`|)>]+\/getting-started\/quickstart[^\s`|)>]*/g;
+
+function commandSegments(line) {
+  let tokens;
+  try {
+    tokens = parseShell(line);
+  } catch {
+    // Markdown also contains non-shell snippets. A malformed line cannot be a
+    // reliable command until it is fixed, so leave it for human review.
+    return [];
+  }
+
+  const segments = [[]];
+  for (const token of tokens) {
+    if (typeof token === "object" && token.op !== "glob") {
+      segments.push([]);
+    } else if (typeof token === "string") {
+      segments[segments.length - 1].push(token);
+    } else if (token.pattern) {
+      segments[segments.length - 1].push(token.pattern);
+    }
+  }
+  return segments.filter((segment) => segment.length > 0);
+}
+
+function unwrapCommand(tokens) {
+  let remaining = tokens[0] === "$" ? tokens.slice(1) : tokens;
+  while (remaining.length) {
+    if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(remaining[0])) {
+      remaining = remaining.slice(1);
+    } else if (remaining[0] === "sudo" || remaining[0] === "command") {
+      remaining = remaining.slice(1);
+    } else if (remaining[0] === "env") {
+      remaining = remaining.slice(1);
+      while (remaining[0]?.startsWith("-") || /^[A-Za-z_][A-Za-z0-9_]*=/.test(remaining[0] ?? "")) {
+        remaining = remaining.slice(1);
+      }
+    } else {
+      break;
+    }
+  }
+  return remaining;
+}
+
+function clerkInvocation(tokens) {
+  const command = unwrapCommand(tokens);
+  let index = 0;
+  let runner = false;
+
+  if (command[0] === "npx" || command[0] === "bunx") {
+    runner = true;
+    index = 1;
+    while (["-y", "--yes", "--bun"].includes(command[index])) index++;
+  } else if (
+    ["pnpm", "yarn"].includes(command[0]) &&
+    command[1] === "dlx"
+  ) {
+    runner = true;
+    index = 2;
+  } else if (command[0] === "npm" && command[1] === "exec") {
+    runner = true;
+    index = command[2] === "--" ? 3 : 2;
+  }
+
+  const name = command[index];
+  if (!/^clerk(?:@[^\s]+)?$/.test(name ?? "") || command.length <= index + 1) {
+    return null;
+  }
+  return { name, runner, args: command.slice(index + 1) };
+}
+
+function isGlobalCliInstall(tokens) {
+  const command = unwrapCommand(tokens);
+  const [manager, action, ...args] = command;
+  const install =
+    (manager === "npm" && ["install", "i", "add"].includes(action)) ||
+    (manager === "pnpm" && ["add", "install"].includes(action)) ||
+    (manager === "bun" && ["add", "install"].includes(action)) ||
+    (manager === "yarn" && action === "global" && args[0] === "add");
+  if (!install) return false;
+
+  const global =
+    (manager === "yarn" && action === "global") ||
+    args.some((arg, index) =>
+      ["-g", "--global", "--location=global"].includes(arg) ||
+      (arg === "--location" && args[index + 1] === "global"),
+    );
+  return global && args.some((arg) => /^clerk(?:@[^\s]+)?$/.test(arg));
+}
 
 function valueStartLine(content, node) {
   const line = node.position?.start.line ?? 1;
@@ -78,28 +146,31 @@ function markdownDetails(content) {
       const startLine = valueStartLine(content, node);
       for (const [lineOffset, line] of node.value.split("\n").entries()) {
         const lineNumber = startLine + lineOffset;
-        if (globalCliInstall.test(line)) {
-          globalInstalls.push(lineNumber);
-        }
         if (node.type === "text") {
+          // Prose can still recommend a full install command. Start at each
+          // package-manager token instead of treating isolated words as CLI use.
+          for (const segment of commandSegments(line)) {
+            for (const [index, token] of segment.entries()) {
+              if (["npm", "pnpm", "bun", "yarn"].includes(token) &&
+                isGlobalCliInstall(segment.slice(index))) {
+                globalInstalls.push(lineNumber);
+              }
+            }
+          }
           continue;
         }
 
-        for (const shellCommand of line.split(shellCommandSeparator)) {
-          const command = shellCommand.trim().replace(/^\$\s+/, "");
-          let normalizedCommand = command;
-          while (shellCommandPrefix.test(normalizedCommand)) {
-            normalizedCommand = normalizedCommand.replace(shellCommandPrefix, "");
-          }
-          if (clerkCommand.test(normalizedCommand)) {
-            commands.push({
-              command,
-              normalizedCommand,
-              headings: headings.map(({ text }) => text),
-              line: lineNumber,
-              type: node.type,
-            });
-          }
+        for (const segment of commandSegments(line)) {
+          if (isGlobalCliInstall(segment)) globalInstalls.push(lineNumber);
+          const invocation = clerkInvocation(segment);
+          if (!invocation) continue;
+          commands.push({
+            command: segment.join(" ").replace(/^\$\s+/, ""),
+            ...invocation,
+            headings: headings.map(({ text }) => text),
+            line: lineNumber,
+            type: node.type,
+          });
         }
       }
     },
@@ -143,8 +214,8 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
     report("do not install the Clerk CLI globally", line);
   }
 
-  for (const { command, normalizedCommand, line } of commands) {
-    if (packageRunnerCommand.test(normalizedCommand) === false) {
+  for (const { command, name, runner, line } of commands) {
+    if (!runner || name !== "clerk@latest") {
       report(
         `use a package runner with clerk@latest instead of \`${command}\``,
         line,
@@ -155,8 +226,8 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
   // Initialization must be a fenced command, but a login in inline code is just
   // as required, so check every login that appears before the first init fence.
   const firstInitIndex = commands.findIndex(
-    ({ normalizedCommand, type }) =>
-      type === "code" && initCommand.test(normalizedCommand),
+    ({ name, runner, args, type }) =>
+      type === "code" && runner && name === "clerk@latest" && args[0] === "init",
   );
   if (firstInitIndex === -1) {
     report("include Clerk initialization in setup guidance");
@@ -164,8 +235,8 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
     const requiredLogin = commands
       .slice(0, firstInitIndex)
       .find(
-        ({ normalizedCommand, headings }) =>
-          loginCommand.test(normalizedCommand) &&
+        ({ name, runner, args, headings }) =>
+          runner && name === "clerk@latest" && args[0] === "auth" && args[1] === "login" &&
           headings.some((heading) => /\(optional\)/i.test(heading)) === false,
       );
     if (requiredLogin) {
