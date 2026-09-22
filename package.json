@@ -1,0 +1,19 @@
+{
+  "name": "clerk-skills",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "check": "concurrently \"npm:check:*\"",
+    "check:docs-links": "node scripts/check-docs-links.mjs",
+    "check:prompt-invariants": "node scripts/check-prompt-invariants.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "10.0.5",
+    "mdast-util-to-string": "4.0.0",
+    "remark": "15.0.1",
+    "remark-frontmatter": "5.0.0",
+    "remark-gfm": "4.0.0",
+    "unist-util-visit": "5.0.0"
+  }
+}

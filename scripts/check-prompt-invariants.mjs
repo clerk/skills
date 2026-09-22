@@ -7,12 +7,12 @@ import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import { visit } from "unist-util-visit";
 import {
+  DEFAULT_MANIFEST_URL,
   loadManifest,
   validateLink,
-} from "../check-docs-links/check-docs-links.mjs";
+} from "./check-docs-links.mjs";
 
-const DEFAULT_PROMPT_PATH = "skills/core/clerk-setup/SKILL.md";
-const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
+export const PROMPT_PATH = "skills/core/clerk-setup/SKILL.md";
 
 const packageRunnerPattern = String.raw`(?:npx(?:\s+-y)?|pnpm\s+dlx|bunx|yarn\s+dlx)`;
 const clerkCommandPattern = String.raw`clerk(?:@[^\s]+)?`;
@@ -152,14 +152,16 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
     }
   }
 
-  const fencedCommands = commands.filter(({ type }) => type === "code");
-  const firstInitIndex = fencedCommands.findIndex(({ normalizedCommand }) =>
-    initCommand.test(normalizedCommand),
+  // Initialization must be a fenced command, but a login in inline code is just
+  // as required, so check every login that appears before the first init fence.
+  const firstInitIndex = commands.findIndex(
+    ({ normalizedCommand, type }) =>
+      type === "code" && initCommand.test(normalizedCommand),
   );
   if (firstInitIndex === -1) {
     report("include Clerk initialization in setup guidance");
   } else {
-    const requiredLogin = fencedCommands
+    const requiredLogin = commands
       .slice(0, firstInitIndex)
       .find(
         ({ normalizedCommand, headings }) =>
@@ -221,14 +223,14 @@ function escapeAnnotation(value) {
     .replaceAll("\n", "%0A");
 }
 
-export async function run({ cwd, manifestUrl, promptPath }) {
+export async function run({ cwd }) {
   const [content, manifest] = await Promise.all([
-    readFile(path.join(cwd, promptPath), "utf8"),
-    loadManifest(manifestUrl),
+    readFile(path.join(cwd, PROMPT_PATH), "utf8"),
+    loadManifest(DEFAULT_MANIFEST_URL),
   ]);
   const errors = checkPromptInvariants({
     content,
-    filePath: promptPath,
+    filePath: PROMPT_PATH,
     manifest,
   });
 
@@ -249,15 +251,11 @@ export async function run({ cwd, manifestUrl, promptPath }) {
     );
   }
 
-  console.log(`Validated prompt invariants in ${promptPath}.`);
+  console.log(`Validated prompt invariants in ${PROMPT_PATH}.`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  run({
-    cwd: process.cwd(),
-    manifestUrl: process.env.CLERK_DOCS_MANIFEST_URL ?? DEFAULT_MANIFEST_URL,
-    promptPath: process.env.CLERK_SETUP_PROMPT_PATH ?? DEFAULT_PROMPT_PATH,
-  }).catch((error) => {
+  run({ cwd: process.cwd() }).catch((error) => {
     console.error(`::error::${escapeAnnotation(error.message)}`);
     process.exitCode = 1;
   });

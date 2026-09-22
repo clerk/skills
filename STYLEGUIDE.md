@@ -1,4 +1,4 @@
-# Clerk Skills Styleguide
+# Clerk Skills styleguide
 
 Use these rules for agent-facing setup prompts that will also be published as Clerk skills. They cover decisions that depend on meaning and therefore need human review instead of regular expressions that try to interpret prose.
 
@@ -64,3 +64,13 @@ Don't claim that every framework supports accountless setup. Tie accountless or 
 > ✅ On supported frameworks, accountless setup provisions a claimable application and writes temporary development keys. Unsupported frameworks need real API keys.
 
 Keep this condition close to each accountless claim. A qualification elsewhere in the prompt doesn't make a later, unconditional claim accurate.
+
+## Write links as Markdown links
+
+Use `[descriptive text](url)` for every link. Agents reading the raw file still see the URL, and rendered Markdown shows readable text. Don't use bare URLs or URLs in parentheses after the text.
+
+> ❌ Migration guide: https://clerk.com/docs/guides/development/migrating/overview
+
+> ❌ Point them to Organizations (https://clerk.com/docs/guides/organizations/overview).
+
+> ✅ See the [migration guide](https://clerk.com/docs/guides/development/migrating/overview).

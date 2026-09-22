@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   checkPromptInvariants,
+  PROMPT_PATH,
   validatePromptInvariants,
 } from "./check-prompt-invariants.mjs";
 
@@ -50,7 +51,7 @@ function options(
     content: includeDefaultQuickstart
       ? `${content}\n${defaultQuickstartUrl}`
       : content,
-    filePath: "skills/core/clerk-setup/SKILL.md",
+    filePath: PROMPT_PATH,
     manifest: customManifest,
   };
 }
@@ -185,7 +186,7 @@ test("returns structured errors for GitHub annotations", () => {
   );
 
   assert.deepEqual(error, {
-    filePath: "skills/core/clerk-setup/SKILL.md",
+    filePath: PROMPT_PATH,
     line: 2,
     message:
       "use a package runner with clerk@latest instead of `clerk@latest init`",
@@ -230,6 +231,23 @@ test("rejects mandatory sign-in before initialization", () => {
   assertViolation(
     "# Set up Clerk\n## Authenticate\n```bash\nnpx clerk@latest auth login\n```\n## Step 1: Initialize\n```bash\nnpx clerk@latest init\n```",
     "do not require Clerk authentication",
+  );
+});
+
+test("rejects mandatory inline-code sign-in before initialization", () => {
+  assertViolation(
+    "## Sign in\nRun `npx -y clerk@latest auth login` first.\n## Initialize\n```bash\nnpx -y clerk@latest init\n```",
+    "do not require Clerk authentication",
+  );
+});
+
+test("accepts optional inline-code sign-in before initialization", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants(
+      options(
+        "## Sign in (optional)\nRun `npx -y clerk@latest auth login` first.\n## Initialize\n```bash\nnpx -y clerk@latest init\n```",
+      ),
+    ),
   );
 });
 
@@ -350,7 +368,7 @@ for (const suffix of [".mdx", ".md-old"]) {
 }
 
 test("the canonical setup skill passes the invariant checker", async () => {
-  const content = await readFile("skills/core/clerk-setup/SKILL.md", "utf8");
+  const content = await readFile(PROMPT_PATH, "utf8");
   assert.doesNotThrow(() =>
     validatePromptInvariants(options(content, canonicalManifest, false)),
   );

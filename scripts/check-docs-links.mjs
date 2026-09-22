@@ -3,7 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DEFAULT_PATHS = "skills/**/*.md";
-const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
+export const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
 // Match /docs only when followed by a path, query, fragment, delimiter, or end
 // of URL — never when another word character follows (e.g. /docs-broken or
 // /docsearch), which would otherwise truncate to a bare, always-valid /docs.

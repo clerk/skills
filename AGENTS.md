@@ -30,3 +30,7 @@ Read `STYLEGUIDE.md` before editing agent-facing setup instructions. It separate
 4. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 5. Folder names keep the `clerk-` prefix (e.g. `frameworks/clerk-nextjs-patterns/`)
 6. When adding, removing, or moving skills, keep applicable marketplace manifests in sync.
+
+## CI checks
+
+The `Test` and `Check` workflows in `.github/workflows/` run npm scripts backed by `scripts/`. Run `npm test` to test the checkers and `npm run check` to validate the skills.

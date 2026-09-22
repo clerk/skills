@@ -8,3 +8,4 @@
 !.claude/skills/audit-expo-skill
 .DS_Store
 *-workspace/
+node_modules/
