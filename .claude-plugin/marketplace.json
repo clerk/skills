@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "clerk",
-      "source": "./plugins/clerk",
+      "source": "./",
       "description": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server."
     }
   ],

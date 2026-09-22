@@ -12,7 +12,7 @@ metadata:
 
 # Clerk Expo Skill Audit
 
-Cross-check `plugins/clerk/skills/clerk-expo/` in this repository against the actual `@clerk/expo` SDK source and the clerk-docs content it cites. The SDK source is the source of truth for API shape; clerk-docs is the source of truth for recommended patterns; the skill must track both. **When the two conflict on a factual claim (an API exists, a signature, a default, a version floor), SDK source wins — always.** Docs win only on prescriptive questions source cannot answer (which flow to recommend, prop placement in examples, dashboard prerequisites).
+Cross-check `skills/clerk-expo/` in this repository against the actual `@clerk/expo` SDK source and the clerk-docs content it cites. The SDK source is the source of truth for API shape; clerk-docs is the source of truth for recommended patterns; the skill must track both. **When the two conflict on a factual claim (an API exists, a signature, a default, a version floor), SDK source wins — always.** Docs win only on prescriptive questions source cannot answer (which flow to recommend, prop placement in examples, dashboard prerequisites).
 
 The skill intentionally hardcodes verified code snippets (see its freshness gate). This audit is the maintenance half of that contract: it runs after SDK releases so the snippets stay verified rather than becoming folklore.
 
@@ -20,7 +20,7 @@ The skill intentionally hardcodes verified code snippets (see its freshness gate
 
 - **SDK source of truth**: a `clerk/javascript` checkout containing `packages/expo/` (and `packages/shared/src/types/` for the sign-in/sign-up resource types).
 - **Docs source of truth**: a `clerk/clerk-docs` checkout containing `docs/getting-started/quickstart.expo.mdx`, `docs/guides/development/custom-flows/authentication/*.mdx`, and `docs/reference/expo/**`.
-- **Target skill**: `plugins/clerk/skills/clerk-expo/SKILL.md`, `references/*.md`, and `evals/evals.json`.
+- **Target skill**: `skills/clerk-expo/SKILL.md`, `references/*.md`, and `evals/evals.json`.
 - Optional corroboration: a `clerk/clerk-expo-quickstart` checkout (three example apps exercising the current API).
 
 ## Source Checkout Resolution
@@ -122,17 +122,17 @@ With `--apply`: apply `drift` and `gap` edits, update the version stamps, list `
 ## Summary
 <stamped vs current version, changelog entries reviewed, counts per bucket, largest drift>
 
-## plugins/clerk/skills/clerk-expo/SKILL.md
+## skills/clerk-expo/SKILL.md
 ### <section>
 - [drift|gap|polish] <one-line description>
   - source: packages/expo/src/<...>:<line> (or docs/<...>.mdx:<line>)
-  - target: plugins/clerk/skills/clerk-expo/SKILL.md:<line>
+  - target: skills/clerk-expo/SKILL.md:<line>
   - change: <diff or concise before/after>
 
-## plugins/clerk/skills/clerk-expo/references/<file>.md
+## skills/clerk-expo/references/<file>.md
 ...
 
-## plugins/clerk/skills/clerk-expo/evals/evals.json
+## skills/clerk-expo/evals/evals.json
 ...
 
 ## Open questions

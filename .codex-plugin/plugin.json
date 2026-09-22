@@ -1,41 +1,51 @@
 {
-  "name": "clerk-skills",
-  "version": "1.0.1",
-  "description": "Official Clerk skills for AI coding agents. Superseded by the clerk plugin, which adds the Clerk MCP server.",
+  "name": "clerk",
+  "version": "0.1.0",
+  "description": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server.",
   "author": {
     "name": "Clerk",
     "email": "ai@clerk.dev",
     "url": "https://clerk.com"
   },
-  "homepage": "https://clerk.com",
+  "homepage": "https://clerk.com/docs",
   "repository": "https://github.com/clerk/skills",
   "license": "MIT",
   "keywords": [
     "clerk",
     "auth",
-    "cli",
-    "nextjs",
-    "expo",
+    "authentication",
+    "user-management",
+    "organizations",
+    "billing",
     "webhooks",
-    "organizations"
+    "nextjs",
+    "react",
+    "expo",
+    "mcp"
   ],
-  "skills": "./plugins/clerk/skills/",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Clerk Skills (legacy)",
-    "shortDescription": "Clerk auth, organizations, testing, and framework guidance",
-    "longDescription": "Official Clerk skills bundle for AI coding agents. Includes a router skill, Clerk CLI operations guidance, framework-specific patterns (Next.js, React, Vue, Nuxt, Astro, TanStack Start, React Router, Chrome Extension), feature skills (organizations, billing, webhooks, testing), and mobile guidance (Swift, Android, Expo/React Native).",
+    "displayName": "Clerk",
+    "shortDescription": "Clerk auth, organizations, billing, and framework guidance",
+    "longDescription": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server.",
     "developerName": "Clerk",
     "category": "Coding",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
     "websiteURL": "https://clerk.com",
+    "privacyPolicyURL": "https://clerk.com/legal/privacy",
+    "termsOfServiceURL": "https://clerk.com/legal/website-terms",
     "defaultPrompt": [
-      "List Clerk users with the Clerk CLI",
       "Add Clerk auth to my Next.js app",
       "Set up organizations for my B2B app",
       "Sync users to Postgres via Clerk webhooks"
     ],
     "brandColor": "#6C47FF",
-    "composerIcon": "./plugins/clerk/assets/clerk-logo.svg",
-    "logo": "./plugins/clerk/assets/clerk-logo.svg"
+    "composerIcon": "./assets/clerk-logo.svg",
+    "logo": "./assets/clerk-logo.svg"
   }
 }

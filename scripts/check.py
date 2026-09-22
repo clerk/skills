@@ -9,7 +9,6 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = REPO_ROOT / "plugins" / "clerk"
 SPEC = "https://agent-plugins.org/schemas/1.0.0"
 
 # Agent Plugins 1.0.0 closes the root manifest to these fields.
@@ -39,10 +38,10 @@ def check(condition: bool, message: str) -> None:
 
 def check_manifests() -> None:
     manifests = {
-        "plugin.json": load(PLUGIN / "plugin.json"),
-        ".claude-plugin/plugin.json": load(PLUGIN / ".claude-plugin" / "plugin.json"),
-        ".cursor-plugin/plugin.json": load(PLUGIN / ".cursor-plugin" / "plugin.json"),
-        ".codex-plugin/plugin.json": load(PLUGIN / ".codex-plugin" / "plugin.json"),
+        "plugin.json": load(REPO_ROOT / "plugin.json"),
+        ".claude-plugin/plugin.json": load(REPO_ROOT / ".claude-plugin" / "plugin.json"),
+        ".cursor-plugin/plugin.json": load(REPO_ROOT / ".cursor-plugin" / "plugin.json"),
+        ".codex-plugin/plugin.json": load(REPO_ROOT / ".codex-plugin" / "plugin.json"),
     }
     # Claude Code keeps users on their cached copy while `version` is unchanged; without it, every commit is an update.
     claude = manifests.pop(".claude-plugin/plugin.json")
@@ -66,8 +65,8 @@ def check_manifests() -> None:
 
 
 def check_mcp() -> None:
-    spec = load(PLUGIN / "mcp.json")
-    native = load(PLUGIN / ".mcp.json")
+    spec = load(REPO_ROOT / "mcp.json")
+    native = load(REPO_ROOT / ".mcp.json")
 
     check(set(spec) == {"$schema", "mcpServers"}, "mcp.json: only $schema and mcpServers are allowed")
     check(spec.get("$schema") == f"{SPEC}/mcp.schema.json", "mcp.json: wrong or missing $schema")
@@ -87,9 +86,9 @@ def check_mcp() -> None:
 
 
 def check_skills() -> None:
-    skills_root = PLUGIN / "skills"
+    skills_root = REPO_ROOT / "skills"
     skill_dirs = sorted(path for path in skills_root.iterdir() if path.is_dir())
-    check(bool(skill_dirs), "plugins/clerk/skills is empty")
+    check(bool(skill_dirs), "skills is empty")
 
     for skill_dir in skill_dirs:
         skill_md = skill_dir / "SKILL.md"
@@ -107,15 +106,13 @@ def check_marketplaces() -> None:
     for path in (".claude-plugin/marketplace.json", ".cursor-plugin/marketplace.json"):
         entries = load(REPO_ROOT / path).get("plugins", [])
         check(
-            [(entry.get("name"), entry.get("source")) for entry in entries] == [("clerk", "./plugins/clerk")],
-            f"{path}: expected one plugin clerk at ./plugins/clerk",
+            [(entry.get("name"), entry.get("source")) for entry in entries] == [("clerk", "./")],
+            f"{path}: expected one plugin clerk at ./",
         )
-    # The legacy clerk-skills entry stays until existing Codex installs have moved to clerk.
     entries = load(REPO_ROOT / ".agents" / "plugins" / "marketplace.json").get("plugins", [])
     check(
-        ("clerk", "./plugins/clerk")
-        in [(entry.get("name"), entry.get("source", {}).get("path")) for entry in entries],
-        ".agents/plugins/marketplace.json: expected plugin clerk at ./plugins/clerk",
+        [(entry.get("name"), entry.get("source", {}).get("path")) for entry in entries] == [("clerk", "./")],
+        ".agents/plugins/marketplace.json: expected one plugin clerk at ./",
     )
 
 
