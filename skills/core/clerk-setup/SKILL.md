@@ -11,7 +11,7 @@ metadata:
 
 # Set up Clerk
 
-Use the [Clerk CLI](https://clerk.com/docs/cli) to add authentication. In agent environments, supported frameworks default to accountless setup: `npx -y clerk@latest init` provisions a claimable application and writes temporary development keys without requiring a Clerk account.
+Use the [Clerk CLI](https://clerk.com/docs/cli) to add authentication. In agent environments, supported frameworks default to accountless setup: `npx -y clerk@latest init --no-skills` provisions a claimable application and writes temporary development keys without requiring a Clerk account.
 
 ## Before you start
 
