@@ -91,7 +91,7 @@ git clone https://github.com/clerk/skills ~/.claude/skills/clerk
 
 | Skill | Platform | Patterns |
 |-------|----------|----------|
-| `clerk-swift` | iOS | ClerkKit, SwiftUI, Apple Sign-In |
+| `clerk-swift` | iOS / macOS | ClerkKit, SwiftUI, native Apple setup and auth UI |
 | `clerk-android` | Android | Kotlin, Jetpack Compose |
 | `clerk-expo` | Expo / React Native | Native components, custom flows, SMS OTP, OAuth |
 
@@ -104,9 +104,11 @@ to your app. The [`clerk-setup`](skills/core/clerk-setup/SKILL.md#agent-first-pr
 skill covers three paths: a new project and Clerk app, an existing project and
 Clerk app, or a new Clerk app for an existing project.
 
-For a new project on a supported framework, `clerk init` can start without a
-Clerk account or browser login. See [Scenario A: Getting started without an account](skills/core/clerk-setup/SKILL.md#getting-started-without-an-account)
-for how temporary keys and later account claiming work.
+For a new project on an accountless-capable web framework, `clerk init` can
+start without a Clerk account or browser login. Existing native iOS/macOS Xcode
+apps use an authenticated Clerk application instead. See
+[Scenario A: Getting started without an account](skills/core/clerk-setup/SKILL.md#getting-started-without-an-account)
+for how temporary web keys and later account claiming work.
 
 ### 2. Example Requests
 
@@ -126,7 +128,7 @@ for how temporary keys and later account claiming work.
 | "Set up organizations for my B2B app" | `clerk-orgs` |
 | "Add subscription billing with pricing table" | `clerk-billing` |
 | "Gate features by plan" | `clerk-billing` |
-| "Add Clerk auth to my iOS app" | `clerk-swift` |
+| "Add Clerk auth to my iOS or macOS app" | `clerk-setup` + `clerk-swift` |
 | "Add Clerk auth to my Android app" | `clerk-android` |
 
 ## Repository Structure

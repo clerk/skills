@@ -69,6 +69,48 @@
         "Sets up environment variables for Clerk keys",
         "Does NOT install @clerk/nextjs or create Next.js-specific files"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "I have an existing native SwiftUI iOS Xcode project and want you to add Clerk authentication. I haven't chosen a UI style or supplied a publishable key yet. Please get started with the project as it is.",
+      "expected_output": "Uses a native-capable Clerk CLI to inspect the existing Xcode target and, if supported, configure its core integration before running Doctor; then reports or addresses any missing authentication-flow UI without forcing a prebuilt style, Apple sign-in, pasted key, accountless app, or dotenv setup.",
+      "files": [],
+      "expectations": [
+        "Distinguishes a native Xcode project from an Expo or React Native project",
+        "Checks that the installed CLI supports native Apple setup and starts with the read-only clerk init --dry-run plan",
+        "Does not require the user to choose prebuilt versus custom UI or paste a publishable key before inspecting the project",
+        "For a safe supported plan, uses clerk init with explicit native mutation consent in agent mode, then runs clerk doctor",
+        "Does not use temporary accountless keys, clerk env pull, a .env file, or a Clerk secret key in the app",
+        "Does not opt into AuthView scaffolding or Sign in with Apple without a specific request",
+        "Does not claim usable sign-in is complete if Doctor still reports a missing authentication flow; asks for a material UI choice only after safe setup progress"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Please add Clerk to my existing native macOS SwiftUI app. It already has a custom publishable-key loader in its @main app, and I want to keep that loader. The Xcode project has two app targets.",
+      "expected_output": "Inspects target selection and existing custom runtime wiring before any changes, preserves the key loader, requests a material target or app choice only if evidence is ambiguous, and verifies with native Doctor.",
+      "files": [],
+      "expectations": [
+        "Uses the native Xcode inspection path rather than a web env-file flow",
+        "Inspects with clerk init --dry-run and does not guess which of the two app targets to modify",
+        "Preserves the existing custom publishable-key loader instead of rewriting it or demanding the raw key",
+        "Does not configure iOS-only Associated Domains for the macOS target",
+        "Runs clerk doctor after a supported setup, or reports the CLI's blocker without forcing edits"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I have a fresh native iOS SwiftUI Xcode app. Please add Clerk's prebuilt AuthView and native Sign in with Apple. Xcode shows a Development Team, but I don't know whether its App ID Prefix matches. I haven't pasted a publishable key.",
+      "expected_output": "Previews the explicitly requested prebuilt and Apple options with a native-capable Clerk CLI, then applies only a safe approved plan. It does not guess the App ID Prefix from Development Team or demand the publishable key, and it verifies configuration plus a target build.",
+      "files": [],
+      "expectations": [
+        "Checks installed native CLI support and includes both --prebuilt-auth-ui and --sign-in-with-apple in the dry-run and apply plans",
+        "Reads the dry-run status and reviews the later authenticated plan because remote Apple state can affect local entitlements",
+        "Does not pass --app or --app-id-prefix to dry-run",
+        "Treats DEVELOPMENT_TEAM only as an unverified prefix suggestion and asks for a confirmed value if reliable evidence is absent",
+        "Does not request a pasted publishable key or place a Clerk secret key in app code",
+        "Runs native doctor after setup and builds the selected Xcode target when available"
+      ]
     }
   ]
 }

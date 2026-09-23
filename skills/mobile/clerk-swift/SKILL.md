@@ -1,203 +1,63 @@
 ---
 name: clerk-swift
-description: Implement Clerk authentication for native Swift and iOS apps using ClerkKit
-  and ClerkKitUI source-guided patterns. Use for prebuilt AuthView or custom native
-  flows. Do not use for Expo or React Native projects.
+description: Set up Clerk in native iOS or macOS Xcode apps and implement Swift authentication with ClerkKit or ClerkKitUI. Use the native-aware Clerk CLI when available; use source-guided Swift patterns for UI work or manual setup. Do not use for Expo or React Native projects.
 license: MIT
-allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 1.2.0
-compatibility: Requires Xcode and ClerkKit Swift package
+  version: 1.3.0
+compatibility: Requires Xcode and the clerk-ios Swift package for native app implementation
 ---
 
-# Clerk Swift (Native iOS)
+# Clerk Swift (Native Apple)
 
-This skill implements Clerk in native Swift/iOS projects by reading installed package source and mirroring current ClerkKit/ClerkKitUI behavior.
+Use this skill for a native Swift iOS or macOS app. An `.xcodeproj` or `.xcworkspace` with an application target is useful evidence; a bare `Package.swift` is not proof of a native app. Route Expo and React Native projects to `clerk-expo` instead.
 
-## Activation Rules
+Separate project setup from authentication UI work:
 
-Activate this skill when either condition is true:
-- The user explicitly asks for Swift, SwiftUI, UIKit, or native iOS Clerk implementation.
-- The project appears to be native iOS/Swift (for example `.xcodeproj`, `.xcworkspace`, `Package.swift`, Swift targets).
+| Request | Path |
+| --- | --- |
+| Add Clerk to an existing Xcode app | Use the native-aware `clerk init` path below when available; also load `clerk-setup` and `clerk-cli` |
+| Add prebuilt `AuthView` or `UserButton` UI | Complete or verify setup, then load [references/prebuilt.md](references/prebuilt.md) |
+| Implement a custom Swift auth flow | Complete or verify setup, then load [references/custom.md](references/custom.md) |
+| Expo or React Native | Use `clerk-expo`, not this skill |
 
-Do not activate this skill when either condition is true:
-- The project is Expo.
-- The project is React Native.
+Adding Clerk does **not** imply replacing the app's UI, opting into Sign in with Apple, or choosing a custom auth flow. Do not ask for a prebuilt/custom choice or a publishable key merely to begin a basic setup request.
 
-If Expo/React Native signals are present, route to the general setup skill instead of this one.
+Core setup alone may not give users a way to sign in. If Doctor reports a missing authentication flow after `clerk init`, do not call the app's authentication complete. Inspect any existing entry UI; for a request to make sign-in usable, integrate the requested or clearly existing flow. If the UI choice remains material and unclear, ask about prebuilt versus custom **after** progressing through safe setup, and report what remains.
 
-## What Do You Need?
+## Native-aware CLI setup
 
-| Task | Reference |
-|------|-----------|
-| Prebuilt AuthView / UserButton (fastest) | references/prebuilt.md |
-| Custom API-driven auth flows (full control) | references/custom.md |
+Installed CLI versions differ. Before invoking `clerk init` on a native project, check `clerk init --help` for the native `--dry-run` and `--target` options. Do not assume an older installed CLI understands Xcode projects. If those options are absent, use the manual path below or explain how to obtain a native-capable CLI; do not run the older init flow on the app.
 
-## Quick Start
+For a supported, existing iOS or macOS Xcode app:
 
-| Step | Action |
-|------|--------|
-| 1 | Confirm project type is native Swift/iOS and not Expo/React Native |
-| 2 | Determine flow type (`prebuilt` or `custom`) and load the matching reference file |
-| 3 | Ensure a valid publishable key exists (or ask developer) and wire it directly in configuration |
-| 4 | Ensure `clerk-ios` package is installed with correct products for selected flow; if missing, install latest available release using an up-to-next-major version requirement |
-| 5 | Inspect installed `ClerkKitUI` source to identify which `Environment` fields drive feature/step gating |
-| 6 | Call `/v1/environment` after step 5 and evaluate only against the `ClerkKitUI`-aligned field map |
-| 7 | Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read the markdown URL to compile a required-step checklist |
-| 8 | Verify and complete all quickstart prerequisites for this project (for example associated domains and required capabilities) |
-| 9 | Implement flow by following only the selected reference checklist |
+1. Run `clerk init --dry-run --json` from the intended project directory. This is read-only and needs no permission question. Read the top-level `status` and diagnostics, not just the exit code: a blocked inspection can exit successfully. Use `--target` only when the project has multiple app targets or the developer selected one. If prebuilt UI or native Apple sign-in was explicitly requested, include the matching `--prebuilt-auth-ui` or `--sign-in-with-apple` flag in the dry run as well as the eventual apply so the preview covers that change. Do not pass `--app` or `--app-id-prefix` to dry-run; those are regular-run choices.
+2. For a human at an interactive terminal, use plain `clerk init` once the plan identifies the intended app. It previews local and remote changes and prompts for the required choices. For an agent or other non-interactive run, use `clerk init --yes` only when the developer has requested setup and the plan is safe. `--yes` is required for native mutation in agent mode; it does not opt into extra features or override a blocker.
+3. Let the CLI select or create the Clerk application and obtain the development publishable key for a fresh, proven SwiftUI app. Do not request the key up front, run `clerk env pull`, or write a new `.env`/`LocalSecrets.plist` for ordinary native setup. The CLI preserves an existing custom `Clerk.configure(...)` source without reading its key. In agent mode, that custom path needs an explicit `--app <app_id>` to identify the linked application; the CLI does not prove the custom key's value matches it.
+4. Pass `--prebuilt-auth-ui` only when the developer explicitly wants Clerk's prebuilt UI. It can replace an untouched starter screen, not existing custom UI. Pass `--sign-in-with-apple` only when native Apple sign-in was explicitly requested. These are independent choices and neither is implied by `--yes`.
+5. If the plan needs an App ID Prefix and cannot prove one, obtain the developer's choice or use the CLI's interactive suggestion. `DEVELOPMENT_TEAM` is only a suggestion, not proof. In agent mode pass `--app-id-prefix` only with a value the developer confirmed or reliable project evidence supplies.
+6. After setup, run `clerk doctor --json` where native-aware Doctor is available, using the same `--target` when selection is ambiguous. Doctor diagnoses setup; it does not build, resolve packages, or launch a simulator. When Xcode is available and setup changed Swift or project files, build the selected target; exercise the sign-in flow when UI work was completed. Report clearly when build or runtime verification could not be performed.
 
-## Decision Tree
+The native CLI intentionally refuses automatic mutation for unsupported or uncertain targets, including a target that also ships visionOS or has Mac Catalyst enabled. It can still inspect and explain the problem. A blocked **dry-run** plan means do not apply it; `--yes` cannot override missing evidence. A later authenticated run can still leave partial state, such as a newly created or updated Clerk application link, or committed local files before a remote failure. Report that state and reuse it on retry rather than claiming the project was untouched. XcodeGen and Tuist generated output should be changed at its generator source, not edited as if it were hand-maintained.
 
-```text
-User asks for Clerk in Swift/iOS
-    |
-    +-- Expo/React Native project detected?
-    |     |
-    |     +-- YES -> Do not use this skill
-    |     |
-    |     +-- NO -> Continue
-    |
-    +-- Existing auth UI detected?
-    |     |
-    |     +-- Prebuilt views detected -> Load references/prebuilt.md
-    |     |
-    |     +-- Custom flow detected -> Load references/custom.md
-    |     |
-    |     +-- New implementation -> Ask developer prebuilt/custom, then load matching reference
-    |
-    +-- Ensure publishable key and direct wiring
-    |
-    +-- Ensure clerk-ios is installed
-    |
-    +-- Inspect ClerkKitUI Environment field usage
-    |
-    +-- Call /v1/environment using that field map
-    |
-    +-- Visit/read quickstart URL from installed clerk-ios package README
-    |
-    +-- Verify all quickstart prerequisites are completed
-    |
-    +-- Implement using selected flow reference
-```
+## Manual and UI-specific work
 
-## Flow References
+When native CLI support is unavailable, or a requested integration lies outside its safe mutation boundary, inspect the selected target and follow the current [Clerk iOS quickstart](https://clerk.com/docs/ios/getting-started/quickstart) plus the installed `clerk-ios` package source. Preserve existing application structure and custom key loading. Ask for a publishable key or application choice only when it cannot be obtained from authorized project context and is actually needed for the manual change. Do not treat a repository `.env` value as proof that the native target uses it.
 
-After flow type is known, load exactly one:
-- Prebuilt flow: [references/prebuilt.md](references/prebuilt.md)
-- Custom flow: [references/custom.md](references/custom.md)
+For UI-specific work, inspect the installed `ClerkKit`/`ClerkKitUI` APIs before editing. Choose one reference based on the request or existing implementation. Ask whether the developer wants prebuilt or custom UI only when that choice materially changes the result and cannot be inferred. Do not blend both references by default. `AuthView` can reflect enabled authentication methods from the Clerk instance. Its presence alone does not authorize enabling a new provider, but a method already enabled for that instance may require a matching local capability. Review that conditional edit in the authenticated CLI plan.
 
-Do not blend the two references in a single implementation unless the developer explicitly asks for a hybrid approach.
+Do not make a direct `/v1/environment` request as a universal setup prerequisite. The SDK fetches its environment at runtime. For a custom feature or provider-specific decision, inspect the current SDK behavior and instance configuration, then obtain only the evidence needed for that decision. Never persist private credentials or raw environment responses in the project.
 
-## Interaction Contract
+## Verification
 
-Before any implementation edits, the agent must have both:
-- flow choice: `prebuilt` or `custom`
-- a real Clerk publishable key
+- Confirm the intended native application target and platform, not merely the repository folder.
+- Confirm the CLI plan was applied or report its blocker and any partial state accurately.
+- Confirm `ClerkKit` and, when used, `ClerkKitUI` are linked to the selected target, and that its actual app root configures and injects Clerk.
+- Check platform-specific capabilities relevant to the chosen flow: Associated Domains for iOS where needed, outgoing network access for sandboxed macOS apps, and the Apple entitlement only for native Sign in with Apple.
+- Run native-aware `clerk doctor` for diagnostics when available. Build the selected target after source/project changes when Xcode is available; exercise completed authentication UI. A successful Doctor result is not a substitute for either check.
 
-If either value is missing from the user request/context:
-- ask the user for the missing value(s)
-- pause and wait for the answer
-- do not edit files or install dependencies yet
+## See also
 
-Only skip asking when the user has already explicitly provided the value in this conversation.
-
-## Source-Driven Templates
-
-Do not hardcode implementation examples in this skill. Inspect current installed package source before implementing.
-
-| Use Case | Source of Truth in Installed Package |
-|----------|--------------------------------------|
-| SDK package products, platform support, and dependency constraints | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI`, plus package requirement style (up-to-next-major) |
-| Publishable key validation and frontend API derivation | Clerk configuration logic (search symbols: `configure(publishableKey`, `frontendApiUrl`, `invalidPublishableKeyFormat`) |
-| Environment endpoint contract and field semantics | Environment request path and request construction plus `ClerkKitUI` `Environment` field usage for gating (search symbols: `/v1/environment`, `Request<Clerk.Environment>`, `Environment` usage in `ClerkKitUI`) |
-| iOS quickstart requirements | Installed `clerk-ios` package README quickstart link plus the visited/read quickstart page checklist steps (including project setup prerequisites) |
-| Native Sign in with Apple implementation | Apple capability and native sign-in behavior in selected flow reference |
-
-## Execution Gates (Do Not Skip)
-
-1. No implementation edits before prerequisites
-- Do not edit project files until flow type is confirmed and a valid publishable key is available.
-
-2. Missing flow or key must trigger a question
-- If flow choice is missing, explicitly ask: prebuilt views or custom flow.
-- If publishable key is missing/placeholder/invalid, explicitly ask for a real key.
-- Do not continue until both answers are provided.
-
-3. Publishable key wiring mode is mandatory
-- Use the developer-provided publishable key plainly in app configuration passed to `Clerk.configure`.
-- Do not introduce plist/local-secrets/env-file/build-setting indirection unless explicitly requested.
-
-4. Package install/version policy is mandatory
-- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major requirement.
-- Do not pin an exact package version unless the developer explicitly asks for exact pinning.
-
-5. ClerkKitUI Environment field inspection is mandatory
-- After package install, inspect installed `ClerkKitUI` source and identify which `Environment` fields gate auth behavior for the selected flow.
-- Build an agent-internal field map before any `/v1/environment` call.
-
-6. Environment call is mandatory (both flows)
-- Make a direct HTTP call to `/v1/environment` only after package install and step 5 field-map inspection.
-- Pass the response into the selected reference workflow using the `ClerkKitUI`-aligned field map:
-  - prebuilt: use it to determine whether Apple is enabled and capability changes are needed
-  - custom: perform full normalization/matrix handling as agent-internal analysis only (never persist matrix artifacts in project code)
-
-7. Reference-file discipline is mandatory
-- Once flow is selected, follow only that flow reference file for implementation and verification.
-
-8. Quickstart compliance is mandatory
-- Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
-- Audit the project against all quickstart setup steps before finishing.
-- If required quickstart setup is missing, implement it before completing the task.
-- This includes adding any missing Associated Domains entries and any other required app capabilities from the quickstart.
-- Explicitly execute the quickstart step `Add associated domain capability` (`https://clerk.com/docs/ios/getting-started/quickstart#add-associated-domain-capability`) and ensure the associated-domain entry matches quickstart requirements (`webcredentials:{YOUR_FRONTEND_API_URL}`).
-
-9. Custom-flow AuthView structure parity is mandatory
-- For `custom` flow, layout and flow structure must remain materially close to ClerkKitUI `AuthView` defaults.
-- If the developer did not explicitly request a different UX, do not introduce major structural/layout deviations from `AuthView`.
-- If unsure/confused about custom sequencing, gating, or `Environment` usage/semantics, defer to installed `ClerkKitUI` behavior and mirror it.
-
-## Workflow
-
-1. Detect native iOS/Swift vs Expo/React Native.
-2. If flow type is not explicitly provided, ask user for `prebuilt` or `custom`.
-3. If publishable key is not explicitly provided, ask user for it.
-4. Wait for both answers before changing files.
-5. Load matching flow reference file.
-6. Ensure publishable key is valid and directly wired in `Clerk.configure`.
-7. Ensure package install/products match selected flow and package requirement follows latest up-to-next-major policy when newly added.
-8. Inspect installed `ClerkKitUI` source to map `Environment` fields used for gating/required behavior in the selected flow.
-9. Call `/v1/environment` and interpret response through the step 8 field map.
-10. Find iOS quickstart URL from installed `clerk-ios` package README, append `.md`, then visit and read it.
-11. Build quickstart checklist from the visited markdown quickstart, detect missing required setup, and apply the missing setup in the current project.
-12. Ensure the quickstart associated-domain capability step is fully applied (`webcredentials:{YOUR_FRONTEND_API_URL}` when missing).
-13. Implement using selected reference checklist.
-14. Verify using selected reference checklist plus shared gates.
-
-## Common Pitfalls
-
-| Level | Issue | Prevention |
-|-------|-------|------------|
-| CRITICAL | Not asking for missing flow choice before implementation | Ask for `prebuilt` vs `custom` and wait before edits |
-| CRITICAL | Not asking for missing publishable key before implementation | Ask for key and wait before edits |
-| CRITICAL | Starting implementation before flow type is confirmed | Confirm flow first and load matching reference |
-| CRITICAL | Using plist/local/env indirection for publishable key without request | Wire key directly in configuration by default |
-| CRITICAL | Skipping `/v1/environment` call before implementation | Always call environment endpoint for both prebuilt and custom flows |
-| CRITICAL | Calling `/v1/environment` before package install + ClerkKitUI `Environment` field inspection | Install `clerk-ios` first, inspect ClerkKitUI `Environment` usage, then call endpoint |
-| HIGH | Installing `clerk-ios` with exact/stale version by default | If missing, install latest available release using up-to-next-major requirement |
-| CRITICAL | Skipping quickstart prerequisite audit | Visit/read quickstart URL from installed `clerk-ios` package README and verify all required setup steps are completed |
-| CRITICAL | Detecting missing quickstart capabilities/domains but not applying them | Add all missing required quickstart capabilities and Associated Domains before completing |
-| CRITICAL | Skipping quickstart associated-domain capability step | Execute quickstart `Add associated domain capability` and ensure `webcredentials:{YOUR_FRONTEND_API_URL}` is present |
-| CRITICAL | Writing capability/required-field matrices into app code | Keep matrices agent-internal and only apply resulting behavior in UI/auth flow code |
-| CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
-| CRITICAL | Collapsing custom auth into a single all-fields screen | Follow `AuthView`-style multi-step progression and step-specific field collection |
-| CRITICAL | Guessing custom sequencing/gating/`Environment` usage when uncertain | Reference installed `ClerkKitUI` behavior and mirror it for final implementation |
-| HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
-
-## See Also
-
-- `clerk` skill for top-level Clerk routing
-- `clerk-setup` skill for non-native or cross-framework setup
-- installed `clerk-ios` package `README.md` (source for current iOS quickstart link)
-- `https://github.com/clerk/clerk-ios`
+- `clerk-setup` for the broader setup workflow
+- `clerk-cli` for exact CLI behavior and agent-mode safeguards
+- [clerk-ios](https://github.com/clerk/clerk-ios) for SDK source and examples
