@@ -2,7 +2,7 @@
 name: clerk
 description: Clerk authentication router. Use when user asks about Clerk CLI operations,
   adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS
-  auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt
+  or macOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt
   patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router
   patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments,
   pricing, plans, seat-based pricing, feature entitlements, syncing users, testing,
@@ -37,7 +37,8 @@ All skills are written for the current SDK. When something differs in Core 2, it
 
 **Adding Clerk to your project** → Use `clerk-setup`
 - Framework detection and quickstart
-- Environment setup, API keys, temporary dev keys via `clerk init`
+- Environment setup and temporary dev keys for supported web frameworks
+- Native-aware `clerk init` for supported existing iOS/macOS Xcode apps; use `clerk-swift` for Swift-specific work
 - Migration from other auth providers
 
 **Operating Clerk from the CLI** → Use `clerk-cli`
@@ -123,9 +124,9 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Auth flow testing
 - Test utilities
 
-**Swift / native iOS auth** → Use `clerk-swift`
-- Native iOS Swift and SwiftUI projects
-- ClerkKit and ClerkKitUI implementation guidance
+**Swift / native iOS or macOS auth** → Use `clerk-swift`
+- Native Apple Swift and SwiftUI projects; pair with `clerk-setup` for initial setup
+- ClerkKit and ClerkKitUI implementation guidance after setup
 - Source-driven patterns from `clerk-ios`
 
 **Android / native mobile auth** → Use `clerk-android`
@@ -158,7 +159,7 @@ If you know your task, you can directly access:
 - `/clerk-billing` - Billing & subscriptions
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
-- `/clerk-swift` - Swift/native iOS
+- `/clerk-swift` - Swift/native iOS or macOS
 - `/clerk-android` - Native Android
 - `/clerk-backend-api` - Backend REST API
 

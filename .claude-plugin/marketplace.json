@@ -52,7 +52,7 @@
     },
     {
       "name": "mobile",
-      "description": "Mobile Clerk auth: Swift/iOS, Android/Kotlin, and Expo/React Native patterns",
+      "description": "Native Clerk auth: Swift/iOS/macOS, Android/Kotlin, and Expo/React Native patterns",
       "source": "./",
       "strict": false,
       "skills": [

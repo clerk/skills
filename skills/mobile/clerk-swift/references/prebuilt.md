@@ -1,60 +1,26 @@
 # Prebuilt Flow Reference (ClerkKitUI)
 
-Use this file only when flow type is `prebuilt`.
+Use this file when the developer asks for `AuthView`, `UserButton`, or another prebuilt ClerkKitUI component in a native iOS or macOS app. Do not interpret a general “add Clerk” request as permission to replace existing UI.
 
-## Purpose
+## Start with the project's setup state
 
-Implement native iOS auth with prebuilt ClerkKitUI components, defaulting to combined auth in a sheet.
+Use the native-aware CLI workflow in [../SKILL.md](../SKILL.md) when available. Include `--prebuilt-auth-ui` in the read-only dry-run plan and the eventual apply. For an untouched, safely inspectable SwiftUI starter, `clerk init --prebuilt-auth-ui` can generate a `UserButton` signed-out entry that presents `AuthView` in a sheet. In agent mode, native mutation also requires `--yes`. The flag is an explicit opt-in; ClerkKitUI linkage or `--yes` alone does not generate a screen.
 
-## Required Patterns
+For an app with existing navigation, state, or custom UI, expect the CLI to preserve that UI. Integrate the requested components manually after inspecting the installed `ClerkKitUI` API and the selected target's app root. Do not work around a blocked CLI plan by overwriting a customized screen.
 
-1. Package products
-- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
-- Do not pin an exact package version unless the developer explicitly requests version pinning.
-- Add `ClerkKit` and `ClerkKitUI`.
+## Implementation
 
-2. Quickstart prerequisite audit
-- Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
-- Build a checklist from the visited markdown quickstart and verify the current project completed all required setup.
-- If required setup is missing, add it before finishing prebuilt auth implementation.
-- Always add any missing Associated Domains entries and any other capabilities required by the quickstart.
-- Explicitly apply quickstart step `Add associated domain capability` (`https://clerk.com/docs/ios/getting-started/quickstart#add-associated-domain-capability`); ensure `webcredentials:{YOUR_FRONTEND_API_URL}` exists when missing.
+1. Confirm `ClerkKit` and `ClerkKitUI` are linked to the selected application target. If the native-aware CLI completed setup, verify its result instead of installing the package again. Otherwise use the installed package manifest and current [Clerk iOS quickstart](https://clerk.com/docs/ios/getting-started/quickstart) for a manual installation.
+2. Confirm `Clerk.configure` runs in the shipping app and `Clerk.shared` is injected into the mounted SwiftUI root. Preserve existing custom configuration and key loading.
+3. For a basic new entry, prefer `UserButton(signedOutContent:)` with an action that presents `AuthView()` in a sheet. Keep the app's existing content and navigation unless the developer asks to change them.
+4. Let `AuthView` display methods enabled for the linked Clerk instance. Do not enable Sign in with Apple or any other provider merely because the UI supports it. If native Apple sign-in is explicitly requested or already enabled, verify the selected target's Apple entitlement and connection; use the CLI's `--sign-in-with-apple` path only for an explicit opt-in. The local-only dry run cannot inspect remote provider state, so the authenticated CLI preview may add an Apple entitlement for an already enabled `AuthView` method. Review that plan before approving it.
+5. Check iOS Associated Domains or macOS sandbox network access as applicable to the selected target. Do not require an iOS-only capability in a macOS-only target.
 
-3. Environment check for Apple capability
-- Inspect installed `ClerkKitUI` source first to identify the `Environment` fields/semantics used for Apple availability.
-- Then call `/v1/environment` and evaluate Apple-enabled state using the same field semantics.
-- In prebuilt flow, do not build capability matrices; only use environment here for Apple capability handling.
+No direct `/v1/environment` request is required for ordinary prebuilt setup. If a provider-specific concern requires knowing the current instance state, inspect the linked instance or the installed SDK's behavior and avoid exposing keys or raw responses.
 
-4. Signed-out entry pattern
-- Prefer `UserButton` with `signedOutContent` for signed-out entry affordance.
-- Use signed-out content action to open the auth sheet.
+## Verification
 
-5. Auth presentation pattern
-- Present `AuthView()` in a sheet by default.
-- Keep default combined behavior from `AuthView()` (no sign-in-only/sign-up-only override by default).
-- Do not use full-screen replacement or push navigation by default unless explicitly requested.
-
-6. Apple capability requirement
-- If Apple is enabled in the environment and the app is missing Sign in with Apple capability, add it.
-
-## Verification Checklist
-
-1. Quickstart prerequisites are complete
-- Quickstart link was sourced from installed `clerk-ios` package README, `.md` was appended, and the markdown page was visited/read.
-- Required project setup from quickstart is present.
-- Any missing quickstart-required Associated Domains/capabilities were added, not just reported.
-- Quickstart `Add associated domain capability` step was applied, including `webcredentials:{YOUR_FRONTEND_API_URL}`.
-
-2. Default entry is prebuilt + sheet
-- Signed-out state uses `UserButton(signedOutContent:)` (or explicitly approved alternative).
-- `AuthView()` is presented in `.sheet`.
-
-3. Environment check used for Apple enablement
-- Installed `ClerkKitUI` `Environment` field usage was inspected before calling `/v1/environment`.
-- `/v1/environment` response was used to determine Apple-enabled state using the same `ClerkKitUI` field semantics.
-
-4. No default sign-in-only/sign-up-only prebuilt mode
-- Default entry uses `AuthView()` behavior (combined).
-
-5. Apple capability when enabled
-- If environment enables Apple and capability was missing, Sign in with Apple capability is added.
+- The signed-out action opens `AuthView()` and an authenticated user returns to the existing app experience.
+- The selected target links the needed products and has proven runtime configuration and root environment injection.
+- Native-aware `clerk doctor` reports the relevant configuration state when available; an Xcode build and launch are separate verification steps.
+- Any blocked or manually completed capability is reported accurately rather than called complete based on UI code alone.

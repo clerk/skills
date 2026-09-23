@@ -1,131 +1,35 @@
 # Custom Flow Reference (ClerkKit)
 
-Use this file only when flow type is `custom`.
+Use this file when the developer asks for a custom Swift authentication experience in a native iOS or macOS app. Use the native-aware setup path in [../SKILL.md](../SKILL.md) first when available; custom UI is separate from project provisioning. By default, keep the custom flow's step structure and layout close to ClerkKitUI's `AuthView` unless the developer requests a different UX.
 
-## Purpose
+## Source of truth
 
-Implement native iOS auth with ClerkKit primitives while keeping flow and layout very close to ClerkKitUI `AuthView` by default.
+Inspect the version of `ClerkKit` actually linked by the Xcode target. Use its public API and installed source for authentication, verification, and session behavior. `ClerkKitUI`'s `AuthView` is a useful behavioral reference for step sequencing and feature gates, even when the custom app does not link ClerkKitUI. Example apps are a fallback when library source leaves a question unanswered.
 
-## Source-Driven Requirements
+Do not assume a package checkout lives at one fixed DerivedData path. Resolve the package from the selected project's Swift Package Manager dependencies or Xcode's current source checkout.
 
-Use installed package source from Xcode DerivedData:
-- `~/Library/Developer/Xcode/DerivedData/.../SourcePackages/checkouts/clerk-ios`
+## Setup boundary
 
-Source priority rules for custom flow:
-- Primary source: installed `ClerkKitUI` source for auth UI behavior and gating parity.
-- Secondary source: installed `ClerkKit` source for core auth/network/config behavior.
-- Fallback only: example apps (local or GitHub) when behavior is unclear from library source.
+1. Confirm the selected target is configured and links `ClerkKit`. Do not reinstall or rewrite setup that the native-aware CLI already completed. On a fresh target, native `clerk init` currently links both `ClerkKit` and `ClerkKitUI` even without UI scaffolding; do not remove the latter merely to make the graph look core-only. A source-proven existing custom integration can remain `ClerkKit`-only. For manual setup, add `ClerkKitUI` only if the implementation uses a prebuilt component or the developer requests a hybrid flow.
+2. Preserve existing `Clerk.configure(...)` calls and custom key sources. A manually chosen `--app` identifies the intended Clerk application for CLI reconciliation, but it does not prove a dynamic key matches that application.
+3. Check only platform capabilities relevant to the requested flow: iOS Associated Domains where needed, macOS outgoing-network access for sandboxed apps, and the Sign in with Apple entitlement when native Apple sign-in is requested or already enabled. Do not enable a provider merely because custom UI could display it.
+4. If the installed CLI cannot safely handle the target, use the current SDK source and native quickstart for focused manual changes. Report uncertain ownership or configuration instead of editing a generated or ambiguous project.
 
-For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
-- step progression/sequencing
-- field visibility and hidden-state rules per step
-- branching between factors/strategies
-- screen structure and layout composition per step
-- view hierarchy and section ordering per step
+The SDK obtains its environment at runtime. A direct `/v1/environment` call and a hand-built capability matrix are not universal prerequisites for custom UI work. When a requested feature depends on instance settings, inspect the SDK's gating semantics and obtain only the configuration evidence needed for that feature. Never write environment responses or private credentials into project source.
 
-## Required Patterns
+## Implementation patterns
 
-1. Package products
-- If `clerk-ios` is not installed, add it using the latest available release with an up-to-next-major package requirement.
-- Do not pin an exact package version unless the developer explicitly requests version pinning.
-- Add `ClerkKit` by default.
-- Add `ClerkKitUI` only if the developer explicitly asks for mixed prebuilt/custom composition.
+- Keep a combined sign-in-or-sign-up entry by default. Add a local mode switch only when requested or when the chosen UX requires one.
+- Model the actual supported strategies and required fields of the linked Clerk instance. Show inputs for the active step rather than collecting every possible factor on one screen.
+- Use `AuthView` as a behavioral parity reference for step transitions, factor branching, verification, and recovery. Keep the step layouts and hierarchy materially close to its defaults unless the developer explicitly requests a different design.
+- Split a substantial flow into focused UI, state/orchestration, and Clerk integration components. Avoid a monolithic view that mixes every step and network operation.
+- For native Sign in with Apple, use Clerk's native Apple path, not a generic web social-OAuth flow. Verify its entitlement and native connection independently of the button's presence.
+- When the installed SDK API or instance behavior is unclear, investigate before inventing method names, field requirements, or transition semantics.
 
-2. Quickstart prerequisite audit
-- Find the iOS quickstart URL in the installed `clerk-ios` package README, append `.md`, then visit and read that markdown URL.
-- Build a checklist from the visited markdown quickstart and verify the current project completed all required setup.
-- If required setup is missing, add it before finishing custom auth implementation.
-- Always add any missing Associated Domains entries and any other capabilities required by the quickstart.
-- Explicitly apply quickstart step `Add associated domain capability` (`https://clerk.com/docs/ios/getting-started/quickstart#add-associated-domain-capability`); ensure `webcredentials:{YOUR_FRONTEND_API_URL}` exists when missing.
+## Verification
 
-3. Environment inspection + normalization
-- Inspect installed `ClerkKitUI` source first to identify which `Environment` fields and semantics drive flow behavior.
-- Build an agent-internal `Environment` field map from that source inspection.
-- Make a direct HTTP call to `/v1/environment` only after the `Environment` field map is defined.
-- Derive from the response using that `ClerkKitUI`-aligned field map (agent-internal only):
-  - normalized ClerkKitUI-style capability matrix
-  - required-field matrix
-- Drive custom-flow implementation decisions from these matrices.
-- Do not serialize or add these matrices as source artifacts in the app codebase.
-
-4. Combined-entry default
-- Keep a combined sign-in-or-sign-up entry by default.
-- Do not add a local sign-in/sign-up mode switcher unless explicitly requested.
-
-5. AuthView progression parity
-- Follow `ClerkKitUI` `AuthView` progression logic for advancing/regressing steps.
-- Show/hide inputs exactly according to the active step requirements instead of static form layouts.
-- Keep factor/strategy branching aligned with how `AuthView` gates transitions.
-- Keep screen layout and component structure very close to `AuthView` defaults unless the developer explicitly requests a different UX.
-- Keep view hierarchy and section ordering close to `AuthView` on each step; do not redesign the information architecture unless explicitly requested.
-- Break the custom flow into multiple step screens/states similar to `AuthView`; do not try to gather all signup/signin requirements in one view.
-- If proposed custom layout materially deviates from `AuthView`, stop and ask for explicit developer approval before implementing.
-
-6. Multi-file organization and separation of concerns
-- Break custom auth flow into focused files/modules instead of one large screen file.
-- Separate UI step views, flow/state orchestration, and Clerk/network integration responsibilities.
-- Keep per-file responsibilities narrow and composable so new factors/steps can be added without rewriting a monolithic view.
-
-7. Capability-matrix-driven implementation
-- Drive custom flow behavior from normalized ClerkKitUI-style capability mapping.
-- Do not rely on one-off raw environment checks.
-- Apply matrix outcomes to runtime flow logic only; do not add matrix models/constants/files to the project.
-- Ensure custom logic uses the same environment-field gates and interpretations that `ClerkKitUI` uses.
-
-8. Required-field coverage
-- Implement all required fields from required-field matrix.
-- Do not ship flow with missing required fields.
-
-9. Apple sign-in policy
-- Implement Apple via native Clerk Apple path.
-- If Apple capability is required for this app and missing, add it.
-- Do not implement Apple through generic social-provider OAuth handling.
-
-10. Source parity
-- Follow installed `ClerkKitUI` and `ClerkKit` source patterns for sequencing, factor handling, and verification steps.
-- When unsure about custom-flow implementation details, sequencing, gating, or `Environment` usage/semantics, stop guessing and reference installed `ClerkKitUI` implementation behavior.
-- Resolve ambiguity by mirroring `ClerkKitUI` behavior unless the developer explicitly asks for a different approach.
-
-## Verification Checklist
-
-1. Quickstart prerequisites are complete
-- Quickstart link was sourced from installed `clerk-ios` package README, `.md` was appended, and the markdown page was visited/read.
-- Required project setup from quickstart is present.
-- Any missing quickstart-required Associated Domains/capabilities were added, not just reported.
-- Quickstart `Add associated domain capability` step was applied, including `webcredentials:{YOUR_FRONTEND_API_URL}`.
-
-2. No unrequested mode switcher
-- No local toggle/segmented control/tabs for sign-in vs sign-up unless explicitly requested.
-
-3. Environment call completed
-- Installed `ClerkKitUI` `Environment` field usage was inspected before calling `/v1/environment`.
-- Direct `/v1/environment` call succeeded after field-map inspection.
-
-4. AuthView flow parity
-- Step transitions follow `AuthView` progression rules.
-- Inputs shown at each step match `AuthView` step-level visibility behavior.
-- Step layouts and component grouping are materially close to `AuthView`; do not introduce major layout redesign unless explicitly requested.
-- View hierarchy/section ordering remain close to `AuthView` across steps unless explicitly requested otherwise.
-- Flow is split across multiple steps like `AuthView`; required data is not collected in one monolithic screen.
-- When implementation ambiguity appears, final behavior matches installed `ClerkKitUI` rather than an inferred/custom interpretation.
-
-5. Flow organization quality
-- Custom flow code is split into multiple focused files/modules (not a single monolithic auth view file).
-- UI, state/flow orchestration, and integration logic are separated with clear boundaries.
-
-6. Matrices created and used
-- Capability matrix and required-field matrix exist and drive the implementation.
-- Matrix artifacts are not written into project source files.
-- Environment fields used for gating/requirements match the set and semantics used by installed `ClerkKitUI`.
-
-7. Required fields covered
-- Required-field matrix has full coverage in custom UI.
-
-8. Capability-map parity
-- Feature availability and branching use normalized capability map.
-
-9. Apple path correctness
-- Apple flow uses native path, not generic provider OAuth path.
-
-10. No unrequested prebuilt dependency
-- `ClerkKitUI` is not added unless explicitly needed.
+- The selected app target's startup path configures Clerk and injects `Clerk.shared` into the mounted root.
+- The custom flow handles the enabled methods and required fields it claims to support, including verification and error/retry states.
+- Step transitions and default layouts remain close to `AuthView` unless a different UX was requested.
+- iOS/macOS capabilities match the features actually used, without unrequested provider changes.
+- Native-aware `clerk doctor` reports configuration findings when available. Build and exercise the custom flow in Xcode separately; Doctor does not run the app.
