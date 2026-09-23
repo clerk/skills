@@ -93,7 +93,7 @@ Frameworks without accountless support need real API keys. There, `init` applies
 
 ## Step 2: Fall back to docs when init is incomplete
 
-If `init` reports the framework is unsupported or undetected, follow the quickstart instead.
+If `init` reports the framework is unsupported or undetected, follow the quickstart instead. If it finishes but prints remaining steps, follow those, and use the matching quickstart for anything they don't cover.
 
 `init` configures Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, and Fastify projects. For iOS and Android, it only prints setup steps, so follow the quickstart.
 
