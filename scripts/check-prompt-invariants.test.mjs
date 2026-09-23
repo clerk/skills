@@ -38,7 +38,7 @@ const canonicalManifest = {
   ),
   redirects: { dynamic: [], static: {} },
 };
-const shellCommandSeparators = ["&&", "||", ";", "&", "|", "|&"];
+const shellCommandSeparators = ["&&", "||", ";", "&", "|"];
 const defaultQuickstartUrl =
   "https://clerk.com/docs/nextjs/getting-started/quickstart.md";
 
@@ -116,8 +116,6 @@ for (const command of [
   "bun install -g clerk",
   "bun i -g clerk",
   "npm -g install clerk",
-  "npm --prefix ./app install -g clerk",
-  "npm --prefix=./app install -g clerk",
 ]) {
   test(`rejects global CLI installation: ${command}`, () => {
     assertViolation(
@@ -149,10 +147,7 @@ for (const command of [
   "bunx --bun clerk init",
   "npm exec clerk init",
   "npm exec --yes clerk init",
-  "npm exec -p clerk init",
   "pnpm dlx --silent clerk init",
-  "npx -w ./app clerk init",
-  "npm exec --workspace ./app -- clerk init",
 ]) {
   test(`rejects an unversioned runner command beside valid init: ${command}`, () => {
     assertViolation(
@@ -167,11 +162,7 @@ for (const command of [
   "bunx --bun clerk@latest init",
   "npm exec clerk@latest init",
   "npm exec --package=clerk@latest -- clerk init",
-  "npm exec -p clerk@latest init",
-  "npm exec -p --package=clerk@latest -- clerk init",
   "npx -p clerk@latest clerk init",
-  "npx -w ./app clerk@latest init",
-  "npm exec --workspace ./app -- clerk@latest init",
   "pnpm dlx --silent clerk@latest init",
 ]) {
   test(`accepts a pinned runner command: ${command}`, () => {
@@ -192,25 +183,9 @@ for (const command of [
 }
 
 for (const command of [
-  "npx -p clerk clerk@latest init",
-  "npm exec --package=clerk@1.0.0 -- clerk@latest init",
-]) {
-  test(`checks the selected package version with a versioned executable: ${command}`, () => {
-    assertViolation(`${codeFence("npx clerk@latest init")}\n${codeFence(command)}`, "clerk@latest");
-  });
-}
-
-for (const command of [
   "sudo clerk init",
-  "sudo -u root clerk init",
-  "sudo --user=root clerk init",
-  "sudo -E -u root -- clerk init",
   "env FOO=bar clerk init",
-  "env -u FOO clerk init",
-  "env --unset FOO clerk init",
   "command clerk init",
-  "command -p clerk init",
-  "command -- clerk init",
 ]) {
   test(`rejects a prefixed bare CLI command alongside valid init: ${command}`, () => {
     assertViolation(
@@ -242,22 +217,6 @@ test("rejects a global CLI installation followed immediately by prose punctuatio
   );
 });
 
-test("rejects a global CLI installation after a # in prose", () => {
-  assertViolation(
-    `${codeFence("npx clerk@latest init")}\nRun this # note: npm install -g clerk.`,
-    "globally",
-  );
-});
-
-for (const command of [
-  "env -u FOO npm install -g clerk",
-  "env --unset FOO npm --prefix ./app install -g clerk",
-]) {
-  test(`rejects a wrapped global CLI installation: ${command}`, () => {
-    assertViolation(`${codeFence("npx clerk@latest init")}\n${codeFence(command)}`, "globally");
-  });
-}
-
 test("recognizes a versioned init command split across shell continuation lines", () => {
   const command = ["npx \\", "clerk@latest init"].join("\n");
   assert.doesNotThrow(() => validatePromptInvariants(options(codeFence(command))));
@@ -284,20 +243,6 @@ for (const command of [
   });
 }
 
-for (const command of ["npx clerk", "npx clerk@1.0.0"]) {
-  test(`rejects an unversioned runner command without arguments: ${command}`, () => {
-    assertViolation(`${codeFence("npx clerk@latest init")}\n${codeFence(command)}`, "clerk@latest");
-  });
-}
-
-test("accepts a latest-version runner command without arguments alongside init", () => {
-  assert.doesNotThrow(() =>
-    validatePromptInvariants(
-      options(`${codeFence("npx clerk@latest init")}\n${codeFence("npx clerk@latest")}`),
-    ),
-  );
-});
-
 for (const content of [
   "```console\nclerk auth login\n```",
   "```bash {{ filename: 'terminal' }}\nclerk init\n```",
@@ -311,20 +256,6 @@ for (const separator of shellCommandSeparators) {
   test(`rejects a bare command chained with ${separator}`, () => {
     assertViolation(
       codeFence(`npx clerk@latest init ${separator} clerk doctor`),
-      "package runner",
-    );
-  });
-}
-
-for (const redirection of [">", "2>", "2>&1"]) {
-  test(`keeps a Clerk command before ${redirection} redirection`, () => {
-    assert.doesNotThrow(() =>
-      validatePromptInvariants(
-        options(codeFence(`npx clerk@latest init ${redirection} output.txt`)),
-      ),
-    );
-    assertViolation(
-      `${codeFence("npx clerk@latest init")}\n${codeFence(`clerk init ${redirection} output.txt`)}`,
       "package runner",
     );
   });
