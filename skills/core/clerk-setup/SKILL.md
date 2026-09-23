@@ -28,7 +28,7 @@ Shall I proceed?
 
 ## Existing authentication
 
-Before `init`, inspect auth dependencies, routes, middleware, sessions, and user records — never environment files. If auth exists, stop and get approval for a migration plan covering:
+Before `init`, inspect auth dependencies, routes, middleware, sessions, and user records — never environment files. If a different auth provider exists, stop and get approval for a migration plan covering:
 
 - Backend API user import, stable external IDs, compatible password hashes, and OAuth continuity.
 - Protected routes, tokens, session cutover, and rollout strategy.
@@ -37,9 +37,11 @@ Do not modify or remove existing auth without approval.
 
 See the [migration guide](https://clerk.com/docs/guides/development/migrating/overview).
 
-## Existing Clerk SDK versions
+## Existing Clerk projects
 
-If the project already uses Clerk, inspect its Clerk package versions before changing anything and use the [clerk](../clerk/SKILL.md) skill's version table to identify its SDK generation. Preserve that generation unless the user asks to upgrade it, and apply these differences in every step below for Core 2 projects:
+If the project already uses Clerk, skip `init` in Steps 1a and 1b: a signed-out agent run could create another application and replace the project's Clerk keys. If Clerk already works and the user asked for setup, report that no setup is needed. If the user reports missing keys, restore them through the existing-application branch below. If inspection finds missing provider, middleware, or auth routes, add only those pieces from the matching quickstart in Step 2. Never create a replacement application.
+
+Inspect its Clerk package versions before changing anything and use the [clerk](../clerk/SKILL.md) skill's version table to identify its SDK generation. Preserve that generation unless the user asks to upgrade it, and apply these differences in every step below for Core 2 projects:
 
 - React and Expo use `@clerk/clerk-react` and `@clerk/clerk-expo` instead of `@clerk/react` and `@clerk/expo`.
 - Control components are `<SignedIn>` and `<SignedOut>` instead of `<Show>`.
@@ -49,23 +51,35 @@ If the project already uses Clerk, inspect its Clerk package versions before cha
 
 ## Use an existing Clerk application (optional)
 
-Only follow this branch when the user asks to use an existing Clerk application. Have them authenticate from their host terminal before targeting account-level resources:
+Follow this branch when the user asks to use an existing Clerk application or an existing Clerk project needs its keys restored. Have them authenticate from their host terminal before targeting account-level resources:
 
 ```bash
 npx -y clerk@latest auth login
 ```
 
-If they supplied an application ID, keep it for the appropriate `init` command below. Otherwise, list the applications:
+If they supplied an application ID, keep it for `init` or `link` as appropriate. Otherwise, list the applications:
 
 ```bash
 npx -y clerk@latest apps list --json
 ```
 
-Show the names and IDs, ask which application to use, and pass the selected ID as `--app <application_id>` to `init`. Never choose an application for them.
+Show the names and IDs and ask which application to use. Never choose an application for them. For a new Clerk integration, pass the selected ID as `--app <application_id>` to `init`. For a project already using Clerk, do not run `init`. If it is not already linked to the selected application, link it:
+
+```bash
+npx -y clerk@latest link --app <application_id>
+```
+
+For missing development keys, pull them:
+
+```bash
+npx -y clerk@latest env pull
+```
+
+Only when the user needs production keys, use `npx -y clerk@latest env pull --instance prod` instead. Do not replace working keys or switch applications without the user's confirmation.
 
 ## Step 1a: Existing project
 
-From the project root:
+For a project that does not already use Clerk, run from the project root:
 
 ```bash
 npx -y clerk@latest init --no-skills
@@ -94,6 +108,7 @@ Frameworks without accountless support need real API keys. There, `init` applies
 ## Step 2: Fall back to docs when init is incomplete
 
 If `init` reports the framework is unsupported or undetected, follow the quickstart instead. If it finishes but prints remaining steps, follow those, and use the matching quickstart for anything they don't cover.
+For an existing Clerk project with missing integration files, use that quickstart to add only the missing pieces without running `init`.
 
 `init` configures Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, and Fastify projects. For iOS and Android, it only prints setup steps, so follow the quickstart.
 

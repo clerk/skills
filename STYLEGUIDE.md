@@ -11,6 +11,8 @@ The prompt invariant check handles rules with objective answers. It parses the c
 - A required `clerk auth login` command before the first `clerk init` command.
 - Missing or invalid framework quickstart `.md` links.
 
+The check covers command forms as written in `clerk-setup/SKILL.md`, not arbitrary shell syntax. When adding a new command form to the prompt, confirm the checker recognizes it and add a focused test if needed.
+
 Reviewers are responsible for the meaning of the instructions. In particular, confirm that sign-in is genuinely optional before initialization and that accountless setup claims are limited to supported frameworks. Don't add regex checks that try to infer these meanings from ordinary English.
 
 ## Keep sign-in optional before initialization
