@@ -40,15 +40,14 @@
     },
     {
       "name": "features",
-      "description": "Clerk feature skills: organizations, billing, webhooks, testing, and SMS logs",
+      "description": "Clerk feature skills: organizations, billing, webhooks, and testing",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/features/clerk-orgs",
         "./skills/features/clerk-billing",
         "./skills/features/clerk-webhooks",
-        "./skills/features/clerk-testing",
-        "./skills/features/clerk-sms-logs"
+        "./skills/features/clerk-testing"
       ]
     },
     {
