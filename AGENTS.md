@@ -22,9 +22,15 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 
 ## Contributing
 
+Read `STYLEGUIDE.md` before editing agent-facing setup instructions. It separates semantic review rules from the mechanical prompt invariants enforced in CI.
+
 1. Each skill needs `SKILL.md` with YAML frontmatter (`name`, `description`, `license`)
 2. Place in the correct category directory
 3. Add to `.claude-plugin/marketplace.json` under the matching plugin group
 4. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 5. Folder names keep the `clerk-` prefix (e.g. `frameworks/clerk-nextjs-patterns/`)
 6. When adding, removing, or moving skills, keep applicable marketplace manifests in sync.
+
+## CI checks
+
+The `Test` and `Check` workflows in `.github/workflows/` run npm scripts backed by `scripts/`. Run `npm test` to test the checkers and `npm run check` to validate the skills.

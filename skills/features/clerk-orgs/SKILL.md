@@ -94,7 +94,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 
 Org settings (enable toggle, membership cap, admin delete, domains) are patchable via PLAPI Instance Config. Org CRUD + memberships + invitations live in BAPI. Useful for agents seeding orgs, replicating settings across instances, or version-controlling org structure.
 
-Pre-req: a linked project (`clerk auth login` + `clerk link`, see `clerk-setup`) — or an unclaimed app from `clerk init`: `clerk enable orgs` and org CRUD via `clerk api` work with no login at all.
+Pre-req: a linked project (`clerk auth login` + `clerk link`, see `clerk-cli`) — or an unclaimed app from `clerk init`: `clerk enable orgs` and org CRUD via `clerk api` work with no login at all.
 
 ### Enable Organizations + settings via CLI
 
