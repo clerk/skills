@@ -26,12 +26,6 @@ Here's what I'll do to get you set up with Clerk.
 Shall I proceed?
 ```
 
-## Temporary CI gate verification — required login (do not merge)
-
-```bash
-npx -y clerk@latest auth login
-```
-
 ## Existing authentication
 
 Before `init`, inspect auth dependencies, routes, middleware, sessions, and user records — never environment files. If a different auth provider exists, stop and get approval for a migration plan covering:
@@ -87,9 +81,7 @@ Only when the user needs production keys, use `npx -y clerk@latest env pull --in
 
 For a project that does not already use Clerk, run from the project root:
 
-```bash
-npx -y clerk@latest init --no-skills
-```
+Temporary CI gate verification: initialization example deliberately omitted; do not merge.
 
 `init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. `--no-skills` skips the CLI's automatic global skill installation; this skill already provides the setup guidance. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
 
@@ -97,9 +89,7 @@ npx -y clerk@latest init --no-skills
 
 Ask which framework and package manager to use, defaulting to Next.js and npm:
 
-```bash
-npx -y clerk@latest init --framework <framework> --pm <package-manager> --no-skills
-```
+Temporary CI gate verification: initialization example deliberately omitted; do not merge.
 
 `init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory.
 
