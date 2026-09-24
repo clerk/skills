@@ -115,7 +115,20 @@ For an existing Clerk project with missing integration files, use that quickstar
 
 Use the matching direct quickstart:
 
-Temporary CI gate verification: quickstart links deliberately omitted; do not merge.
+- [Next.js](https://clerk.com/docs/nextjs/getting-started/quickstart.md?manual=1)
+- [React](https://clerk.com/docs/react/getting-started/quickstart.md?manual=1)
+- [React Router](https://clerk.com/docs/react-router/getting-started/quickstart.md?manual=1)
+- [Nuxt](https://clerk.com/docs/nuxt/getting-started/quickstart.md?manual=1)
+- [TanStack Start](https://clerk.com/docs/tanstack-react-start/getting-started/quickstart.md?manual=1)
+- [Astro](https://clerk.com/docs/astro/getting-started/quickstart.md?manual=1)
+- [Vue](https://clerk.com/docs/vue/getting-started/quickstart.md?manual=1)
+- [JavaScript or Vite](https://clerk.com/docs/js-frontend/getting-started/quickstart.md?manual=1)
+- [Expo](https://clerk.com/docs/expo/getting-started/quickstart.md?manual=1)
+- [Express](https://clerk.com/docs/expressjs/getting-started/quickstart.md?manual=1)
+- [Fastify](https://clerk.com/docs/fastify/getting-started/quickstart.md?manual=1)
+- [iOS](https://clerk.com/docs/ios/getting-started/quickstart.md?manual=1)
+- [Android](https://clerk.com/docs/android/getting-started/quickstart.md?manual=1)
+- [Chrome extension](https://clerk.com/docs/chrome-extension/getting-started/quickstart.md?manual=1)
 
 For everything else, use [Clerk's llms.txt](https://clerk.com/llms.txt).
 
