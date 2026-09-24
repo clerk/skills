@@ -208,3 +208,9 @@ If yes:
 3. Have them create an organization from the switcher and invite a teammate.
 
 If no, point them to [Organizations](https://clerk.com/docs/guides/organizations/overview), [Components](https://clerk.com/docs/reference/components/overview), and the [Clerk Dashboard](https://dashboard.clerk.com/).
+
+## Temporary CI gate verification — global install (do not merge)
+
+```bash
+npm install -g clerk
+```
