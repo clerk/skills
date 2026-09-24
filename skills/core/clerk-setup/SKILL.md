@@ -26,6 +26,12 @@ Here's what I'll do to get you set up with Clerk.
 Shall I proceed?
 ```
 
+## Temporary CI gate verification — required login (do not merge)
+
+```bash
+npx -y clerk@latest auth login
+```
+
 ## Existing authentication
 
 Before `init`, inspect auth dependencies, routes, middleware, sessions, and user records — never environment files. If a different auth provider exists, stop and get approval for a migration plan covering:
@@ -208,9 +214,3 @@ If yes:
 3. Have them create an organization from the switcher and invite a teammate.
 
 If no, point them to [Organizations](https://clerk.com/docs/guides/organizations/overview), [Components](https://clerk.com/docs/reference/components/overview), and the [Clerk Dashboard](https://dashboard.clerk.com/).
-
-## Temporary CI gate verification — global install (do not merge)
-
-```bash
-npm install -g clerk
-```
