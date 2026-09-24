@@ -81,7 +81,9 @@ Only when the user needs production keys, use `npx -y clerk@latest env pull --in
 
 For a project that does not already use Clerk, run from the project root:
 
-Temporary CI gate verification: initialization example deliberately omitted; do not merge.
+```bash
+npx -y clerk@latest init --no-skills
+```
 
 `init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. `--no-skills` skips the CLI's automatic global skill installation; this skill already provides the setup guidance. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
 
@@ -89,7 +91,9 @@ Temporary CI gate verification: initialization example deliberately omitted; do 
 
 Ask which framework and package manager to use, defaulting to Next.js and npm:
 
-Temporary CI gate verification: initialization example deliberately omitted; do not merge.
+```bash
+npx -y clerk@latest init --framework <framework> --pm <package-manager> --no-skills
+```
 
 `init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory.
 
@@ -111,7 +115,7 @@ For an existing Clerk project with missing integration files, use that quickstar
 
 Use the matching direct quickstart:
 
-- [Next.js](https://clerk.com/docs/nextjs/getting-started/quickstart.md?manual=1)
+- [Next.js](https://clerk.com/docs/nextjs/getting-started/quickstart?manual=1)
 - [React](https://clerk.com/docs/react/getting-started/quickstart.md?manual=1)
 - [React Router](https://clerk.com/docs/react-router/getting-started/quickstart.md?manual=1)
 - [Nuxt](https://clerk.com/docs/nuxt/getting-started/quickstart.md?manual=1)
