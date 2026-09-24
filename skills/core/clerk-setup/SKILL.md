@@ -115,7 +115,7 @@ For an existing Clerk project with missing integration files, use that quickstar
 
 Use the matching direct quickstart:
 
-- [Next.js](https://clerk.com/docs/nextjs/getting-started/quickstart?manual=1)
+- [Next.js](https://clerk.com/docs/not-a-real-framework/getting-started/quickstart.md?manual=1)
 - [React](https://clerk.com/docs/react/getting-started/quickstart.md?manual=1)
 - [React Router](https://clerk.com/docs/react-router/getting-started/quickstart.md?manual=1)
 - [Nuxt](https://clerk.com/docs/nuxt/getting-started/quickstart.md?manual=1)
