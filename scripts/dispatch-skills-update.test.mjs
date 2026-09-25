@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
 import { test } from 'node:test'
+import { fileURLToPath } from 'node:url'
 
 import { dispatchSkillsUpdate } from './dispatch-skills-update.mjs'
 
@@ -77,4 +79,17 @@ test('refuses to send without a full SHA and automation token', async () => {
   await assert.rejects(dispatchSkillsUpdate({ sha: 'main', token: 'test-token', fetchImpl }), /full clerk\/skills commit SHA/)
   await assert.rejects(dispatchSkillsUpdate({ sha, token: '', fetchImpl }), /CLERK_AUTOMATION_TOKEN/)
   assert.equal(attempts, 0)
+})
+
+test('exits unsuccessfully when GitHub rejects a dispatch', () => {
+  const preload = `data:text/javascript,${encodeURIComponent('globalThis.fetch = async () => ({ status: 403 })')}`
+  const script = fileURLToPath(new URL('./dispatch-skills-update.mjs', import.meta.url))
+  const result = spawnSync(process.execPath, ['--import', preload, script], {
+    encoding: 'utf8',
+    env: { SKILLS_SHA: sha, CLERK_AUTOMATION_TOKEN: 'test-token' }
+  })
+
+  assert.equal(result.status, 1, result.error?.message ?? result.stderr)
+  assert.match(result.stderr, /Dispatch to clerk\/dashboard failed: GitHub returned HTTP 403/)
+  assert.doesNotMatch(result.stderr, /test-token/)
 })
