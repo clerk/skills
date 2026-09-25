@@ -27,7 +27,7 @@ jobs:
 
   notify-failure:
     needs: dispatch
-    if: ${{ always() && needs.dispatch.result == 'failure' }}
+    if: ${{ always() && needs.dispatch.result != 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
@@ -48,7 +48,7 @@ jobs:
             --arg run_url "$RUN_URL" \
             --arg workflow "$WORKFLOW_NAME" \
             --arg repository "$REPOSITORY" \
-            '{text: ":rotating_light: Skills dispatch failed\n*Workflow:* <\($run_url)|\($workflow)>\n*Repository:* \($repository)"}')
+            '{text: ":rotating_light: Skills dispatch failed or did not complete\n*Workflow:* <\($run_url)|\($workflow)>\n*Repository:* \($repository)"}')
 
           curl --fail-with-body --silent --show-error \
             --header 'Content-Type: application/json' \

@@ -3,6 +3,18 @@ import { pathToFileURL } from 'node:url'
 const repositories = ['clerk', 'dashboard', 'clerk-evals']
 const eventType = 'clerk_skills_updated'
 
+async function githubError(response) {
+  const status = `GitHub returned HTTP ${response.status}`
+  try {
+    const { message } = JSON.parse(await response.text())
+    if (typeof message !== 'string') return status
+    const safeMessage = message.replace(/[\x00-\x1f\x7f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)
+    return safeMessage ? `${status}: ${safeMessage}` : status
+  } catch {
+    return status
+  }
+}
+
 export async function dispatchSkillsUpdate({ sha, token, fetchImpl = fetch }) {
   if (!/^[0-9a-f]{40}$/.test(sha ?? '')) {
     throw new Error('SKILLS_SHA must be a full clerk/skills commit SHA')
@@ -26,7 +38,7 @@ export async function dispatchSkillsUpdate({ sha, token, fetchImpl = fetch }) {
         body: JSON.stringify({ event_type: eventType, client_payload: { sha } })
       })
 
-      results.push({ repository, error: response.status === 204 ? null : `GitHub returned HTTP ${response.status}` })
+      results.push({ repository, error: response.status === 204 ? null : await githubError(response) })
     } catch (error) {
       results.push({ repository, error: error instanceof Error ? error.message : String(error) })
     }

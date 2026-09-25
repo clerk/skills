@@ -51,6 +51,41 @@ test('attempts every receiver even when one rejects the dispatch', async () => {
   ])
 })
 
+test('includes GitHub rejection details without exposing raw control characters', async () => {
+  const results = await dispatchSkillsUpdate({
+    sha,
+    token: 'test-token',
+    fetchImpl: async () => ({
+      status: 403,
+      text: async () => JSON.stringify({ message: 'Bad credentials\n::warning:: check the token' })
+    })
+  })
+
+  assert.ok(results.every(({ error }) => error === 'GitHub returned HTTP 403: Bad credentials ::warning:: check the token'))
+})
+
+test('limits GitHub rejection details and falls back when the body cannot be read', async () => {
+  let attempts = 0
+  const results = await dispatchSkillsUpdate({
+    sha,
+    token: 'test-token',
+    fetchImpl: async () => {
+      attempts += 1
+      return {
+        status: 422,
+        text: async () => {
+          if (attempts === 2) throw new Error('body unavailable')
+          return JSON.stringify({ message: 'x'.repeat(250) })
+        }
+      }
+    }
+  })
+
+  assert.equal(results[0].error, `GitHub returned HTTP 422: ${'x'.repeat(200)}`)
+  assert.equal(results[1].error, 'GitHub returned HTTP 422')
+  assert.equal(results[2].error, `GitHub returned HTTP 422: ${'x'.repeat(200)}`)
+})
+
 test('records a network error and still attempts the remaining receivers', async () => {
   let attempts = 0
   const results = await dispatchSkillsUpdate({
