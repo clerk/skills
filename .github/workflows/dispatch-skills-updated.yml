@@ -1,0 +1,56 @@
+name: Dispatch skills updates
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Notify downstream repositories
+        env:
+          CLERK_AUTOMATION_TOKEN: ${{ secrets.CLERK_AUTOMATION_TOKEN }}
+          SKILLS_SHA: ${{ github.sha }}
+        run: node scripts/dispatch-skills-update.mjs
+
+  notify-failure:
+    needs: dispatch
+    if: ${{ always() && needs.dispatch.result != 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Notify the docs team in Slack
+        env:
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_WEBHOOK_URL: ${{ secrets.DOCS_SLACK_WEBHOOK_URL }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo '::error::DOCS_SLACK_WEBHOOK_URL is not set.'
+            exit 1
+          fi
+
+          payload=$(jq -n \
+            --arg run_url "$RUN_URL" \
+            --arg workflow "$WORKFLOW_NAME" \
+            --arg repository "$REPOSITORY" \
+            '{text: ":rotating_light: Skills dispatch failed or did not complete\n*Workflow:* <\($run_url)|\($workflow)>\n*Repository:* \($repository)"}')
+
+          curl --fail-with-body --silent --show-error \
+            --header 'Content-Type: application/json' \
+            --data "$payload" \
+            "$SLACK_WEBHOOK_URL"
