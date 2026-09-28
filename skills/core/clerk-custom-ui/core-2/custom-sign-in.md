@@ -221,4 +221,4 @@ export default function SignInPage() {
 ## Docs
 
 - [Custom sign-in flow](https://clerk.com/docs/custom-flows/overview)
-- [useSignIn() reference](https://clerk.com/docs/references/react/use-sign-in)
+- [useSignIn() reference](https://clerk.com/docs/reference/hooks/legacy/use-sign-in)

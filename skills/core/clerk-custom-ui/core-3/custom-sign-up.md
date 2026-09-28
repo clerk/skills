@@ -256,4 +256,4 @@ export default function SignUpPage() {
 
 - [Custom sign-up flow](https://clerk.com/docs/custom-flows/overview)
 - [Email/phone OTP custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp)
-- [useSignUp() reference](https://clerk.com/docs/references/react/use-sign-up)
+- [useSignUp() reference](https://clerk.com/docs/reference/hooks/use-sign-up)
