@@ -104,7 +104,7 @@ test('records a network error and still attempts the remaining receivers', async
   assert.equal(results[2].error, null)
 })
 
-test('refuses to send without a full SHA and automation token', async () => {
+test('refuses to send without a full SHA and dispatch token', async () => {
   let attempts = 0
   const fetchImpl = async () => {
     attempts += 1
@@ -112,7 +112,7 @@ test('refuses to send without a full SHA and automation token', async () => {
   }
 
   await assert.rejects(dispatchSkillsUpdate({ sha: 'main', token: 'test-token', fetchImpl }), /full clerk\/skills commit SHA/)
-  await assert.rejects(dispatchSkillsUpdate({ sha, token: '', fetchImpl }), /CLERK_AUTOMATION_TOKEN/)
+  await assert.rejects(dispatchSkillsUpdate({ sha, token: '', fetchImpl }), /CLERK_SKILLS_DISPATCH_TOKEN/)
   assert.equal(attempts, 0)
 })
 
@@ -121,7 +121,7 @@ test('exits unsuccessfully when GitHub rejects a dispatch', () => {
   const script = fileURLToPath(new URL('./dispatch-skills-update.mjs', import.meta.url))
   const result = spawnSync(process.execPath, ['--import', preload, script], {
     encoding: 'utf8',
-    env: { SKILLS_SHA: sha, CLERK_AUTOMATION_TOKEN: 'test-token' }
+    env: { SKILLS_SHA: sha, CLERK_SKILLS_DISPATCH_TOKEN: 'test-token' }
   })
 
   assert.equal(result.status, 1, result.error?.message ?? result.stderr)

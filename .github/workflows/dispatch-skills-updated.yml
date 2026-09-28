@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
       - name: Notify downstream repositories
         env:
-          CLERK_AUTOMATION_TOKEN: ${{ secrets.CLERK_AUTOMATION_TOKEN }}
+          CLERK_SKILLS_DISPATCH_TOKEN: ${{ secrets.CLERK_SKILLS_DISPATCH_TOKEN }}
           SKILLS_SHA: ${{ github.sha }}
         run: node scripts/dispatch-skills-update.mjs
 

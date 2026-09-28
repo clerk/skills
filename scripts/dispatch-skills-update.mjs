@@ -20,7 +20,7 @@ export async function dispatchSkillsUpdate({ sha, token, fetchImpl = fetch }) {
     throw new Error('SKILLS_SHA must be a full clerk/skills commit SHA')
   }
   if (!token) {
-    throw new Error('CLERK_AUTOMATION_TOKEN is required to dispatch to downstream repositories')
+    throw new Error('CLERK_SKILLS_DISPATCH_TOKEN is required to dispatch to downstream repositories')
   }
 
   const results = []
@@ -51,7 +51,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const results = await dispatchSkillsUpdate({
       sha: process.env.SKILLS_SHA,
-      token: process.env.CLERK_AUTOMATION_TOKEN
+      token: process.env.CLERK_SKILLS_DISPATCH_TOKEN
     })
     for (const { repository, error } of results) {
       if (error) {
