@@ -10,15 +10,13 @@ permissions:
 
 jobs:
   dispatch:
+    if: github.repository == 'clerk/skills'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
       - name: Notify downstream repositories
         env:
           CLERK_AUTOMATION_TOKEN: ${{ secrets.CLERK_AUTOMATION_TOKEN }}
@@ -27,7 +25,7 @@ jobs:
 
   notify-failure:
     needs: dispatch
-    if: ${{ always() && needs.dispatch.result != 'success' }}
+    if: ${{ always() && github.repository == 'clerk/skills' && needs.dispatch.result != 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
