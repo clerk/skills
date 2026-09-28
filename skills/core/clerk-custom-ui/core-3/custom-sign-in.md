@@ -311,4 +311,4 @@ export default function Page() {
 
 - [Custom sign-in flow](https://clerk.com/docs/custom-flows/overview)
 - [MFA custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication)
-- [useSignIn() reference](https://clerk.com/docs/references/react/use-sign-in)
+- [useSignIn() reference](https://clerk.com/docs/reference/hooks/use-sign-in)
