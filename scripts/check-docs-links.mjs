@@ -320,14 +320,18 @@ export function validateLink(rawUrl, manifest) {
   return { status: "invalid", reason: "page does not exist" };
 }
 
-// Point the original link at the redirect destination, keeping its `.md`
-// suffix, query, and fragment the way production does.
+// Point the original link at the redirect destination the way production
+// does: keep the link's `.md` suffix and query, and prefer the destination's
+// fragment over the link's own.
 function redirectedUrl(rawUrl, destination) {
   const url = new URL(rawUrl);
-  url.pathname = url.pathname.endsWith(".md")
-    ? `${destination}.md`
-    : destination;
-  return url.href;
+  const target = new URL(destination, url);
+  if (url.pathname.endsWith(".md")) {
+    target.pathname += ".md";
+  }
+  target.search = url.search;
+  target.hash = target.hash || url.hash;
+  return target.href;
 }
 
 function escapeAnnotation(value) {
