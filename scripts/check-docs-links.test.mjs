@@ -354,6 +354,39 @@ describe("validateLink", () => {
     );
   });
 
+  it("normalizes SDKs that have no scoped routes in the manifest", () => {
+    const sdkManifest = {
+      routes: {},
+      redirects: {
+        static: {
+          "/docs/reference/components/control/signed-out":
+            "/docs/reference/components/control/show",
+          "/docs/remix/reference/components/control/signed-out":
+            "/docs/core-2/remix/reference/components/control/signed-out",
+        },
+        dynamic: liveDynamicRedirects,
+      },
+    };
+
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/svelte/hooks/use-auth", sdkManifest),
+      {
+        status: "redirect",
+        destination: "/docs/svelte/reference/hooks/use-auth",
+      },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/remix/reference/components/control/signed-out",
+        sdkManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/remix/reference/components/control/show",
+      },
+    );
+  });
+
   it("matches dynamic redirect sources case-insensitively, like production", () => {
     assert.deepEqual(
       validateLink("https://clerk.com/docs/Hooks/use-auth", liveManifest),

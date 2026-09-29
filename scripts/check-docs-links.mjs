@@ -142,19 +142,44 @@ function compileDynamicRedirect(redirect) {
   };
 }
 
-function inferredSdkSegments(routes = {}) {
-  const routePaths = new Set(Object.keys(routes));
-  const sdkSegments = new Set();
-
-  for (const routePath of routePaths) {
-    const match = routePath.match(/^\/docs\/([^/]+)(\/.+)$/);
-    if (match && routePaths.has(`/docs${match[2]}`)) {
-      sdkSegments.add(match[1]);
-    }
-  }
-
-  return sdkSegments;
-}
+// SDK segments the docs runtime strips before matching redirects. Copied from
+// `sdks` in clerk/clerk's src/app/docs/SDK.tsx at 72f6537. links.json
+// doesn't publish this list, and many SDKs have no scoped pages to infer it
+// from.
+const SDK_SEGMENTS = new Set([
+  "nextjs",
+  "react",
+  "expo",
+  "tanstack-react-start",
+  "react-router",
+  "expressjs",
+  "android",
+  "astro",
+  "chrome-extension",
+  "csharp",
+  "electron",
+  "fastify",
+  "go",
+  "ios",
+  "java",
+  "js-backend",
+  "js-frontend",
+  "nuxt",
+  "php",
+  "python",
+  "remix",
+  "ruby",
+  "vue",
+  "angular",
+  "elysia",
+  "flutter",
+  "hono",
+  "koa",
+  "rust",
+  "solidjs",
+  "svelte",
+  "tauri",
+]);
 
 function manifestMetadata(manifest) {
   const cached = manifestMetadataCache.get(manifest);
@@ -163,7 +188,6 @@ function manifestMetadata(manifest) {
   }
 
   const metadata = {
-    sdkSegments: inferredSdkSegments(manifest.routes),
     dynamicRedirects: (manifest.redirects?.dynamic ?? []).map(
       compileDynamicRedirect,
     ),
@@ -173,12 +197,10 @@ function manifestMetadata(manifest) {
 }
 
 // Clerk's runtime strips a recognized SDK segment before matching redirects,
-// then restores it on the destination. Infer those SDKs from the manifest's
-// paired scoped and unscoped routes so this check doesn't need its own
-// hard-coded SDK registry.
-function splitSdk(pathname, sdkSegments) {
+// then restores it on the destination.
+function splitSdk(pathname) {
   const match = pathname.match(/^\/docs\/([^/]+)(\/.+)$/);
-  return match && sdkSegments.has(match[1])
+  return match && SDK_SEGMENTS.has(match[1])
     ? { normalizedPathname: `/docs${match[2]}`, sdk: match[1] }
     : { normalizedPathname: pathname };
 }
@@ -194,7 +216,7 @@ function withSdk(destination, sdk) {
 // static redirects on the SDK-scoped path.
 function resolveRedirect(pathname, manifest) {
   const metadata = manifestMetadata(manifest);
-  const { normalizedPathname, sdk } = splitSdk(pathname, metadata.sdkSegments);
+  const { normalizedPathname, sdk } = splitSdk(pathname);
 
   for (const redirect of metadata.dynamicRedirects) {
     const result = redirect.matchesSource(normalizedPathname);
