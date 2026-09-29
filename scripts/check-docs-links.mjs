@@ -2,6 +2,8 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { compile, match } from "path-to-regexp";
+
 const DEFAULT_PATHS = "skills/**/*.md";
 export const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
 // Match /docs only when followed by a path, query, fragment, delimiter, or end
@@ -127,93 +129,17 @@ function normalizePathname(pathname) {
     : withoutMarkdownExtension;
 }
 
-// Matches a `:name` parameter or `*name` wildcard, plus the legacy
-// `:name(pattern)` constraint and `*`, `+`, or `?` modifiers. An optional
-// leading slash is captured so an omitted legacy parameter can drop it.
-const PATH_PARAMETER = /(\/?)([:*])([A-Za-z0-9_]+)(?:\(([^)]+)\))?([*+?])?/;
-
-// Compile a redirect source into a matcher. Handles both the path-to-regexp v8
-// syntax that links.json publishes (`/docs/hooks{/*path}`, `{/:name}`) and the
-// legacy `:param`, `:param*`, `:param+`, `:param?` forms.
-function compileDynamicRedirect(source) {
-  const names = [];
-  let index = 0;
-
-  function compile(closing) {
-    let expression = "";
-
-    while (index < source.length) {
-      if (source[index] === closing) {
-        index += 1;
-        return expression;
-      }
-
-      if (source[index] === "{") {
-        index += 1;
-        expression += `(?:${compile("}")})?`;
-        continue;
-      }
-
-      const parameter = source.slice(index).match(PATH_PARAMETER);
-      if (parameter?.index !== 0) {
-        expression += escapeRegExp(source[index]);
-        index += 1;
-        continue;
-      }
-
-      const [match, slash, kind, name, constraint, modifier] = parameter;
-      const valuePattern = constraint
-        ? `(?:${constraint})`
-        : kind === "*"
-          ? ".+"
-          : "[^/]+";
-      const repeatedPattern = `${valuePattern}(?:/${valuePattern})*`;
-      const prefix = escapeRegExp(slash);
-      names.push(name);
-
-      if (modifier === "*") {
-        expression += `(?:${prefix}(${repeatedPattern}))?`;
-      } else if (modifier === "+") {
-        expression += `${prefix}(${repeatedPattern})`;
-      } else if (modifier === "?") {
-        expression += `(?:${prefix}(${valuePattern}))?`;
-      } else {
-        expression += `${prefix}(${valuePattern})`;
-      }
-
-      index += match.length;
-    }
-
-    return expression;
-  }
-
-  // Production matches dynamic sources case-insensitively.
-  const regex = new RegExp(`^${compile()}$`, "i");
-
-  return (pathname) => {
-    const match = pathname.match(regex);
-    return match
-      ? Object.fromEntries(names.map((name, i) => [name, match[i + 1]]))
-      : undefined;
+// Compile a dynamic redirect with path-to-regexp and the same options as the
+// docs runtime, so matching (including case-insensitivity) stays aligned with
+// production. A pattern path-to-regexp can't parse throws here, which fails
+// the check the same way it fails `lint:check-redirects` in clerk/clerk.
+function compileDynamicRedirect(redirect) {
+  return {
+    matchesSource: match(redirect.source, { decode: decodeURIComponent }),
+    getDestination: compile(redirect.destination, {
+      encode: encodeURIComponent,
+    }),
   };
-}
-
-// Fill a redirect destination with matched parameters. An optional `{...}`
-// group is kept only when every parameter inside it matched.
-function applyRedirectParameters(destination, parameters) {
-  const parameterPattern = new RegExp(PATH_PARAMETER.source, "g");
-
-  return destination
-    .replace(/\{([^{}]*)\}/g, (group, contents) =>
-      [...contents.matchAll(parameterPattern)].every(
-        ([, , , name]) => parameters[name] !== undefined,
-      )
-        ? contents
-        : "",
-    )
-    .replace(parameterPattern, (match, slash, kind, name) =>
-      parameters[name] === undefined ? "" : `${slash}${parameters[name]}`,
-    );
 }
 
 function inferredSdkSegments(routes = {}) {
@@ -238,28 +164,23 @@ function manifestMetadata(manifest) {
 
   const metadata = {
     sdkSegments: inferredSdkSegments(manifest.routes),
-    dynamicRedirects: (manifest.redirects?.dynamic ?? []).map((redirect) => ({
-      match: compileDynamicRedirect(redirect.source),
-      destination: redirect.destination,
-    })),
+    dynamicRedirects: (manifest.redirects?.dynamic ?? []).map(
+      compileDynamicRedirect,
+    ),
   };
   manifestMetadataCache.set(manifest, metadata);
   return metadata;
 }
 
-function redirectPathCandidates(pathname, sdkSegments) {
-  const candidates = [{ pathname }];
+// Clerk's runtime strips a recognized SDK segment before matching redirects,
+// then restores it on the destination. Infer those SDKs from the manifest's
+// paired scoped and unscoped routes so this check doesn't need its own
+// hard-coded SDK registry.
+function splitSdk(pathname, sdkSegments) {
   const match = pathname.match(/^\/docs\/([^/]+)(\/.+)$/);
-
-  // Clerk's runtime strips recognized SDK segments before matching the compact
-  // redirect map, then restores the SDK on the destination. Infer those SDKs
-  // from the manifest's paired scoped and unscoped routes so this action does
-  // not need its own hard-coded SDK registry.
-  if (match && sdkSegments.has(match[1])) {
-    candidates.push({ pathname: `/docs${match[2]}`, sdk: match[1] });
-  }
-
-  return candidates;
+  return match && sdkSegments.has(match[1])
+    ? { normalizedPathname: `/docs${match[2]}`, sdk: match[1] }
+    : { normalizedPathname: pathname };
 }
 
 function withSdk(destination, sdk) {
@@ -268,29 +189,26 @@ function withSdk(destination, sdk) {
     : destination;
 }
 
-// Production checks dynamic redirects before static ones, so a dynamic rule
-// wins when both match the same path.
+// Mirrors the docs runtime's lookup order: dynamic redirects on the
+// SDK-normalized path, then static redirects on the normalized path, then
+// static redirects on the SDK-scoped path.
 function resolveRedirect(pathname, manifest) {
   const metadata = manifestMetadata(manifest);
-  const candidates = redirectPathCandidates(pathname, metadata.sdkSegments);
+  const { normalizedPathname, sdk } = splitSdk(pathname, metadata.sdkSegments);
 
-  for (const candidate of candidates) {
-    for (const redirect of metadata.dynamicRedirects) {
-      const parameters = redirect.match(candidate.pathname);
-      if (parameters) {
-        return withSdk(
-          applyRedirectParameters(redirect.destination, parameters),
-          candidate.sdk,
-        );
-      }
+  for (const redirect of metadata.dynamicRedirects) {
+    const result = redirect.matchesSource(normalizedPathname);
+    if (result) {
+      return withSdk(redirect.getDestination(result.params), sdk);
     }
   }
 
-  for (const candidate of candidates) {
-    const staticDestination = manifest.redirects?.static?.[candidate.pathname];
-    if (staticDestination) {
-      return withSdk(staticDestination, candidate.sdk);
-    }
+  const staticRedirects = manifest.redirects?.static ?? {};
+  if (Object.hasOwn(staticRedirects, normalizedPathname)) {
+    return withSdk(staticRedirects[normalizedPathname], sdk);
+  }
+  if (Object.hasOwn(staticRedirects, pathname)) {
+    return staticRedirects[pathname];
   }
 
   return undefined;

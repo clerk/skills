@@ -26,28 +26,8 @@ const manifest = {
     },
     dynamic: [
       {
-        source: "/docs/hooks/:path*",
-        destination: "/docs/reference/hooks/:path*",
-        permanent: true,
-      },
-      {
-        source: "/docs/releases/:path+",
-        destination: "/docs/changelog/:path+",
-        permanent: true,
-      },
-      {
-        source: "/docs/optional/:slug?",
-        destination: "/docs/destination/:slug?",
-        permanent: true,
-      },
-      {
-        source: "/docs/framework/:sdk(nextjs|react)",
-        destination: "/docs/:sdk/getting-started/quickstart",
-        permanent: true,
-      },
-      {
-        source: "/docs/literal/*",
-        destination: "/docs/destination",
+        source: "/docs/hooks{/*path}",
+        destination: "/docs/reference/hooks{/*path}",
         permanent: true,
       },
     ],
@@ -265,29 +245,14 @@ describe("validateLink", () => {
     );
   });
 
-  it("supports dynamic redirect modifiers and escapes bare stars", () => {
-    for (const [pathname, destination] of [
-      ["/docs/releases/2026/september", "/docs/changelog/2026/september"],
-      ["/docs/optional", "/docs/destination"],
-      ["/docs/optional/value", "/docs/destination/value"],
-      ["/docs/framework/react", "/docs/react/getting-started/quickstart"],
-      ["/docs/literal/*", "/docs/destination"],
-    ]) {
-      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
-        status: "redirect",
-        destination,
-      });
-    }
-
-    for (const pathname of [
-      "/docs/releases",
-      "/docs/framework/vue",
-      "/docs/literal/anything",
-    ]) {
-      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
-        status: "invalid",
-        reason: "page does not exist",
-      });
+  it("fails on dynamic redirect patterns path-to-regexp can't parse", () => {
+    for (const source of ["/docs/hooks/:path*", "/docs/:sdk(nextjs|react)"]) {
+      assert.throws(() =>
+        validateLink("https://clerk.com/docs/anything", {
+          routes: {},
+          redirects: { dynamic: [{ source, destination: "/docs" }] },
+        }),
+      );
     }
   });
 
@@ -354,6 +319,37 @@ describe("validateLink", () => {
       {
         status: "redirect",
         destination: "/docs/nextjs/guides/development/webhooks",
+      },
+    );
+  });
+
+  it("checks static redirects on the SDK-normalized path first, like production", () => {
+    const scopedManifest = {
+      routes: manifest.routes,
+      redirects: {
+        static: {
+          "/docs/guides/secure": "/docs/guides/secure/overview",
+          "/docs/nextjs/guides/secure": "/docs/guides/elsewhere",
+          "/docs/nextjs/only-scoped": "/docs/nextjs/getting-started/quickstart",
+        },
+      },
+    };
+
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/guides/secure",
+        scopedManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/guides/secure/overview",
+      },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/only-scoped", scopedManifest),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/getting-started/quickstart",
       },
     );
   });
