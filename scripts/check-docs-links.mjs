@@ -320,6 +320,16 @@ export function validateLink(rawUrl, manifest) {
   return { status: "invalid", reason: "page does not exist" };
 }
 
+// Point the original link at the redirect destination, keeping its `.md`
+// suffix, query, and fragment the way production does.
+function redirectedUrl(rawUrl, destination) {
+  const url = new URL(rawUrl);
+  url.pathname = url.pathname.endsWith(".md")
+    ? `${destination}.md`
+    : destination;
+  return url.href;
+}
+
 function escapeAnnotation(value) {
   return value
     .replaceAll("%", "%25")
@@ -402,7 +412,7 @@ export async function run({ cwd, manifestUrl, paths }) {
       } else if (result.status === "redirect") {
         redirectedLinks += 1;
         console.warn(
-          `::warning ${location}::${escapeAnnotation(`${link.url} resolves through a redirect to ${new URL(result.destination, link.url)}`)}`,
+          `::warning ${location}::${escapeAnnotation(`${link.url} resolves through a redirect to ${redirectedUrl(link.url, result.destination)}`)}`,
         );
       }
     }

@@ -410,7 +410,7 @@ describe("run", () => {
       await mkdir(path.join(directory, "skills"));
       await writeFile(
         path.join(directory, "skills", "hooks.md"),
-        "https://clerk.com/docs/hooks/use-auth\n",
+        "https://clerk.com/docs/hooks/use-auth\nhttps://clerk.com/docs/hooks/use-auth.md?sdk=nextjs#usage\n",
       );
       console.warn = (message) => warnings.push(message);
       console.log = () => {};
@@ -428,6 +428,7 @@ describe("run", () => {
 
     assert.deepEqual(warnings, [
       "::warning file=skills/hooks.md,line=1::https://clerk.com/docs/hooks/use-auth resolves through a redirect to https://clerk.com/docs/reference/hooks/use-auth",
+      "::warning file=skills/hooks.md,line=2::https://clerk.com/docs/hooks/use-auth.md?sdk=nextjs#usage resolves through a redirect to https://clerk.com/docs/reference/hooks/use-auth.md?sdk=nextjs#usage",
     ]);
   });
 
