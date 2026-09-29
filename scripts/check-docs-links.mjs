@@ -127,44 +127,92 @@ function normalizePathname(pathname) {
     : withoutMarkdownExtension;
 }
 
+// Matches a `:name` parameter or `*name` wildcard, plus the legacy
+// `:name(pattern)` constraint and `*`, `+`, or `?` modifiers. An optional
+// leading slash is captured so an omitted legacy parameter can drop it.
+const PATH_PARAMETER = /(\/?)([:*])([A-Za-z0-9_]+)(?:\(([^)]+)\))?([*+?])?/;
+
+// Compile a redirect source into a matcher. Handles both the path-to-regexp v8
+// syntax that links.json publishes (`/docs/hooks{/*path}`, `{/:name}`) and the
+// legacy `:param`, `:param*`, `:param+`, `:param?` forms.
 function compileDynamicRedirect(source) {
-  let expression = "^";
+  const names = [];
+  let index = 0;
 
-  for (let index = 0; index < source.length; index += 1) {
-    if (source[index] !== ":") {
-      expression += escapeRegExp(source[index]);
-      continue;
+  function compile(closing) {
+    let expression = "";
+
+    while (index < source.length) {
+      if (source[index] === closing) {
+        index += 1;
+        return expression;
+      }
+
+      if (source[index] === "{") {
+        index += 1;
+        expression += `(?:${compile("}")})?`;
+        continue;
+      }
+
+      const parameter = source.slice(index).match(PATH_PARAMETER);
+      if (parameter?.index !== 0) {
+        expression += escapeRegExp(source[index]);
+        index += 1;
+        continue;
+      }
+
+      const [match, slash, kind, name, constraint, modifier] = parameter;
+      const valuePattern = constraint
+        ? `(?:${constraint})`
+        : kind === "*"
+          ? ".+"
+          : "[^/]+";
+      const repeatedPattern = `${valuePattern}(?:/${valuePattern})*`;
+      const prefix = escapeRegExp(slash);
+      names.push(name);
+
+      if (modifier === "*") {
+        expression += `(?:${prefix}(${repeatedPattern}))?`;
+      } else if (modifier === "+") {
+        expression += `${prefix}(${repeatedPattern})`;
+      } else if (modifier === "?") {
+        expression += `(?:${prefix}(${valuePattern}))?`;
+      } else {
+        expression += `${prefix}(${valuePattern})`;
+      }
+
+      index += match.length;
     }
 
-    const parameter = source
-      .slice(index)
-      .match(/^:([A-Za-z0-9_]+)(?:\(([^)]+)\))?([*+?])?/);
-    if (!parameter) {
-      expression += ":";
-      continue;
-    }
-
-    const valuePattern = parameter[2] ? `(?:${parameter[2]})` : "[^/]+";
-    const modifier = parameter[3];
-    const repeatedPattern = `${valuePattern}(?:/${valuePattern})*`;
-
-    if ((modifier === "*" || modifier === "?") && expression.endsWith("/")) {
-      expression = expression.slice(0, -1);
-      expression += `(?:/${modifier === "*" ? repeatedPattern : valuePattern})?`;
-    } else if (modifier === "*") {
-      expression += `(?:${repeatedPattern})?`;
-    } else if (modifier === "+") {
-      expression += repeatedPattern;
-    } else if (modifier === "?") {
-      expression += `(?:${valuePattern})?`;
-    } else {
-      expression += valuePattern;
-    }
-
-    index += parameter[0].length - 1;
+    return expression;
   }
 
-  return new RegExp(`${expression}$`);
+  const regex = new RegExp(`^${compile()}$`);
+
+  return (pathname) => {
+    const match = pathname.match(regex);
+    return match
+      ? Object.fromEntries(names.map((name, i) => [name, match[i + 1]]))
+      : undefined;
+  };
+}
+
+// Fill a redirect destination with matched parameters. An optional `{...}`
+// group is kept only when every parameter inside it matched.
+function applyRedirectParameters(destination, parameters) {
+  const parameterPattern = new RegExp(PATH_PARAMETER.source, "g");
+
+  return destination
+    .replace(/\{([^{}]*)\}/g, (group, contents) =>
+      [...contents.matchAll(parameterPattern)].every(
+        ([, , , name]) => parameters[name] !== undefined,
+      )
+        ? contents
+        : "",
+    )
+    .replace(parameterPattern, (match, slash, kind, name) =>
+      parameters[name] === undefined ? "" : `${slash}${parameters[name]}`,
+    );
 }
 
 function inferredSdkSegments(routes = {}) {
@@ -189,16 +237,17 @@ function manifestMetadata(manifest) {
 
   const metadata = {
     sdkSegments: inferredSdkSegments(manifest.routes),
-    dynamicRedirectMatchers: (manifest.redirects?.dynamic ?? []).map(
-      (redirect) => compileDynamicRedirect(redirect.source),
-    ),
+    dynamicRedirects: (manifest.redirects?.dynamic ?? []).map((redirect) => ({
+      match: compileDynamicRedirect(redirect.source),
+      destination: redirect.destination,
+    })),
   };
   manifestMetadataCache.set(manifest, metadata);
   return metadata;
 }
 
 function redirectPathCandidates(pathname, sdkSegments) {
-  const candidates = [pathname];
+  const candidates = [{ pathname }];
   const match = pathname.match(/^\/docs\/([^/]+)(\/.+)$/);
 
   // Clerk's runtime strips recognized SDK segments before matching the compact
@@ -206,20 +255,42 @@ function redirectPathCandidates(pathname, sdkSegments) {
   // from the manifest's paired scoped and unscoped routes so this action does
   // not need its own hard-coded SDK registry.
   if (match && sdkSegments.has(match[1])) {
-    candidates.push(`/docs${match[2]}`);
+    candidates.push({ pathname: `/docs${match[2]}`, sdk: match[1] });
   }
 
   return candidates;
 }
 
-function isRedirect(pathname, manifest) {
+function withSdk(destination, sdk) {
+  return sdk && destination.startsWith("/docs/")
+    ? `/docs/${sdk}${destination.slice("/docs".length)}`
+    : destination;
+}
+
+function resolveRedirect(pathname, manifest) {
   const metadata = manifestMetadata(manifest);
 
-  return redirectPathCandidates(pathname, metadata.sdkSegments).some(
-    (candidate) =>
-      Boolean(manifest.redirects?.static?.[candidate]) ||
-      metadata.dynamicRedirectMatchers.some((matcher) => matcher.test(candidate)),
-  );
+  for (const candidate of redirectPathCandidates(
+    pathname,
+    metadata.sdkSegments,
+  )) {
+    const staticDestination = manifest.redirects?.static?.[candidate.pathname];
+    if (staticDestination) {
+      return withSdk(staticDestination, candidate.sdk);
+    }
+
+    for (const redirect of metadata.dynamicRedirects) {
+      const parameters = redirect.match(candidate.pathname);
+      if (parameters) {
+        return withSdk(
+          applyRedirectParameters(redirect.destination, parameters),
+          candidate.sdk,
+        );
+      }
+    }
+  }
+
+  return undefined;
 }
 
 export function validateLink(rawUrl, manifest) {
@@ -241,8 +312,9 @@ export function validateLink(rawUrl, manifest) {
     return { status: "invalid", reason: `heading #${anchor} does not exist` };
   }
 
-  if (isRedirect(pathname, manifest)) {
-    return { status: "redirect" };
+  const destination = resolveRedirect(pathname, manifest);
+  if (destination) {
+    return { status: "redirect", destination };
   }
 
   return { status: "invalid", reason: "page does not exist" };
@@ -330,7 +402,7 @@ export async function run({ cwd, manifestUrl, paths }) {
       } else if (result.status === "redirect") {
         redirectedLinks += 1;
         console.warn(
-          `::warning ${location}::${escapeAnnotation(`${link.url} resolves through a redirect`)}`,
+          `::warning ${location}::${escapeAnnotation(`${link.url} resolves through a redirect to ${new URL(result.destination, link.url)}`)}`,
         );
       }
     }
