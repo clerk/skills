@@ -26,28 +26,79 @@ const manifest = {
     },
     dynamic: [
       {
-        source: "/docs/hooks/:path*",
-        destination: "/docs/reference/hooks/:path*",
+        source: "/docs/hooks{/*path}",
+        destination: "/docs/reference/hooks{/*path}",
         permanent: true,
       },
+    ],
+  },
+};
+
+// Copied from redirects.dynamic in https://clerk.com/docs/links.json on
+// 2026-09-29. The manifest publishes sources in path-to-regexp v8 form, with
+// optional `{/*name}` groups.
+const liveDynamicRedirects = [
+  {
+    source: "/docs/authentication/enterprise-connections{/*path}",
+    destination:
+      "/docs/guides/configure/auth-strategies/enterprise-connections{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/components/customization{/*path}",
+    destination: "/docs/guides/customizing-clerk{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/customization/account-portal{/*path}",
+    destination: "/docs/guides/account-portal{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/elements{/*path}",
+    destination: "/docs/guides/customizing-clerk/elements{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/customization/elements{/*path}",
+    destination: "/docs/guides/customizing-clerk/elements{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/integrations/webhooks{/*path}",
+    destination: "/docs/guides/development/webhooks{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/hooks{/*path}",
+    destination: "/docs/reference/hooks{/*path}",
+    permanent: true,
+  },
+  {
+    source: "/docs/references{/*path}",
+    destination: "/docs/reference{/*path}",
+    permanent: true,
+  },
+];
+
+const liveManifest = {
+  routes: {
+    "/docs/nextjs/getting-started/quickstart": [],
+    "/docs/getting-started/quickstart": [],
+    "/docs/reference/hooks/use-auth": [],
+  },
+  redirects: {
+    static: {
+      "/docs/configure-middleware":
+        "/docs/getting-started/quickstart#protect-your-application",
+      "/docs/integrations/webhooks":
+        "/docs/guides/development/webhooks/overview",
+    },
+    dynamic: [
+      ...liveDynamicRedirects,
       {
-        source: "/docs/releases/:path+",
-        destination: "/docs/changelog/:path+",
-        permanent: true,
-      },
-      {
-        source: "/docs/optional/:slug?",
-        destination: "/docs/destination/:slug?",
-        permanent: true,
-      },
-      {
-        source: "/docs/framework/:sdk(nextjs|react)",
-        destination: "/docs/:sdk/getting-started/quickstart",
-        permanent: true,
-      },
-      {
-        source: "/docs/literal/*",
-        destination: "/docs/destination",
+        source: "/docs/sdk/:name{/:page}",
+        destination: "/docs/:name/overview{/:page}",
         permanent: true,
       },
     ],
@@ -162,11 +213,14 @@ describe("validateLink", () => {
   it("warns for static and dynamic redirects", () => {
     assert.deepEqual(
       validateLink("https://clerk.com/docs/nextjs/quickstart", manifest),
-      { status: "redirect" },
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/getting-started/quickstart",
+      },
     );
     assert.deepEqual(
       validateLink("https://clerk.com/docs/hooks/use-auth", manifest),
-      { status: "redirect" },
+      { status: "redirect", destination: "/docs/reference/hooks/use-auth" },
     );
   });
 
@@ -176,37 +230,190 @@ describe("validateLink", () => {
         "https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/layout",
         manifest,
       ),
-      { status: "redirect" },
+      {
+        status: "redirect",
+        destination:
+          "/docs/nextjs/guides/customizing-clerk/appearance-prop/options",
+      },
     );
     assert.deepEqual(
       validateLink("https://clerk.com/docs/nextjs/hooks/use-auth", manifest),
-      { status: "redirect" },
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/reference/hooks/use-auth",
+      },
     );
   });
 
-  it("supports dynamic redirect modifiers and escapes bare stars", () => {
-    for (const pathname of [
-      "/docs/releases/2026/september",
-      "/docs/optional",
-      "/docs/optional/value",
-      "/docs/framework/react",
-      "/docs/literal/*",
-    ]) {
-      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
-        status: "redirect",
-      });
+  it("fails on dynamic redirect patterns path-to-regexp can't parse", () => {
+    for (const source of ["/docs/hooks/:path*", "/docs/:sdk(nextjs|react)"]) {
+      assert.throws(() =>
+        validateLink("https://clerk.com/docs/anything", {
+          routes: {},
+          redirects: { dynamic: [{ source, destination: "/docs" }] },
+        }),
+      );
     }
+  });
 
-    for (const pathname of [
-      "/docs/releases",
-      "/docs/framework/vue",
-      "/docs/literal/anything",
-    ]) {
-      assert.deepEqual(validateLink(`https://clerk.com${pathname}`, manifest), {
-        status: "invalid",
-        reason: "page does not exist",
+  it("resolves every live dynamic redirect with and without a trailing path", () => {
+    for (const { source, destination } of liveDynamicRedirects) {
+      const base = source.replace("{/*path}", "");
+      const target = destination.replace("{/*path}", "");
+
+      assert.deepEqual(validateLink(`https://clerk.com${base}`, liveManifest), {
+        status: "redirect",
+        destination: target,
       });
+      assert.deepEqual(
+        validateLink(`https://clerk.com${base}/one/two`, liveManifest),
+        { status: "redirect", destination: `${target}/one/two` },
+      );
+      assert.deepEqual(
+        validateLink(`https://clerk.com${base}-suffix`, liveManifest),
+        { status: "invalid", reason: "page does not exist" },
+      );
     }
+  });
+
+  it("resolves the live links reported in DOCS-12216", () => {
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/hooks/use-auth", liveManifest),
+      { status: "redirect", destination: "/docs/reference/hooks/use-auth" },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/references/nextjs/overview",
+        liveManifest,
+      ),
+      { status: "redirect", destination: "/docs/reference/nextjs/overview" },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/hooks/use-auth",
+        liveManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/reference/hooks/use-auth",
+      },
+    );
+  });
+
+  it("prefers dynamic redirects over overlapping static ones, like production", () => {
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/integrations/webhooks",
+        liveManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/guides/development/webhooks",
+      },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/integrations/webhooks",
+        liveManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/guides/development/webhooks",
+      },
+    );
+  });
+
+  it("checks static redirects on the SDK-normalized path first, like production", () => {
+    const scopedManifest = {
+      routes: manifest.routes,
+      redirects: {
+        static: {
+          "/docs/guides/secure": "/docs/guides/secure/overview",
+          "/docs/nextjs/guides/secure": "/docs/guides/elsewhere",
+          "/docs/nextjs/only-scoped": "/docs/nextjs/getting-started/quickstart",
+        },
+      },
+    };
+
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/guides/secure",
+        scopedManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/guides/secure/overview",
+      },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/only-scoped", scopedManifest),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/getting-started/quickstart",
+      },
+    );
+  });
+
+  it("normalizes SDKs that have no scoped routes in the manifest", () => {
+    const sdkManifest = {
+      routes: {},
+      redirects: {
+        static: {
+          "/docs/reference/components/control/signed-out":
+            "/docs/reference/components/control/show",
+          "/docs/remix/reference/components/control/signed-out":
+            "/docs/core-2/remix/reference/components/control/signed-out",
+        },
+        dynamic: liveDynamicRedirects,
+      },
+    };
+
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/svelte/hooks/use-auth", sdkManifest),
+      {
+        status: "redirect",
+        destination: "/docs/svelte/reference/hooks/use-auth",
+      },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/remix/reference/components/control/signed-out",
+        sdkManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/remix/reference/components/control/show",
+      },
+    );
+  });
+
+  it("matches dynamic redirect sources case-insensitively, like production", () => {
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/Hooks/use-auth", liveManifest),
+      { status: "redirect", destination: "/docs/reference/hooks/use-auth" },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/Quickstart", manifest),
+      { status: "invalid", reason: "page does not exist" },
+    );
+  });
+
+  it("supports optional named-parameter groups", () => {
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/sdk/react", liveManifest),
+      { status: "redirect", destination: "/docs/react/overview" },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/sdk/react/hooks", liveManifest),
+      { status: "redirect", destination: "/docs/react/overview/hooks" },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/sdk/react/hooks/extra",
+        liveManifest,
+      ),
+      { status: "invalid", reason: "page does not exist" },
+    );
   });
 
   it("does not strip unknown top-level path segments for redirects", () => {
@@ -257,6 +464,46 @@ describe("run", () => {
       errors.join("\n"),
       /::error file=skills\/broken\.md,line=3::https:\/\/clerk\.com\/docs\/does-not-exist — page does not exist/,
     );
+  });
+
+  it("warns with the redirect destination instead of failing", async () => {
+    const directory = await mkdtemp(
+      path.join(os.tmpdir(), "check-docs-links-"),
+    );
+    const warnings = [];
+    const originalConsoleWarn = console.warn;
+    const originalConsoleLog = console.log;
+
+    try {
+      await mkdir(path.join(directory, "skills"));
+      await writeFile(
+        path.join(directory, "skills", "hooks.md"),
+        [
+          "https://clerk.com/docs/hooks/use-auth",
+          "https://clerk.com/docs/hooks/use-auth.md?sdk=nextjs#usage",
+          "https://clerk.com/docs/nextjs/configure-middleware.md?x=1#ignored",
+          "",
+        ].join("\n"),
+      );
+      console.warn = (message) => warnings.push(message);
+      console.log = () => {};
+
+      await run({
+        cwd: directory,
+        manifestUrl: `data:application/json,${encodeURIComponent(JSON.stringify(liveManifest))}`,
+        paths: "skills/**/*.md",
+      });
+    } finally {
+      console.warn = originalConsoleWarn;
+      console.log = originalConsoleLog;
+      await rm(directory, { recursive: true, force: true });
+    }
+
+    assert.deepEqual(warnings, [
+      "::warning file=skills/hooks.md,line=1::https://clerk.com/docs/hooks/use-auth resolves through a redirect to https://clerk.com/docs/reference/hooks/use-auth",
+      "::warning file=skills/hooks.md,line=2::https://clerk.com/docs/hooks/use-auth.md?sdk=nextjs#usage resolves through a redirect to https://clerk.com/docs/reference/hooks/use-auth.md?sdk=nextjs#usage",
+      "::warning file=skills/hooks.md,line=3::https://clerk.com/docs/nextjs/configure-middleware.md?x=1#ignored resolves through a redirect to https://clerk.com/docs/nextjs/getting-started/quickstart.md?x=1#protect-your-application",
+    ]);
   });
 
   it("retries when reading the manifest body fails transiently", async () => {
