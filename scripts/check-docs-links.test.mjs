@@ -111,6 +111,8 @@ const liveManifest = {
     static: {
       "/docs/configure-middleware":
         "/docs/getting-started/quickstart#protect-your-application",
+      "/docs/integrations/webhooks":
+        "/docs/guides/development/webhooks/overview",
     },
     dynamic: [
       ...liveDynamicRedirects,
@@ -330,6 +332,40 @@ describe("validateLink", () => {
         status: "redirect",
         destination: "/docs/nextjs/reference/hooks/use-auth",
       },
+    );
+  });
+
+  it("prefers dynamic redirects over overlapping static ones, like production", () => {
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/integrations/webhooks",
+        liveManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/guides/development/webhooks",
+      },
+    );
+    assert.deepEqual(
+      validateLink(
+        "https://clerk.com/docs/nextjs/integrations/webhooks",
+        liveManifest,
+      ),
+      {
+        status: "redirect",
+        destination: "/docs/nextjs/guides/development/webhooks",
+      },
+    );
+  });
+
+  it("matches dynamic redirect sources case-insensitively, like production", () => {
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/Hooks/use-auth", liveManifest),
+      { status: "redirect", destination: "/docs/reference/hooks/use-auth" },
+    );
+    assert.deepEqual(
+      validateLink("https://clerk.com/docs/nextjs/Quickstart", manifest),
+      { status: "invalid", reason: "page does not exist" },
     );
   });
 

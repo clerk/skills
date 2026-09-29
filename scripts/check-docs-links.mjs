@@ -187,7 +187,8 @@ function compileDynamicRedirect(source) {
     return expression;
   }
 
-  const regex = new RegExp(`^${compile()}$`);
+  // Production matches dynamic sources case-insensitively.
+  const regex = new RegExp(`^${compile()}$`, "i");
 
   return (pathname) => {
     const match = pathname.match(regex);
@@ -267,18 +268,13 @@ function withSdk(destination, sdk) {
     : destination;
 }
 
+// Production checks dynamic redirects before static ones, so a dynamic rule
+// wins when both match the same path.
 function resolveRedirect(pathname, manifest) {
   const metadata = manifestMetadata(manifest);
+  const candidates = redirectPathCandidates(pathname, metadata.sdkSegments);
 
-  for (const candidate of redirectPathCandidates(
-    pathname,
-    metadata.sdkSegments,
-  )) {
-    const staticDestination = manifest.redirects?.static?.[candidate.pathname];
-    if (staticDestination) {
-      return withSdk(staticDestination, candidate.sdk);
-    }
-
+  for (const candidate of candidates) {
     for (const redirect of metadata.dynamicRedirects) {
       const parameters = redirect.match(candidate.pathname);
       if (parameters) {
@@ -287,6 +283,13 @@ function resolveRedirect(pathname, manifest) {
           candidate.sdk,
         );
       }
+    }
+  }
+
+  for (const candidate of candidates) {
+    const staticDestination = manifest.redirects?.static?.[candidate.pathname];
+    if (staticDestination) {
+      return withSdk(staticDestination, candidate.sdk);
     }
   }
 
