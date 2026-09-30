@@ -1,67 +1,70 @@
 # Clerk to Clerk
 
-Moving users between Clerk instances — development → production is the common case, but any instance to any other works the same way.
+Moving users between Clerk instances. Development → production is the common case; any instance to any other works the same way.
 
-## Two commands
+## The commands
 
 ```sh
-clerk migrate export clerk --instance dev --output exports/clerk-export.json
-clerk migrate import --transformer clerk --file exports/clerk-export.json --instance prod
+clerk migrate export clerk --instance dev                        # prints a run ID
+clerk migrate import <export-run-id> --instance prod --dry-run
+clerk migrate import <export-run-id> --instance prod --yes       # after the user says yes
 ```
 
-`--instance` picks the instance per command, so there is **no key swapping**. Do not comment keys in and out of a `.env` file, do not ask the user to paste two secret keys, and do not detect the instance type by calling `/v1/instance` yourself — `--instance dev|prod|<instance_id>` is the whole mechanism. (If you find instructions describing a `.env` dance, they describe the old standalone tool.)
+`--instance` picks the instance per command, so there is **no key swapping**. Do not comment keys in and out of a `.env` file, do not ask the user to paste two secret keys, and do not call `/v1/instance` yourself. `--instance dev|prod|<instance_id>` is the whole mechanism. The export envelope names its source, so the import needs no `--source`.
 
 To move between two different **applications**, pass `--app` as well:
 
 ```sh
-clerk migrate export clerk --app app_source123 --instance prod --output exports/source.json
-clerk migrate import --transformer clerk --file exports/source.json --app app_dest456 --instance prod
+clerk migrate export clerk --app app_source123 --instance prod
+clerk migrate import <export-run-id> --app app_dest456 --instance prod --dry-run
 ```
 
-Confirm what each side resolved to before running the import — `clerk whoami` and `clerk doctor --json` show the linked application, and the export prints the instance it read from.
+Every command prints its target first. Read those lines back to the user before the import writes anything.
 
-**Always name the source on the export.** With `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY`, the export runs against exactly that. Without any of them, a human gets a picker of every instance on their account (the linked application's instances listed first); an agent gets whatever resolves — usually the linked project, which is usually the destination. An agent that omits `--instance` on the export can end up exporting the destination and importing it back into itself.
+**Always name the source on the export.** With `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY`, the export runs against exactly that. Without any of them, a human gets a picker of every instance on their account (the linked application's instances listed first). An agent gets whatever resolves: usually the linked project, which is usually the destination. An export without `--instance` can read the destination and import it back into itself.
 
 ## What survives, and what does not
 
-The `clerk` transformer carries more than any other, because both ends share a schema:
+The `clerk` source carries more than any other, because both ends share a schema:
 
 - Every email and phone, already split into verified and unverified
 - Username, first and last name
-- TOTP secret and backup codes, when the export contains them
-- All three metadata blocks
-- `created_at`, so users keep their original signup dates instead of all appearing to have joined today
+- All three metadata blocks, each in its original place
+- `created_at`, so users keep their original signup dates
 - `legal_accepted_at`, `banned`, and the organization and self-delete permissions
 
-**Passwords do not survive.** Clerk's API never returns password digests, TOTP secrets, or backup codes — only the `*_enabled` booleans. Say this before the migration, not after:
+**Passwords and MFA do not survive `clerk migrate export clerk`.** The Backend API never returns password digests, TOTP secrets, or backup codes. Say this before the migration:
 
 > Users who signed in with a password on the source instance will need to use "Forgot password" on the destination.
 
-The export's field coverage report shows the size of that gap: a `0/150 have a password` row means every one of those users hits a reset flow.
+The export's field coverage report shows the size of that gap. A Clerk Dashboard export does carry digests and TOTP secrets; import it with `--source clerk`.
 
-## Rate limits differ by direction
+**Social sign-ins are not copied.** Enable the same providers on the destination; Clerk links a returning user by verified email.
 
-The destination instance's key sets the pace, and it is the *destination* that matters because that is where the writes go.
+## Rate limits and the development limit
 
-| Destination     | Requests per second | User limit                                        |
-| --------------- | ------------------- | ------------------------------------------------- |
-| Production      | 100                 | none                                              |
-| Development     | 10                  | **100 by default** — the run warns before passing it |
+The destination's key sets the pace, because the writes go there.
 
-Production → development is the direction that hits the limit. The import reads the destination's current user count and warns when the file would take it past 100; a human is asked whether to continue, while `-y` and agent mode proceed and the excess users fail with `You have reached your limit of N users`. Clerk can raise a development instance's limit on request, and the CLI cannot see the raised value, so ask the user rather than assuming either way. If they want a realistic copy of production in a dev instance, a subset of the file is usually the answer.
+| Destination | Requests per second | User limit                                   |
+| ----------- | ------------------- | -------------------------------------------- |
+| Production  | 100                 | none                                         |
+| Development | 10                  | **100 by default**, enforced by the checks   |
+
+Production → development hits the limit. The import's checks read the destination's user count and reject users past the headroom, which stops the import unless `--allow-partial` is passed. Clerk can raise a development instance's limit on request, and the CLI cannot see the raised value, so ask the user. For a realistic copy of production in a dev instance, a subset of the file is usually the answer.
 
 ## Re-running and undoing
 
-Every imported user carries `external_id` set to their source Clerk user ID, so:
+Every imported user carries `external_id` set to their source Clerk user ID.
 
-- **Re-running is safe to reason about** — a user already imported fails as a duplicate rather than silently forking into two accounts.
-- **`clerk migrate delete -y`** removes exactly the users the last import created from this directory, matched on those external IDs. The CLI records that run in its own config, keyed by project, so run `delete` from the same directory.
-- **A run that died halfway** continues with `--resume-after <userId>`, using the last successful `userId` from `logs/import-<timestamp>.log`. Do not restart from the top.
+- **The checks reject users already in the destination**, matched on source ID, email, phone or username. A second import cannot fork a user into two accounts.
+- **Re-running the same import continues it.** A partial or interrupted run resumes; a complete one prints "Already imported in run …".
+- **`clerk migrate undo <run-id> --yes`** deletes exactly the users that run created. It refuses with exit `2` if the key now addresses a different instance, so pass the same `--app`/`--instance` as the import.
 
 ## Flow
 
-1. Confirm which instance is the source and which is the destination. Ask if there is any doubt; this is the step where a mistake writes production users into the wrong place.
-2. Export from the source, and report the count and coverage.
-3. Tell the user passwords are not included.
-4. Import into the destination **without `-y`**, following [Step 3 of the import flow](../SKILL.md#step-3-get-confirmation-then-run) — for a production destination, hand the command to the human so they see the Migration Readiness report and confirm. It cross-references the file against the destination's live settings and catches an identifier the destination requires but the source did not collect.
-5. Report imported and failed counts, and where the log is.
+1. Confirm which instance is the source and which is the destination. Ask if there is any doubt.
+2. Export from the source with `--instance` (and `--app`), and report the count and coverage.
+3. Tell the user passwords and MFA are not included.
+4. Dry-run the import against the destination and relay the checks. They catch an identifier the destination requires but the source did not collect.
+5. Get a yes, then import with `--yes`. For a production destination, consider handing the command to the human instead.
+6. Report created, failed and skipped counts from `clerk migrate runs <run-id>`.
