@@ -452,6 +452,29 @@ for (const suffix of [".mdx", ".md-old"]) {
   });
 }
 
+for (const content of [
+  "Use the [clerk skill](../clerk/SKILL.md).",
+  "Use the [clerk skill][clerk].\n\n[clerk]: ./clerk/SKILL.md",
+  "See [Step 2](#step-2-follow-the-quickstart).",
+  "![Diagram](images/flow.png)",
+]) {
+  test(`rejects a relative link: ${content.split("\n")[0]}`, () => {
+    assertViolation(content, "use an absolute URL instead of the relative link");
+  });
+}
+
+test("accepts absolute links", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants(
+      options(
+        `Use the [clerk skill](https://clerk.com/.well-known/skills/clerk/SKILL.md).\n${codeFence(
+          "npx clerk@latest init",
+        )}`,
+      ),
+    ),
+  );
+});
+
 test("the canonical setup skill passes the invariant checker", async () => {
   const content = await readFile(PROMPT_PATH, "utf8");
   assert.doesNotThrow(() =>
