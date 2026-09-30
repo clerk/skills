@@ -17,6 +17,7 @@ export const PROMPT_PATH = "skills/core/clerk-setup/SKILL.md";
 
 const frameworkQuickstartUrl =
   /https:\/\/clerk\.com\/docs\/[^\s`|)>]+\/getting-started\/quickstart[^\s`|)>]*/g;
+const absoluteUrl = /^[a-z][a-z\d+.-]*:/i;
 
 function commandSegments(line) {
   let tokens;
@@ -167,6 +168,7 @@ function markdownDetails(content) {
   const commands = [];
   const globalInstalls = [];
   const quickstartUrls = [];
+  const relativeLinks = [];
   // Track root-level section headings, outermost first. Headings inside a
   // blockquote or list do not make a login step optional.
   const headings = [];
@@ -223,7 +225,7 @@ function markdownDetails(content) {
 
   visit(
     tree,
-    ["link", "text", "code", "inlineCode"],
+    ["link", "image", "definition", "text", "code", "inlineCode"],
     (node, _index, parent) => {
       if (
         (node.type === "text" || node.type === "inlineCode") &&
@@ -232,11 +234,16 @@ function markdownDetails(content) {
         return;
       }
 
-      const value = node.type === "link" ? node.url : node.value;
-      const startLine =
-        node.type === "link"
-          ? (node.position?.start.line ?? 1)
-          : valueStartLine(content, node);
+      const hasUrl = "url" in node;
+      const value = hasUrl ? node.url : node.value;
+      const startLine = hasUrl
+        ? (node.position?.start.line ?? 1)
+        : valueStartLine(content, node);
+      // Docs, Dashboard, and evals reuse this prompt from other URLs, where a
+      // relative link resolves somewhere else.
+      if (hasUrl && !absoluteUrl.test(value)) {
+        relativeLinks.push({ line: startLine, value });
+      }
       for (const match of value.matchAll(frameworkQuickstartUrl)) {
         quickstartUrls.push({
           line:
@@ -247,13 +254,14 @@ function markdownDetails(content) {
     },
   );
 
-  return { commands, globalInstalls, quickstartUrls };
+  return { commands, globalInstalls, quickstartUrls, relativeLinks };
 }
 
 export function checkPromptInvariants({ content, filePath, manifest }) {
   const errors = [];
   const report = (message, line) => errors.push({ filePath, line, message });
-  const { commands, globalInstalls, quickstartUrls } = markdownDetails(content);
+  const { commands, globalInstalls, quickstartUrls, relativeLinks } =
+    markdownDetails(content);
 
   for (const line of globalInstalls) {
     report("do not install the Clerk CLI globally", line);
@@ -290,6 +298,10 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
         requiredLogin.line,
       );
     }
+  }
+
+  for (const { line, value } of relativeLinks) {
+    report(`use an absolute URL instead of the relative link \`${value}\``, line);
   }
 
   if (quickstartUrls.length === 0) {
