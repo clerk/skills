@@ -1,26 +1,43 @@
 # Exporting users
 
-`clerk migrate export <platform>` pulls users out of a source platform and writes a file that `clerk migrate import --transformer <platform>` reads unedited. Same platform key on both sides, every time.
+`clerk migrate export <platform>` pulls users out of a source platform into a new run. `clerk migrate import <export-run-id>` reads that run with no `--source`, because the export file names its own source.
 
 ```sh
 clerk migrate export                    # picker, human terminals only
 clerk migrate export supabase --db-url "postgres://…"
 ```
 
-In agent mode the bare picker is a usage error that lists the platforms — always pass one.
+In agent mode the bare picker is a usage error that lists the platforms. Always pass one.
 
 ## Where the file goes
 
-Every export proposes `./exports/<platform>-export-<YYYYMMDD-HHmm>.json` (local time, to the minute, so a second export never overwrites the first). What happens to that proposal depends on how the command runs:
+Every export is a run. The file lands in the run folder, `<project root>/.clerk/migrate/<run-id>/export.json`, and the CLI asks nothing about where it goes. `-o, --output <path>` writes it somewhere else instead, resolved against the current directory; the run still records where.
 
-| Run                      | Behavior                                                                                             |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Human, no `--output`     | Asked before anything is fetched, with the proposal prefilled — Enter takes it                       |
-| Agent mode, no `--output`| Takes the proposal silently, with or without `-y`                                                    |
-| `-y` outside agent mode  | **Fails**, naming `--output` and printing the full command with the proposed path, to run again      |
-| `--output <path>`        | Writes there, resolved against the current directory                                                 |
+The file is an envelope around the users:
 
-Passing `--output` yourself is the least surprising choice. Every export also writes `logs/export-<timestamp>.log`, and ends by printing the exact `clerk migrate import` command for the file it wrote.
+```json
+{
+  "clerkMigrate": 1,
+  "source": "supabase",
+  "exportedAt": "2026-09-29T14:15:02.000Z",
+  "runId": "20260929-141502-a1b2",
+  "users": [ … ]
+}
+```
+
+A Firebase export adds `firebase`, the project's hash parameters. The export ends by printing the run ID and the import command:
+
+```
+Exported 3 users to /project/.clerk/migrate/20260929-141502-a1b2/export.json
+Run 20260929-141502-a1b2. See each user with `clerk migrate runs 20260929-141502-a1b2`.
+
+Import them with:
+  clerk migrate import 20260929-141502-a1b2
+```
+
+`--json` prints `{ target, run, output, users, coverage, next }` on stdout and never prompts. A missing credential then exits `2` naming the flag to pass.
+
+The `.clerk/` folder is gitignored automatically. The export file holds user data (and, for Firebase, the signer key), so keep it out of chat output and commits.
 
 ## What each platform needs
 
@@ -31,10 +48,10 @@ Passing `--output` yourself is the least surprising choice. Every export also wr
 | `workos`     | `--api-key` (the `sk_…` secret key)                             | `WORKOS_API_KEY`                                         | **Not exportable**               |
 | `supabase`   | `--db-url`                                                      | `SUPABASE_DB_URL`                                        | bcrypt digests included          |
 | `authjs`     | `--db-url`                                                      | `AUTHJS_DB_URL`                                          | none — Auth.js stores none       |
-| `betterauth` | `--db-url`                                                      | `BETTERAUTH_DB_URL`                                      | bcrypt digests included          |
+| `betterauth` | `--db-url`                                                      | `BETTERAUTH_DB_URL`                                      | scrypt, bcrypt or argon2, per user |
 | `firebase`   | `--service-account <path>`                                      | none                                                     | scrypt digests + four parameters |
 
-Resolution is flag → environment variable (or `.env.clerk-migrate`, `.env.local`, `.env`) → a masked prompt. In agent mode there is no prompt, so pass the flags; a missing credential exits naming every missing one at once. Ask the user for a credential; never guess one, and never write it into a `.env` file on their behalf.
+Resolution is flag → environment variable → a masked prompt. The CLI does not read `.env` files. In agent mode there is no prompt, so pass the flags; a missing credential exits naming every missing one at once. Ask the user for a credential; never guess one, and never write it into a `.env` file on their behalf.
 
 **A rejected credential is asked for again — for humans only.** A connection string, Firebase key, or Auth0 secret that the far end rejects re-prompts in an interactive run, and the rest of the export continues. Agent mode, a non-TTY, and `-y` fail outright instead. If an export fails on a credential, relay the error and ask the user for a corrected value.
 
@@ -56,7 +73,7 @@ Three platforms never export passwords — **Clerk, Auth0 and WorkOS** — and a
 ## Clerk
 
 ```sh
-clerk migrate export clerk --app app_source123 --instance dev --output exports/clerk-export.json
+clerk migrate export clerk --app app_source123 --instance dev
 ```
 
 Pages the whole instance 500 users at a time. **Password digests, TOTP secrets and backup codes are never returned by the API** — only the `*_enabled` booleans. Migrated users must reset their password on the destination.
@@ -115,7 +132,7 @@ Find the connection string in the Supabase dashboard under **Connect**:
 - Direct: `postgresql://postgres:[PASSWORD]@db.[REF].supabase.co:5432/postgres` — needs the IPv4 add-on.
 - Pooler: `postgres://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres` — works without it, and is the better default.
 
-The export keeps `raw_app_meta_data`, which is what `clerk migrate import --skip-unsupported-providers` reads later to drop users whose only social provider is not enabled on the Clerk instance.
+The export keeps `raw_app_meta_data`. The import's checks read it for each user's providers, and reject users whose only provider is not enabled in Clerk.
 
 ## Auth.js (NextAuth)
 
@@ -136,7 +153,7 @@ clerk migrate export betterauth --db-url "libsql://app-org.turso.io?authToken=�
 
 Plugin columns are detected from the live schema rather than assumed, because selecting a column that is not there fails the whole query. Username, admin (`banned`), phone-number and the rest come across when the plugin is installed.
 
-Passwords come from a `LEFT JOIN` onto the credential `account` row — left, so a user who only ever signed in with OAuth is still exported.
+Passwords come from a `LEFT JOIN` onto the credential `account` row — left, so a user who only ever signed in with OAuth is still exported. The import detects the hasher per user: Better Auth's own scrypt, bcrypt and argon2 come across, and any other hash is dropped. See [sources.md](sources.md#better-auth-passwords) for the NFKC caveat.
 
 ## Connection strings (`supabase`, `authjs`, `betterauth`)
 
@@ -152,17 +169,23 @@ clerk migrate export firebase --service-account ./service-account.json
 
 Needs a service account key with the Firebase Authentication Admin role: Firebase console → Project settings → Service accounts → Generate new private key. Without `--service-account`, a human is prompted — the answer can be a path **or the key's JSON pasted whole**, so a key kept in a password manager never has to touch disk. Agent mode names the flag instead. The key is validated before any network call, so downloading the web app config by mistake fails immediately and names the right console page.
 
-**Firebase's scrypt is a modified variant.** A digest is worthless without the project's four hash parameters, so the export reads them from the project and prints the exact import command with them filled in — on **one line**, so it pastes cleanly:
+**Firebase's scrypt is a modified variant.** A digest is worthless without the project's four hash parameters. The export reads them from the project and saves them in the envelope, so the import needs no `--firebase-*` flags:
 
 ```sh
-clerk migrate import -y --transformer firebase --file exports/firebase-export-20260817-1432.json --firebase-signer-key "…" --firebase-salt-separator "…" --firebase-rounds 8 --firebase-mem-cost 14
+clerk migrate import <export-run-id> --dry-run
 ```
 
-Use that command, but **drop the `-y`** on the first run so the readiness report prints (see [SKILL.md](../SKILL.md#step-3-get-confirmation-then-run)). All four parameters are required as a set — a partial set produces a well-formed digest that verifies against nothing, so users import successfully and then cannot sign in.
+A file from `firebase auth:export` has no envelope. Import it with `--source firebase` and all four flags:
 
-To avoid re-passing them, the user can store them with `clerk migrate settings set firebase-signer-key …` (and the other three), which writes the gitignored `.env.clerk-migrate`. The CLI also reads `CLERK_FIREBASE_*` variables and Firebase's own names (`FIREBASE_BASE64_SIGNER_KEY`, `BASE64_SIGNER_KEY`, `ROUNDS`, `MEM_COST`, …). `clerk migrate settings` shows which source won.
+```sh
+clerk migrate import users.json --source firebase --dry-run \
+  --firebase-signer-key "…" --firebase-salt-separator "…" \
+  --firebase-rounds 8 --firebase-mem-cost 14
+```
 
-Reading the config needs a broader role than listing users. If it is denied, the export still succeeds and points at **Authentication → Users → (⋮) → Password hash parameters**; ask the user to copy the four values from there.
+The four flags are required as a set. A partial set produces a well-formed digest that verifies against nothing, so users import and then cannot sign in. Flags override the envelope, so a rotated key needs no re-export. An export with no password hashes needs no parameters.
+
+Reading the config needs a broader role than listing users. If it is denied, the export still succeeds and points at **Authentication → Users → (⋮) → Password hash parameters**. Ask the user to copy the four values from there and pass them as the `--firebase-*` flags on the import.
 
 `FIREBASE_AUTH_EMULATOR_HOST` is honoured, so this works against the local emulator too.
 
@@ -176,9 +199,8 @@ Reading the config needs a broader role than listing users. If it is denied, the
 | Auth0 `401` / `403`                           | The M2M application is missing the `read:users` scope.                                                 |
 | WorkOS key rejected                           | Use the secret API key starting `sk_`, from the right WorkOS environment.                              |
 | Firebase `INVALID_CREDENTIAL`                 | Wrong or stale service account key. Download a fresh one for the right project.                        |
-| `-y` export fails asking for `--output`       | Expected: `-y` will not choose a file path for you. Pass `--output`.                                   |
 | Export succeeded but almost every field is empty | Wrong table or wrong platform. Check the coverage report before importing, not after.                |
 
 ## Next step
 
-Every export ends by printing the import command for the file it just wrote. Follow the import flow in [SKILL.md](../SKILL.md#the-import-flow) — do not paste the printed command straight into agent mode without the user's go-ahead.
+Follow the import flow in [SKILL.md](../SKILL.md#the-import-flow): dry-run the printed run ID, relay the checks, and get the user's yes before importing with `--yes`.

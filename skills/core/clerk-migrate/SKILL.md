@@ -5,229 +5,245 @@ description: >-
   instances, using the `clerk migrate` command family. Use when the user says
   "migrate my users to Clerk", "import users from Auth0 / Supabase / Firebase /
   Auth.js / Better Auth / WorkOS", "export my users", "move users from
-  development to production", or hands over a user export file (JSON or CSV)
-  and asks what to do with it. Covers exporting from the source platform,
-  identifying which transformer fits, writing one for a platform with no
-  built-in, running the import, and undoing it.
+  development to production", "undo the import", or hands over a user export
+  file (JSON or CSV) and asks what to do with it. Covers exporting from the
+  source platform, choosing a source, writing one for a platform with no
+  built-in, checking and running the import, inspecting runs, and undoing one.
+  Don't use for adding Clerk to an app (use clerk-setup) or for general CLI
+  tasks (use clerk-cli).
 allowed-tools: Bash, Read, Write, Grep, Glob
 license: MIT
 compatibility: >-
-  Requires the `clerk` CLI binary, v3.4.0 or later (npm package `clerk`, or
-  `bunx clerk@latest`). Needs a Clerk session from `clerk auth login`, or a
-  Backend API secret key passed with `--secret-key`. No other dependency — do
-  not install a migration tool, an SDK, or a database driver.
+  Requires the `clerk` CLI binary (npm package `clerk`, or `bunx clerk@latest`)
+  with the `clerk migrate` command family. Needs a Clerk session from
+  `clerk auth login`, or a Backend API secret key passed with `--secret-key`.
+  No other dependency: do not install a migration tool, an SDK, or a database
+  driver.
 metadata:
   author: clerk
-  version: 1.1.0
+  version: 2.0.0
 ---
 
 # Clerk Migrate
 
-`clerk migrate` moves users into a Clerk instance: `clerk migrate import` reads an export from another auth provider, maps it onto Clerk's user schema, validates every record, and creates the users through the Backend API. `clerk migrate export` gets users *out* of the seven supported platforms, so there is a file to import in the first place.
+`clerk migrate export` gets users out of a source platform into a run. `clerk migrate import` maps that export onto Clerk's user schema, checks every user against the destination instance, and creates them through the Backend API. `clerk migrate runs` shows what each run did, and `clerk migrate undo` deletes the users an import created.
 
-> This skill targets clerk `latest`. The binary is the source of truth — run `clerk migrate <subcommand> --help` to confirm anything this skill claims, and prefer what `--help` says when they disagree.
+```
+clerk migrate export <source> [-o <path>] [--json]
+clerk migrate import <file|export-run-id> [--source <key|path>] [--dry-run] [--allow-partial] [--new-run] [--yes] [--json]
+clerk migrate runs [run-id] [--json]
+clerk migrate undo <run-id> [--dry-run] [--yes] [--json]
+clerk migrate sources [source] [--json]
+clerk migrate help
+```
 
-There is nothing to install and nothing to clone. If you find yourself reaching for a `migration-tool` repo, `bun install`, or a hand-written import script, stop: that is the old way and it no longer applies.
+Every subcommand takes `--runs-dir <path>`, which overrides the `CLERK_MIGRATE_DIR` environment variable. `import`, `undo` and `export clerk` also take `--secret-key`, `--app` and `--instance`. Bare `clerk migrate` prints help.
 
-Bare `clerk migrate` is a group name, not a command — it prints help. The direction is always spelled out: `migrate import` moves users **into** Clerk, `migrate export` gets them **out** of a source platform.
+> The binary is the source of truth. Run `clerk migrate <subcommand> --help` to confirm anything this skill claims, and prefer `--help` when they disagree.
+
+Install nothing and clone nothing. A `migration-tool` repo, `bun install`, a `.env` file for credentials, or a hand-written import script all belong to the old standalone tool.
 
 ## Routing
 
-Find the user's intent in the left column and go straight there.
+| The user wants to…                                                                       | Go to                                                          |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Get their users out of Auth0, Supabase, Firebase, Auth.js, Better Auth, WorkOS, or Clerk | [references/export.md](references/export.md), then the import flow |
+| Import a file they already have                                                          | [The import flow](#the-import-flow)                            |
+| Know which platform a file came from                                                     | [Step 1: identify the source](#step-1-identify-the-source)     |
+| Migrate from a platform with no built-in source                                          | [references/sources.md](references/sources.md#writing-a-source) |
+| Move users from one Clerk instance to another (dev → prod)                               | [references/clerk-to-clerk.md](references/clerk-to-clerk.md)   |
+| See what a run did, or why users failed                                                  | [Runs](#runs)                                                  |
+| Undo an import                                                                           | [Undoing an import](#undoing-an-import)                        |
 
-| The user wants to…                                                                        | Go to                                                          |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Import a file they already have                                                           | [The import flow](#the-import-flow), below                     |
-| Get their users out of Auth0, Supabase, Firebase, Auth.js, Better Auth, WorkOS, or Clerk  | [references/export.md](references/export.md)                   |
-| Migrate from a platform with no built-in transformer                                      | [references/transformers.md](references/transformers.md)       |
-| Move users from one Clerk instance to another (dev → prod)                                | [references/clerk-to-clerk.md](references/clerk-to-clerk.md)   |
-| Know which platform a file came from                                                      | [Step 1: identify the platform](#step-1-identify-the-platform) |
-| Undo a migration                                                                          | [Undoing a migration](#undoing-a-migration)                    |
-| See or change what a run will pick up (transformer, file, Firebase parameters, log dir)   | [Settings](#settings)                                          |
-| Read, convert, or clean up the logs                                                       | [Logs](#logs)                                                  |
+"Here's my Supabase dump" is an import. "I need to get my users out of Auth0" is an export that ends in an import.
 
-Users often start mid-flow — "here's my Supabase dump" is an import, "I need to get my users out of Auth0" is an export that ends in an import. Export first, then come back here.
+## The rules
+
+Every `clerk migrate` command follows these five rules. Rely on them.
+
+1. **Consent.** `import` and `undo` write only after `--yes` or a yes at the prompt. Without either (agent mode, a non-TTY, or `--json`), they print a preview and exit `2` with the exact command to run.
+2. **`--dry-run` checks against the real instance and writes nothing.** It exits `2` when the real run would be refused, and `0` otherwise.
+3. **One place for state.** Every export, import and undo is a run in `<project root>/.clerk/migrate/<run-id>/`. The CLI adds `.clerk/` to `.gitignore` before writing there, because run files hold user data.
+4. **Target first.** Every command prints the environment, app and instance it targets, and where the key came from, before anything else.
+5. **`--json` everywhere.** Every subcommand takes it, and it means no prompts. `--json` on any `migrate` subcommand also forces agent mode. Exit codes: `0` all good, `1` some users failed, `2` a usage error or a refusal.
 
 ## Invoking the CLI
 
-Bind the invocation once at the start of the session:
+Check the binary once per session:
 
 ```sh
-command -v clerk >/dev/null 2>&1 && clerk --version
+command -v clerk >/dev/null 2>&1 && clerk migrate sources --json >/dev/null && echo ok
 ```
 
-If that prints v3.4.0 or later, use bare `clerk`. Otherwise fall back to a package runner matching the project's lockfile — `bunx clerk@latest`, `npx -y clerk@latest`, `pnpm dlx clerk@latest`, or `yarn dlx clerk@latest`. The published package is **`clerk`**, not `@clerk/cli`.
+If that prints `ok`, use bare `clerk`. Otherwise fall back to a package runner matching the project's lockfile: `bunx clerk@latest`, `npx -y clerk@latest`, `pnpm dlx clerk@latest`, or `yarn dlx clerk@latest`. The published package is **`clerk`**, not `@clerk/cli`.
 
 ## Keys and targeting
 
-**Do not create or edit a `.env` file, and do not ask the user to paste a secret key** unless everything below has failed. The CLI resolves a Backend API key on its own:
+**Do not create or edit a `.env` file, and do not ask the user to paste a secret key** unless everything below has failed. The CLI reads credentials from flags and the process environment only, and resolves a Backend API key on its own:
 
 ```sh
-clerk auth login          # once, on the user's host shell — opens a browser
+clerk auth login          # once, on the user's host shell; opens a browser
 clerk doctor --json       # confirms login, link, keys; parse `remedy` on failure
 ```
 
 Resolution order: `--secret-key` → `--app` + Platform API lookup → `CLERK_SECRET_KEY` in the environment → the keyless project's own key → the linked project from `clerk link`.
 
-`clerk migrate import` checks for a destination **before** it asks anything else. A human who is signed out or unlinked gets the same sign-in-then-link flow `clerk link` runs; an agent gets an error naming whichever half is missing. Relay it — `clerk auth login` has to run on the user's host shell.
+Pass `--app <id>` and `--instance dev|prod|<instance_id>` to point a command somewhere specific. A dev → production migration needs no key swapping.
 
-To point a command at a specific place, pass `--app <id>` and `--instance dev|prod|<instance_id>` rather than swapping keys around. That is what makes a dev → production migration a two-command job.
+The key sets the **instance type**: `sk_live_…` is production, anything else development. The type sets the rate limit (100 req/s production, 10 req/s development) and the development-instance 100-user check. A slow run on a dev key is the rate limit at work.
 
-The **instance type comes from the key**: `sk_live_…` is production, anything else development. That choice drives the rate limits and the development-instance warning below, so a migration that "runs slowly" on a dev key is behaving correctly.
-
-For anything else CLI-related — auth internals, sandbox caveats, `clerk api` — see the `clerk-cli` skill.
+For auth internals, sandbox caveats, or `clerk api`, see the `clerk-cli` skill.
 
 ## The import flow
 
-Follow these in order. Do not skip the summary or the confirmation.
+Follow these steps in order. Do not skip the dry run or the user's confirmation.
 
-### Step 1: identify the platform
+### Step 1: identify the source
 
-Read a sample of the file — the first user object, or the CSV header row — and match it against the signature fields:
+A file `clerk migrate export` wrote is an envelope, `{ "clerkMigrate": 1, "source": …, "users": [...] }`. It names its own source: pass the export run ID (or the file) and skip to Step 2.
 
-| Platform         | Signature fields                                                                                                                       |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Supabase**     | `encrypted_password`, `email_confirmed_at`, `raw_user_meta_data`, `instance_id`, `aud`, `is_sso_user`                                   |
-| **Auth0**        | `user_id` in `provider\|id` form, `email_verified` (boolean), `phone_number`, `phone_verified`, `user_metadata`, `app_metadata`, `given_name`, `family_name` |
-| **Firebase**     | `localId`, `passwordHash`, `passwordSalt`, `displayName`, `phoneNumber`, `disabled`                                                    |
-| **Clerk**        | `primary_email_address`, `verified_email_addresses`, `password_digest`, `password_hasher`, `primary_phone_number`                       |
-| **WorkOS**       | `id` starting `user_`, `email`, `email_verified` (boolean), `first_name`, `last_name`, `metadata`, sometimes `identities` — and no password, phone, or username field |
-| **Better Auth**  | `user_id` (UUID), `email_verified` (boolean), `password_hash` with a bcrypt `$2` prefix, `phone_number`, `phone_number_verified`, `display_username` |
-| **Auth.js**      | `email_verified`, `name`, `id`, `email` — minimal, and easy to confuse with a custom export                                            |
+Any other file (a bare JSON array, a CSV, Firebase's own `{ "users": [...] }`) needs `--source`. Read the first user object or the CSV header row and match it:
 
-Three traps worth knowing:
+| Source         | Signature fields                                                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `supabase`     | `encrypted_password`, `email_confirmed_at`, `raw_user_meta_data`, `instance_id`, `aud`, `is_sso_user`                                   |
+| `auth0`        | `user_id` in `provider\|id` form, `email_verified` (boolean), `phone_number`, `phone_verified`, `user_metadata`, `app_metadata`, `given_name`, `family_name` |
+| `firebase`     | `localId`, `passwordHash`, `passwordSalt`, `displayName`, `phoneNumber`, `disabled`                                                    |
+| `clerk`        | `primary_email_address`, `verified_email_addresses`, `password_digest`, `password_hasher`, `primary_phone_number`                       |
+| `workos`       | `id` starting `user_`, `email`, `email_verified` (boolean), `first_name`, `last_name`, `metadata`, sometimes `identities`; no password, phone, or username |
+| `betterauth`   | `user_id` (UUID), `email_verified` (boolean), `password_hash`, `phone_number`, `phone_number_verified`, `display_username`              |
+| `authjs`       | `email_verified`, `name`, `id`, `email`; minimal, and easy to confuse with a custom export                                             |
 
-- **A Firebase CSV export has no header row.** If a CSV opens with something like `user123,a@b.com,true,…` and no field names, that is Firebase. The transformer supplies the headers.
-- **Auth0 and Better Auth both use `user_id`.** Auth0's contains a `|` (`auth0|abc123`); Better Auth's is a bare UUID.
-- **WorkOS and Clerk both use `user_…` IDs.** A Clerk export carries `primary_email_address` and `password_digest`; a WorkOS export has a flat `email` and nothing password-shaped.
+Three traps:
 
-If nothing matches, the file is a custom export → [references/transformers.md](references/transformers.md).
+- **A Firebase CSV export has no header row.** A CSV that opens with `user123,a@b.com,true,…` is Firebase. The source supplies the headers.
+- **Auth0 and Better Auth both use `user_id`.** Auth0's contains a `|` (`auth0|abc123`). Better Auth's is a bare UUID.
+- **WorkOS and Clerk both use `user_…` IDs.** A Clerk export carries `primary_email_address` and `password_digest`. A WorkOS export has a flat `email` and nothing password-shaped.
 
-Confirm the live platform list rather than trusting this page:
+If nothing matches, the user needs a custom source: [references/sources.md](references/sources.md#writing-a-source).
+
+Confirm the live list, and read what a source carries:
 
 ```sh
-clerk migrate transformers list --json
+clerk migrate sources --json
+clerk migrate sources supabase     # export command, what comes across, where each field lands, caveats
 ```
+
+A `--source` that contradicts an envelope's `source` exits `2`.
 
 ### Step 2: summarize what will happen
 
 Tell the user, in plain terms:
 
-1. Which transformer you are going to use.
-2. What it maps — especially which field decides whether an email or phone counts as **verified**, because that is the mapping that silently changes who can sign in. Per-platform detail is in [references/transformers.md](references/transformers.md#what-the-built-ins-map).
-3. Anything the source cannot carry across — Auth0, Clerk and WorkOS exports contain **no password hashes**, so those users will have to reset their password (or, for WorkOS, sign in through SSO).
+1. Which source applies, and which instance the import targets.
+2. Which field decides whether an email or phone counts as **verified**. That mapping changes who can sign in. Per-source detail: [references/sources.md](references/sources.md#what-the-built-ins-carry).
+3. What the source cannot carry. Clerk (API export), Auth0 and WorkOS exports hold **no password hashes**, so those users reset their password. **Social sign-ins are never copied**: the user enables the same providers in Clerk, and Clerk links a returning user by verified email ([account linking](https://clerk.com/docs/guides/configure/auth-strategies/social-connections/account-linking)).
 
-### Step 3: get confirmation, then run
+### Step 3: dry run
 
-**Agent mode does not stop to confirm, and there is no dry run.** In agent mode `clerk migrate import` prints the [Migration Readiness report](#the-migration-readiness-report) and then starts writing users immediately — the report arrives too late to act on, and the offer to fix flagged instance settings is skipped. The confirmation is *yours* to get, before you run anything.
+```sh
+clerk migrate import <export-run-id> --dry-run
+clerk migrate import users.json --source auth0 --dry-run      # a file from anywhere else
+```
 
-Pick one of two paths:
+The dry run prints the target, then the checks, and writes nothing. Relay the checks in full. Read [references/checks.md](references/checks.md) to explain each reject reason and the `clerk config patch` fixes it offers.
 
-- **Hand the first run to the human (recommended when the instance already has real users, or for any production import).** Give them the command to run in their own terminal — in Claude Code, typing `! <command>` runs it in the session:
+If any user is rejected, the real import refuses unless `--allow-partial` is passed. Put the choice to the user: fix the export, change the instance with the printed `clerk config patch` command, or import the rest with `--allow-partial`. Never run a `clerk config patch` without the user's yes.
+
+### Step 4: get consent, then import
+
+Pick one path:
+
+- **Hand the command to the human.** Recommended when the instance already has real users, and for any production import. In Claude Code, typing `! <command>` runs it in the session. Run by a human without `--yes`, the import prints the checks and asks `Import N users?`. Declining writes nothing.
 
   ```sh
-  clerk migrate import --transformer supabase --file exports/supabase-export-20260817-1432.json
+  clerk migrate import <export-run-id>
   ```
 
-  Run by a human, it prints the readiness report, offers to change each flagged instance setting, and waits for a yes. Declining writes nothing to Clerk. Bare `clerk migrate import` with no flags also works for a human — it is a wizard that asks for the transformer and file.
-
-- **Run it yourself** after the user has said yes in the conversation, having seen your Step 2 summary:
+- **Run it yourself** after the user has said yes in the conversation to your Step 2 summary and the dry-run checks:
 
   ```sh
-  clerk migrate import --transformer supabase --file exports/supabase-export-20260817-1432.json
+  clerk migrate import <export-run-id> --yes
   ```
 
-  Leave `-y` off so the readiness report still prints, and relay it. `-y` suppresses the report entirely.
+If you run the import without `--yes`, it prints the checks and exits `2` with the exact command. Show that output to the user and ask before re-running with `--yes`. An exit `2` there is the consent gate, not a failure.
 
-Bare `clerk migrate import` with no flags is a usage error in agent mode — always pass `--transformer` and `--file`. Firebase needs four extra flags; see [references/export.md](references/export.md#firebase). A platform with no built-in needs `--transformer-file` instead of `--transformer`.
+Firebase exports carry the project's hash parameters, so the import needs no `--firebase-*` flags. See [references/export.md](references/export.md#firebase) for files from `firebase auth:export`.
 
-### Step 4: report the result
-
-1. How many users imported, and how many failed.
-2. Validation failures, with the reason — these are users the file could not describe (no identifier, unparseable date, unknown hasher), not Clerk rejecting them.
-3. Where the log is (`./logs/import-<timestamp>.log`, unless a different log directory is set — `clerk migrate logs list` prints it), and that `clerk migrate delete` undoes the run.
-
-The command exits non-zero if any user failed, so check the exit code rather than eyeballing the output.
-
-## The Migration Readiness report
-
-Printed by `clerk migrate import` unless `-y` is passed. It cross-references the file against the destination instance's live settings and answers two questions: **who won't be imported**, and **who will arrive incomplete**.
-
-- **Required in Clerk, missing from the file** (an email, phone or username the instance requires) — those users are **not imported**.
-- **Password required, user has none** — imported without a password; they reset to sign in.
-- **Present in the file, disabled in Clerk** — an attribute the instance has switched off is dropped; a social provider users signed up with is unavailable to them.
-
-The outcome block counts each user once, into the worst outcome that applies, so ✗ / ⚠ / ✓ add up to the file. **Relay it after any field-mapping summary.** A user who sees "12 users will not be imported — no email, which this instance requires" before the import is a user who does not have to undo one.
-
-In a human run the report is followed by a multiselect of fixes — "Make Email optional at sign-up", "Enable Discord sign-in" — applied as one config `PATCH`. Nothing is preselected: a flagged setting is not necessarily a wrong one, and the right fix may be the export instead.
-
-If the instance settings cannot be read, the report degrades to coverage-only and flags nothing — "could not read" is not "switched off". Say which of the two you are looking at.
-
-## Rate limits and the development-instance warning
-
-| Instance                     | Requests per second |
-| ---------------------------- | ------------------- |
-| Production (`sk_live_…`)     | 100                 |
-| Development (`sk_test_…`)    | 10                  |
-
-Rate limiting, backoff and `429` retries are handled for you — a slow-looking run on a dev key is the limit, not a hang. `CLERK_MIGRATE_RATE_LIMIT` and `CLERK_MIGRATE_CONCURRENCY_LIMIT` override the defaults; do not set them unless the user asks.
-
-**Development instances have a 100-user limit by default.** Before importing into one, the run reads the current user count and warns when the file would push it past 100. A human is asked whether to go ahead; `-y` and agent mode proceed on the warning. Users past the limit fail with `You have reached your limit of N users`. Clerk can raise a development instance's limit on request, and the CLI cannot see the raised value — so treat the warning as a question to put to the user, not an error. For a real user base, import into production.
-
-## Undoing a migration
+### Step 5: report the result
 
 ```sh
-clerk migrate delete -y
+clerk migrate runs <run-id>
 ```
 
-Deletes the users the last `clerk migrate import` **in this directory** created, matched on the `external_id` stamped on each one. Nothing else in the instance is touched; IDs with no matching user are skipped and reported.
+Report:
 
-The record of which migration to undo lives in the CLI's own config, keyed by project — not in a file in the directory — so run it from the same directory as the import. `-y` is required in agent mode. Every attempt is logged to `logs/delete-<timestamp>.log`, with both the source ID and the Clerk ID.
+1. How many users were created, failed, and skipped. `runs <id>` shows the error breakdown and the users that failed or were skipped.
+2. The run ID, and that `clerk migrate undo <run-id>` reverses it.
+3. Any user who arrived without something: a dropped password, a field the instance does not store.
 
-## Settings
+Check the exit code: `1` means some users failed. Report a partial import as partial.
 
-`clerk migrate settings` shows what a run in this directory would pick up, and **where each value came from** — flag, environment, `.env.clerk-migrate`, the app's `.env.local`/`.env`, or the CLI config. Reach for it when a run picks up a stale transformer, file, or Firebase parameter.
+## Re-running
+
+Running the same import again continues it. The CLI matches on the file's sha256, the source, and the instance ID:
+
+| Latest matching run | Re-running does                                                          |
+| ------------------- | ------------------------------------------------------------------------ |
+| none                | starts a new run                                                         |
+| interrupted         | continues the same run, skipping the users it created                    |
+| `partial`           | continues the same run, retrying the users that failed or were skipped   |
+| `complete`          | nothing; prints "Already imported in run …" and exits `0`                |
+| `undone`            | starts a new run                                                         |
+
+`--new-run` skips the lookup and forces a fresh run. A run another live process holds exits `2`.
+
+After a complete import, the CLI names the run folders it no longer needs (the export holds user data) with the `rm -rf` for each. Relay it; do not delete them without asking.
+
+## Runs
 
 ```sh
-clerk migrate settings                                   # list (default), credentials redacted
-clerk migrate settings list --json
-clerk migrate settings set firebase-rounds 8
-clerk migrate settings clear firebase-signer-key         # forget one
-clerk migrate settings clear -y                          # forget all, credentials included
+clerk migrate runs                        # every run, newest first
+clerk migrate runs 20260929-141502-a1b2   # one run in full
+clerk migrate runs --json
 ```
 
-The eight settings are named after the `clerk migrate import` flag each stands in for: `transformer`, `file`, `skip-unsupported-providers`, `log-dir`, and the four `firebase-*` parameters. Non-secret ones live in the CLI config; the Firebase ones live in `.env.clerk-migrate`, which the CLI gitignores on first write. A bare `settings clear` refuses without `-y` in agent mode — confirm with the user before passing it.
-
-`settings set` is a legitimate way to store the Firebase parameters, because it writes the migration's own gitignored file. It is still a secret — ask before writing it.
-
-## Logs
+Each run folder holds `run.json` (kind, status, target, source, file and its sha256, counts) and `users.ndjson`, one line per user outcome: `sourceId`, `clerkId`, `status` (`created`, `failed`, `skipped`, `deleted`, `exported`) and `reason`, `error`, `code` or `passwordDropped` when present. The last line for each `sourceId` wins. Grep it directly:
 
 ```sh
-clerk migrate logs                 # list, newest first (default)
-clerk migrate logs list --json     # same data, machine-readable
-clerk migrate logs convert --all   # NDJSON → JSON arrays, for spreadsheets
-clerk migrate logs clean -y        # delete local .log files
+grep '"status":"failed"' .clerk/migrate/<run-id>/users.ndjson
 ```
 
-Logs go to `./logs` unless `CLERK_MIGRATE_LOG_DIR` or the `log-dir` setting says otherwise; `logs list` prints the directory it read. The first interactive import, export or delete in a project asks where logs should go and remembers the answer; agent mode and `-y` use `./logs` without saving it.
+A run is `partial` when any user failed or was skipped, `complete` otherwise, and `interrupted` when its process died before recording a finish time. A run records the instance ID from `GET /v1/instance`; if that call fails, it records `key_<hash>` instead.
 
-Each file is named after the command that wrote it: `export-<timestamp>.log`, `import-<timestamp>.log`, `delete-<timestamp>.log`. (Older `migration-*` and `user-deletion-*` names from earlier builds still list as import and delete.)
+## Undoing an import
 
-Logs are NDJSON — one object per line, appended as the run proceeds, so a run killed part-way still leaves a valid record. Grep them directly (`grep -v '"status":"success"' logs/import-*.log`) and only convert when something downstream needs a JSON array.
+```sh
+clerk migrate undo <run-id> --dry-run    # preview: how many, and how many signed in since
+clerk migrate undo <run-id> --yes
+```
 
-`clerk migrate logs clean` deletes **local files**. `clerk migrate delete` deletes **users from Clerk**. Do not confuse them in front of a user.
+`undo` deletes only the users that run created, by the Clerk ID recorded for each. It never searches the instance, so users the import did not create stay untouched. Show the user the preview, including how many imported users have signed in since, and get a yes before passing `--yes`.
+
+It refuses with exit `2`, and deletes nothing, when:
+
+- the key addresses a different instance than the run imported into
+- the run is not an import (an export or an undo run)
+- the run is already undone
+
+A partial undo exits `1`. Running `undo` again retries the users that failed, in the same undo run. The import is marked `undone` only when every user is deleted.
 
 ## Safety rules
 
-1. **Confirm before importing.** Agent mode will not ask on your behalf, and the readiness report prints only after the run has committed to writing.
-2. **Check the target instance before writing.** Pass `--instance` explicitly for production; do not rely on the default.
-3. **Name the source when exporting from Clerk.** In agent mode `clerk migrate export clerk` uses whatever instance resolves — usually the linked project, which is usually the *destination*. Always pass `--app`/`--instance` (or `--secret-key`) for the source.
+1. **Dry-run first, then get a yes.** Relay the checks and the target before any write.
+2. **Check the target.** The first lines of output name the instance. Pass `--instance prod` explicitly for production.
+3. **Name the source instance when exporting from Clerk.** In agent mode `clerk migrate export clerk` uses whatever resolves, usually the linked project, which is usually the *destination*. Pass `--app`/`--instance` or `--secret-key` for the source.
 4. **Never paste a secret key into chat or a file.** Use `clerk auth login`, or let the user set `CLERK_SECRET_KEY` themselves.
-5. **Report failures honestly.** A partial import is normal and recoverable; a partial import reported as a success is not.
-6. **Resume rather than re-run.** A run that died halfway continues with `--resume-after <last successful source userId>`, taken from the import log. An ID that is not in the file aborts the run rather than re-importing everyone.
+5. **Report failures honestly.** A partial import is normal and recoverable. Re-run the same command to continue it.
 
 ## References
 
-- [references/export.md](references/export.md) — getting users out of each platform: credentials, flags, field coverage, troubleshooting.
-- [references/transformers.md](references/transformers.md) — what the seven built-ins map, and how to write a transformer for a platform that has none.
-- [references/clerk-to-clerk.md](references/clerk-to-clerk.md) — development → production and instance-to-instance migrations.
+- [references/export.md](references/export.md): getting users out of each platform: credentials, flags, the envelope, field coverage, troubleshooting.
+- [references/checks.md](references/checks.md): what the import checks, each reject reason, and `--allow-partial`.
+- [references/sources.md](references/sources.md): what the seven built-ins carry, and how to write a source for a platform with none.
+- [references/clerk-to-clerk.md](references/clerk-to-clerk.md): development → production and instance-to-instance migrations.
