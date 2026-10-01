@@ -93,7 +93,7 @@ Do this when the file matches no signature in the routing table. Ask first: a cu
 
 ### The file
 
-The CLI imports it at runtime. It is plain data with a default export. The field mapping key is still called `transformer`, and `carries` is **required**:
+The CLI imports it at runtime. It is plain data with a default export. Its field map sends each field in the export to a Clerk field, and `carries` is **required**:
 
 ```ts
 export default {
