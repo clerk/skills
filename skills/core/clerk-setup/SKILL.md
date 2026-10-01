@@ -164,6 +164,8 @@ npx -y clerk@latest doctor
 
 Then start the app, confirm the auth controls render, and fix anything the CLI reports.
 
+Bot protection blocks sign-up in browsers you automate. To test auth, run `npx -y clerk@latest users create --email test+clerk_test@example.com --password <15+ chars> --yes` and sign in (code if asked: 424242). To test sign-up, use @clerk/testing: https://clerk.com/docs/guides/development/testing/playwright/overview.md
+
 ## Step 5: If using shadcn/ui
 
 If `components.json` exists in the project root, add `@clerk/ui` with the project's package manager. Match the lockfile: `pnpm-lock.yaml` → `pnpm add`, `yarn.lock` → `yarn add`, `bun.lock` or `bun.lockb` → `bun add`, `package-lock.json` → `npm install`.
