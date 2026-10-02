@@ -5,18 +5,21 @@ import { checkPlugin, run } from "./check-plugin.mjs";
 const SPEC = "https://agent-plugins.org/schemas/1.0.0";
 const description = "Add authentication with Clerk.";
 const url = "https://mcp.clerk.com/mcp";
+const keywords = ["clerk", "auth", "nextjs"];
 
 function validRepo() {
   return {
     files: {
       "plugin.json": {
+        keywords: [...keywords],
         $schema: `${SPEC}/plugin.schema.json`,
         name: "clerk",
         version: "0.1.0",
         description,
       },
-      ".claude-plugin/plugin.json": { name: "clerk", description },
+      ".claude-plugin/plugin.json": { name: "clerk", description, keywords },
       ".cursor-plugin/plugin.json": {
+        keywords: [...keywords],
         name: "clerk",
         version: "0.1.0",
         description,
@@ -25,6 +28,7 @@ function validRepo() {
         mcpServers: "./.mcp.json",
       },
       ".codex-plugin/plugin.json": {
+        keywords: [...keywords],
         name: "clerk",
         version: "0.1.0",
         description,
@@ -69,6 +73,12 @@ test("rejects manifests that disagree", () => {
   const repo = validRepo();
   repo.files[".codex-plugin/plugin.json"].version = "0.2.0";
   assert.match(checkPlugin(repo).join("\n"), /manifests disagree on version/);
+});
+
+test("rejects manifests whose keywords drift apart", () => {
+  const repo = validRepo();
+  repo.files[".claude-plugin/plugin.json"].keywords = ["clerk", "auth"];
+  assert.match(checkPlugin(repo).join("\n"), /manifests disagree on keywords/);
 });
 
 test("rejects fields outside the closed schemas", () => {

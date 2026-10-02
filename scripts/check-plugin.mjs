@@ -99,6 +99,18 @@ function checkManifests(files, check) {
     );
   }
 
+  // Keywords are the search terms in every marketplace, Claude Code's included.
+  const keywords = Object.fromEntries(
+    MANIFEST_PATHS.map((filePath) => [
+      filePath,
+      JSON.stringify(files[filePath].keywords),
+    ]),
+  );
+  check(
+    new Set(Object.values(keywords)).size === 1,
+    `manifests disagree on keywords: ${JSON.stringify(keywords)}`,
+  );
+
   check(
     spec.$schema === `${SPEC}/plugin.schema.json`,
     "plugin.json: wrong or missing $schema",
