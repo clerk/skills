@@ -1,9 +1,2 @@
-# Skills and plugin config require approval from Docs, AI Enablement, or Growth.
-/skills/ @clerk/docs @clerk/ai-enablement @clerk/growth
-/plugin.json @clerk/docs @clerk/ai-enablement @clerk/growth
-/mcp.json @clerk/docs @clerk/ai-enablement @clerk/growth
-/.mcp.json @clerk/docs @clerk/ai-enablement @clerk/growth
-/.claude-plugin/ @clerk/docs @clerk/ai-enablement @clerk/growth
-/.codex-plugin/ @clerk/docs @clerk/ai-enablement @clerk/growth
-/.cursor-plugin/ @clerk/docs @clerk/ai-enablement @clerk/growth
-/.agents/plugins/ @clerk/docs @clerk/ai-enablement @clerk/growth
+# Everything in this repo requires approval from Docs, AI Enablement, or Growth.
+* @clerk/docs @clerk/ai-enablement @clerk/growth
