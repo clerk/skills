@@ -21,7 +21,8 @@ Show the user this checklist and wait for a yes:
 Here's what I'll do to get you set up with Clerk.
 
 1. Set up Clerk in this project, or scaffold a new app if this directory is empty.
-2. Start your app with Clerk installed.
+2. Install Clerk's agent skills for the coding agents on this machine, if they aren't installed yet.
+3. Start your app with Clerk installed.
 
 Shall I proceed?
 ```
@@ -85,7 +86,7 @@ For a project that does not already use Clerk, run from the project root:
 npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. It also installs Clerk's agent skills globally. If Clerk's skills are already available to you, such as when you loaded this as the `clerk-setup` skill, add `--no-skills` to skip that step. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
+`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. It also installs Clerk's agent skills globally. If the user declined them, or they're already available to you, such as when you loaded this as the `clerk-setup` skill, add `--no-skills` to skip that step. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
 
 ## Step 1b: Empty directory
 
@@ -95,7 +96,7 @@ Ask which framework and package manager to use, defaulting to Next.js and npm:
 npx -y clerk@latest init --framework <framework> --pm <package-manager>
 ```
 
-`init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory. As in Step 1a, add `--no-skills` if Clerk's skills are already available to you.
+`init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory. As in Step 1a, add `--no-skills` if Clerk's skills are already available to you or the user declined them.
 
 `init` can create Next.js, React Router, Astro, Nuxt, TanStack Start, React, Vue, JavaScript/Vite, and Expo apps. For Express, Fastify, iOS, or Android, create the project with that platform's own tooling first, then follow Step 1a.
 
