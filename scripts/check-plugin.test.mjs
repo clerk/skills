@@ -5,7 +5,7 @@ import { checkPlugin, run } from "./check-plugin.mjs";
 const SPEC = "https://agent-plugins.org/schemas/1.0.0";
 const description = "Add authentication with Clerk.";
 const url = "https://mcp.clerk.com/mcp";
-const keywords = ["clerk", "auth", "nextjs"];
+const keywords = ["auth", "clerk", "nextjs"];
 
 function validRepo() {
   return {
@@ -79,6 +79,36 @@ test("rejects manifests whose keywords drift apart", () => {
   const repo = validRepo();
   repo.files[".claude-plugin/plugin.json"].keywords = ["clerk", "auth"];
   assert.match(checkPlugin(repo).join("\n"), /manifests disagree on keywords/);
+});
+
+test("rejects keywords out of alphabetical order", () => {
+  const repo = validRepo();
+  for (const filePath of [
+    "plugin.json",
+    ".claude-plugin/plugin.json",
+    ".cursor-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+  ]) {
+    repo.files[filePath].keywords = ["clerk", "auth", "nextjs"];
+  }
+  assert.deepEqual(checkPlugin(repo), [
+    "plugin.json: keywords must be unique and in alphabetical order",
+  ]);
+});
+
+test("rejects duplicate keywords", () => {
+  const repo = validRepo();
+  for (const filePath of [
+    "plugin.json",
+    ".claude-plugin/plugin.json",
+    ".cursor-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+  ]) {
+    repo.files[filePath].keywords = ["auth", "auth", "clerk"];
+  }
+  assert.deepEqual(checkPlugin(repo), [
+    "plugin.json: keywords must be unique and in alphabetical order",
+  ]);
 });
 
 test("rejects fields outside the closed schemas", () => {

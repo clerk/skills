@@ -110,6 +110,12 @@ function checkManifests(files, check) {
     new Set(Object.values(keywords)).size === 1,
     `manifests disagree on keywords: ${JSON.stringify(keywords)}`,
   );
+  // The other manifests must match this one, so checking it covers them all.
+  const sorted = [...new Set(spec.keywords)].sort();
+  check(
+    JSON.stringify(spec.keywords) === JSON.stringify(sorted),
+    "plugin.json: keywords must be unique and in alphabetical order",
+  );
 
   check(
     spec.$schema === `${SPEC}/plugin.schema.json`,
