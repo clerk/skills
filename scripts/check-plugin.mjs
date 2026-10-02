@@ -69,6 +69,122 @@ function extraFields(object, allowed) {
   );
 }
 
+// Values that several files repeat, each read as [file, property, value]. Every
+// group must agree, and a value left out everywhere still counts as drift.
+function copiedValues(files) {
+  const manifests = (property, read = (manifest) => manifest[property]) =>
+    MANIFEST_PATHS.map((filePath) => [
+      filePath,
+      property,
+      read(files[filePath]),
+    ]);
+  const codex = files[".codex-plugin/plugin.json"];
+  const cursor = files[".cursor-plugin/plugin.json"];
+  const entry = (filePath) =>
+    files[filePath].plugins?.find(({ name }) => name === "clerk") ?? {};
+  // Cursor writes the logo path without the leading ./ that Codex uses.
+  const logo = (value) => (value ? path.posix.normalize(value) : value);
+
+  return {
+    name: manifests("name"),
+    // Claude Code takes no version on purpose (see checkManifests).
+    version: manifests("version").filter(
+      ([filePath]) => filePath !== ".claude-plugin/plugin.json",
+    ),
+    description: [
+      ...manifests("description"),
+      [
+        ".codex-plugin/plugin.json",
+        "interface.longDescription",
+        codex.interface?.longDescription,
+      ],
+      [
+        ".claude-plugin/marketplace.json",
+        "clerk description",
+        entry(".claude-plugin/marketplace.json").description,
+      ],
+      [
+        ".cursor-plugin/marketplace.json",
+        "clerk description",
+        entry(".cursor-plugin/marketplace.json").description,
+      ],
+    ],
+    // Keywords are the search terms in every marketplace, Claude Code's included.
+    keywords: manifests("keywords"),
+    homepage: manifests("homepage"),
+    repository: manifests("repository"),
+    license: manifests("license"),
+    "author name": [
+      ...manifests("author.name", (manifest) => manifest.author?.name),
+      [
+        ".codex-plugin/plugin.json",
+        "interface.developerName",
+        codex.interface?.developerName,
+      ],
+    ],
+    "author email": manifests(
+      "author.email",
+      (manifest) => manifest.author?.email,
+    ),
+    // Cursor's schema allows only name and email on author.
+    "author url": manifests(
+      "author.url",
+      (manifest) => manifest.author?.url,
+    ).filter(([filePath]) => filePath !== ".cursor-plugin/plugin.json"),
+    "display name": [
+      [".cursor-plugin/plugin.json", "displayName", cursor.displayName],
+      [
+        ".codex-plugin/plugin.json",
+        "interface.displayName",
+        codex.interface?.displayName,
+      ],
+    ],
+    logo: [
+      [".cursor-plugin/plugin.json", "logo", logo(cursor.logo)],
+      [
+        ".codex-plugin/plugin.json",
+        "interface.logo",
+        logo(codex.interface?.logo),
+      ],
+      [
+        ".codex-plugin/plugin.json",
+        "interface.composerIcon",
+        logo(codex.interface?.composerIcon),
+      ],
+    ],
+    category: [
+      [
+        ".codex-plugin/plugin.json",
+        "interface.category",
+        codex.interface?.category,
+      ],
+      [
+        ".agents/plugins/marketplace.json",
+        "clerk category",
+        entry(".agents/plugins/marketplace.json").category,
+      ],
+    ],
+  };
+}
+
+function checkCopies(files, check) {
+  for (const [label, copies] of Object.entries(copiedValues(files))) {
+    const values = Object.fromEntries(
+      copies.map(([filePath, property, value]) => [
+        `${filePath} ${property}`,
+        value ?? null,
+      ]),
+    );
+    const distinct = new Set(
+      Object.values(values).map((value) => JSON.stringify(value)),
+    );
+    check(
+      distinct.size === 1 && !distinct.has("null"),
+      `manifests disagree on ${label}: ${JSON.stringify(values)}`,
+    );
+  }
+}
+
 function checkManifests(files, check) {
   const spec = files["plugin.json"];
   const claude = files[".claude-plugin/plugin.json"];
@@ -80,36 +196,8 @@ function checkManifests(files, check) {
     !("version" in claude),
     ".claude-plugin/plugin.json: must not set version",
   );
-  for (const field of ["name", "description"]) {
-    check(
-      claude[field] === spec[field],
-      `.claude-plugin/plugin.json: ${field} differs`,
-    );
-  }
-  const versioned = MANIFEST_PATHS.filter(
-    (filePath) => filePath !== ".claude-plugin/plugin.json",
-  );
-  for (const field of ["name", "version", "description"]) {
-    const values = Object.fromEntries(
-      versioned.map((filePath) => [filePath, files[filePath][field]]),
-    );
-    check(
-      new Set(Object.values(values)).size === 1,
-      `manifests disagree on ${field}: ${JSON.stringify(values)}`,
-    );
-  }
+  checkCopies(files, check);
 
-  // Keywords are the search terms in every marketplace, Claude Code's included.
-  const keywords = Object.fromEntries(
-    MANIFEST_PATHS.map((filePath) => [
-      filePath,
-      JSON.stringify(files[filePath].keywords),
-    ]),
-  );
-  check(
-    new Set(Object.values(keywords)).size === 1,
-    `manifests disagree on keywords: ${JSON.stringify(keywords)}`,
-  );
   // The other manifests must match this one, so checking it covers them all.
   const sorted = [...new Set(spec.keywords)].sort();
   check(

@@ -8,32 +8,59 @@ const url = "https://mcp.clerk.com/mcp";
 const keywords = ["auth", "clerk", "nextjs"];
 
 function validRepo() {
+  const author = {
+    name: "Clerk",
+    email: "ai@clerk.dev",
+    url: "https://clerk.com",
+  };
+  const shared = {
+    name: "clerk",
+    description,
+    homepage: "https://clerk.com/docs",
+    repository: "https://github.com/clerk/skills",
+    license: "MIT",
+    keywords: [...keywords],
+  };
+
   return {
     files: {
       "plugin.json": {
-        keywords: [...keywords],
         $schema: `${SPEC}/plugin.schema.json`,
-        name: "clerk",
-        version: "0.1.0",
-        description,
+        ...shared,
+        version: "1.0.0",
+        author: { ...author },
       },
-      ".claude-plugin/plugin.json": { name: "clerk", description, keywords },
-      ".cursor-plugin/plugin.json": {
+      ".claude-plugin/plugin.json": {
+        ...shared,
         keywords: [...keywords],
-        name: "clerk",
-        version: "0.1.0",
-        description,
-        author: { name: "Clerk", email: "ai@clerk.dev" },
+        author: { ...author },
+      },
+      ".cursor-plugin/plugin.json": {
+        ...shared,
+        keywords: [...keywords],
+        displayName: "Clerk",
+        version: "1.0.0",
+        author: { name: author.name, email: author.email },
+        logo: "assets/clerk-logo.svg",
         skills: "./skills/",
         mcpServers: "./.mcp.json",
       },
       ".codex-plugin/plugin.json": {
+        ...shared,
         keywords: [...keywords],
-        name: "clerk",
-        version: "0.1.0",
-        description,
+        version: "1.0.0",
+        author: { ...author },
         skills: "./skills/",
         mcpServers: "./.mcp.json",
+        interface: {
+          displayName: "Clerk",
+          shortDescription: "Clerk auth",
+          longDescription: description,
+          developerName: "Clerk",
+          category: "Coding",
+          composerIcon: "./assets/clerk-logo.svg",
+          logo: "./assets/clerk-logo.svg",
+        },
       },
       "mcp.json": {
         $schema: `${SPEC}/mcp.schema.json`,
@@ -41,13 +68,19 @@ function validRepo() {
       },
       ".mcp.json": { mcpServers: { clerk: { type: "http", url } } },
       ".claude-plugin/marketplace.json": {
-        plugins: [{ name: "clerk", source: "./" }],
+        plugins: [{ name: "clerk", source: "./", description }],
       },
       ".cursor-plugin/marketplace.json": {
-        plugins: [{ name: "clerk", source: "./" }],
+        plugins: [{ name: "clerk", source: "./", description }],
       },
       ".agents/plugins/marketplace.json": {
-        plugins: [{ name: "clerk", source: { source: "local", path: "./" } }],
+        plugins: [
+          {
+            name: "clerk",
+            source: { source: "local", path: "./" },
+            category: "Coding",
+          },
+        ],
       },
     },
     skills: [
@@ -63,7 +96,7 @@ test("accepts a consistent plugin", () => {
 
 test("rejects a version on the Claude Code manifest", () => {
   const repo = validRepo();
-  repo.files[".claude-plugin/plugin.json"].version = "0.1.0";
+  repo.files[".claude-plugin/plugin.json"].version = "1.0.0";
   assert.deepEqual(checkPlugin(repo), [
     ".claude-plugin/plugin.json: must not set version",
   ]);
@@ -71,7 +104,7 @@ test("rejects a version on the Claude Code manifest", () => {
 
 test("rejects manifests that disagree", () => {
   const repo = validRepo();
-  repo.files[".codex-plugin/plugin.json"].version = "0.2.0";
+  repo.files[".codex-plugin/plugin.json"].version = "1.1.0";
   assert.match(checkPlugin(repo).join("\n"), /manifests disagree on version/);
 });
 
@@ -79,6 +112,91 @@ test("rejects manifests whose keywords drift apart", () => {
   const repo = validRepo();
   repo.files[".claude-plugin/plugin.json"].keywords = ["clerk", "auth"];
   assert.match(checkPlugin(repo).join("\n"), /manifests disagree on keywords/);
+});
+
+// Each case edits one copy of a value that several files must repeat.
+for (const [label, edit] of [
+  [
+    "description",
+    (files) =>
+      (files[".codex-plugin/plugin.json"].interface.longDescription = "Old."),
+  ],
+  [
+    "description",
+    (files) =>
+      (files[".claude-plugin/marketplace.json"].plugins[0].description =
+        "Old."),
+  ],
+  [
+    "description",
+    (files) =>
+      (files[".cursor-plugin/marketplace.json"].plugins[0].description =
+        "Old."),
+  ],
+  [
+    "homepage",
+    (files) =>
+      (files[".cursor-plugin/plugin.json"].homepage = "https://clerk.com"),
+  ],
+  [
+    "repository",
+    (files) =>
+      (files[".claude-plugin/plugin.json"].repository =
+        "https://github.com/clerk/plugin"),
+  ],
+  [
+    "license",
+    (files) => (files[".codex-plugin/plugin.json"].license = "Apache-2.0"),
+  ],
+  [
+    "author name",
+    (files) =>
+      (files[".codex-plugin/plugin.json"].interface.developerName =
+        "Clerk Inc."),
+  ],
+  [
+    "author email",
+    (files) =>
+      (files[".cursor-plugin/plugin.json"].author.email = "support@clerk.com"),
+  ],
+  [
+    "author url",
+    (files) =>
+      (files[".claude-plugin/plugin.json"].author.url = "https://clerk.dev"),
+  ],
+  [
+    "display name",
+    (files) => (files[".cursor-plugin/plugin.json"].displayName = "Clerk Auth"),
+  ],
+  [
+    "logo",
+    (files) =>
+      (files[".codex-plugin/plugin.json"].interface.composerIcon =
+        "./assets/icon.svg"),
+  ],
+  [
+    "category",
+    (files) =>
+      (files[".agents/plugins/marketplace.json"].plugins[0].category =
+        "Productivity"),
+  ],
+]) {
+  test(`rejects drift in ${label}`, () => {
+    const repo = validRepo();
+    edit(repo.files);
+    const errors = checkPlugin(repo);
+    assert.equal(errors.length, 1, errors.join("\n"));
+    assert.match(errors[0], new RegExp(`^manifests disagree on ${label}: `));
+  });
+}
+
+test("rejects a copied value that every file leaves out", () => {
+  const repo = validRepo();
+  delete repo.files[".cursor-plugin/plugin.json"].displayName;
+  delete repo.files[".codex-plugin/plugin.json"].interface.displayName;
+  assert.deepEqual(checkPlugin(repo), [
+    'manifests disagree on display name: {".cursor-plugin/plugin.json displayName":null,".codex-plugin/plugin.json interface.displayName":null}',
+  ]);
 });
 
 test("rejects keywords out of alphabetical order", () => {
