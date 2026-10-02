@@ -73,6 +73,8 @@ copilot plugin marketplace add clerk/skills
 copilot plugin install clerk@clerk-skills
 ```
 
+`clerk` replaces the earlier `core`, `frameworks`, `features`, and `mobile` plugins. Copilot moves those installs to `clerk@clerk-skills` but leaves it disabled, so run `copilot plugin enable clerk@clerk-skills` once.
+
 ## Skills
 
 ### Core
