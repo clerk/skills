@@ -482,11 +482,14 @@ test("the canonical setup skill passes the invariant checker", async () => {
   );
 });
 
-test("the canonical init commands avoid installing skills globally", async () => {
+// Docs and the Dashboard paste this prompt into agents that have no Clerk
+// skills, so the commands as written must let `init` install them. The prose
+// tells agents that already have the skills when to add `--no-skills`.
+test("the canonical init commands install skills for pasted prompts", async () => {
   const content = await readFile(PROMPT_PATH, "utf8");
   const initCommands = content.match(/^npx -y clerk@latest init[^\n]*$/gm) ?? [];
   assert.equal(initCommands.length, 2);
   for (const command of initCommands) {
-    assert.match(command, /(?:^|\s)--no-skills(?:\s|$)/);
+    assert.doesNotMatch(command, /(?:^|\s)--no-skills(?:\s|$)/);
   }
 });

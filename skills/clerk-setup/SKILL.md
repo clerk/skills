@@ -11,7 +11,7 @@ metadata:
 
 # Set up Clerk
 
-Use the [Clerk CLI](https://clerk.com/docs/cli) to add authentication. In agent environments, supported frameworks default to accountless setup: `npx -y clerk@latest init --no-skills` provisions a claimable application and writes temporary development keys without requiring a Clerk account.
+Use the [Clerk CLI](https://clerk.com/docs/cli) to add authentication. In agent environments, supported frameworks default to accountless setup: `npx -y clerk@latest init` provisions a claimable application and writes temporary development keys without requiring a Clerk account.
 
 ## Before you start
 
@@ -82,20 +82,20 @@ Only when the user needs production keys, use `npx -y clerk@latest env pull --in
 For a project that does not already use Clerk, run from the project root:
 
 ```bash
-npx -y clerk@latest init --no-skills
+npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. `--no-skills` skips the CLI's automatic global skill installation; this skill already provides the setup guidance. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
+`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. It also installs Clerk's agent skills globally. If Clerk's skills are already available to you, such as when you loaded this as the `clerk-setup` skill, add `--no-skills` to skip that step. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
 
 ## Step 1b: Empty directory
 
 Ask which framework and package manager to use, defaulting to Next.js and npm:
 
 ```bash
-npx -y clerk@latest init --framework <framework> --pm <package-manager> --no-skills
+npx -y clerk@latest init --framework <framework> --pm <package-manager>
 ```
 
-`init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory.
+`init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory. As in Step 1a, add `--no-skills` if Clerk's skills are already available to you.
 
 `init` can create Next.js, React Router, Astro, Nuxt, TanStack Start, React, Vue, JavaScript/Vite, and Expo apps. For Express, Fastify, iOS, or Android, create the project with that platform's own tooling first, then follow Step 1a.
 
