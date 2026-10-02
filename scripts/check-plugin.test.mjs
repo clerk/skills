@@ -68,9 +68,11 @@ function validRepo() {
       },
       ".mcp.json": { mcpServers: { clerk: { type: "http", url } } },
       ".claude-plugin/marketplace.json": {
+        owner: { name: author.name, email: author.email },
         plugins: [{ name: "clerk", source: "./", description }],
       },
       ".cursor-plugin/marketplace.json": {
+        owner: { name: author.name, email: author.email },
         plugins: [{ name: "clerk", source: "./", description }],
       },
       ".agents/plugins/marketplace.json": {
@@ -132,6 +134,17 @@ for (const [label, edit] of [
     (files) =>
       (files[".cursor-plugin/marketplace.json"].plugins[0].description =
         "Old."),
+  ],
+  [
+    "author email",
+    (files) =>
+      (files[".claude-plugin/marketplace.json"].owner.email =
+        "support@clerk.com"),
+  ],
+  [
+    "author name",
+    (files) =>
+      (files[".cursor-plugin/marketplace.json"].owner.name = "Clerk Inc."),
   ],
   [
     "homepage",

@@ -121,11 +121,16 @@ function copiedValues(files) {
         "interface.developerName",
         codex.interface?.developerName,
       ],
+      ...MARKETPLACE_PATHS.filter((filePath) => files[filePath].owner).map(
+        (filePath) => [filePath, "owner.name", files[filePath].owner.name],
+      ),
     ],
-    "author email": manifests(
-      "author.email",
-      (manifest) => manifest.author?.email,
-    ),
+    "author email": [
+      ...manifests("author.email", (manifest) => manifest.author?.email),
+      ...MARKETPLACE_PATHS.filter((filePath) => files[filePath].owner).map(
+        (filePath) => [filePath, "owner.email", files[filePath].owner.email],
+      ),
+    ],
     // Cursor's schema allows only name and email on author.
     "author url": manifests(
       "author.url",
