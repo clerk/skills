@@ -1,7 +1,7 @@
 {
   "name": "clerk",
   "displayName": "Clerk",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server.",
   "author": {
     "name": "Clerk",
