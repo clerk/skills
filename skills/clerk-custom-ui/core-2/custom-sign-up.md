@@ -187,4 +187,4 @@ export default function SignUpPage() {
 ## Docs
 
 - [Custom sign-up flow](https://clerk.com/docs/custom-flows/overview)
-- [useSignUp() reference](https://clerk.com/docs/references/react/use-sign-up)
+- [useSignUp() reference](https://clerk.com/docs/reference/hooks/legacy/use-sign-up)

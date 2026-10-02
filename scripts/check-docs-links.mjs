@@ -2,8 +2,10 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { compile, match } from "path-to-regexp";
+
 const DEFAULT_PATHS = "skills/**/*.md";
-const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
+export const DEFAULT_MANIFEST_URL = "https://clerk.com/docs/links.json";
 // Match /docs only when followed by a path, query, fragment, delimiter, or end
 // of URL — never when another word character follows (e.g. /docs-broken or
 // /docsearch), which would otherwise truncate to a bare, always-valid /docs.
@@ -127,59 +129,57 @@ function normalizePathname(pathname) {
     : withoutMarkdownExtension;
 }
 
-function compileDynamicRedirect(source) {
-  let expression = "^";
-
-  for (let index = 0; index < source.length; index += 1) {
-    if (source[index] !== ":") {
-      expression += escapeRegExp(source[index]);
-      continue;
-    }
-
-    const parameter = source
-      .slice(index)
-      .match(/^:([A-Za-z0-9_]+)(?:\(([^)]+)\))?([*+?])?/);
-    if (!parameter) {
-      expression += ":";
-      continue;
-    }
-
-    const valuePattern = parameter[2] ? `(?:${parameter[2]})` : "[^/]+";
-    const modifier = parameter[3];
-    const repeatedPattern = `${valuePattern}(?:/${valuePattern})*`;
-
-    if ((modifier === "*" || modifier === "?") && expression.endsWith("/")) {
-      expression = expression.slice(0, -1);
-      expression += `(?:/${modifier === "*" ? repeatedPattern : valuePattern})?`;
-    } else if (modifier === "*") {
-      expression += `(?:${repeatedPattern})?`;
-    } else if (modifier === "+") {
-      expression += repeatedPattern;
-    } else if (modifier === "?") {
-      expression += `(?:${valuePattern})?`;
-    } else {
-      expression += valuePattern;
-    }
-
-    index += parameter[0].length - 1;
-  }
-
-  return new RegExp(`${expression}$`);
+// Compile a dynamic redirect with path-to-regexp and the same options as the
+// docs runtime, so matching (including case-insensitivity) stays aligned with
+// production. A pattern path-to-regexp can't parse throws here, which fails
+// the check the same way it fails `lint:check-redirects` in clerk/clerk.
+function compileDynamicRedirect(redirect) {
+  return {
+    matchesSource: match(redirect.source, { decode: decodeURIComponent }),
+    getDestination: compile(redirect.destination, {
+      encode: encodeURIComponent,
+    }),
+  };
 }
 
-function inferredSdkSegments(routes = {}) {
-  const routePaths = new Set(Object.keys(routes));
-  const sdkSegments = new Set();
-
-  for (const routePath of routePaths) {
-    const match = routePath.match(/^\/docs\/([^/]+)(\/.+)$/);
-    if (match && routePaths.has(`/docs${match[2]}`)) {
-      sdkSegments.add(match[1]);
-    }
-  }
-
-  return sdkSegments;
-}
+// SDK segments the docs runtime strips before matching redirects. Copied from
+// `sdks` in clerk/clerk's src/app/docs/SDK.tsx at 72f6537. links.json
+// doesn't publish this list, and many SDKs have no scoped pages to infer it
+// from.
+const SDK_SEGMENTS = new Set([
+  "nextjs",
+  "react",
+  "expo",
+  "tanstack-react-start",
+  "react-router",
+  "expressjs",
+  "android",
+  "astro",
+  "chrome-extension",
+  "csharp",
+  "electron",
+  "fastify",
+  "go",
+  "ios",
+  "java",
+  "js-backend",
+  "js-frontend",
+  "nuxt",
+  "php",
+  "python",
+  "remix",
+  "ruby",
+  "vue",
+  "angular",
+  "elysia",
+  "flutter",
+  "hono",
+  "koa",
+  "rust",
+  "solidjs",
+  "svelte",
+  "tauri",
+]);
 
 function manifestMetadata(manifest) {
   const cached = manifestMetadataCache.get(manifest);
@@ -188,38 +188,52 @@ function manifestMetadata(manifest) {
   }
 
   const metadata = {
-    sdkSegments: inferredSdkSegments(manifest.routes),
-    dynamicRedirectMatchers: (manifest.redirects?.dynamic ?? []).map(
-      (redirect) => compileDynamicRedirect(redirect.source),
+    dynamicRedirects: (manifest.redirects?.dynamic ?? []).map(
+      compileDynamicRedirect,
     ),
   };
   manifestMetadataCache.set(manifest, metadata);
   return metadata;
 }
 
-function redirectPathCandidates(pathname, sdkSegments) {
-  const candidates = [pathname];
+// Clerk's runtime strips a recognized SDK segment before matching redirects,
+// then restores it on the destination.
+function splitSdk(pathname) {
   const match = pathname.match(/^\/docs\/([^/]+)(\/.+)$/);
-
-  // Clerk's runtime strips recognized SDK segments before matching the compact
-  // redirect map, then restores the SDK on the destination. Infer those SDKs
-  // from the manifest's paired scoped and unscoped routes so this action does
-  // not need its own hard-coded SDK registry.
-  if (match && sdkSegments.has(match[1])) {
-    candidates.push(`/docs${match[2]}`);
-  }
-
-  return candidates;
+  return match && SDK_SEGMENTS.has(match[1])
+    ? { normalizedPathname: `/docs${match[2]}`, sdk: match[1] }
+    : { normalizedPathname: pathname };
 }
 
-function isRedirect(pathname, manifest) {
-  const metadata = manifestMetadata(manifest);
+function withSdk(destination, sdk) {
+  return sdk && destination.startsWith("/docs/")
+    ? `/docs/${sdk}${destination.slice("/docs".length)}`
+    : destination;
+}
 
-  return redirectPathCandidates(pathname, metadata.sdkSegments).some(
-    (candidate) =>
-      Boolean(manifest.redirects?.static?.[candidate]) ||
-      metadata.dynamicRedirectMatchers.some((matcher) => matcher.test(candidate)),
-  );
+// Mirrors the docs runtime's lookup order: dynamic redirects on the
+// SDK-normalized path, then static redirects on the normalized path, then
+// static redirects on the SDK-scoped path.
+function resolveRedirect(pathname, manifest) {
+  const metadata = manifestMetadata(manifest);
+  const { normalizedPathname, sdk } = splitSdk(pathname);
+
+  for (const redirect of metadata.dynamicRedirects) {
+    const result = redirect.matchesSource(normalizedPathname);
+    if (result) {
+      return withSdk(redirect.getDestination(result.params), sdk);
+    }
+  }
+
+  const staticRedirects = manifest.redirects?.static ?? {};
+  if (Object.hasOwn(staticRedirects, normalizedPathname)) {
+    return withSdk(staticRedirects[normalizedPathname], sdk);
+  }
+  if (Object.hasOwn(staticRedirects, pathname)) {
+    return staticRedirects[pathname];
+  }
+
+  return undefined;
 }
 
 export function validateLink(rawUrl, manifest) {
@@ -241,11 +255,26 @@ export function validateLink(rawUrl, manifest) {
     return { status: "invalid", reason: `heading #${anchor} does not exist` };
   }
 
-  if (isRedirect(pathname, manifest)) {
-    return { status: "redirect" };
+  const destination = resolveRedirect(pathname, manifest);
+  if (destination) {
+    return { status: "redirect", destination };
   }
 
   return { status: "invalid", reason: "page does not exist" };
+}
+
+// Point the original link at the redirect destination the way production
+// does: keep the link's `.md` suffix and query, and prefer the destination's
+// fragment over the link's own.
+function redirectedUrl(rawUrl, destination) {
+  const url = new URL(rawUrl);
+  const target = new URL(destination, url);
+  if (url.pathname.endsWith(".md")) {
+    target.pathname += ".md";
+  }
+  target.search = url.search;
+  target.hash = target.hash || url.hash;
+  return target.href;
 }
 
 function escapeAnnotation(value) {
@@ -259,7 +288,7 @@ function isRetryableStatus(status) {
   return status === 429 || status >= 500;
 }
 
-async function loadManifest(manifestUrl) {
+export async function loadManifest(manifestUrl) {
   let lastError;
 
   // This action gates a required status check, so a single transient network or
@@ -330,7 +359,7 @@ export async function run({ cwd, manifestUrl, paths }) {
       } else if (result.status === "redirect") {
         redirectedLinks += 1;
         console.warn(
-          `::warning ${location}::${escapeAnnotation(`${link.url} resolves through a redirect`)}`,
+          `::warning ${location}::${escapeAnnotation(`${link.url} resolves through a redirect to ${redirectedUrl(link.url, result.destination)}`)}`,
         );
       }
     }

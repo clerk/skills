@@ -1,4 +1,4 @@
-name: Check Clerk docs links
+name: Check
 
 on:
   # This check is required by the main ruleset, so it must report a result for every PR.
@@ -11,11 +11,12 @@ permissions:
   contents: read
 
 jobs:
-  check-docs-links:
-    name: Check Clerk docs links
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Test link checker
-        run: node --test .github/actions/check-docs-links/check-docs-links.test.mjs
-      - uses: ./.github/actions/check-docs-links
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Validate skills
+        run: npm run check

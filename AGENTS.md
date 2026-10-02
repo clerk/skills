@@ -30,7 +30,13 @@ The manifests overlap on purpose: no single file is valid for every loader. `scr
 
 ## Contributing
 
+Read `STYLEGUIDE.md` before editing agent-facing setup instructions. It separates semantic review rules from the mechanical prompt invariants enforced in CI.
+
 1. Each skill needs `SKILL.md` with YAML frontmatter (`name`, `description`, `license`)
 2. Place it in `skills/<skill-name>/`. The folder name must match the frontmatter `name`
 3. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 4. Plugin names are permanent. Renaming or removing one needs a `renames` entry in `.claude-plugin/marketplace.json`
+
+## CI checks
+
+The `Test` and `Check` workflows in `.github/workflows/` run npm scripts backed by `scripts/`. Run `npm test` to test the checkers and `npm run check` to validate the skills.
