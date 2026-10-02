@@ -23,5 +23,7 @@
     "react",
     "expo",
     "mcp"
-  ]
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
 }

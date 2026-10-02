@@ -21,11 +21,15 @@ function validRepo() {
         version: "0.1.0",
         description,
         author: { name: "Clerk", email: "ai@clerk.dev" },
+        skills: "./skills/",
+        mcpServers: "./.mcp.json",
       },
       ".codex-plugin/plugin.json": {
         name: "clerk",
         version: "0.1.0",
         description,
+        skills: "./skills/",
+        mcpServers: "./.mcp.json",
       },
       "mcp.json": {
         $schema: `${SPEC}/mcp.schema.json`,
@@ -88,6 +92,18 @@ test("rejects MCP configs that drift apart", () => {
   assert.deepEqual(checkPlugin(repo), [
     ".mcp.json: clerk must use type http",
     "clerk: url differs between mcp.json and .mcp.json",
+  ]);
+});
+
+test("requires Cursor and Codex to load the skills and the http MCP config", () => {
+  const repo = validRepo();
+  delete repo.files[".cursor-plugin/plugin.json"].mcpServers;
+  repo.files[".codex-plugin/plugin.json"].mcpServers = "./mcp.json";
+  repo.files[".codex-plugin/plugin.json"].skills = "./plugins/clerk/skills/";
+  assert.deepEqual(checkPlugin(repo), [
+    '.cursor-plugin/plugin.json: mcpServers must be "./.mcp.json"',
+    '.codex-plugin/plugin.json: skills must be "./skills/"',
+    '.codex-plugin/plugin.json: mcpServers must be "./.mcp.json"',
   ]);
 });
 

@@ -119,6 +119,23 @@ function checkManifests(files, check) {
     extra === "[]",
     `.cursor-plugin/plugin.json: author allows only name and email, found ${extra}`,
   );
+
+  // Cursor and Codex both take Claude Code's `"type": "http"` MCP format, not
+  // the Agent Plugins spec's `streamable-http` in mcp.json.
+  for (const filePath of [
+    ".cursor-plugin/plugin.json",
+    ".codex-plugin/plugin.json",
+  ]) {
+    for (const [field, expected] of [
+      ["skills", "./skills/"],
+      ["mcpServers", "./.mcp.json"],
+    ]) {
+      check(
+        files[filePath][field] === expected,
+        `${filePath}: ${field} must be ${JSON.stringify(expected)}`,
+      );
+    }
+  }
 }
 
 function checkMcp(files, check) {
