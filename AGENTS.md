@@ -24,7 +24,7 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 
 `.claude-plugin/marketplace.json`, `.cursor-plugin/marketplace.json`, `.agents/plugins/marketplace.json` - marketplace catalogs, each listing the one `clerk` plugin at `./`.
 
-The manifests overlap on purpose: no single file is valid for every loader. `scripts/check.py` keeps them consistent and runs in CI.
+The manifests overlap on purpose: no single file is valid for every loader. `scripts/check-plugin.mjs` keeps them consistent and runs in CI with `npm run check`.
 
 `.claude-plugin/plugin.json` has no `version` on purpose. Claude Code keeps users on their cached copy while `version` is unchanged; without it, every commit is an update.
 

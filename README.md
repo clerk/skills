@@ -165,7 +165,7 @@ clerk-skills/                           # the repo root is the plugin root
 ├── .cursor-plugin/                     # plugin.json + marketplace.json
 ├── .codex-plugin/plugin.json
 ├── .agents/plugins/marketplace.json    # Codex marketplace
-├── scripts/check.py                    # keeps the manifests consistent
+├── scripts/                            # CI checkers, run with npm run check
 └── README.md
 ```
 
