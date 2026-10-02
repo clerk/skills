@@ -68,6 +68,14 @@ Don't claim that every framework supports accountless setup. Tie accountless or 
 
 Keep this condition close to each accountless claim. A qualification elsewhere in the prompt doesn't make a later, unconditional claim accurate.
 
+## Word skill-only guidance so it holds when pasted
+
+Docs quickstart cards and the Dashboard publish this prompt as plain text, pasted into agents that haven't loaded any Clerk skill. Write the commands for that agent, and put skill-only adjustments behind a condition the agent can check.
+
+> ❌ `npx -y clerk@latest init --no-skills` — this skill already provides the setup guidance.
+
+> ✅ `npx -y clerk@latest init` — if Clerk's skills are already available to you, add `--no-skills`.
+
 ## Write links as Markdown links
 
 Use `[descriptive text](url)` for every link. Agents reading the raw file still see the URL, and rendered Markdown shows readable text. Don't use bare URLs or URLs in parentheses after the text.
