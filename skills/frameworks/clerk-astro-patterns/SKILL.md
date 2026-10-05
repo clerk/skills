@@ -102,7 +102,8 @@ export const GET: APIRoute = ({ locals }) => {
 | What | Import From |
 |------|-------------|
 | `clerkMiddleware`, `clerkClient` | `@clerk/astro/server` |
-| `useAuth`, `useUser`, `UserButton` | `@clerk/astro/react` |
+| `useAuth`, `UserButton` (no `useUser`) | `@clerk/astro/react` |
+| `$userStore`, `$authStore` | `@clerk/astro/client` |
 | Astro components (`<SignIn>`, etc.) | `@clerk/astro/components` |
 
 ## Env Variables
