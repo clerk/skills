@@ -210,9 +210,10 @@ app/orgs/[slug]/settings/page.tsx
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
 ```typescript
-export default async function OrgPage({ params }: { params: { slug: string } }) {
+export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const { orgSlug } = await auth()
-  if (orgSlug !== params.slug) {
+  if (orgSlug !== slug) {
     redirect('/dashboard')  // or whatever your "no-access" flow is
   }
   return <div>Welcome to {orgSlug}</div>
@@ -410,10 +411,11 @@ Server component protecting a slug-scoped admin page:
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function AdminPage({ params }: { params: { slug: string } }) {
+export default async function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const { orgSlug, has } = await auth()
 
-  if (orgSlug !== params.slug) redirect('/dashboard')
+  if (orgSlug !== slug) redirect('/dashboard')
   if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
 
   return <div>Admin settings for {orgSlug}</div>
@@ -429,10 +431,10 @@ Send from a server action or route handler:
 ```typescript
 import { clerkClient, auth } from '@clerk/nextjs/server'
 
-export async function inviteMember(organizationId: string, emailAddress: string, role: string) {
-  const { userId, has } = await auth()
+export async function inviteMember(emailAddress: string, role: string) {
+  const { userId, orgId, has } = await auth()
 
-  if (!userId) throw new Error('Not signed in')
+  if (!userId || !orgId) throw new Error('No active organization')
   // Inviting needs the System Permission org:sys_memberships:manage, which
   // has() can't check, so check a role that carries it.
   if (!has({ role: 'org:admin' })) {
@@ -441,7 +443,7 @@ export async function inviteMember(organizationId: string, emailAddress: string,
 
   const clerk = await clerkClient()
   return clerk.organizations.createOrganizationInvitation({
-    organizationId,
+    organizationId: orgId,       // the active org that has() checked
     inviterUserId: userId,       // required per Backend API
     emailAddress,
     role,                        // e.g. 'org:admin' or 'org:member'

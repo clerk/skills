@@ -19,9 +19,9 @@ Send, list, revoke. Backend API methods live on `clerkClient().organizations.*`.
 ```typescript
 import { clerkClient, auth } from '@clerk/nextjs/server'
 
-export async function inviteMember(organizationId: string, emailAddress: string, role: string) {
-  const { userId, has } = await auth()
-  if (!userId) throw new Error('Not signed in')
+export async function inviteMember(emailAddress: string, role: string) {
+  const { userId, orgId, has } = await auth()
+  if (!userId || !orgId) throw new Error('No active organization')
   // Inviting needs the System Permission org:sys_memberships:manage, which
   // has() can't check, so check a role that carries it.
   if (!has({ role: 'org:admin' })) {
@@ -30,7 +30,7 @@ export async function inviteMember(organizationId: string, emailAddress: string,
 
   const clerk = await clerkClient()
   return clerk.organizations.createOrganizationInvitation({
-    organizationId,
+    organizationId: orgId, // the active org that has() checked
     inviterUserId: userId,
     emailAddress,
     role,

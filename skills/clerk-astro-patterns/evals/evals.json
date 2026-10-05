@@ -86,7 +86,7 @@
       "expectations": [
         "Updates astro.config to include react() in integrations array alongside clerk()",
         "Creates a React component (.tsx) importing from @clerk/astro/react (NOT @clerk/astro/components)",
-        "Uses Show when='signed-in' and Show when='signed-out' for conditional rendering (NOT SignedIn/SignedOut, which @clerk/astro 4 removed)",
+        "Uses Show when='signed-in' and Show when='signed-out' for conditional rendering (NOT SignedIn/SignedOut, which @clerk/astro 3 removed)",
         "Includes UserButton and SignInButton from @clerk/astro/react",
         "Mounts the React component in an .astro file with client:load directive",
         "Does NOT forget client:load on the React component (would render as static HTML without it)"
