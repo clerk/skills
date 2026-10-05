@@ -3,15 +3,15 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "i'm adding clerk to my astro app. set up the middleware so the /dashboard and /settings routes are protected and redirect unauthenticated users to /sign-in.",
-      "expected_output": "Creates src/middleware.ts with clerkMiddleware, createRouteMatcher matching /dashboard and /settings, redirects via auth().redirectToSignIn()",
+      "prompt": "i'm adding clerk to my astro app. protect the /dashboard and /settings pages so signed-out users are redirected to /sign-in.",
+      "expected_output": "Keeps src/middleware.ts as a bare clerkMiddleware(). Each of src/pages/dashboard.astro and src/pages/settings.astro calls Astro.locals.auth() in its frontmatter and returns Astro.redirect('/sign-in') when userId is falsy.",
       "scaffold": "astro-basic-auth",
       "expectations": [
-        "Creates src/middleware.ts that exports onRequest",
-        "Uses clerkMiddleware from @clerk/astro/server",
-        "Uses createRouteMatcher to match /dashboard and /settings routes",
-        "Calls auth().redirectToSignIn() when route is protected and user is not signed in",
-        "Calls next() for unprotected routes"
+        "Does NOT import createRouteMatcher",
+        "src/middleware.ts still exports onRequest = clerkMiddleware() from @clerk/astro/server",
+        "src/pages/dashboard.astro calls Astro.locals.auth() and returns Astro.redirect('/sign-in') when userId is falsy",
+        "src/pages/settings.astro calls Astro.locals.auth() and returns Astro.redirect('/sign-in') when userId is falsy",
+        "/ remains public"
       ]
     },
     {
