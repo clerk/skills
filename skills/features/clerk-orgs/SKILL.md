@@ -229,13 +229,15 @@ if (!has({ role: 'org:admin' })) {
 }
 ```
 
-Permission checks use the same `has()` surface:
+Permission checks use the same `has()` surface, for custom Permissions you create in the Dashboard:
 
 ```typescript
-if (!has({ permission: 'org:sys_memberships:manage' })) {
+if (!has({ permission: 'org:invoices:create' })) {
   redirect('/unauthorized')
 }
 ```
+
+`has({ permission })` and `<Show when={{ permission }}>` work only with custom Permissions. System Permissions (`org:sys_*`) aren't in the session token, so checking one always returns `false`. To require a System Permission, check a role that carries it (`has({ role: 'org:admin' })`).
 
 **Permission naming convention.** System Permissions prefix with `org:sys_`; custom Permissions use `org:<resource>:<action>`. The full System Permissions catalog lives in `references/roles-permissions.md` — the short list is:
 
@@ -255,8 +257,8 @@ import { Show } from '@clerk/nextjs'
   <AdminPanel />
 </Show>
 
-<Show when={{ permission: 'org:sys_memberships:manage' }}>
-  <MembersTab />
+<Show when={{ permission: 'org:invoices:create' }}>
+  <NewInvoiceButton />
 </Show>
 ```
 
@@ -393,7 +395,7 @@ Most "org-related" failures are configuration, not code. Do not edit components 
 | Error / symptom | Root cause | Fix |
 |---|---|---|
 | `orgId` / `orgSlug` is `undefined` for a signed-in user | Organizations not enabled for this instance, OR user has no active org (personal account) | Enable in Dashboard → Organizations; check Membership mode; surface `<OrganizationSwitcher />` |
-| `has({ permission: 'org:manage_members' })` always `false` | Using an invented permission slug | Use `org:sys_memberships:manage` (see roles-permissions.md catalog) |
+| `has({ permission: ... })` always `false` | An invented slug (`org:manage_members`), or a System Permission (`org:sys_*`), which `has()` can't check | Check the role (`has({ role: 'org:admin' })`) or a custom Permission created in the Dashboard (see roles-permissions.md) |
 | `has({ role })` returns `false` but user looks like an admin | Session token stale after role change | Re-sign-in, or refresh the session: `await clerk.session?.reload()` |
 | `has({ permission })` `false` even with the role assigned | Feature not attached to active Plan (Billing gates permissions) | Dashboard → Billing → Plans → attach Feature |
 | `<OrganizationSwitcher />` doesn't show "Personal Account" | `Membership required` mode is on (the default since Aug 22, 2025) | Dashboard → Organizations settings → `Membership optional` |
@@ -431,7 +433,9 @@ export async function inviteMember(organizationId: string, emailAddress: string,
   const { userId, has } = await auth()
 
   if (!userId) throw new Error('Not signed in')
-  if (!has({ permission: 'org:sys_memberships:manage' })) {
+  // Inviting needs the System Permission org:sys_memberships:manage, which
+  // has() can't check, so check a role that carries it.
+  if (!has({ role: 'org:admin' })) {
     throw new Error('Not authorized to invite members')
   }
 
@@ -453,7 +457,7 @@ The full lifecycle (list, revoke, bulk create, built-in `<OrganizationProfile />
 1. **Enable** — Organizations + Membership mode in Dashboard
 2. **Create org** — via UI component or Backend API
 3. **Invite members** — Backend API or built-in UI, with `inviterUserId`
-4. **Gate access** — `has({ role })` / `has({ permission })` with canonical `org:sys_*` names
+4. **Gate access** — `has({ role })`, or `has({ permission })` with a custom Permission. `has()` can't check System Permissions (`org:sys_*`)
 5. **Scope routes** — `orgSlug === params.slug` on every protected page
 6. **Switch orgs** — `<OrganizationSwitcher />` handles the whole flow
 

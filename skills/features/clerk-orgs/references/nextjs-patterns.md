@@ -82,7 +82,10 @@ export async function GET(
   if (orgSlug !== slug) {
     return NextResponse.json({ error: 'wrong org' }, { status: 403 })
   }
-  if (!has({ permission: 'org:sys_memberships:read' })) {
+  // Reading members needs org:sys_memberships:read, which every default role
+  // has and which has() can't check. The slug check above already proves
+  // membership. To restrict further, check a role:
+  if (!has({ role: 'org:admin' })) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
 

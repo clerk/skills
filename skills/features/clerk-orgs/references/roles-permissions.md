@@ -92,8 +92,10 @@ Three surfaces, same semantics:
 import { auth } from '@clerk/nextjs/server'
 const { has } = await auth()
 has({ role: 'org:admin' })
-has({ permission: 'org:sys_memberships:manage' })
+has({ permission: 'org:invoices:create' }) // custom Permissions only
 ```
+
+`has({ permission })` works only with custom Permissions. System Permissions (`org:sys_*`) aren't in the session token, so checking one always returns `false`. To require a System Permission, check a role that carries it.
 
 ```tsx
 // Client (any React-based SDK)

@@ -23,7 +23,7 @@
 				"Uses has({ role: 'org:admin' }) from auth() rather than comparing orgRole string directly",
 				"Destructures has from the result of await auth() (not from useAuth or a non-awaited call)",
 				"Does NOT hardcode role strings without using Clerk's role system",
-				"If it uses a permission check, uses a canonical System Permission slug like org:sys_memberships:manage, NOT invented slugs like org:manage_members, org:create, or org:update_metadata",
+				"If it uses a permission check, passes a custom Permission slug (org:<resource>:<action>) to has(), NOT a System Permission (org:sys_*, which has() can't check) and NOT an invented slug like org:manage_members, org:create, or org:update_metadata",
 				"Settings page shows org-level configuration options",
 				"Regular members can still access the dashboard"
 			]
@@ -87,12 +87,12 @@
 			"expected_output": "Creates invitation form using clerkClient or OrganizationSwitcher, lists pending invitations",
 			"scaffold": "nextjs-basic-auth",
 			"expectations": [
-				"Checks the caller has invite permission using has({ permission: 'org:sys_memberships:manage' }) before sending invitations",
+				"Checks the caller may invite with has({ role: 'org:admin' }) (or a custom role or Permission) before sending invitations, NOT has({ permission: 'org:sys_memberships:manage' }), which is always false on the server",
 				"Calls clerk.organizations.createOrganizationInvitation with organizationId, inviterUserId (the calling userId), emailAddress, role, and redirectUrl",
 				"Does NOT omit inviterUserId — it is required for human-initiated invitations",
 				"Lists pending invitations by calling getOrganizationInvitationList with status array",
 				"If filtering status, uses only the canonical values: 'pending', 'accepted', 'revoked', 'expired' (not made-up states)",
-				"Only authorized users (admins or members with org:sys_memberships:manage) can send invitations",
+				"Only authorized users (org admins, or a role that carries the manage-members System Permission) can send invitations",
 				"Uses await clerkClient() (not clerkClient directly) to obtain the client instance before making API calls"
 			]
 		},
