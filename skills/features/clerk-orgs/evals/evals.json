@@ -77,7 +77,7 @@
 				"Uses has({ permission: 'org:billing:manage' }) or similar from auth() to check the custom permission",
 				"Mentions creating the custom role and permission in Clerk Dashboard",
 				"Protects the billing route by redirecting unauthorized users",
-				"Shows the permission check in the billing page (server component) or its route handler, not in middleware",
+				"Shows the permission check in the billing page (server component) or its route handler (a middleware redirect alone is not enough)",
 				"Does NOT hardcode role names as the only check method (uses permissions API)"
 			]
 		},

@@ -11,14 +11,17 @@ For other frameworks see `clerk-react-patterns`, `clerk-astro-patterns`, `clerk-
 ```typescript
 // app/orgs/[slug]/billing/page.tsx
 import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
 
-export default async function BillingPage() {
-  await auth.protect({ permission: 'org:sys_billing:manage' })
+export default async function BillingPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const { orgSlug } = await auth.protect({ permission: 'org:billing:manage' })
+  if (orgSlug !== slug) redirect('/dashboard')
   return <BillingSettings />
 }
 ```
 
-See the [authorization checks guide](https://clerk.com/docs/guides/secure/authorization-checks).
+`org:billing:manage` is a custom permission: create it in the Dashboard and assign it to a role. Server-side permission checks only work with custom permissions. System permissions (`org:sys_*`) aren't in the session token, so to require one of those, check the role instead (`{ role: 'org:admin' }`). See the [authorization checks guide](https://clerk.com/docs/guides/secure/authorization-checks).
 
 ## URL Slug Safety Invariant
 
@@ -29,9 +32,10 @@ Nothing validates that the URL slug matches the active org. A user with active o
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function OrgPage({ params }: { params: { slug: string } }) {
+export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const { orgSlug, has } = await auth()
-  if (orgSlug !== params.slug) redirect('/dashboard')
+  if (orgSlug !== slug) redirect('/dashboard')
   if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
   return <AdminContent />
 }

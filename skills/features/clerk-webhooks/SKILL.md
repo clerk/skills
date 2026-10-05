@@ -32,7 +32,7 @@ Use `verifyWebhook(req)` from the framework-specific package (`@clerk/nextjs/web
 
 ## Keep the Webhook Route Unprotected
 
-Webhook deliveries carry no user session. `verifyWebhook()` is the only check the route needs. A bare `clerkMiddleware()` protects nothing, so the route is already reachable. Don't call `auth.protect()` for `/api/webhooks(.*)`, in middleware or in the handler. A project that does returns `401` (middleware) or `404` (`auth.protect()` in the handler) for every delivery until that call is removed. See [Ensure the webhook route is public](https://clerk.com/docs/guides/development/webhooks/syncing#ensure-the-webhook-route-is-public).
+Webhook deliveries carry no user session. `verifyWebhook()` is the only check the route needs. A bare `clerkMiddleware()` protects nothing, so the route is already reachable. Don't call `auth.protect()` for `/api/webhooks(.*)`, in middleware or in the handler. A project that does returns `404` for every delivery until that call is removed. See [Ensure the webhook route is public](https://clerk.com/docs/guides/development/webhooks/syncing#ensure-the-webhook-route-is-public).
 
 ## Complete Webhook Handler (Next.js App Router)
 
