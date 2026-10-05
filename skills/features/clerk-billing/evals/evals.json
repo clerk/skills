@@ -55,7 +55,7 @@
     {
       "id": 4,
       "prompt": "i want to handle clerk billing webhook events so i can sync subscription status to my database. i need to handle when a subscription is created, when it gets canceled, and when a payment fails or goes past due.",
-      "expected_output": "POST handler calls verifyWebhook(req) from @clerk/nextjs/webhooks, branches on Clerk's dot-camelCase event names (subscription.created, subscriptionItem.canceled, subscriptionItem.pastDue), and proxy/middleware marks /api/webhooks as public.",
+      "expected_output": "POST handler calls verifyWebhook(req) from @clerk/nextjs/webhooks, branches on Clerk's dot-camelCase event names (subscription.created, subscriptionItem.canceled, subscriptionItem.pastDue), and the webhook route has no session check (proxy.ts stays a bare clerkMiddleware()).",
       "scaffold": "nextjs-basic-auth",
       "files": [],
       "assertions": [
@@ -66,8 +66,8 @@
         "Branches on the exact Clerk event name 'subscriptionItem.pastDue' (camelCase 'pastDue', NOT snake_case 'past_due')",
         "Does not use Stripe event names like 'customer.subscription.created', 'invoice.payment_failed', or 'customer.subscription.deleted'",
         "If it inspects evt.data.object, matches against 'commerce_subscription' / 'commerce_subscription_item' / 'commerce_payer' / 'commerce_payment_attempt', not 'billing_*' variants (the wire format uses commerce_, not billing_)",
-        "Updates proxy.ts or middleware.ts to add /api/webhooks(.*) to createRouteMatcher so the webhook route is public",
-        "The clerkMiddleware callback is marked async to support await auth.protect()"
+        "Nothing enforces a session on /api/webhooks: no auth.protect() and no 401/404 based on auth(), in the handler or in proxy.ts/middleware.ts. No createRouteMatcher",
+        "Rejects requests with an invalid signature before any processing"
       ]
     },
     {

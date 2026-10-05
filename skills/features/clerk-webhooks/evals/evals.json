@@ -12,7 +12,7 @@
         "Uses verifyWebhook from @clerk/nextjs/webhooks for signature verification",
         "Handles user.created event type and extracts email, name, id from payload",
         "Inserts into database using Prisma with the correct column mapping (clerkId = evt.data.id)",
-        "Mentions that webhook route must be excluded from Clerk middleware (public route)"
+        "Does not add a session check to the webhook route (no auth.protect() in the handler or in proxy.ts/middleware.ts for /api/webhooks), and notes the route must stay unprotected"
       ]
     },
     {

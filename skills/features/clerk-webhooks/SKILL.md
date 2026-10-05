@@ -30,20 +30,9 @@ Do NOT rely on webhook delivery as part of a synchronous flow such as onboarding
 
 Use `verifyWebhook(req)` from the framework-specific package (`@clerk/nextjs/webhooks`, `@clerk/express/webhooks`, etc.). It reads `CLERK_WEBHOOK_SIGNING_SECRET` automatically and throws on bad signatures. Skipping verification, even for notification-only handlers, exposes the endpoint to spoofed events.
 
-## Make the Webhook Route Public
+## Keep the Webhook Route Unprotected
 
-Webhook routes must be excluded from Clerk middleware protection. Without this, Clerk returns 401.
-
-```typescript
-// proxy.ts (Next.js <=15: middleware.ts)
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-
-const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
-
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) await auth.protect()
-})
-```
+Webhook deliveries carry no user session. `verifyWebhook()` is the only check the route needs. A bare `clerkMiddleware()` protects nothing, so the route is already reachable. Don't call `auth.protect()` for `/api/webhooks(.*)`, in middleware or in the handler. A project that does returns `401` (middleware) or `404` (`auth.protect()` in the handler) for every delivery until that call is removed. See [Ensure the webhook route is public](https://clerk.com/docs/guides/development/webhooks/syncing#ensure-the-webhook-route-is-public).
 
 ## Complete Webhook Handler (Next.js App Router)
 
@@ -149,16 +138,6 @@ export async function POST(req: NextRequest) {
   // Always return 200 to acknowledge receipt
   return new Response('OK', { status: 200 })
 }
-```
-
-**Also include proxy.ts (Next.js <=15: middleware.ts) to make the route public:**
-```typescript
-// proxy.ts (Next.js <=15: middleware.ts)
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) await auth.protect()
-})
 ```
 
 ## Full Example: Organization Membership Sync to Database
@@ -320,7 +299,7 @@ const {
 | Verification fails (Next.js) | Wrong import or usage | Use `@clerk/nextjs/webhooks`, pass `req` directly |
 | Verification fails (Express) | Using `express.json()` | Use `express.raw({ type: 'application/json' })` for webhook route |
 | Route not found (404) | Wrong path | Use `/api/webhooks` or preserve existing path |
-| Not authorized (401) | Route is protected by middleware | Make route public in `clerkMiddleware()` |
+| 401 or 404 on every delivery | `auth.protect()` covers the webhook route (in middleware or in the handler) | Remove that check; `verifyWebhook()` is the only check the route needs |
 | No data in DB | Async job pending | Wait/check logs |
 | Duplicate entries | Only handling `user.created` | Also handle `user.updated` |
 | Timeouts | Handler too slow | Queue async work, return 200 first |
