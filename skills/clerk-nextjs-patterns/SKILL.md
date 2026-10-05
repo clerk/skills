@@ -124,7 +124,7 @@ import { Show } from '@clerk/nextjs'
 | Auth not working on API routes | Missing matcher | Add `'/(api|trpc)(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | Cache returns wrong user's data | Missing userId in key | Include `userId` in `unstable_cache` key |
 | Mutations bypass auth | Unprotected Server Action | Check `auth()` at start of action |
-| Protected page returns 200, not 307, while signed out | Page is under a `loading.tsx` (Suspense), so the redirect streams | Expected. The content isn't sent. Keep the check in the page |
+| Protected page returns 200, not 307, while signed out | The redirect happened after streaming started (e.g. under a `loading.tsx`) | Confirm the body redirects to sign-in and has no protected data. Keep the check in the page |
 | Wrong HTTP error code | Confused 401/403 | 401 = not signed in, 403 = no permission |
 
 ## Session Tokens & Custom JWTs

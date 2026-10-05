@@ -237,7 +237,7 @@ if (!has({ permission: 'org:invoices:create' })) {
 }
 ```
 
-On the server, `has({ permission })` works only with custom Permissions: System Permissions (`org:sys_*`) aren't in the session token, so checking one there always returns `false`. `<Show when={{ permission }}>` also checks custom Permissions only. To require a System Permission, check a role that carries it (`has({ role: 'org:admin' })`).
+On the server, `has({ permission })` works only with custom Permissions: System Permissions (`org:sys_*`) aren't in the session token, so checking one there always returns `false`. Clerk documents permission checks in `<Show when={{ permission }}>` for custom Permissions only. To require a System Permission, check a role that carries it (`has({ role: 'org:admin' })`).
 
 **Permission naming convention.** System Permissions prefix with `org:sys_`; custom Permissions use `org:<resource>:<action>`. The full System Permissions catalog lives in `references/roles-permissions.md` — the short list is:
 

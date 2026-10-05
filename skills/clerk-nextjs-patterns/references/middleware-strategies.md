@@ -60,7 +60,9 @@ export async function updateDashboard() {
 
 Every page checks for itself. A check in a layout is an addition, never a substitute: Next.js doesn't always re-render a layout when the page under it changes.
 
-If the page is inside a Suspense boundary, such as under a root `loading.tsx`, a signed-out request gets a `200` that streams a redirect to sign-in instead of a `307`. The page's content isn't sent, so this is expected: Next.js `redirect()` inserts a meta tag in a streaming context. Don't move the check into the middleware. To return `401` from a Route Handler instead of `404`, check `isAuthenticated` from `await auth()` and return the response yourself (see `references/api-routes.md`).
+If `auth.protect()` redirects after streaming has started, such as on a page under a root `loading.tsx`, the response keeps status `200` and carries a client-side redirect: Next.js `redirect()` inserts a meta tag in a streaming context. The `200` alone doesn't prove the check ran. Confirm the response redirects to sign-in and contains no protected data, and keep the check in the page before any protected work. Don't move it into the middleware.
+
+To return `401` from a Route Handler instead of `404`, check `isAuthenticated` from `await auth()` and return the response yourself (see `references/api-routes.md`).
 
 Two kinds of route skip the session check:
 
