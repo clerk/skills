@@ -144,13 +144,13 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
   if (sessionStatus === 'pending' && routeRequiresSessionTasks) {
     const url = req.nextUrl.clone();
-    url.pathname = '/sign-in/tasks';
+    url.pathname = '/sign-in';
     return NextResponse.redirect(url);
   }
 });
 ```
 
-`/sign-in/tasks` works with the standard catch-all sign-in route (`app/sign-in/[[...sign-in]]/page.tsx`), because `<SignIn />` renders the task components by default. The redirect is a navigation convenience, not a security boundary: a `pending` session is already treated as signed out, so each page and handler still runs its own `auth.protect()`. See the [session tasks guide](https://clerk.com/docs/guides/configure/session-tasks).
+`<SignIn />` renders the pending task by default, so `/sign-in` is enough. To host tasks on your own pages, set `taskUrls` on `<ClerkProvider>` and redirect there instead. The redirect is a navigation convenience, not a security boundary: a `pending` session is already treated as signed out, so each page and handler still runs its own `auth.protect()`. See the [session tasks guide](https://clerk.com/docs/guides/configure/session-tasks).
 
 > **Core 2 ONLY (skip if current SDK):** `sessionStatus` is not available. Session tasks do not exist in Core 2.
 

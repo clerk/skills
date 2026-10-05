@@ -13,7 +13,7 @@ metadata:
 
 # Astro Patterns
 
-SDK: `@clerk/astro` v3+. Requires Astro 4.15+.
+SDK: `@clerk/astro` v4+. Requires Astro 5+.
 
 ## What Do You Need?
 

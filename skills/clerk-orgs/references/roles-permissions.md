@@ -95,7 +95,7 @@ has({ role: 'org:admin' })
 has({ permission: 'org:invoices:create' }) // custom Permissions only
 ```
 
-`has({ permission })` works only with custom Permissions. System Permissions (`org:sys_*`) aren't in the session token, so checking one always returns `false`. To require a System Permission, check a role that carries it.
+On the server, `has({ permission })` works only with custom Permissions: System Permissions (`org:sys_*`) aren't in the session token, so checking one there always returns `false`. To require a System Permission, check a role that carries it.
 
 ```tsx
 // Client (any React-based SDK)
