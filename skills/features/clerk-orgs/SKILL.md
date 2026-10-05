@@ -70,7 +70,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 | System permissions catalog, custom roles, role sets | references/roles-permissions.md |
 | Invitation lifecycle (create, list, revoke, built-in UI) | references/invitations.md |
 | Enterprise SSO setup, provider field access, domain verification | references/enterprise-sso.md |
-| Next.js adaptations for orgs (role/permission middleware, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
+| Next.js adaptations for orgs (per-page role/permission checks, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
 
 ## References
 
@@ -418,7 +418,7 @@ export default async function AdminPage({ params }: { params: { slug: string } }
 }
 ```
 
-For middleware-level protection (Next.js) see `references/nextjs-patterns.md`.
+For per-page role and permission checks with `auth.protect()` (Next.js) see `references/nextjs-patterns.md`.
 
 ## Invitations (short form)
 

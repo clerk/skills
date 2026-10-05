@@ -50,7 +50,7 @@
 				"Adds a post-signup organization selection step",
 				"Uses OrganizationSwitcher or a custom org creation page",
 				"Redirects users without an active org to the org selection page",
-				"Updates middleware or dashboard to enforce org requirement",
+				"Enforces the org requirement in the dashboard page itself (a middleware redirect alone is not enough)",
 				"Does NOT break existing sign-in flow for users who already have orgs"
 			]
 		},
@@ -77,7 +77,7 @@
 				"Uses has({ permission: 'org:billing:manage' }) or similar from auth() to check the custom permission",
 				"Mentions creating the custom role and permission in Clerk Dashboard",
 				"Protects the billing route by redirecting unauthorized users",
-				"Shows the permission check in a server component or middleware",
+				"Shows the permission check in the billing page (server component) or its route handler, not in middleware",
 				"Does NOT hardcode role names as the only check method (uses permissions API)"
 			]
 		},

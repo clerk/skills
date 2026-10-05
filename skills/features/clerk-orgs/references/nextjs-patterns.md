@@ -1,36 +1,31 @@
 # Next.js Patterns for Organizations
 
-Org-specific adaptations for `@clerk/nextjs`. For generic Next.js patterns (middleware strategies, `auth()` server vs client, 401/403 responses, server action shape, caching) see the `clerk-nextjs-patterns` skill.
+Org-specific adaptations for `@clerk/nextjs`. For generic Next.js patterns (route protection, `auth()` server vs client, 401/403 responses, server action shape, caching) see the `clerk-nextjs-patterns` skill.
 
 For other frameworks see `clerk-react-patterns`, `clerk-astro-patterns`, `clerk-react-router-patterns`, `clerk-tanstack-patterns`.
 
-## Middleware: Role + Permission Protection
+## Role + Permission Protection in Each Page
 
-`auth.protect()` accepts the same shape as `has()` — pass `{ role }`, `{ permission }`, or a callback — so middleware can enforce org authorization without any new API:
+`auth.protect()` accepts the same shape as `has()` — pass `{ role }`, `{ permission }`, or a callback — so each org-scoped page and Route Handler enforces org authorization without any new API. A signed-in user without the role or permission gets a `404`. `proxy.ts` stays a bare `clerkMiddleware()`.
 
 ```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+// app/orgs/[slug]/billing/page.tsx
+import { auth } from '@clerk/nextjs/server'
 
-const isOrgAdminRoute = createRouteMatcher(['/orgs/:slug/admin(.*)'])
-const isBillingRoute = createRouteMatcher(['/orgs/:slug/billing(.*)'])
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isOrgAdminRoute(req)) {
-    await auth.protect({ role: 'org:admin' })
-  }
-  if (isBillingRoute(req)) {
-    await auth.protect({ permission: 'org:sys_billing:manage' })
-  }
-})
+export default async function BillingPage() {
+  await auth.protect({ permission: 'org:sys_billing:manage' })
+  return <BillingSettings />
+}
 ```
 
-Matcher config is the standard one from `clerk-nextjs-patterns` — nothing org-specific about it.
+See the [authorization checks guide](https://clerk.com/docs/guides/secure/authorization-checks).
 
 ## URL Slug Safety Invariant
 
-`createRouteMatcher(['/orgs/:slug/(.*)'])` doesn't validate that the URL slug matches the active org. A user with active org `acme` can hit `/orgs/other-org/...` and your data layer will happily reply with `acme`'s data. Always verify on each org-scoped page:
+Nothing validates that the URL slug matches the active org. A user with active org `acme` can hit `/orgs/other-org/...` and your data layer will happily reply with `acme`'s data. Always verify on each org-scoped page, alongside the role or permission check:
 
 ```typescript
+// app/orgs/[slug]/admin/page.tsx
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
@@ -102,5 +97,5 @@ export async function GET(
 
 - **Validate `orgSlug === params.slug` on every org-scoped surface.** The slug in the URL is an identifier; the active org in the session is the authority. Don't let them diverge.
 - **Bind `orgId` from `auth()` at the database layer.** Never let a client supply it.
-- **Use `auth.protect({ role / permission })` in middleware** for fast-path enforcement; rely on page-level checks for defense in depth.
+- **Use `auth.protect({ role / permission })` in each org-scoped page and Route Handler.** Middleware doesn't decide which routes need auth.
 - **`redirect()` throws** — it doesn't return. Don't put code after it expecting to run.
