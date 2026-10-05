@@ -1,0 +1,36 @@
+{
+  "name": "clerk",
+  "description": "Add authentication and user management with Clerk. Skills for setup, framework patterns, organizations, billing, webhooks, and testing, plus the Clerk MCP server.",
+  "author": {
+    "name": "Clerk",
+    "email": "ai@clerk.dev",
+    "url": "https://clerk.com"
+  },
+  "homepage": "https://clerk.com/docs",
+  "repository": "https://github.com/clerk/skills",
+  "license": "MIT",
+  "keywords": [
+    "android",
+    "astro",
+    "auth",
+    "authentication",
+    "billing",
+    "chrome-extension",
+    "clerk",
+    "expo",
+    "ios",
+    "kotlin",
+    "mcp",
+    "nextjs",
+    "nuxt",
+    "organizations",
+    "react",
+    "react-native",
+    "react-router",
+    "swift",
+    "tanstack-start",
+    "user-management",
+    "vue",
+    "webhooks"
+  ]
+}

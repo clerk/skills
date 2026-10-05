@@ -13,7 +13,7 @@ import {
   validateLink,
 } from "./check-docs-links.mjs";
 
-export const PROMPT_PATH = "skills/core/clerk-setup/SKILL.md";
+export const PROMPT_PATH = "skills/clerk-setup/SKILL.md";
 
 const frameworkQuickstartUrl =
   /https:\/\/clerk\.com\/docs\/[^\s`|)>]+\/getting-started\/quickstart[^\s`|)>]*/g;
