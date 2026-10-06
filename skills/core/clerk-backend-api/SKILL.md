@@ -204,7 +204,7 @@ Returns: OrganizationInvitation object
 
 ## How to execute requests
 
-**ALWAYS execute requests with direct `curl` commands.** Use the spec-extraction scripts (`api-specs-context.sh`, `extract-tags.js`, `extract-endpoint-detail.sh`) to discover endpoints, but make actual API calls with `curl`. Do NOT use `scripts/execute-request.sh` — it's a local dev helper, not for agent use.
+**ALWAYS execute requests with direct `curl` commands.** Use the spec-extraction scripts (`api-specs-context.sh`, `extract-tags.js`, `extract-endpoint-detail.sh`) to discover endpoints, but make actual API calls with `curl`.
 
 Template for GET requests:
 ```bash
@@ -252,7 +252,7 @@ Use the output to determine the latest version and available tags.
 - For write operations (POST/PUT/PATCH/DELETE), check `CLERK_BAPI_SCOPES` before attempting the request. If missing or insufficient, ask the user upfront. Do NOT attempt and fail — ask before executing. This check is MANDATORY.
 - For metadata operations, always explain all three types (public, private, unsafe) and recommend the appropriate one.
 - Pagination: always use `limit` + `offset` and mention that results may be paginated for large datasets.
-- Use direct curl commands for all API calls — never use `scripts/execute-request.sh`.
+- Use direct curl commands for all API calls.
 
 ---
 
@@ -400,7 +400,7 @@ curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${versio
 1. Run the **mandatory checks** from the CRITICAL section above.
 2. Identify required and optional parameters from the spec (step 3) or FAST PATH.
 3. Ask the user for any required path/query/body parameters that weren't provided.
-4. Build and execute a **direct curl command** (see How to execute requests above). Do NOT use `scripts/execute-request.sh`.
+4. Build and execute a **direct curl command** (see How to execute requests above).
 5. Parse the JSON response and display it clearly. Extract and summarize key fields for the user.
 
 **Example — list users and parse response:**
