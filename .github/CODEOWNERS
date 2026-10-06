@@ -1,2 +1,2 @@
-# Skills require approval from Docs, AI Enablement, or Growth.
-/skills/ @clerk/docs @clerk/ai-enablement @clerk/growth
+# Everything in this repo requires approval from Docs, AI Enablement, or Growth.
+* @clerk/docs @clerk/ai-enablement @clerk/growth

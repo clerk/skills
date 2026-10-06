@@ -1,0 +1,13 @@
+---
+import Layout from "../layouts/Layout.astro"
+import { Show } from "@clerk/astro/components"
+---
+
+<Layout>
+  <Show when="signed-out">
+    <p>Sign in to try Clerk out!</p>
+  </Show>
+  <Show when="signed-in">
+    <p>You are signed in!</p>
+  </Show>
+</Layout>
