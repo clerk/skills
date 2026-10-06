@@ -80,6 +80,8 @@ Pages the whole instance 500 users at a time. **Password digests, TOTP secrets a
 
 **Name the source instance.** `--secret-key`, `--app`, `--instance` or an exported `CLERK_SECRET_KEY` are taken as-is. Without one, a human gets a picker of every instance on their account; an **agent gets whatever resolves** — usually the linked project, which is usually the migration's destination. Exporting the destination and importing it back into itself is the failure this rule prevents.
 
+When the source is a different Clerk application, ask the user for that application's secret key and pass it with `--secret-key`. The key names the instance on its own, so you need no app or instance ID.
+
 For the full dev → production flow, see [clerk-to-clerk.md](clerk-to-clerk.md).
 
 ## Auth0
