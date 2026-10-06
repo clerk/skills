@@ -87,7 +87,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 **TanStack Start patterns** → Use `clerk-tanstack-patterns`
 - Server functions with auth
 - Route protection via loaders
-- Vinxi server integration
+- Vite plugin and request middleware setup
 
 **Expo / React Native auth** → Use `clerk-expo`
 - Prebuilt native components (AuthView, UserButton)
