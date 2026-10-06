@@ -160,7 +160,7 @@ Pick one path:
   clerk migrate import <export-run-id>
   ```
 
-- **Run it yourself** after the user has said yes in the conversation to your Step 2 summary and the dry-run checks:
+- **Run it yourself** after the user has said yes to your Step 2 summary and the dry-run checks. Relay the checks, then end your turn and wait for the answer. Never run `--yes` in the same turn as the dry run; a yes given before the user saw the checks doesn't count:
 
   ```sh
   clerk migrate import <export-run-id> --yes
