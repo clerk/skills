@@ -111,19 +111,9 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-## Make Route Public
+## Keep the Route Unprotected
 
-In `proxy.ts` (Next.js <=15: `middleware.ts`):
-
-```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-
-const isPublicRoute = createRouteMatcher(['/api/webhooks(.*)'])
-
-export default clerkMiddleware(async (auth, req) => {
-	if (!isPublicRoute(req)) await auth.protect()
-})
-```
+Webhook deliveries carry no user session. Don't call `auth.protect()` for `/api/webhooks(.*)`, in middleware or in the handler; `verifyWebhook()` is the only check the route needs. See the `clerk-webhooks` skill.
 
 ## Event Payload Reference
 

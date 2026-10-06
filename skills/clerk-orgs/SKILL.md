@@ -70,7 +70,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 | System permissions catalog, custom roles, role sets | references/roles-permissions.md |
 | Invitation lifecycle (create, list, revoke, built-in UI) | references/invitations.md |
 | Enterprise SSO setup, provider field access, domain verification | references/enterprise-sso.md |
-| Next.js adaptations for orgs (role/permission middleware, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
+| Next.js adaptations for orgs (per-page role/permission checks, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
 
 ## References
 
@@ -210,9 +210,10 @@ app/orgs/[slug]/settings/page.tsx
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
 ```typescript
-export default async function OrgPage({ params }: { params: { slug: string } }) {
+export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const { orgSlug } = await auth()
-  if (orgSlug !== params.slug) {
+  if (orgSlug !== slug) {
     redirect('/dashboard')  // or whatever your "no-access" flow is
   }
   return <div>Welcome to {orgSlug}</div>
@@ -229,13 +230,15 @@ if (!has({ role: 'org:admin' })) {
 }
 ```
 
-Permission checks use the same `has()` surface:
+Permission checks use the same `has()` surface, for custom Permissions you create in the Dashboard:
 
 ```typescript
-if (!has({ permission: 'org:sys_memberships:manage' })) {
+if (!has({ permission: 'org:invoices:create' })) {
   redirect('/unauthorized')
 }
 ```
+
+On the server, `has({ permission })` works only with custom Permissions: System Permissions (`org:sys_*`) aren't in the session token, so checking one there always returns `false`. Clerk documents permission checks in `<Show when={{ permission }}>` for custom Permissions only. To require a System Permission, check a role that carries it (`has({ role: 'org:admin' })`).
 
 **Permission naming convention.** System Permissions prefix with `org:sys_`; custom Permissions use `org:<resource>:<action>`. The full System Permissions catalog lives in `references/roles-permissions.md` — the short list is:
 
@@ -255,8 +258,8 @@ import { Show } from '@clerk/nextjs'
   <AdminPanel />
 </Show>
 
-<Show when={{ permission: 'org:sys_memberships:manage' }}>
-  <MembersTab />
+<Show when={{ permission: 'org:invoices:create' }}>
+  <NewInvoiceButton />
 </Show>
 ```
 
@@ -393,7 +396,7 @@ Most "org-related" failures are configuration, not code. Do not edit components 
 | Error / symptom | Root cause | Fix |
 |---|---|---|
 | `orgId` / `orgSlug` is `undefined` for a signed-in user | Organizations not enabled for this instance, OR user has no active org (personal account) | Enable in Dashboard → Organizations; check Membership mode; surface `<OrganizationSwitcher />` |
-| `has({ permission: 'org:manage_members' })` always `false` | Using an invented permission slug | Use `org:sys_memberships:manage` (see roles-permissions.md catalog) |
+| `has({ permission: ... })` always `false` | An invented slug (`org:manage_members`), or a System Permission (`org:sys_*`), which `has()` can't check | Check the role (`has({ role: 'org:admin' })`) or a custom Permission created in the Dashboard (see roles-permissions.md) |
 | `has({ role })` returns `false` but user looks like an admin | Session token stale after role change | Re-sign-in, or refresh the session: `await clerk.session?.reload()` |
 | `has({ permission })` `false` even with the role assigned | Feature not attached to active Plan (Billing gates permissions) | Dashboard → Billing → Plans → attach Feature |
 | `<OrganizationSwitcher />` doesn't show "Personal Account" | `Membership required` mode is on (the default since Aug 22, 2025) | Dashboard → Organizations settings → `Membership optional` |
@@ -408,17 +411,18 @@ Server component protecting a slug-scoped admin page:
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function AdminPage({ params }: { params: { slug: string } }) {
+export default async function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const { orgSlug, has } = await auth()
 
-  if (orgSlug !== params.slug) redirect('/dashboard')
+  if (orgSlug !== slug) redirect('/dashboard')
   if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
 
   return <div>Admin settings for {orgSlug}</div>
 }
 ```
 
-For middleware-level protection (Next.js) see `references/nextjs-patterns.md`.
+For per-page role and permission checks with `auth.protect()` (Next.js) see `references/nextjs-patterns.md`.
 
 ## Invitations (short form)
 
@@ -427,17 +431,19 @@ Send from a server action or route handler:
 ```typescript
 import { clerkClient, auth } from '@clerk/nextjs/server'
 
-export async function inviteMember(organizationId: string, emailAddress: string, role: string) {
-  const { userId, has } = await auth()
+export async function inviteMember(emailAddress: string, role: string) {
+  const { userId, orgId, has } = await auth()
 
-  if (!userId) throw new Error('Not signed in')
-  if (!has({ permission: 'org:sys_memberships:manage' })) {
+  if (!userId || !orgId) throw new Error('No active organization')
+  // Inviting needs the System Permission org:sys_memberships:manage, which
+  // has() can't check, so check a role that carries it.
+  if (!has({ role: 'org:admin' })) {
     throw new Error('Not authorized to invite members')
   }
 
   const clerk = await clerkClient()
   return clerk.organizations.createOrganizationInvitation({
-    organizationId,
+    organizationId: orgId,       // the active org that has() checked
     inviterUserId: userId,       // required per Backend API
     emailAddress,
     role,                        // e.g. 'org:admin' or 'org:member'
@@ -453,7 +459,7 @@ The full lifecycle (list, revoke, bulk create, built-in `<OrganizationProfile />
 1. **Enable** — Organizations + Membership mode in Dashboard
 2. **Create org** — via UI component or Backend API
 3. **Invite members** — Backend API or built-in UI, with `inviterUserId`
-4. **Gate access** — `has({ role })` / `has({ permission })` with canonical `org:sys_*` names
+4. **Gate access** — `has({ role })`, or `has({ permission })` with a custom Permission. `has()` can't check System Permissions (`org:sys_*`)
 5. **Scope routes** — `orgSlug === params.slug` on every protected page
 6. **Switch orgs** — `<OrganizationSwitcher />` handles the whole flow
 

@@ -42,15 +42,16 @@
     },
     {
       "id": 4,
-      "prompt": "i need to protect all routes under /dashboard with clerk middleware instead of checking auth in each page component. update the middleware to use createRouteMatcher so only / and /sign-in are public.",
-      "expected_output": "Updates middleware.ts to use createRouteMatcher with public routes, protecting /dashboard and all sub-routes",
+      "prompt": "add a members-only /dashboard section: a page, an api route at /api/dashboard that returns the dashboard data, and a server action that saves a dashboard setting. signed-out visitors should be sent to sign-in. / and /sign-in stay public.",
+      "expected_output": "Adds auth.protect() (or an auth() check with a redirect) in the dashboard page, an auth check in the /api/dashboard route handler, and an auth check at the top of the Server Action. proxy.ts keeps a bare clerkMiddleware().",
       "scaffold": "nextjs-basic-auth",
       "assertions": [
-        "Imports createRouteMatcher from @clerk/nextjs/server",
-        "Defines public routes array including / and /sign-in",
-        "Uses auth.protect() for non-public routes inside clerkMiddleware callback",
-        "Middleware protects /dashboard, /profile, and /api routes",
-        "Does NOT remove the clerkMiddleware wrapper"
+        "Does NOT import or call createRouteMatcher",
+        "The dashboard page itself calls await auth.protect(), or checks auth() and redirects to sign-in",
+        "The /api/dashboard route handler checks auth itself and rejects signed-out requests",
+        "The Server Action rejects signed-out calls before it reads protected data or performs any mutation",
+        "/ and /sign-in remain reachable while signed out",
+        "proxy.ts (or middleware.ts) still exports clerkMiddleware()"
       ]
     },
     {

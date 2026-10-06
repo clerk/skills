@@ -1,5 +1,5 @@
 ---
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/astro/components"
+import { Show, SignInButton, SignUpButton } from "@clerk/astro/components"
 ---
 
 <!doctype html>
@@ -11,13 +11,13 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/astro/co
   </head>
   <body>
     <header>
-      <SignedOut>
+      <Show when="signed-out">
         <SignInButton mode="modal" />
         <SignUpButton mode="modal" />
-      </SignedOut>
-      <SignedIn>
+      </Show>
+      <Show when="signed-in">
         <p>You are signed in!</p>
-      </SignedIn>
+      </Show>
     </header>
     <slot />
   </body>

@@ -2,13 +2,17 @@
 
 ## React Island with Clerk Hooks
 
+`@clerk/astro/react` exports `useAuth` but no `useUser`. Read the user from `$userStore` in `@clerk/astro/client` instead.
+
 ```tsx
 // src/components/UserNav.tsx
-import { useAuth, useUser, UserButton, SignInButton } from '@clerk/astro/react'
+import { useSyncExternalStore } from 'react'
+import { useAuth, UserButton, SignInButton } from '@clerk/astro/react'
+import { $userStore } from '@clerk/astro/client'
 
 export function UserNav() {
   const { isSignedIn, isLoaded } = useAuth()
-  const { user } = useUser()
+  const user = useSyncExternalStore($userStore.listen, $userStore.get, $userStore.get)
 
   if (!isLoaded) return null
 

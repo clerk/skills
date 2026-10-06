@@ -102,6 +102,6 @@ export default function Username() {
 
 | Import | From | Use In |
 |--------|------|--------|
-| `SignedIn`, `SignedOut` | `@clerk/astro/components` | `.astro` files (SSR) |
-| `Show`, `UserButton` | `@clerk/astro/react` | `.astro` files (with `client:load`) or `.tsx` files |
+| `Show`, `UserButton` | `@clerk/astro/components` | `.astro` files (SSR) |
+| `Show`, `UserButton` | `@clerk/astro/react` | `.tsx` files, mounted with `client:load` |
 | `$userStore` | `@clerk/astro/client` | React components (via `useSyncExternalStore`) |

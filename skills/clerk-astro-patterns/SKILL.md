@@ -13,13 +13,13 @@ metadata:
 
 # Astro Patterns
 
-SDK: `@clerk/astro` v3+. Requires Astro 4.15+.
+SDK: `@clerk/astro` v4+. Requires Astro 5+.
 
 ## What Do You Need?
 
 | Task | Reference |
 |------|-----------|
-| Configure middleware | references/middleware.md |
+| Configure middleware (bare `clerkMiddleware()`, checks per page) | references/middleware.md |
 | Protect SSR pages | references/ssr-pages.md |
 | Use Clerk in island components | references/island-components.md |
 | Auth in API routes | references/api-routes.md |
@@ -56,17 +56,12 @@ export default defineConfig({
 ### src/middleware.ts
 
 ```ts
-import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server'
+import { clerkMiddleware } from '@clerk/astro/server'
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
-
-export const onRequest = clerkMiddleware((auth, context, next) => {
-  if (isProtectedRoute(context.request) && !auth().userId) {
-    return auth().redirectToSignIn()
-  }
-  return next()
-})
+export const onRequest = clerkMiddleware()
 ```
+
+The middleware populates `Astro.locals.auth()`. Each page and API route checks for itself. `createRouteMatcher` was removed in `@clerk/astro` 4.0 (deprecated in 3.x). Don't add it. Existing uses must move to page and API-route checks before upgrading. See the [Astro `clerkMiddleware()` reference](https://clerk.com/docs/reference/astro/clerk-middleware).
 
 ## SSR Page Auth
 
@@ -77,6 +72,20 @@ if (!userId) return Astro.redirect('/sign-in')
 ---
 
 <h1>Dashboard</h1>
+```
+
+## API Route Auth
+
+```ts
+// src/pages/api/data.ts
+import type { APIRoute } from 'astro'
+
+export const GET: APIRoute = ({ locals }) => {
+  const { userId } = locals.auth()
+  if (!userId) return new Response('Unauthorized', { status: 401 })
+
+  return Response.json({ userId })
+}
 ```
 
 ## Common Pitfalls
@@ -92,8 +101,9 @@ if (!userId) return Astro.redirect('/sign-in')
 
 | What | Import From |
 |------|-------------|
-| `clerkMiddleware`, `createRouteMatcher` | `@clerk/astro/server` |
-| `useAuth`, `useUser`, `UserButton` | `@clerk/astro/react` |
+| `clerkMiddleware`, `clerkClient` | `@clerk/astro/server` |
+| `useAuth`, `UserButton` (no `useUser`) | `@clerk/astro/react` |
+| `$userStore`, `$authStore` | `@clerk/astro/client` |
 | Astro components (`<SignIn>`, etc.) | `@clerk/astro/components` |
 
 ## Env Variables

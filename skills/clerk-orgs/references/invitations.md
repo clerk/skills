@@ -19,16 +19,18 @@ Send, list, revoke. Backend API methods live on `clerkClient().organizations.*`.
 ```typescript
 import { clerkClient, auth } from '@clerk/nextjs/server'
 
-export async function inviteMember(organizationId: string, emailAddress: string, role: string) {
-  const { userId, has } = await auth()
-  if (!userId) throw new Error('Not signed in')
-  if (!has({ permission: 'org:sys_memberships:manage' })) {
+export async function inviteMember(emailAddress: string, role: string) {
+  const { userId, orgId, has } = await auth()
+  if (!userId || !orgId) throw new Error('No active organization')
+  // Inviting needs the System Permission org:sys_memberships:manage, which
+  // has() can't check, so check a role that carries it.
+  if (!has({ role: 'org:admin' })) {
     throw new Error('Not authorized')
   }
 
   const clerk = await clerkClient()
   return clerk.organizations.createOrganizationInvitation({
-    organizationId,
+    organizationId: orgId, // the active org that has() checked
     inviterUserId: userId,
     emailAddress,
     role,
@@ -144,6 +146,6 @@ See `clerk-webhooks` skill for webhook setup + signature verification.
 
 - `inviterUserId` is NOT optional in a human-initiated flow. Don't omit it — track who sent each invite.
 - Invitations with `status: 'expired'` need to be recreated; they can't be re-sent.
-- The caller needs `org:sys_memberships:manage`. Default `org:admin` has this; `org:member` does not.
+- The caller needs `org:sys_memberships:manage`. Default `org:admin` has this; `org:member` does not. `has()` can't check System Permissions, so check the role: `has({ role: 'org:admin' })`, or a custom role you gave that permission.
 - Revoke by `invitationId`, not by email. Email alone is ambiguous when you've had multiple invites to the same address.
 - Rate limits differ by endpoint: single `createOrganizationInvitation` is 250/hr, `createOrganizationInvitationBulk` is 50/hr. Batch wisely.

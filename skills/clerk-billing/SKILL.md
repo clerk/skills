@@ -466,7 +466,7 @@ When you see any of these errors or symptoms, the fix is almost always a Dashboa
 | `has({ plan: 'pro' })` always returns `false` after a successful checkout | Session token hasn't been refreshed to include the new plan | `await clerk.session?.reload()` or navigate to force a new session |
 | `has({ plan: 'pro' })` returns `false` before any subscribe attempt | Plan slug mismatch (case-sensitive), OR Billing not enabled, OR payment gateway not connected in production | Verify slug in Dashboard → Billing → Plans; confirm Billing → Settings shows enabled + connected gateway |
 | `has({ permission: 'org:x:y' })` returns `false` for a user who has the role | The Feature tied to that permission is not included in the organization's active Plan | Add the Feature to the Plan in Dashboard → Billing → Plans → Features |
-| Webhook 401 / signature verification failed | `CLERK_WEBHOOK_SIGNING_SECRET` mismatch or route protected by middleware | Copy the Signing Secret from Dashboard → Webhooks; add the webhook route to `createRouteMatcher(['/api/webhooks(.*)'])` |
+| Webhook 401 or 404 / signature verification failed | `CLERK_WEBHOOK_SIGNING_SECRET` mismatch, or `auth.protect()` covers the webhook route | Copy the Signing Secret from Dashboard → Webhooks. Ensure nothing calls `auth.protect()` for `/api/webhooks(.*)`, in middleware or in the handler |
 
 ## Billing Gates Permissions
 

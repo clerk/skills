@@ -211,6 +211,6 @@ export default defineConfig({
 
 - All `verifyWebhook` adapters return the same `WebhookEvent` discriminated union, so handler logic (`if (evt.type === ...)`) is identical.
 - All adapters read `CLERK_WEBHOOK_SIGNING_SECRET` automatically except Astro (pass `signingSecret` option).
-- All adapters require a public webhook route, exclude `/api/webhooks(.*)` from middleware protection.
+- All adapters require an unprotected webhook route: nothing calls `auth.protect()` (or the framework's equivalent) for `/api/webhooks(.*)`, in middleware or in the handler.
 - Vite-based frameworks (Nuxt, React Router, TanStack Start) need `allowedHosts` configured when tunneling localhost via ngrok in development.
 - Express specifically needs `express.raw({ type: 'application/json' })` for the webhook route, raw body bytes are required for signature verification.

@@ -1,23 +1,17 @@
-# Middleware Strategies
+# Route Protection and Middleware
 
 > **Filename:** `proxy.ts` (Next.js <=15: `middleware.ts`). The code is identical; only the filename changes.
 
-## Public-First (marketing sites, blogs)
+Protect each resource where it runs: the page, the Route Handler, and the Server Function. `clerkMiddleware()` stays in `proxy.ts` so Clerk can read the session, but it does not decide which routes need auth.
 
-Protect specific routes, allow everything else:
+`createRouteMatcher` is deprecated in `@clerk/nextjs` 7 and will be removed in the next major version. Don't add it. If a project already uses it, leave it working and point the user to the [migration guide](https://clerk.com/docs/guides/development/upgrading/upgrade-guides/migrate-from-create-route-matcher). Middleware matches on URL paths, so a Server Function called by ID, or a path the framework normalizes differently, can reach a protected resource without passing the check.
+
+## `proxy.ts`
 
 ```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware } from '@clerk/nextjs/server';
 
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/settings(.*)',
-  '/api/private(.*)',
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect();
-});
+export default clerkMiddleware();
 
 export const config = {
   matcher: [
@@ -27,85 +21,138 @@ export const config = {
 };
 ```
 
-## Protected-First (internal tools, dashboards)
+Keep the `config.matcher` block. Without the `'/(api|trpc)(.*)'` entry, `auth()` has no session on API routes.
 
-Block everything, allow specific public routes:
+## Protect Each Resource
 
-```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api/public(.*)',
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) await auth.protect();
-});
-```
-
-## Permission-Gated Routes
-
-For B2B apps where some routes require a specific permission or role, pass a callback to `auth.protect()`. Clerk returns a 404 if the check fails:
+`await auth.protect()` at the top of the function. For a signed-out request it redirects to sign-in from a page, returns `401` from a Server Action, and returns `404` from a Route Handler.
 
 ```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+// app/dashboard/page.tsx
+import { auth } from '@clerk/nextjs/server';
 
-const isInvoiceRoute = createRouteMatcher(['/invoices(.*)']);
-const isAdminRoute = createRouteMatcher(['/admin(.*)']);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isInvoiceRoute(req)) {
-    await auth.protect((has) => has({ permission: 'org:invoices:create' }));
-  }
-  if (isAdminRoute(req)) {
-    await auth.protect((has) =>
-      has({ role: 'org:admin' }) || has({ role: 'org:billing_manager' })
-    );
-  }
-});
+export default async function Page() {
+  await auth.protect();
+  return <h1>Dashboard</h1>;
+}
 ```
 
-Prefer permissions over roles — permissions are more granular and easier to reassign across roles in the Dashboard.
+```typescript
+// app/api/dashboard/route.ts
+import { auth } from '@clerk/nextjs/server';
 
-> **Core 2 ONLY (skip if current SDK):** Middleware uses synchronous `clerkMiddleware((auth, req) => { auth().protect((has) => ...) })`. Note `auth()` is called as a function (not `auth.protect`) and the callback signature is the same.
+export async function GET() {
+  const { userId } = await auth.protect();
+  return Response.json({ userId });
+}
+```
+
+```typescript
+// app/dashboard/actions.ts
+'use server';
+import { auth } from '@clerk/nextjs/server';
+
+export async function updateDashboard() {
+  await auth.protect();
+  // Server Function logic
+}
+```
+
+Every page checks for itself. A check in a layout is an addition, never a substitute: Next.js doesn't always re-render a layout when the page under it changes.
+
+If `auth.protect()` redirects after streaming has started, such as on a page under a root `loading.tsx`, the response keeps status `200` and carries a client-side redirect: Next.js `redirect()` inserts a meta tag in a streaming context. The `200` alone doesn't prove the check ran. Confirm the response redirects to sign-in and contains no protected data, and keep the check in the page before any protected work. Don't move it into the middleware.
+
+To return `401` from a Route Handler instead of `404`, check `isAuthenticated` from `await auth()` and return the response yourself (see `references/api-routes.md`).
+
+Two kinds of route skip the session check:
+
+- Webhook routes authenticate each delivery with `verifyWebhook()` instead of a user session. See the `clerk-webhooks` skill.
+- Deliberately public endpoints need no session check.
+
+> **Core 2 ONLY (skip if current SDK):** On `@clerk/nextjs` v5, write `auth().protect()` (synchronous). v6 and later use `await auth.protect()`.
+
+## Permission-Gated Resources
+
+For B2B apps where a page or handler requires a specific permission or role, pass `{ permission }`, `{ role }`, or a callback to `auth.protect()`. A signed-in user without the permission gets a `404`.
+
+```typescript
+// app/invoices/page.tsx
+import { auth } from '@clerk/nextjs/server';
+
+export default async function Page() {
+  await auth.protect({ permission: 'org:invoices:create' });
+  return <InvoiceEditor />;
+}
+```
+
+```typescript
+// app/admin/page.tsx
+import { auth } from '@clerk/nextjs/server';
+
+export default async function Page() {
+  await auth.protect((has) =>
+    has({ role: 'org:admin' }) || has({ role: 'org:billing_manager' })
+  );
+  return <AdminPanel />;
+}
+```
+
+Prefer permissions over roles — permissions are more granular and easier to reassign across roles in the Dashboard. See the [authorization checks guide](https://clerk.com/docs/guides/secure/authorization-checks).
+
+> **Core 2 ONLY (skip if current SDK):** On `@clerk/nextjs` v5, write `auth().protect((has) => ...)` (synchronous). The callback signature is the same.
 
 ## Token-Based Protection (Machine APIs)
 
-For routes that accept different token types (OAuth tokens, machine-to-machine tokens, API keys), pass a `token` option to `auth.protect()`:
+For Route Handlers that accept other token types (OAuth tokens, machine-to-machine tokens, API keys), pass a `token` option to `auth.protect()`:
 
 ```typescript
-const isMachineApi = createRouteMatcher(['/api/machine(.*)']);
-const isPublicApi = createRouteMatcher(['/api/public(.*)']);
+// app/api/machine/route.ts
+import { auth } from '@clerk/nextjs/server';
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isMachineApi(req)) await auth.protect({ token: 'm2m_token' });
-  if (isPublicApi(req)) await auth.protect({ token: 'any' });
-});
+export async function GET() {
+  const { machineId } = await auth.protect({ token: 'm2m_token' });
+  return Response.json({ machineId });
+}
 ```
 
-Token types: `'session_token'` (default, browser sessions), `'oauth_token'`, `'api_key'`, `'m2m_token'`, `'any'` (accept any valid token).
+Token types: `'session_token'` (default, browser sessions), `'oauth_token'`, `'api_key'`, `'m2m_token'`, `'any'` (accept any valid token). An array accepts several: `auth.protect({ token: ['session_token', 'm2m_token'] })`.
 
-> **Core 2 ONLY (skip if current SDK):** Token-type protection requires Core 3. In Core 2, `auth().protect()` only accepts a callback (no `token` option) and only validates session tokens.
+> **Core 2 ONLY (skip if current SDK):** Token-type protection requires Core 3. In Core 2, `protect()` only accepts a callback (no `token` option) and only validates session tokens.
+
+## Pages Router
+
+Call `getAuth(req)` in `getServerSideProps` and in each `pages/api` handler, and return `401` when `isAuthenticated` is false. See the [`getAuth()` reference](https://clerk.com/docs/reference/nextjs/pages-router/get-auth).
+
+## Early Redirects
+
+Signed-out users can be redirected to sign-in from `proxy.ts` before the page renders. That is a latency optimization only; the page still calls `auth.protect()`. See [What about early redirects for signed-out users?](https://clerk.com/docs/guides/development/upgrading/upgrade-guides/migrate-from-create-route-matcher#what-about-early-redirects-for-signed-out-users) in the migration guide.
 
 ## Session Tasks
 
-When session tasks are enabled (e.g., forced password reset, MFA setup), users may have a `pending` session status. You can handle this in middleware:
+When session tasks are enabled (e.g., forced password reset, MFA setup), users may have a `pending` session status. Redirect pending users to the task page from `proxy.ts`, for the routes that need completed tasks:
 
 ```typescript
-export default clerkMiddleware(async (auth, req) => {
+import { clerkMiddleware } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+const sessionTaskRoutes = ['/dashboard', '/settings'];
+
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { sessionStatus } = await auth();
+  const { pathname } = req.nextUrl;
+  const routeRequiresSessionTasks = sessionTaskRoutes.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 
-  // Redirect pending sessions to task completion page
-  if (sessionStatus === 'pending') {
-    return NextResponse.redirect(new URL('/sign-in/tasks', req.url));
+  if (sessionStatus === 'pending' && routeRequiresSessionTasks) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/sign-in';
+    return NextResponse.redirect(url);
   }
-
-  if (isProtectedRoute(req)) await auth.protect();
 });
 ```
+
+`<SignIn />` renders the pending task by default, so `/sign-in` is enough. To host tasks on your own pages, set `taskUrls` on `<ClerkProvider>` and redirect there instead. The redirect is a navigation convenience, not a security boundary: a `pending` session is already treated as signed out, so each page and handler still runs its own `auth.protect()`. See the [session tasks guide](https://clerk.com/docs/guides/configure/session-tasks).
 
 > **Core 2 ONLY (skip if current SDK):** `sessionStatus` is not available. Session tasks do not exist in Core 2.
 

@@ -1,57 +1,51 @@
 # Middleware
 
-## Basic Setup
+## Setup
 
 ```ts
 // src/middleware.ts
-import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server'
+import { clerkMiddleware } from '@clerk/astro/server'
 
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/settings(.*)',
-  '/api/private(.*)',
-])
-
-export const onRequest = clerkMiddleware((auth, context, next) => {
-  if (isProtectedRoute(context.request) && !auth().userId) {
-    return auth().redirectToSignIn()
-  }
-  return next()
-})
-```
-
-## With Custom Handler
-
-```ts
-export const onRequest = clerkMiddleware((auth, context, next) => {
-  const { userId, orgId } = auth()
-
-  if (isProtectedRoute(context.request)) {
-    if (!userId) return auth().redirectToSignIn()
-    if (!orgId) return context.redirect('/select-org')
-  }
-
-  return next()
-})
-```
-
-## No Handler (Pass-Through)
-
-```ts
 export const onRequest = clerkMiddleware()
 ```
 
-The middleware still populates `Astro.locals.auth` — you just do the redirect check per-page.
+The middleware populates `Astro.locals.auth()` (and `context.locals.auth()` in API routes) for every SSR request. It does not decide which routes need auth. Each page and API route checks for itself:
 
-## createRouteMatcher Patterns
+```astro
+---
+// src/pages/dashboard.astro
+const { userId } = Astro.locals.auth()
+if (!userId) return Astro.redirect('/sign-in')
+---
+
+<h1>Dashboard</h1>
+```
 
 ```ts
-createRouteMatcher([
-  '/dashboard',           // exact
-  '/dashboard(.*)',       // prefix match
-  '/api/private/(.*)',    // nested
-  /^\/admin/,            // regex
-])
+// src/pages/api/data.ts
+import type { APIRoute } from 'astro'
+
+export const GET: APIRoute = ({ locals }) => {
+  const { userId } = locals.auth()
+  if (!userId) return new Response('Unauthorized', { status: 401 })
+
+  return Response.json({ userId })
+}
+```
+
+Organization and permission checks live in the page or route too. See `references/ssr-pages.md` and `references/api-routes.md`.
+
+`createRouteMatcher` was removed in `@clerk/astro` 4.0 (deprecated in 3.x). Don't add it. Existing uses must move to page and API-route checks before upgrading. Middleware matches on URL paths, which can diverge from how Astro routes requests and leave protected resources reachable. See the [Astro `clerkMiddleware()` reference](https://clerk.com/docs/reference/astro/clerk-middleware).
+
+## With Custom Handler
+
+Use a handler for non-auth logic such as headers or locale redirects:
+
+```ts
+export const onRequest = clerkMiddleware((auth, context, next) => {
+  // non-auth logic here
+  return next()
+})
 ```
 
 ## clerkMiddleware Signature
@@ -69,4 +63,4 @@ clerkMiddleware(handler?, options?)
 
 - Middleware is skipped for pages with `export const prerender = true`
 - `auth()` is a function — call it to get the auth object: `auth().userId` not `auth.userId`
-- Always return `next()` for non-protected routes
+- A handler must return `next()` so the request continues
