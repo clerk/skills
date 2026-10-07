@@ -122,7 +122,7 @@ Unwrap containers, not values. Don't keep an object named after the provider or 
 
 Never drop a metadata field you can't place. When unsure, use `privateMetadata`: nothing leaks from there, and the user can move it later. A field the export calls `internal`, `admin` or `app` belongs in `privateMetadata`.
 
-CRM IDs, billing IDs and internal notes stay in `privateMetadata` even when the user asks for the field that holds them to be public, because everything in `publicMetadata` reaches every signed-in browser. Put the rest of that field where the user asked, keep those keys private, and say so in your summary.
+CRM IDs, billing IDs, internal notes and risk scores stay in `privateMetadata` even when the user asks for the field that holds them to be public, because everything in `publicMetadata` reaches every signed-in browser. Put the rest of that field where the user asked, keep those keys private, and say so in your summary.
 
 ### Password hashes
 
