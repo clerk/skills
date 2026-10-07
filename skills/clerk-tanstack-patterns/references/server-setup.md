@@ -2,14 +2,15 @@
 
 ## Vite Plugin and Request Middleware
 
-TanStack Start uses the `tanstackStart()` Vite plugin. In `vite.config.ts`, add the plugin to the Vite configuration:
+TanStack Start uses the `tanstackStart()` Vite plugin. In `vite.config.ts`, add it before the React plugin:
 
 ```typescript
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import viteReact from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [tanstackStart()],
+  plugins: [tanstackStart(), viteReact()],
 })
 ```
 
@@ -30,7 +31,7 @@ export const startInstance = createStart(() => {
 })
 ```
 
-Defining `src/start.ts` replaces TanStack Start's default middleware configuration. Include CSRF middleware to protect server functions. Without `clerkMiddleware()`, `auth()` cannot read the session in server functions.
+When `src/start.ts` exists, TanStack Start stops adding its default CSRF middleware to server functions, so register it yourself. Without `clerkMiddleware()`, `auth()` throws a middleware-not-configured error.
 
 ## ClerkProvider in Root
 
@@ -72,7 +73,7 @@ The publishable key uses Vite's `VITE_` prefix so client-side code can access it
 
 ## Server Routes
 
-TanStack Start server routes live in `src/routes/api/`:
+Server routes can live anywhere under `src/routes/`. For an `/api/protected` endpoint, create `src/routes/api/protected.ts`:
 
 ```typescript
 // src/routes/api/protected.ts

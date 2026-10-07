@@ -87,7 +87,7 @@
       "scaffold": "tanstack-basic-auth",
       "expectations": [
         "Imports createCsrfMiddleware and createStart from @tanstack/react-start",
-        "Creates CSRF middleware with filter: (ctx) => ctx.handlerType === 'serverFn'",
+        "Creates CSRF middleware filtered to handlerType === 'serverFn'",
         "Registers CSRF middleware before clerkMiddleware() in requestMiddleware"
       ]
     }

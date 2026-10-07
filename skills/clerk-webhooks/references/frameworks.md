@@ -202,9 +202,12 @@ export const Route = createFileRoute('/api/webhooks')({
 When tunneling via ngrok in dev, allow the host in `vite.config.ts`:
 
 ```typescript
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import viteReact from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  plugins: [tanstackStart(), viteReact()],
   server: {
     allowedHosts: ['fawn-two-nominally.ngrok-free.app'],
   },

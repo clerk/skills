@@ -108,7 +108,7 @@ export const Route = createFileRoute('/dashboard')({
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `auth()` returns empty | Missing `clerkMiddleware` in start.ts | Add it after CSRF middleware in `requestMiddleware` |
+| `auth()` throws "without configuring the middleware" | Missing `clerkMiddleware` in start.ts | Add it after CSRF middleware in `requestMiddleware` |
 | `redirect` not thrown | Using `return` instead of `throw` | `throw redirect(...)` in TanStack |
 | Wrong import for `auth` | Mixing client/server imports | Server: `@clerk/tanstack-react-start/server` |
 | Loader context missing userId | Not passing from beforeLoad | Return from beforeLoad, access via `context` |
