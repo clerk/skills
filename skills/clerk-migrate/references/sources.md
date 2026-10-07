@@ -106,7 +106,7 @@ Before you act on an answer, compare it with the data. When they disagree, say w
 - told to drop some users, but nothing in the data marks them: ask which field does
 - told to skip users the data marks `suspended` or `locked`: import them banned, since the data doesn't say deleted
 
-When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
+When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
 
 ### Metadata
 
@@ -121,6 +121,8 @@ Each Clerk metadata field has a different audience:
 Unwrap containers, not values. Don't keep an object named after the provider or the export column: `{ gatekeep: { attrs: { plan } } }` goes in as `{ plan }`. Don't store a packed string as-is. Parse it first: a JSON string becomes its keys, and `k=v;k=v` becomes one key per pair. Then place each key on its own. A value that is structured in its own right, such as `address: { city, zip }`, stays nested. The customer's app reads metadata by path, so list every key you moved in your summary.
 
 Never drop a metadata field you can't place. When unsure, use `privateMetadata`: nothing leaks from there, and the user can move it later. A field the export calls `internal`, `admin` or `app` belongs in `privateMetadata`.
+
+CRM IDs, billing IDs and internal notes stay in `privateMetadata` even when the user asks for the field that holds them to be public, because everything in `publicMetadata` reaches every signed-in browser. Put the rest of that field where the user asked, keep those keys private, and say so in your summary.
 
 ### Password hashes
 
