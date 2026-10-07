@@ -92,7 +92,9 @@ Ask all six in one turn, every time, even when the file seems to answer one. For
 3. **Password hasher.** What produced the digest? See [Password hashes](#password-hashes). A wrong guess imports credentials that verify against nothing.
 4. **Shape.** Is the JSON wrapped (`{ "users": [...] }`)? Does the CSV have a header row?
 5. **Metadata.** Which fields go to `publicMetadata`, `privateMetadata` or `unsafeMetadata`? See [Metadata](#metadata).
-6. **Account state.** Which fields mark a user banned, disabled, locked or suspended (set `banned: true`), and which mark a deleted user (set `skipReason`; see [Leaving users out](#leaving-users-out))? Check status strings, flag arrays and bitmasks.
+6. **Account state.** Which fields mark a user banned, disabled, locked or suspended, and which mark a deleted user? Check status strings, flag arrays and bitmasks, and ask about every flag or bit whose meaning the data doesn't show.
+   - Any state that stops a user signing in imports as `banned: true`: banned, disabled, suspended, locked, even a temporary lock. The import can't create a locked user, and an admin can unban later.
+   - Use `skipReason` only for users the data marks as gone (deleted, anonymized), or a group the user names by a field (test accounts). Never for a state that only stops sign-in. See [Leaving users out](#leaving-users-out).
 
 ### Check every answer against the file
 
@@ -102,8 +104,9 @@ Before you act on an answer, compare it with the data. When they disagree, say w
 - told "they're all US numbers", but a `region` column holds `GB` and `DE`: use the region
 - told "everyone is verified", but `emailConfirmed` is `false` for some users: those stay unverified
 - told to drop some users, but nothing in the data marks them: ask which field does
+- told to skip users the data marks `suspended` or `locked`: import them banned, since the data doesn't say deleted
 
-If the user repeats their answer after seeing the conflict, follow the user: they may know something the file doesn't, such as emails verified outside the old system. Otherwise follow the data. Either way, don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
+When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
 
 ### Metadata
 
@@ -114,6 +117,8 @@ Each Clerk metadata field has a different audience:
 | `publicMetadata` | the browser and the server | the server | display settings, plan names, roles |
 | `privateMetadata` | the server only | the server | CRM and billing IDs, internal notes, risk scores |
 | `unsafeMetadata` | the browser and the server | the user | preferences the user changes themselves |
+
+Unwrap containers, not values. Don't keep an object named after the provider or the export column: `{ gatekeep: { attrs: { plan } } }` goes in as `{ plan }`. Don't store a packed string as-is. Parse it first: a JSON string becomes its keys, and `k=v;k=v` becomes one key per pair. Then place each key on its own. A value that is structured in its own right, such as `address: { city, zip }`, stays nested. The customer's app reads metadata by path, so list every key you moved in your summary.
 
 Never drop a metadata field you can't place. When unsure, use `privateMetadata`: nothing leaks from there, and the user can move it later. A field the export calls `internal`, `admin` or `app` belongs in `privateMetadata`.
 
@@ -126,12 +131,15 @@ Work out the format from the digests, then set `passwordHasher`:
 | `$2a$…`, `$2b$…`, `$2y$…` | `bcrypt` |
 | `$argon2id$…`, `$argon2i$…` | `argon2id`, `argon2i` |
 | `pbkdf2_sha256$<iterations>$<salt>$<base64 key>` | `pbkdf2_sha256_django` or `pbkdf2_sha256`: see below |
+| `pbkdf2:sha256:<iterations>:<salt>:<base64 key>`, or other separators | the same: rebuild it as `pbkdf2_sha256$…` first |
+| `pbkdf2:sha256:<iterations>$<salt>$<hex key>` (Werkzeug, Flask) | `pbkdf2_sha256_django`: the salt is text. Convert the hex key to base64 and rebuild it as `pbkdf2_sha256$…` |
 
 - **Strip wrapper prefixes.** `bcrypt:$2b$10$…` goes in as `$2b$10$…`.
 - **PBKDF2-SHA256: pick the hasher by how the old system used the salt.** Both hashers take the same string, `pbkdf2_sha256$<iterations>$<salt>$<base64 key>`, and differ only in how they read the salt. A wrong pick still imports, then fails at every sign-in, and the import's checks can't catch it.
   - The salt was hashed as the text it is (Django, and most apps that store a readable salt): use `pbkdf2_sha256_django`, with the salt exactly as stored.
   - The salt is base64 of the random bytes that were hashed: use `pbkdf2_sha256`, with the salt still in base64.
   - Ask the user when the export doesn't say. A salt that isn't valid base64 can only be text.
+  - If the user can't tell, read the salts. When no salt in the export contains `+`, `/`, `=`, `-` or `_`, they're text: use `pbkdf2_sha256_django`. Random base64, standard or URL-safe, across a dozen or more salts would almost certainly include one of those characters. Drop the passwords only when the salts still leave it open, such as a handful of users, or some salts with any of those characters.
 - **PBKDF2 limits.** The key must be 32 bytes, which is 44 base64 characters. Convert a hex key to base64. Iterations must be 2,000,000 or fewer.
 - **Rebuild split formats.** An export that keeps PBKDF2-SHA256 in parts (iterations, salt, key) goes into Clerk as the one string above.
 - **Detect the hasher per user.** One export can mix formats.
