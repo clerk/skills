@@ -68,15 +68,27 @@
     },
     {
       "id": 6,
-      "prompt": "i have a tanstack start api route that needs to verify the user is authenticated before processing a webhook or mutation. show me how to protect it.",
-      "expected_output": "API route handler using auth() from server package to verify auth state, returns 401 if not authenticated",
+      "prompt": "i have a tanstack start API route that needs to verify the user is authenticated before processing a mutation. show me how to protect it.",
+      "expected_output": "Server route built with createFileRoute and server.handlers checks auth() and returns 401 for unauthenticated requests",
       "scaffold": "tanstack-basic-auth",
       "expectations": [
+        "Uses createFileRoute from @tanstack/react-router with server.handlers",
+        "Exports the route as Route from a file under src/routes/api/",
         "Uses auth() from @clerk/tanstack-react-start/server in the handler",
         "Returns a 401 response for unauthenticated requests",
         "Extracts userId or sessionId from the auth result",
-        "Does NOT use client-side hooks in the server handler",
-        "Correct import path used: @clerk/tanstack-react-start/server"
+        "Does NOT use createAPIFileRoute or createServerFileRoute"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I am adding Clerk to a TanStack Start app. Show the complete src/start.ts configuration that keeps server functions protected against CSRF.",
+      "expected_output": "Registers filtered CSRF middleware before clerkMiddleware in the createStart requestMiddleware array",
+      "scaffold": "tanstack-basic-auth",
+      "expectations": [
+        "Imports createCsrfMiddleware and createStart from @tanstack/react-start",
+        "Creates CSRF middleware filtered to handlerType === 'serverFn'",
+        "Registers CSRF middleware before clerkMiddleware() in requestMiddleware"
       ]
     }
   ]

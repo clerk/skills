@@ -1,7 +1,7 @@
 ---
 name: clerk-tanstack-patterns
 description: 'TanStack React Start auth patterns with @clerk/tanstack-react-start
-  - createServerFn, beforeLoad guards, loaders, Vinxi server. Triggers on: TanStack
+  - createServerFn, beforeLoad guards, loaders, Vite plugin, server middleware. Triggers on: TanStack
   auth, createServerFn clerk, beforeLoad protection, TanStack Start middleware.'
 license: MIT
 allowed-tools: WebFetch
@@ -19,7 +19,7 @@ metadata:
 | Protect routes with beforeLoad | references/router-guards.md |
 | Auth in createServerFn | references/server-functions.md |
 | Pass auth to loaders | references/loaders.md |
-| Configure Vinxi + clerkMiddleware | references/vinxi-server.md |
+| Configure Vite + Clerk middleware | references/server-setup.md |
 
 ## References
 
@@ -28,7 +28,7 @@ metadata:
 | `references/router-guards.md` | beforeLoad auth redirect |
 | `references/server-functions.md` | createServerFn with auth() |
 | `references/loaders.md` | Auth context in loaders |
-| `references/vinxi-server.md` | clerkMiddleware() setup |
+| `references/server-setup.md` | Vite and request middleware setup |
 
 ## Setup
 
@@ -38,18 +38,22 @@ npm install @clerk/tanstack-react-start
 
 `.env`:
 ```
-CLERK_PUBLISHABLE_KEY=pk_...
+VITE_CLERK_PUBLISHABLE_KEY=pk_...
 CLERK_SECRET_KEY=sk_...
 ```
 
-`src/start.ts` (Vinxi entry):
+`src/start.ts` (request middleware):
 ```typescript
 import { clerkMiddleware } from '@clerk/tanstack-react-start/server'
-import { createStart } from '@tanstack/react-start'
+import { createCsrfMiddleware, createStart } from '@tanstack/react-start'
+
+const csrfMiddleware = createCsrfMiddleware({
+  filter: (ctx) => ctx.handlerType === 'serverFn',
+})
 
 export const startInstance = createStart(() => {
   return {
-    requestMiddleware: [clerkMiddleware()],
+    requestMiddleware: [csrfMiddleware, clerkMiddleware()],
   }
 })
 ```
@@ -73,7 +77,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 ## Mental Model
 
-TanStack Start runs on Vinxi. Auth flows through two layers:
+TanStack Start uses the `tanstackStart()` Vite plugin. Register CSRF protection before Clerk request middleware in `src/start.ts`; auth then flows through two layers:
 
 1. **Server layer** — `createServerFn` + `auth()` from `@clerk/tanstack-react-start/server`
 2. **Router layer** — `beforeLoad` on route definitions, throws `redirect` for unauthenticated
@@ -104,7 +108,7 @@ export const Route = createFileRoute('/dashboard')({
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `auth()` returns empty | Missing `clerkMiddleware` in start.ts | Add to `requestMiddleware` array |
+| `auth()` throws "without configuring the middleware" | Missing `clerkMiddleware` in start.ts | Add it after CSRF middleware in `requestMiddleware` |
 | `redirect` not thrown | Using `return` instead of `throw` | `throw redirect(...)` in TanStack |
 | Wrong import for `auth` | Mixing client/server imports | Server: `@clerk/tanstack-react-start/server` |
 | Loader context missing userId | Not passing from beforeLoad | Return from beforeLoad, access via `context` |
