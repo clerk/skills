@@ -13,7 +13,7 @@ export default defineConfig({
 })
 ```
 
-Register Clerk and CSRF middleware in `src/start.ts` (requires `@tanstack/react-start` 1.168.0 or later):
+Register Clerk and CSRF middleware in `src/start.ts`:
 
 ```typescript
 import { clerkMiddleware } from '@clerk/tanstack-react-start/server'

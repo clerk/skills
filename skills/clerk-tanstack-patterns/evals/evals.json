@@ -88,8 +88,7 @@
       "expectations": [
         "Imports createCsrfMiddleware and createStart from @tanstack/react-start",
         "Creates CSRF middleware with filter: (ctx) => ctx.handlerType === 'serverFn'",
-        "Registers CSRF middleware before clerkMiddleware() in requestMiddleware",
-        "Notes that createCsrfMiddleware requires @tanstack/react-start 1.168.0 or later"
+        "Registers CSRF middleware before clerkMiddleware() in requestMiddleware"
       ]
     }
   ]

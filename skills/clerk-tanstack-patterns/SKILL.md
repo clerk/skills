@@ -42,7 +42,7 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_...
 CLERK_SECRET_KEY=sk_...
 ```
 
-`src/start.ts` (request middleware; requires `@tanstack/react-start` 1.168.0 or later):
+`src/start.ts` (request middleware):
 ```typescript
 import { clerkMiddleware } from '@clerk/tanstack-react-start/server'
 import { createCsrfMiddleware, createStart } from '@tanstack/react-start'
