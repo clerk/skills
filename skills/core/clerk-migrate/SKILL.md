@@ -17,8 +17,7 @@ compatibility: >-
   Requires the `clerk` CLI binary (npm package `clerk`, or `bunx clerk@latest`)
   with the `clerk migrate` command family. Needs a Clerk session from
   `clerk auth login`, or a Backend API secret key passed with `--secret-key`.
-  No other dependency: do not install a migration tool, an SDK, or a database
-  driver.
+  No other dependency: do not install an SDK or a database driver.
 metadata:
   author: clerk
   version: 2.0.0
@@ -41,7 +40,7 @@ Every subcommand takes `--runs-dir <path>`, which overrides the `CLERK_MIGRATE_D
 
 > The binary is the source of truth. Run `clerk migrate <subcommand> --help` to confirm anything this skill claims, and prefer `--help` when they disagree.
 
-Install nothing and clone nothing. A `migration-tool` repo, `bun install`, a `.env` file for credentials, or a hand-written import script all belong to the old standalone tool.
+Install nothing and clone nothing.
 
 ## Routing
 
