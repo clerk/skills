@@ -94,7 +94,7 @@ Ask all six in one turn, every time, even when the file seems to answer one. For
 5. **Metadata.** Which fields go to `publicMetadata`, `privateMetadata` or `unsafeMetadata`? See [Metadata](#metadata).
 6. **Account state.** Which fields mark a user banned, disabled, locked or suspended, and which mark a deleted user? Check status strings, flag arrays and bitmasks, and ask about every flag or bit whose meaning the data doesn't show.
    - Any state that stops a user signing in imports as `banned: true`: banned, disabled, suspended, locked, even a temporary lock. The import can't create a locked user, and an admin can unban later.
-   - Use `skipReason` only for users the data marks as gone (deleted, anonymized), or a group the user names by a field (test accounts). Never for a state that only stops sign-in. See [Leaving users out](#leaving-users-out).
+   - Use `skipReason` only for users the data marks as gone (deleted, anonymized), or a group the user names by a field that says nothing about sign-in (test accounts, staff). A state that stops sign-in imports banned even when the user calls those accounts deleted or gone, because the data records a lock, not a deletion. List that conflict in your summary. See [Leaving users out](#leaving-users-out).
 
 ### Check every answer against the file
 
@@ -104,7 +104,7 @@ Before you act on an answer, compare it with the data. When they disagree, say w
 - told "they're all US numbers", but a `region` column holds `GB` and `DE`: use the region
 - told "everyone is verified", but `emailConfirmed` is `false` for some users: those stay unverified
 - told to drop some users, but nothing in the data marks them: ask which field does
-- told to skip users the data marks `suspended` or `locked`: import them banned, since the data doesn't say deleted
+- told that users the data marks `suspended`, `locked` or `disabled` were deleted, or to skip them: import them banned, since the data doesn't say deleted
 
 When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. The user also wins when they name something that happened outside the system, which the file had no way to record: if support confirmed a number by phone, it goes in verified even though its flag says it isn't. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
 
@@ -135,6 +135,7 @@ Work out the format from the digests, then set `passwordHasher`:
 | `pbkdf2_sha256$<iterations>$<salt>$<base64 key>` | `pbkdf2_sha256_django` or `pbkdf2_sha256`: see below |
 | `pbkdf2:sha256:<iterations>:<salt>:<base64 key>`, or other separators | the same: rebuild it as `pbkdf2_sha256$…` first |
 | `pbkdf2:sha256:<iterations>$<salt>$<hex key>` (Werkzeug, Flask) | `pbkdf2_sha256_django`: the salt is text. Convert the hex key to base64 and rebuild it as `pbkdf2_sha256$…` |
+| `$pbkdf2-sha256$<iterations>$<salt>$<key>` (passlib, Python) | `pbkdf2_sha256`: passlib hashes the salt's decoded bytes. Salt and key are in passlib's base64: swap `.` for `+` and pad each with `=` to a multiple of 4, then rebuild it as `pbkdf2_sha256$…` |
 
 - **Strip wrapper prefixes.** `bcrypt:$2b$10$…` goes in as `$2b$10$…`.
 - **PBKDF2-SHA256: pick the hasher by how the old system used the salt.** Both hashers take the same string, `pbkdf2_sha256$<iterations>$<salt>$<base64 key>`, and differ only in how they read the salt. A wrong pick still imports, then fails at every sign-in, and the import's checks can't catch it.
