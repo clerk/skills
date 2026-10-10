@@ -106,7 +106,7 @@ Before you act on an answer, compare it with the data. When they disagree, say w
 - told to drop some users, but nothing in the data marks them: ask which field does
 - told to skip users the data marks `suspended` or `locked`: import them banned, since the data doesn't say deleted
 
-When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
+When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. The user also wins when they name something that happened outside the system, which the file had no way to record: if support confirmed a number by phone, it goes in verified even though its flag says it isn't. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary.
 
 ### Metadata
 
