@@ -216,7 +216,7 @@ TypeScript works (Bun's transpiler is part of the runtime), and so does plain `.
 1. **No imports.** The file cannot import helpers from the CLI; a compiled binary has nothing to import from. Write anything `postTransform` needs inline.
 2. **Something must map to `userId`.** The CLI refuses a source without it. Without `external_id`, a migration cannot be re-run or undone.
 3. **Declare `carries`.** The CLI refuses a source without it.
-4. **Do not edit a registry.** There is no source tree to register in. Instructions that say registration is mandatory describe the old standalone tool.
+4. **Do not edit a registry.** There is no source tree to register in.
 5. **Leave users out with `skipReason`,** never by removing rows. See [Leaving users out](#leaving-users-out).
 
 ### Preprocessing wrapped or headerless files
