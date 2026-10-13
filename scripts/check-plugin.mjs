@@ -281,7 +281,11 @@ function checkMcp(files, check) {
       server.type === "streamable-http",
       `mcp.json: ${name} must use type streamable-http`,
     );
-    const extra = extraFields(server, new Set(["type", "url", "headers"]));
+    // OpenAI reads a server's auth mode from `extensions`, which the spec's schema omits.
+    const extra = extraFields(
+      server,
+      new Set(["type", "url", "headers", "extensions"]),
+    );
     check(
       extra === "[]",
       `mcp.json: ${name} has fields the spec rejects: ${extra}`,
