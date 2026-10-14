@@ -9,7 +9,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 2.0.0
+  version: 2.0.1
 compatibility: Requires @clerk/expo v3.4+ (written against v3.6.x, July 2026). Expo SDK 53-56, React Native 0.75+.
 ---
 
@@ -113,6 +113,6 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 - `clerk-swift` / `clerk-android` — native mobile SDKs
 - `clerk-orgs`, `clerk-billing`, `clerk-webhooks` — feature skills (hooks work the same in Expo)
 - Installed package source: `node_modules/@clerk/expo/`
-- https://clerk.com/docs/getting-started/quickstart (Expo SDK tab)
-- https://clerk.com/docs/reference/expo/overview
-- https://github.com/clerk/clerk-expo-quickstart — three official example apps: JS-only (Expo Go), JS + native sign-in buttons, native components
+- [Clerk quickstart](https://clerk.com/docs/getting-started/quickstart) (Expo SDK tab)
+- [Expo SDK reference](https://clerk.com/docs/reference/expo/overview)
+- [Clerk Expo quickstart examples](https://github.com/clerk/clerk-expo-quickstart) — three official example apps: JS-only (Expo Go), JS + native sign-in buttons, native components

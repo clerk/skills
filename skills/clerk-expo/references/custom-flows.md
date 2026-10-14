@@ -3,13 +3,13 @@
 Build your own auth UI with `useSignIn()` / `useSignUp()`. Works everywhere including Expo Go and web. Use when the developer wants their own UI, needs Expo Go, or asked for a specific strategy like SMS.
 
 > Canonical docs — each has an Expo tab with a full working example; fetch the relevant one to re-verify if the installed SDK is newer than 3.6.x:
-> - Email/password: https://clerk.com/docs/guides/development/custom-flows/authentication/email-password
-> - Email/SMS OTP: https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp
-> - Combined sign-in-or-up: https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up
-> - MFA: https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication
-> - Forgot password: https://clerk.com/docs/guides/development/custom-flows/authentication/forgot-password
-> - Email links: https://clerk.com/docs/guides/development/custom-flows/authentication/email-links
-> - Error handling: https://clerk.com/docs/guides/development/custom-flows/error-handling
+> - [Email/password](https://clerk.com/docs/guides/development/custom-flows/authentication/email-password)
+> - [Email/SMS OTP](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp)
+> - [Combined sign-in-or-up](https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up)
+> - [MFA](https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication)
+> - [Forgot password](https://clerk.com/docs/guides/development/custom-flows/authentication/forgot-password)
+> - [Email links](https://clerk.com/docs/guides/development/custom-flows/authentication/email-links)
+> - [Error handling](https://clerk.com/docs/guides/development/custom-flows/error-handling)
 
 ## The current API (v3.4+) — not the legacy one
 
