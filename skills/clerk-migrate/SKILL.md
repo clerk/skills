@@ -137,6 +137,9 @@ Tell the user, in plain terms:
 1. Which source applies, and which instance the import targets.
 2. Which field decides whether an email or phone counts as **verified**. That mapping changes who can sign in. Per-source detail: [references/sources.md](references/sources.md#what-the-built-ins-carry).
 3. What the source cannot carry. Clerk (API export), Auth0 and WorkOS exports hold **no password hashes**, so those users reset their password. **Social sign-ins are never copied**: the user enables the same providers in Clerk, and Clerk links a returning user by verified email ([account linking](https://clerk.com/docs/guides/configure/auth-strategies/social-connections/account-linking)).
+4. Sign-in identifiers outside the mapped fields: phone or username keys in metadata, a name field holding usernames or phone numbers, placeholder emails such as `<digits>@phone.local` that hide a phone. A built-in source imports these as metadata or a first name, and the dry run doesn't flag them. Ask the user whether to import them as real identifiers. That takes a [custom source](references/sources.md#writing-a-source), and the dry run then offers the instance changes it needs: phone or username sign-in, email made optional, extended special characters for usernames with a dot. Apply each only with the user's yes.
+
+   An export run's file names its built-in source, and the CLI refuses a custom `--source` for it. Write its `users` array to a new file, `jq '.users' .clerk/migrate/<run-id>/export.json > .clerk/migrate/<run-id>/users.json`, and import that. The import is then a run of its own file, no longer linked to the export run: tell the user.
 
 ### Step 3: dry run
 
