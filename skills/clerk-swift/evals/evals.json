@@ -28,10 +28,10 @@
     {
       "id": 3,
       "prompt": "build a custom sign in flow for my macos swiftui app. clerk is already configured and the publishable key is read from Info.plist through a build setting",
-      "expected_output": "Builds a multi-step custom flow on ClerkKit that mirrors AuthView, gates steps at runtime from Clerk.shared.environment, and preserves the app's Info.plist key loading",
+      "expected_output": "Builds a multi-step custom flow on ClerkKit that mirrors AuthView, gates steps at runtime from the injected Clerk instance's environment (@Environment(Clerk.self)), and preserves the app's Info.plist key loading",
       "expectations": [
         "Keeps the existing Info.plist and build-setting key loading; does NOT hardcode a publishable key",
-        "Gates identifiers, factors, and required fields at runtime from Clerk.shared.environment instead of hardcoding instance settings",
+        "Gates identifiers, factors, and required fields at runtime from the injected Clerk instance's environment instead of hardcoding instance settings",
         "Does NOT call /v1/environment directly",
         "Splits the flow into multiple steps and files that mirror ClerkKitUI AuthView progression",
         "Uses the native Clerk Apple path for Sign in with Apple rather than generic OAuth"

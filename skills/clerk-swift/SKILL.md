@@ -106,7 +106,7 @@ Use the installed `clerk-ios` package source as the reference for UI behavior, e
 | Use Case | Source of Truth in Installed Package |
 |----------|--------------------------------------|
 | SDK products, platform support, and dependency constraints | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI` |
-| Auth flow sequencing and gating | `ClerkKitUI` `AuthView` implementation and how it reads `Clerk.shared.environment` |
+| Auth flow sequencing and gating | `ClerkKitUI` `AuthView` implementation and how it reads the injected Clerk instance's `environment` |
 | Native Sign in with Apple | Apple sign-in behavior in the selected flow reference |
 
 ## Workflow
@@ -130,7 +130,7 @@ Use the installed `clerk-ios` package source as the reference for UI behavior, e
 | CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
 | CRITICAL | Collapsing custom auth into a single all-fields screen | Follow `AuthView`-style multi-step progression and step-specific field collection |
 | CRITICAL | Guessing custom sequencing or gating when uncertain | Reference installed `ClerkKitUI` behavior and mirror it |
-| HIGH | Hardcoding this instance's current settings into custom flow code | Gate steps at runtime from `Clerk.shared.environment`, as `AuthView` does |
+| HIGH | Hardcoding this instance's current settings into custom flow code | Gate steps at runtime from the injected Clerk instance's `environment`, as `AuthView` does |
 | HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 
 ## See Also

@@ -40,7 +40,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 ## Required Patterns
 
 1. Runtime environment gating
-- Read the instance's settings at runtime from `Clerk.shared.environment`, the same `Environment` that `AuthView` reads (for example `environment.userSettings`).
+- Read the instance's settings at runtime from the injected Clerk instance's `environment`, as `AuthView` does: `@Environment(Clerk.self) private var clerk`, then `clerk.environment` (for example `clerk.environment?.userSettings`).
 - Gate identifiers, factors, social and Apple sign-in, and required sign-up fields on those values, using the same fields and semantics as `ClerkKitUI`.
 - Don't hardcode the instance's current settings into the flow, and don't call `/v1/environment` directly. Settings can change in the Clerk Dashboard without an app update.
 
@@ -86,7 +86,7 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - No local toggle/segmented control/tabs for sign-in vs sign-up unless explicitly requested.
 
 3. Runtime gating
-- Available identifiers, factors, and providers come from `Clerk.shared.environment` at runtime, not hardcoded values.
+- Available identifiers, factors, and providers come from the injected Clerk instance's `environment` at runtime, not hardcoded values.
 - Environment fields used for gating and requirements match the set and semantics used by installed `ClerkKitUI`.
 
 4. AuthView flow parity
