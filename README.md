@@ -113,7 +113,7 @@ copilot plugin install clerk@clerk-skills
 
 | Skill | Platform | Patterns |
 |-------|----------|----------|
-| `clerk-swift` | iOS | ClerkKit, SwiftUI, Apple Sign-In |
+| `clerk-swift` | iOS, macOS | ClerkKitUI views, custom ClerkKit flows, Apple Sign-In |
 | `clerk-android` | Android | Kotlin, Jetpack Compose |
 | `clerk-expo` | Expo / React Native | Native components, custom flows, SMS OTP, OAuth |
 
@@ -148,7 +148,8 @@ for how temporary keys and later account claiming work.
 | "Set up organizations for my B2B app" | `clerk-orgs` |
 | "Add subscription billing with pricing table" | `clerk-billing` |
 | "Gate features by plan" | `clerk-billing` |
-| "Add Clerk auth to my iOS app" | `clerk-swift` |
+| "Add Clerk auth to my iOS app" | `clerk-setup` |
+| "Add a custom sign-in screen to my SwiftUI app" | `clerk-swift` |
 | "Add Clerk auth to my Android app" | `clerk-android` |
 
 ## Repository Structure
