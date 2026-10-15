@@ -54,7 +54,7 @@ User-editable metadata goes to **`unsafe_metadata`**, Clerk's user-editable bloc
 
 - Auth0 `user_metadata` → `unsafeMetadata`; `app_metadata` → `privateMetadata`
 - Supabase `raw_user_meta_data` → `unsafeMetadata`; `raw_app_meta_data` is not carried
-- WorkOS `metadata` → `unsafeMetadata`
+- WorkOS `metadata` → `privateMetadata`, with WorkOS's `external_id` as `workosExternalId`
 - Clerk keeps all three blocks in place
 
 ### Better Auth passwords
