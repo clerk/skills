@@ -178,11 +178,20 @@ Firebase exports carry the project's hash parameters, so the import needs no `--
 clerk migrate runs <run-id>
 ```
 
+Spot-check 2 or 3 created users, taking their `sourceId` from `created` lines in the run's `users.ndjson`:
+
+```sh
+clerk users list --external-id <source-id> --json
+```
+
+Compare their identifiers, verification and metadata placement with what you told the user in Step 2.
+
 Report:
 
 1. How many users were created, failed, and skipped. `runs <id>` shows the error breakdown and the users that failed or were skipped.
 2. The run ID, and that `clerk migrate undo <run-id>` reverses it.
 3. Any user who arrived without something: a dropped password, a field the instance does not store.
+4. Every mismatch the spot-check found.
 
 Check the exit code: `1` means some users failed. Report a partial import as partial.
 
