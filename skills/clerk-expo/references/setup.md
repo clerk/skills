@@ -1,6 +1,6 @@
 # Setup: install, provider, token cache, builds
 
-Shared prerequisites for every path (prebuilt or custom). Complete this file top to bottom before implementing a flow.
+Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what `init` already did instead of repeating it.
 
 > Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): https://clerk.com/docs/getting-started/quickstart (Expo SDK tab)
 
@@ -26,7 +26,7 @@ npx expo install expo-dev-client
 | Biometrics (`useLocalCredentials`) | `npx expo install expo-local-authentication` |
 | Passkeys | `npx expo install @clerk/expo-passkeys` |
 
-Alternative bootstrap: `npx clerk@latest init --framework expo` installs `@clerk/expo` and writes the publishable key to the env file (it does not scaffold screens).
+For CLI bootstrap, follow `clerk-setup` rather than starting a second `init` path from this reference. `init` may leave Expo-specific steps to complete; use this reference for those remaining steps.
 
 ## 2. Publishable key
 
@@ -39,7 +39,7 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 Rules:
 - The prefix must be `EXPO_PUBLIC_` — Metro only inlines env vars with this prefix into the client bundle.
 - Read the variable in app code and pass it explicitly to `ClerkProvider`. Env reads inside `node_modules` are not inlined in production builds.
-- If no key is available, ask the developer (Clerk Dashboard → API keys) and wait.
+- If no key is available, follow the appropriate setup path for a new or existing Clerk application in [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) before continuing. Never replace an existing Clerk application's keys by running a fresh `init`.
 
 ## 3. Dashboard prerequisites
 
