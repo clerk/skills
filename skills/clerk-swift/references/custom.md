@@ -16,7 +16,9 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 
 2. Sign in with Apple
 - If native Sign in with Apple is enabled for this app, the target needs the Sign in with Apple capability. `npx -y clerk@latest doctor` reports the Apple connection and whether each configuration has the entitlement.
-- To enable it, run `npx -y clerk@latest init --sign-in-with-apple` from the project directory. It configures Clerk and adds the entitlement. If the CLI isn't available, add the capability in Xcode.
+- To enable it, run `npx -y clerk@latest init --sign-in-with-apple --json` from the project directory. It configures Clerk and adds the entitlement. If the CLI isn't available, add the capability in Xcode.
+
+These `init` commands need a linked project. With `--json`, an unlinked project returns `status: "application-required"`: rerun with `--app <application_id>` for the application whose `publishable_key` matches the app's existing key, from `npx -y clerk@latest apps list --json`.
 
 Keep the existing `Clerk.configure` call, its key loading, and existing capabilities.
 

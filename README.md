@@ -113,7 +113,7 @@ copilot plugin install clerk@clerk-skills
 
 | Skill | Platform | Patterns |
 |-------|----------|----------|
-| `clerk-swift` | iOS, macOS | ClerkKitUI views, custom ClerkKit flows, Apple Sign-In |
+| `clerk-swift` | iOS, macOS | ClerkKitUI views, custom ClerkKit flows, Sign in with Apple |
 | `clerk-android` | Android | Kotlin, Jetpack Compose |
 | `clerk-expo` | Expo / React Native | Native components, custom flows, SMS OTP, OAuth |
 

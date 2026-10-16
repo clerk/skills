@@ -31,7 +31,7 @@ If Clerk isn't set up yet (no `clerk-ios` package, no `Clerk.configure` call, or
 
 If the CLI can't set up the project (for example, Xcode isn't available or the project isn't supported), follow the [manual iOS quickstart](https://clerk.com/docs/ios/getting-started/quickstart.md?manual=1) instead.
 
-Return to this skill when the user wants sign-in UI added or changed after setup, such as placing prebuilt views or building a custom flow.
+If the user already asked for sign-in UI, such as a custom flow, continue here once setup's build check passes. Otherwise, return to this skill when the user wants sign-in UI added or changed.
 
 ## What Do You Need?
 

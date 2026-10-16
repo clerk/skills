@@ -114,7 +114,7 @@ If `init` reports the framework is unsupported or undetected, follow the quickst
 
 For an existing Clerk project with missing integration files, use that quickstart to add only the missing pieces without running `init`.
 
-`init` configures Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, and Fastify projects, and native iOS and macOS apps through the iOS setup prompt above. For Android, it only prints setup steps, so follow the quickstart.
+`init` configures Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, and Fastify projects, and existing iOS and macOS Xcode projects (see the iOS setup prompt above). For Android, it only prints setup steps, so follow the quickstart.
 
 Use the matching direct quickstart:
 
