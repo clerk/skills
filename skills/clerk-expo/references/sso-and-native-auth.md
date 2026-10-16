@@ -3,7 +3,7 @@
 > Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
 > - [OAuth custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
 > - [`useSSO`](https://clerk.com/docs/reference/expo/native-hooks/use-sso)
-> - [Native Google sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-google) and `use-sign-in-with-apple`
+> - [Native Google sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-google) and [native Apple sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-apple)
 
 Three ways to do social auth in Expo. Pick by platform and build type:
 

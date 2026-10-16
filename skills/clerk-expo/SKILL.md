@@ -113,6 +113,6 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 - `clerk-swift` / `clerk-android` — native mobile SDKs
 - `clerk-orgs`, `clerk-billing`, `clerk-webhooks` — feature skills (hooks work the same in Expo)
 - Installed package source: `node_modules/@clerk/expo/`
-- [Clerk quickstart](https://clerk.com/docs/getting-started/quickstart) (Expo SDK tab)
+- [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
 - [Expo SDK reference](https://clerk.com/docs/reference/expo/overview)
 - [Clerk Expo quickstart examples](https://github.com/clerk/clerk-expo-quickstart) — three official example apps: JS-only (Expo Go), JS + native sign-in buttons, native components
