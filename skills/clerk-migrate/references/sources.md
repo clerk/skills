@@ -15,7 +15,7 @@ clerk migrate sources --json
 
 | Source       | Passwords | MFA     | Metadata |
 | ------------ | --------- | ------- | -------- |
-| `clerk`      | partial   | partial | yes      |
+| `clerk`      | partial   | partial | partial  |
 | `auth0`      | partial   | no      | yes      |
 | `authjs`     | no        | no      | no       |
 | `betterauth` | yes       | no      | no       |
@@ -31,22 +31,22 @@ Run `clerk migrate sources <key>` for the note behind each level and where every
 
 Every source maps a field to `userId`, which becomes the Clerk user's `external_id`. Re-runs and `clerk migrate undo` rely on it.
 
-The mapping that matters most is **how each platform records verification**. Clerk creates primary identifiers already verified, so an unconfirmed address sent there is silently promoted. Sources route unverified values to `unverifiedEmailAddresses` / `unverifiedPhoneNumbers` instead.
+The mapping that matters most is **how each platform records verification**. Clerk creates primary identifiers already verified, so an unconfirmed address sent there is silently promoted. Sources route unverified values to `unverifiedEmailAddresses` / `unverifiedPhoneNumbers` instead. With `--reserve-unverified` (and the user's yes), the import creates those as reserved instead: usable for sign-in, and locked to the user.
 
 | Source       | `userId` from | Verification signal                           | Style     | Password                                         |
 | ------------ | ------------- | --------------------------------------------- | --------- | ------------------------------------------------ |
 | `clerk`      | `id`          | Already split into verified/unverified arrays | n/a       | `password_digest` + `password_hasher` (Dashboard export only) |
 | `auth0`      | `user_id`     | `email_verified`, `phone_verified`            | boolean   | `passwordHash`, bcrypt (support request only)    |
-| `supabase`   | `id`          | `email_confirmed_at`, `phone_confirmed_at`    | timestamp | `encrypted_password`, bcrypt                     |
+| `supabase`   | `id`          | `email_confirmed_at`, `phone_confirmed_at`    | timestamp | `encrypted_password`, bcrypt or argon2           |
 | `authjs`     | `id`          | `email_verified`                              | timestamp | none                                             |
 | `betterauth` | `user_id`     | `email_verified`, `phone_number_verified`     | boolean   | `password_hash`, detected per user               |
-| `firebase`   | `localId`     | `emailVerified`                               | boolean   | `passwordHash` + `passwordSalt`, `scrypt_firebase` |
+| `firebase`   | `localId`     | `emailVerified`                               | boolean   | `passwordHash` + `salt` (`passwordSalt` in CSV), `scrypt_firebase` |
 | `workos`     | `id`          | `email_verified`                              | boolean   | none                                             |
 
-- **Boolean style** treats `true`, `1`, `"true"` and `"1"` as verified, and the string `"false"` (what a CSV export produces) as not verified.
-- **Timestamp style** treats any real date as verified. `""`, `null` and `\N` are not.
+- **Boolean style** treats `true`, `1`, and the strings `true`, `1`, `yes`, `y` and `t` in any case as verified. `false` and its string forms (what a CSV export or `psql` produces) are not.
+- **Timestamp style** treats any real date or number as verified. `""`, `null`, `nil`, `undefined` and `\N` are not.
 
-The import's checks count only verified identifiers toward a required one, so a user whose only email is unverified is rejected when the instance requires an email.
+The import's checks count only verified (or reserved) identifiers toward a required one, so a user whose only email is unverified is rejected when the instance requires an email.
 
 ### Metadata
 
@@ -55,7 +55,9 @@ User-editable metadata goes to **`unsafe_metadata`**, Clerk's user-editable bloc
 - Auth0 `user_metadata` → `unsafeMetadata`; `app_metadata` → `privateMetadata`
 - Supabase `raw_user_meta_data` → `unsafeMetadata`; `raw_app_meta_data` is not carried
 - WorkOS `metadata` → `privateMetadata`, with WorkOS's `external_id` as `workosExternalId`
-- Clerk keeps all three blocks in place
+- Clerk keeps all three blocks in place from `export clerk`, and moves the app's own `external_id` to `privateMetadata.clerkExternalId`. A Dashboard CSV carries no metadata.
+
+Every import also writes `private_metadata.clerkMigrateRun`, the run ID, onto each user it creates. It replaces a source value with that key, and it stays on the user. `undo` uses it.
 
 ### Better Auth passwords
 
@@ -74,10 +76,14 @@ Better Auth normalizes a password to NFKC before hashing it, and Clerk hashes it
 
 ### Other per-source notes
 
-- **`clerk`** carries the most, because both ends share a schema: every identifier list, username, names, all three metadata blocks, and account state (`created_at`, `legal_accepted_at`, `banned`, organization and self-delete permissions). Users keep their original signup dates. Passwords and MFA come across from a Dashboard export only; `clerk migrate export clerk` cannot read them.
-- **`authjs`** and **`betterauth`** split a single `name` column into first and last name. Better Auth also carries the admin plugin's `banned` flag.
+`clerk migrate sources <key>` prints each source's caveats in full. The ones that change what you tell the user:
+
+- **`clerk`** carries the most, because both ends share a schema: every identifier list, username, names, metadata, and account state (`created_at`, `legal_accepted_at`, `banned`, organization and self-delete permissions). Passwords and MFA come across from a Dashboard export only, which carries no metadata, bans or legal acceptance.
+- **Bans.** Auth0 `blocked`, Firebase `disabled`, a Supabase `banned_until` in the future, and a Better Auth ban that has not expired all import as `banned`.
+- **Users left out.** Supabase deleted and anonymous users, and Better Auth anonymous users, are rejected with a skip reason. The import needs `--allow-partial` to go ahead without them.
+- **`authjs`** and **`betterauth`** split a single `name` column into first and last name.
 - **`workos`** has no phone or username. The `identities` array from `--with-identities` is informational only.
-- **`firebase`** combines `passwordHash`, `passwordSalt` and the project's four hash parameters into one digest. A user with a hash but no salt (or the reverse) has both dropped.
+- **`firebase`** combines `passwordHash`, the salt and the project's four hash parameters into one digest.
 
 ## Writing a source
 
@@ -130,7 +136,7 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
 
 | The digest looks like | `passwordHasher` |
 | --- | --- |
-| `$2a$…`, `$2b$…`, `$2y$…` | `bcrypt`, as-is. The cost (the number after the prefix) must be 15 or less |
+| `$2a$…`, `$2b$…`, `$2y$…` | `bcrypt`, as-is. The cost (the number after the prefix) must be 4 to 15, and the digest 60 characters |
 | bcrypt over the password with an app-wide pepper appended | `bcrypt_peppered`: append `$<pepper>` to the bcrypt digest |
 | `bcrypt_sha256$$2b$…` (Django) | `bcrypt_sha256_django`, as-is |
 | `$argon2id$v=19$m=…,t=…,p=…$…`, `$argon2i$…` | `argon2id`, `argon2i`, as-is. `t` must be 20 or less, `p` 16 or less, `m` 1048576 (1 GiB) or less |
@@ -219,9 +225,11 @@ export default {
   },
   defaults: { passwordHasher: "bcrypt" },
   postTransform: (user) => {
-    // Route unverified emails away from the primary field, then drop the
-    // scratch field so validation does not strip it silently.
-    if (user.emailVerified !== true && user.email) {
+    // Runs before the CLI normalizes values, so a CSV's "true" is still a
+    // string here. Route unverified emails away from the primary field, then
+    // drop the scratch field, or the dry run lists it as "Clerk won't store".
+    const verified = [true, 1, "true", "1"].includes(user.emailVerified);
+    if (!verified && user.email) {
       user.unverifiedEmailAddresses = user.email;
       delete user.email;
     }
@@ -232,6 +240,8 @@ export default {
 
 `carries` has three keys, `passwords`, `mfa` and `metadata`, each `{ level: "yes" | "no" | "partial", note }`. `clerk migrate sources ./my-platform.ts` shows it back.
 
+Two optional fields: `defaults`, merged into every row before mapping (a row's own value wins), and `caveats`, an array of strings that `clerk migrate sources` prints.
+
 Check it, then dry-run:
 
 ```sh
@@ -239,11 +249,13 @@ clerk migrate sources ./my-platform.ts
 clerk migrate import users.json --source ./my-platform.ts --dry-run
 ```
 
-TypeScript works (Bun's transpiler is part of the runtime), and so does plain `.js`. The run records the source's key and a hash of the file, so an edited source counts as a different source when re-running.
+TypeScript works (Bun's transpiler is part of the runtime), and so does plain `.js`. The run records the source's key and a hash of the file, so an edited source counts as a different source. A re-run with it, while an import of the same file into the same instance with the earlier version is not undone, exits `2`: undo that run, or pass `--new-run`. The hash covers only the source file, not local files it imports.
+
+To map a `clerk migrate export` run, pass the run ID with your source: `clerk migrate import <export-run-id> --source ./my-platform.ts`. It replaces the export's built-in source.
 
 ### Rules that are easy to get wrong
 
-1. **No imports.** The file cannot import helpers from the CLI; a compiled binary has nothing to import from. Write anything `postTransform` needs inline.
+1. **Nothing from the CLI.** The file cannot import the CLI's helpers; a compiled binary has nothing to import from. Node builtins and the project's own files are fine.
 2. **Something must map to `userId`.** The CLI refuses a source without it. Without `external_id`, a migration cannot be re-run or undone.
 3. **Declare `carries`.** The CLI refuses a source without it.
 4. **Do not edit a registry.** There is no source tree to register in.
@@ -263,14 +275,14 @@ preTransform: (filePath, fileType) => {
 },
 ```
 
-Return `{ filePath }` to leave the file alone, or `{ filePath, data }` to supply the parsed users directly.
+Return `{ filePath }` to leave the file alone, `{ filePath, data }` to supply the parsed users directly, or `{ filePath, csvHeaders }` to name the columns of a CSV with no header row. `preTransform` does not run on a `clerk migrate export` envelope.
 
 ### Hook signatures
 
 | Hook            | Signature                                     | Notes                                                         |
 | --------------- | --------------------------------------------- | ------------------------------------------------------------- |
-| `preTransform`  | `(filePath, fileType) => { filePath, data? }` | May be `async`. Runs before field mapping.                    |
-| `postTransform` | `(user, context) => void`                     | Mutates one mapped user. `context.firebaseHashConfig` is set only for Firebase runs. |
+| `preTransform`  | `(filePath, fileType) => { filePath, data?, csvHeaders? }` | May be `async`. Runs before field mapping.       |
+| `postTransform` | `(user, context) => void`                     | Mutates one mapped user, before values are normalized. `context.firebaseHashConfig` is set only for an envelope from `export firebase` or `--source firebase`. |
 
 `description` is optional and defaults to `Custom source`.
 
@@ -281,16 +293,23 @@ The CLI validates the file before using it and names the problem:
 | Message                                          | What to fix                                                  |
 | ------------------------------------------------ | ------------------------------------------------------------ |
 | `No source file at …`                            | Wrong path; it resolves against the current directory.       |
+| `… is a directory, not a source file`            | Point at the file itself.                                    |
 | `has no default export. Found named export …`    | Use `export default`, not a named export.                    |
-| `Could not load …: Expected identifier …`        | A syntax error in the file.                                  |
+| `Could not load …`                               | A syntax error, or an import that fails to resolve.          |
+| `` `key` must be a non-empty string `` (or `label`) | Set both.                                                 |
+| `` `transformer` must be an object… ``           | The field map is missing or not an object.                   |
+| `` `transformer.<field>` must map to a Clerk field name `` | Each value must be a Clerk field name string.      |
 | `no source field maps to userId`                 | Add the mapping.                                             |
 | `` `carries` must say what the source brings across `` | Add `carries` with all three keys.                     |
 | `key is "clerk", which is already a built-in`    | Pick a different `key`.                                      |
-| `postTransform must be a function when present`  | A hook was set to something that is not a function.         |
+| `` `postTransform` must be a function when present `` | A hook was set to something that is not a function.    |
+| `` `defaults` must be an object when present ``  | Make `defaults` an object.                                   |
+| `` `caveats` must be an array of strings… ``     | Make `caveats` an array of strings.                          |
+| `` `description` must be a string when present `` | Make `description` a string.                                |
 
 ## Schema fields to map onto
 
-Validation drops anything not in this schema, so target these names exactly.
+Validation drops anything not in this schema, and the dry run lists it as `Clerk won't store: …`, so target these names exactly.
 
 | Field                                                    | Notes                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------ |
@@ -299,16 +318,16 @@ Validation drops anything not in this schema, so target these names exactly.
 | `phone`, `phoneNumbers`, `unverifiedPhoneNumbers`        | Same shape, for phone numbers.                               |
 | `username`, `firstName`, `lastName`                      | Strings.                                                     |
 | `password`, `passwordHasher`                             | The hasher is required whenever a password is present.       |
-| `totpSecret`, `backupCodesEnabled`, `backupCodes`        | Two-factor state.                                            |
+| `totpSecret`, `backupCodes`                              | Two-factor state. `backupCodesEnabled` is accepted but not sent. |
 | `unsafeMetadata`, `publicMetadata`, `privateMetadata`    | Objects. `unsafe` is client-**writable**; never trust it.    |
 | `createdAt`, `legalAcceptedAt`                           | Date strings. `createdAt` preserves original signup dates.   |
-| `banned`, `createOrganizationEnabled`, `createOrganizationsLimit`, `deleteSelfEnabled`, `bypassClientTrust`, `skipLegalChecks`, `skipPasswordChecks` | Account state, passed through to the API. |
+| `banned`, `banEndsAt`, `createOrganizationEnabled`, `createOrganizationsLimit`, `deleteSelfEnabled`, `bypassClientTrust`, `skipLegalChecks`, `skipPasswordChecks` | Account state, passed through to the API. `banEndsAt` is not sent: Clerk bans don't expire. |
 | `skipReason`                                             | Leave this user out, with why. The checks report it; never sent to Clerk. |
 | `passwordDropped`                                        | Set with no `password` when a digest has no supported hasher. |
 
 Every user needs at least one identifier: email, phone, or username. The import's checks reject users without one.
 
-`passwordHasher` must be one of the hashers in [Password hashes](#password-hashes). An unrecognized value aborts the run before anything is sent.
+`passwordHasher` must be one of the hashers in [Password hashes](#password-hashes). An unrecognized value rejects that user as `invalid: Unknown password hasher "…"`, and the message lists every accepted name.
 
 ## After writing one
 
