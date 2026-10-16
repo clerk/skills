@@ -8,7 +8,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 1.1.0
+  version: 1.1.1
 ---
 
 # React Router Patterns
@@ -47,8 +47,7 @@ Error: useNavigate() may be used only in the context of a <Router> component.
 
 **`npm ls react-router` shows a single copy — that does NOT rule this out.** The
 duplication is per export condition, not per installed copy. Do not chase duplicate
-installs; add the workaround (upstream issue:
-https://github.com/remix-run/react-router/issues/15232):
+installs; add the workaround ([React Router issue about duplicate Router context](https://github.com/remix-run/react-router/issues/15232)):
 
 ```ts
 import { reactRouter } from '@react-router/dev/vite'

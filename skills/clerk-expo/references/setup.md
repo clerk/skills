@@ -2,7 +2,7 @@
 
 Shared prerequisites for every path (prebuilt or custom). Complete this file top to bottom before implementing a flow.
 
-> Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): https://clerk.com/docs/getting-started/quickstart (Expo SDK tab)
+> Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
 
 ## Supported versions
 

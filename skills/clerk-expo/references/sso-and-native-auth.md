@@ -1,9 +1,9 @@
 # Social auth: browser SSO and native Google/Apple
 
 > Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> - OAuth custom flow: https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections
-> - `useSSO`: https://clerk.com/docs/reference/expo/native-hooks/use-sso
-> - Native Google/Apple: https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-google and `use-sign-in-with-apple`
+> - [OAuth custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
+> - [`useSSO`](https://clerk.com/docs/reference/expo/native-hooks/use-sso)
+> - [Native Google sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-google) and [native Apple sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-apple)
 
 Three ways to do social auth in Expo. Pick by platform and build type:
 
@@ -65,7 +65,7 @@ Setup:
    - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` (iOS — the config plugin writes it into the iOS URL types at prebuild; prebuild fails without it)
 3. `@clerk/expo` config plugin registered, then rebuild.
 
-Full provider-side setup lives at https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-google — fetch it if the Google Cloud side isn't already configured.
+Full provider-side setup lives in the [Google sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-google) — fetch it if the Google Cloud side isn't already configured.
 
 ```tsx
 import { useSignInWithGoogle } from '@clerk/expo/google'
@@ -96,7 +96,7 @@ Always wrap in try/catch and swallow the cancellation codes. On unsupported plat
 
 ## Native Apple sign-in — `useSignInWithApple()`
 
-iOS only; dev build only. Requires `npx expo install expo-apple-authentication` and the Sign in with Apple capability (the `expo-apple-authentication` plugin handles the entitlement — add it to `app.json` plugins). Full setup: https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-apple
+iOS only; dev build only. Requires `npx expo install expo-apple-authentication` and the Sign in with Apple capability (the `expo-apple-authentication` plugin handles the entitlement — add it to `app.json` plugins). Full setup: [Apple sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-apple)
 
 ```tsx
 import { useSignInWithApple } from '@clerk/expo/apple'
