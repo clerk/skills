@@ -5,12 +5,13 @@ description: Clerk authentication router. Use when user asks about Clerk CLI ope
   auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt
   patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router
   patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments,
-  pricing, plans, seat-based pricing, feature entitlements, syncing users, testing,
+  pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating
+  or importing users from another auth provider, testing,
   impersonating a user, or testing webhooks locally.
   Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
-  version: 2.0.0
+  version: 2.0.1
 ---
 
 # Clerk Skills Router
