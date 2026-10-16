@@ -1,6 +1,8 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+
+import { listFiles } from "./check-docs-links.mjs";
 
 export const MAX_SKILL_LINES = 500;
 
@@ -9,21 +11,13 @@ export function countLines(content) {
   return content.split(/\r?\n/).length - (content.endsWith("\n") ? 1 : 0);
 }
 
-async function skillFiles(directory) {
-  const files = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const fullPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await skillFiles(fullPath)));
-    else if (entry.isFile() && entry.name === "SKILL.md") files.push(fullPath);
-  }
-  return files;
-}
-
 export async function checkSkillLengths(root = process.cwd(), maxLines = MAX_SKILL_LINES) {
   const findings = [];
-  for (const file of await skillFiles(path.join(root, "skills"))) {
-    const lines = countLines(await readFile(file, "utf8"));
-    if (lines > maxLines) findings.push({ file: path.relative(root, file), lines });
+  for (const relativeFile of await listFiles(path.join(root, "skills"))) {
+    if (path.basename(relativeFile) !== "SKILL.md") continue;
+    const file = path.join("skills", relativeFile);
+    const lines = countLines(await readFile(path.join(root, file), "utf8"));
+    if (lines > maxLines) findings.push({ file, lines });
   }
   return findings;
 }

@@ -22,6 +22,11 @@ test("allows 500 lines and rejects 501, including nested skills", async () => {
     await writeFile(path.join(flat, "SKILL.md"), "line\n".repeat(MAX_SKILL_LINES));
     await writeFile(path.join(nested, "SKILL.md"), "line\n".repeat(MAX_SKILL_LINES + 1));
     await writeFile(path.join(nested, "reference.md"), "line\n".repeat(MAX_SKILL_LINES + 1));
+    for (const ignored of [".git", "node_modules"]) {
+      const ignoredDirectory = path.join(nested, ignored);
+      await mkdir(ignoredDirectory);
+      await writeFile(path.join(ignoredDirectory, "SKILL.md"), "line\n".repeat(MAX_SKILL_LINES + 1));
+    }
     assert.deepEqual(await checkSkillLengths(root), [{
       file: path.join("skills", "future", "clerk-nested", "SKILL.md"),
       lines: MAX_SKILL_LINES + 1,
