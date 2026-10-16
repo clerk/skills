@@ -39,7 +39,7 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 Rules:
 - The prefix must be `EXPO_PUBLIC_` — Metro only inlines env vars with this prefix into the client bundle.
 - Read the variable in app code and pass it explicitly to `ClerkProvider`. Env reads inside `node_modules` are not inlined in production builds.
-- If no key is available, follow the new- or existing-application path in `clerk-setup` before continuing. Never replace an existing Clerk application's keys by running a fresh `init`.
+- If no key is available, follow the appropriate setup path for a new or existing Clerk application in [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) before continuing. Never replace an existing Clerk application's keys by running a fresh `init`.
 
 ## 3. Dashboard prerequisites
 
