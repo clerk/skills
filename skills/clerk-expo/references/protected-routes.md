@@ -2,7 +2,7 @@
 
 Gate screens on auth state with layout-level guards. Applies to both prebuilt and custom flows.
 
-> Canonical doc: [reading user data in Expo](https://clerk.com/docs/expo/guides/users/reading) (protect content and read user data)
+> Canonical doc: [Read user data in Expo](https://clerk.com/docs/expo/guides/users/reading) (protect content and read user data)
 
 ## Recommended structure
 

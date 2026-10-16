@@ -38,7 +38,8 @@ Match what the user asked for, then load the reference(s) listed. Load only what
 | "Add auth" but Expo Go / web / custom UI required | Custom flows | references/setup.md + references/custom-flows.md |
 | "Add phone / SMS auth", "email OTP", "passwordless" | Custom flow, `phoneCode` / `emailCode` | references/custom-flows.md |
 | "Sign in with Google/Apple/GitHub", "social login", "SSO" | Browser SSO or native buttons | references/sso-and-native-auth.md |
-| "MFA / 2FA / TOTP", "forgot password", "email link" | Custom flow additions | references/custom-flows.md |
+| "MFA / 2FA / TOTP", "forgot password" | Custom flow additions | references/custom-flows.md |
+| "Email link" | Expo web custom flow; native apps use email codes for custom UI or `AuthView` in a development build | references/custom-flows.md + references/prebuilt-components.md |
 | "Protect routes/screens", "redirect if signed out" | Expo Router guards | references/protected-routes.md |
 | "Show user profile", "org switching", "push notifications", "sign out", "call my backend" | App recipes | references/recipes.md |
 | "Biometric login", "Face ID", "passkeys" | Device features | references/recipes.md |
