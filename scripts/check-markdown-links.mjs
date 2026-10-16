@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -7,6 +7,8 @@ import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import { visit } from "unist-util-visit";
+
+import { listFiles } from "./check-docs-links.mjs";
 
 const parser = remark().use(remarkFrontmatter).use(remarkGfm);
 
@@ -22,22 +24,14 @@ export function findUndescribedLinks(content) {
   return findings;
 }
 
-async function markdownFiles(directory) {
-  const files = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const fullPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await markdownFiles(fullPath)));
-    else if (entry.isFile() && entry.name.endsWith(".md")) files.push(fullPath);
-  }
-  return files;
-}
-
 export async function checkMarkdownLinks(root = process.cwd()) {
   const findings = [];
-  for (const file of await markdownFiles(path.join(root, "skills"))) {
-    const content = await readFile(file, "utf8");
+  for (const relativeFile of await listFiles(path.join(root, "skills"))) {
+    if (!relativeFile.endsWith(".md")) continue;
+    const file = path.join("skills", relativeFile);
+    const content = await readFile(path.join(root, file), "utf8");
     for (const finding of findUndescribedLinks(content)) {
-      findings.push({ file: path.relative(root, file), ...finding });
+      findings.push({ file, ...finding });
     }
   }
   return findings;
