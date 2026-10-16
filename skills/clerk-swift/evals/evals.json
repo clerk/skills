@@ -1,0 +1,41 @@
+{
+  "skill_name": "clerk-swift",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "use clerk-swift to add clerk sign in to my swiftui app (MyApp.xcodeproj). clerk isn't installed yet",
+      "expected_output": "Sets up Clerk through the iOS setup prompt first, which runs the Clerk CLI, then returns to place sign-in UI; does not ask for a publishable key or install the package by hand",
+      "expectations": [
+        "Follows the iOS setup prompt at https://clerk.com/docs/ios/getting-started/quickstart.md before any UI work",
+        "Does NOT ask the user to paste a publishable key",
+        "Does NOT add the clerk-ios package, capabilities, or Associated Domains by hand when the CLI can set up the project",
+        "Mentions the manual quickstart (?manual=1) only as a fallback when the CLI can't set up the project",
+        "Asks for or confirms prebuilt vs custom before implementing sign-in UI"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "my ios app already has clerk set up with ClerkKit and Clerk.configure. add the prebuilt sign in sheet",
+      "expected_output": "Skips setup, adds the ClerkKitUI product only if it's missing, and presents AuthView in a sheet from UserButton signed-out content, keeping the existing configuration",
+      "expectations": [
+        "Does NOT rerun setup or follow the iOS setup prompt again",
+        "Adds the ClerkKitUI product only if it isn't already linked, without changing the clerk-ios version requirement",
+        "Uses UserButton with signedOutContent to open AuthView() in a .sheet",
+        "Keeps the existing Clerk.configure call unchanged",
+        "Does NOT call /v1/environment or audit the quickstart"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "build a custom sign in flow for my macos swiftui app. clerk is already configured and the publishable key is read from Info.plist through a build setting",
+      "expected_output": "Builds a multi-step custom flow on ClerkKit that mirrors AuthView, gates steps at runtime from the injected Clerk instance's environment (@Environment(Clerk.self)), and preserves the app's Info.plist key loading",
+      "expectations": [
+        "Keeps the existing Info.plist and build-setting key loading; does NOT hardcode a publishable key",
+        "Gates identifiers, factors, and required fields at runtime from the injected Clerk instance's environment instead of hardcoding instance settings",
+        "Does NOT call /v1/environment directly",
+        "Splits the flow into multiple steps and files that mirror ClerkKitUI AuthView progression",
+        "Uses the native Clerk Apple path for Sign in with Apple rather than generic OAuth"
+      ]
+    }
+  ]
+}

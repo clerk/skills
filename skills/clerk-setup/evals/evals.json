@@ -69,6 +69,19 @@
         "Sets up environment variables for Clerk keys",
         "Does NOT install @clerk/nextjs or create Next.js-specific files"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "i have a swiftui app in xcode (MyApp.xcodeproj) and want to add clerk sign in. can you set it up?",
+      "expected_output": "Follows the iOS setup prompt instead of the web steps: chooses a Clerk application, runs clerk init on the Xcode project, and finishes the Swift integration without accountless keys or an env file",
+      "files": [],
+      "expectations": [
+        "Follows the iOS setup prompt at https://clerk.com/docs/ios/getting-started/quickstart.md instead of the web setup steps",
+        "Chooses or creates a Clerk application and passes it to npx -y clerk@latest init with --app",
+        "Does NOT rely on accountless setup or temporary development keys",
+        "Does NOT create a .env file or install a JavaScript Clerk package",
+        "Configures Clerk in Swift (Clerk.configure) rather than through environment variables"
+      ]
     }
   ]
 }
