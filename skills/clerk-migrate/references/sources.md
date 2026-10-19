@@ -50,7 +50,7 @@ The import's checks count only verified (or reserved) identifiers toward a requi
 
 ### Metadata
 
-User-editable metadata goes to **`unsafe_metadata`**, Clerk's user-editable block:
+Where each built-in source puts metadata:
 
 - Auth0 `user_metadata` → `unsafeMetadata`; `app_metadata` → `privateMetadata`
 - Supabase `raw_user_meta_data` → `unsafeMetadata`; `raw_app_meta_data` is not carried
