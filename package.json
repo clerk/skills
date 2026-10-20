@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test scripts/*.test.mjs",
-    "check": "concurrently \"npm:check:*\"",
+    "check": "concurrently \"pnpm:check:*\"",
     "check:docs-links": "node scripts/check-docs-links.mjs",
     "check:plugin": "node scripts/check-plugin.mjs",
     "check:prompt-invariants": "node scripts/check-prompt-invariants.mjs"

@@ -171,6 +171,16 @@ clerk-skills/                           # the repo root is the plugin root
 └── README.md
 ```
 
+## Contributing
+
+This repo uses [pnpm](https://pnpm.io). [Install pnpm](https://pnpm.io/installation), then run:
+
+```bash
+pnpm install
+pnpm test        # test the checkers
+pnpm run check   # validate the skills
+```
+
 ## Resources
 
 - [Clerk Docs](https://clerk.com/docs)
