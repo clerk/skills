@@ -173,7 +173,9 @@ clerk-skills/                           # the repo root is the plugin root
 
 ## Contributing
 
-This repo uses [pnpm](https://pnpm.io). [Install pnpm](https://pnpm.io/installation), then run:
+This repo uses [pnpm](https://pnpm.io). If you've enabled Corepack, run `corepack disable pnpm` first; Corepack can't run pnpm 12.
+
+[Install pnpm](https://pnpm.io/installation), then run:
 
 ```bash
 pnpm install
