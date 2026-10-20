@@ -145,8 +145,8 @@ Tell the user, in plain terms:
 4. Sign-in identifiers outside the mapped fields: phone or username keys in metadata, a name field holding usernames or phone numbers, placeholder emails such as `<digits>@phone.local` that hide a phone. A built-in source imports these as metadata or a first name, and the dry run doesn't flag them. Ask the user whether to import them as real identifiers. That takes a [custom source](references/sources.md#writing-a-source), and the dry run then offers the instance changes it needs: phone or username sign-in, email made optional, extended special characters for usernames with a dot. Apply each only with the user's yes.
 
    To map an export run with a source you wrote, pass the run ID and the path: `clerk migrate import <export-run-id> --source ./my-source.ts`. It replaces the built-in source and keeps the link to the export run. Its `preTransform` does not run on an envelope.
-5. Two choices the CLI makes only with the user's yes. Ask about each one that applies, and pass the flag only on a yes:
-   - **`--reserve-unverified`.** Users with an email or phone the source never verified. By default Clerk attaches those unverified. Reserved, they work for sign-in and are locked to the user, and they count toward a required email or phone. A reserved address another user already holds rejects the whole user. A continued run keeps the choice its first attempt recorded.
+5. Two choices the CLI makes only with the user's yes. Ask about each one that applies, and pass the flag only on a yes to that question:
+   - **`--reserve-unverified`.** Users with an email or phone the source never verified. By default Clerk attaches those unverified. Reserved, they work for sign-in and are locked to the user, and they count toward a required email or phone. The source never confirmed these belong to the user, so whoever receives mail or texts at one can sign in as that user. Tell the user that when you ask, and recommend it only when the old platform confirmed addresses some other way. A reserved address another user already holds rejects the whole user. A continued run keeps the choice its first attempt recorded.
    - **`--skip-legal-checks`.** When the instance requires legal consent, users with no `legal_accepted_at` are rejected. The flag imports them without it.
 
    An agent run never asks, so it imports unverified and rejects users without legal acceptance unless you pass the flag.
@@ -195,7 +195,7 @@ Spot-check 2 or 3 created users, taking their `sourceId` from `created` lines in
 clerk users list --external-id <source-id> --json
 ```
 
-Compare their identifiers, verification and metadata placement with what you told the user in Step 2.
+Compare their identifiers, verification and metadata placement with what you told the user in Step 2. Read the output where it prints; don't save users to files. If you did write any, list them in the report as holding user data.
 
 Report:
 
@@ -230,7 +230,7 @@ Matching, refusals, run files and every undo case: [references/runs.md](referenc
 3. **Name the source instance when exporting from Clerk.** The linked project is usually the *destination*, so in agent mode `clerk migrate export clerk` refuses with exit `2` until `--secret-key`, `--app`/`--instance` or `CLERK_SECRET_KEY` names the source.
 4. **Never paste a secret key into chat or a file.** Use `clerk auth login`, or let the user set `CLERK_SECRET_KEY` themselves.
 5. **Report failures honestly.** A partial import is normal and recoverable. Re-run the same command to continue it.
-6. **Never pass a consent flag on your own.** `--yes`, `--include-signed-in`, `--reserve-unverified`, `--skip-legal-checks` and `--allow-partial` each need the user's yes.
+6. **Never pass a consent flag on your own.** `--yes`, `--include-signed-in`, `--reserve-unverified`, `--skip-legal-checks` and `--allow-partial` each need the user's yes. An answer counts as a yes only when it answers that flag's question: "import", "go ahead", or text about something else is not a yes to `--reserve-unverified` or `--skip-legal-checks`. Ask again, naming the flag and what it does.
 
 ## References
 
