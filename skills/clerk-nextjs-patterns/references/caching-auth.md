@@ -8,9 +8,9 @@
 
 ```tsx
 // app/profile/page.tsx
-import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { cacheLife, cacheTag } from 'next/cache';
+import { Suspense } from 'react';
 
 async function getUserData(userId: string) {
   'use cache';

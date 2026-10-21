@@ -29,8 +29,8 @@ import { useAuth, useUser } from '@clerk/nextjs';
 ## Server Component
 
 ```tsx
-import { Suspense } from 'react';
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { Suspense } from 'react';
 
 async function Welcome() {
   const { isAuthenticated } = await auth();
@@ -77,8 +77,8 @@ export function UserDashboard() {
 
 ```tsx
 // Server: fetch initial data
-import { Suspense } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
+import { Suspense } from 'react';
 import { ProfileForm } from './ProfileForm';
 
 async function Profile() {
@@ -110,8 +110,8 @@ export function ProfileForm({ initialData }) {
 Use `<Show>` to render content based on auth state. In a Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`. In a Client Component, it reads client-side auth state and needs no boundary.
 
 ```tsx
-import { Suspense } from 'react';
 import { Show } from '@clerk/nextjs';
+import { Suspense } from 'react';
 
 <Suspense>
   <Show when="signed-in" fallback={<div>Please sign in</div>}>

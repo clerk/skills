@@ -58,8 +58,8 @@ Key properties from `auth()`:
 
 ```tsx
 // Server Component
-import { Suspense } from 'react'
 import { auth } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
 
 async function Greeting() {
   const { isAuthenticated, userId } = await auth()  // MUST await!
@@ -87,8 +87,8 @@ export default function Page() {
 **Authentication check:**
 
 ```tsx
-import { Suspense } from 'react'
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 <Suspense>
   <Show when="signed-in" fallback={<p>Please sign in</p>}>

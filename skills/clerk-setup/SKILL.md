@@ -144,8 +144,8 @@ A web app needs sign-in, sign-up, and signed-in user controls, worked into the e
 For Next.js App Router, `<Show>` reads the request, so wrap it in `<Suspense>`:
 
 ```text
-import { Suspense } from 'react'
 import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 <Suspense>
   <Show when="signed-out">
