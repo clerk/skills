@@ -256,18 +256,21 @@ Do NOT invent names like `org:create`, `org:manage_members`, `org:update_metadat
 
 ### 4. Conditional Rendering with `<Show>`
 
-In a Next.js Server Component, wrap `<Show>` in `<Suspense>`.
+In a Next.js Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`. In a Client Component, it reads client-side auth state and needs no boundary.
 
 ```tsx
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Show when={{ role: 'org:admin' }}>
-  <AdminPanel />
-</Show>
+<Suspense>
+  <Show when={{ role: 'org:admin' }}>
+    <AdminPanel />
+  </Show>
 
-<Show when={{ permission: 'org:invoices:create' }}>
-  <NewInvoiceButton />
-</Show>
+  <Show when={{ permission: 'org:invoices:create' }}>
+    <NewInvoiceButton />
+  </Show>
+</Suspense>
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<Protect role="org:admin">` / `<Protect permission="...">` instead of `<Show>`. `<Show>` replaced both `<Protect>` and `<SignedIn>`/`<SignedOut>` in Core 3.

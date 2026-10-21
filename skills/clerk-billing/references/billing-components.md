@@ -146,17 +146,20 @@ If a user subscribes and then `has()` returns false, the session token needs to 
 
 ```tsx
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Show when={{ plan: 'pro' }}>
-	<ProFeatures />
-</Show>
+<Suspense>
+	<Show when={{ plan: 'pro' }}>
+		<ProFeatures />
+	</Show>
 
-<Show when={{ feature: 'analytics' }}>
-	<AnalyticsDashboard />
-</Show>
+	<Show when={{ feature: 'analytics' }}>
+		<AnalyticsDashboard />
+	</Show>
+</Suspense>
 ```
 
-`<Show>` accepts `plan` and `feature` props in addition to `role` and `permission`. Renders children only if the condition is met. In a Next.js Server Component, wrap `<Show>` in `<Suspense>`: it reads the session from the request, and with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
+`<Show>` accepts `plan` and `feature` props in addition to `role` and `permission`. Renders children only if the condition is met. In a Next.js Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. In a Client Component, it needs no boundary.
 
 ## Import Reference
 
