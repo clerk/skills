@@ -168,8 +168,20 @@ clerk-skills/                           # the repo root is the plugin root
 ├── .cursor-plugin/                     # plugin.json + marketplace.json
 ├── .codex-plugin/plugin.json
 ├── .agents/plugins/marketplace.json    # Codex marketplace
-├── scripts/                            # CI checkers, run with npm run check
+├── scripts/                            # CI checkers, run with pnpm run check
 └── README.md
+```
+
+## Contributing
+
+This repo uses [pnpm](https://pnpm.io). If you've enabled Corepack, run `corepack disable pnpm` first; Corepack can't run pnpm 12.
+
+[Install pnpm](https://pnpm.io/installation), then run:
+
+```bash
+pnpm install
+pnpm test        # test the checkers
+pnpm run check   # validate the skills
 ```
 
 ## Resources
