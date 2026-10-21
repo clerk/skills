@@ -78,7 +78,7 @@ For missing development keys, pull them:
 npx -y clerk@latest env pull
 ```
 
-Only when the user needs production keys, use `npx -y clerk@latest env pull --instance prod` instead. Do not replace working keys or switch applications without the user's confirmation.
+Only when the user needs production keys, have them run `npx -y clerk@latest env pull --instance prod --print` in a separate terminal, not through your session (a shell escape such as Claude Code's `!` also puts the output in your transcript), and add the printed lines as production environment variables on the host, plus any other Clerk variables from their env file. Do not read its output: it includes the secret key. Without `--print`, the pull writes the production keys over the local development keys. Do not replace working keys or switch applications without the user's confirmation.
 
 ## Step 1a: Existing project without Clerk
 
@@ -202,7 +202,7 @@ Have the user sign up as their first test user. Congratulate them once the profi
 
 Then ask how they want users to sign up and sign in — identifiers (email, phone, username) and social providers. Changing these needs a claimed application: have the user run `npx -y clerk@latest auth login` first, then review with `npx -y clerk@latest config pull` and change with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md) for details.
 
-Before production, have the user claim the app with `npx -y clerk@latest auth login`, then configure production with `npx -y clerk@latest deploy`. Unclaimed apps and temporary keys aren't production-ready.
+Before production, have the user claim the app with `npx -y clerk@latest auth login`. Ask which domain they own for production (not a hosting provider's URL such as `*.vercel.app`), then run `npx -y clerk@latest deploy --mode agent --domain <domain>`. It creates the production instance and prints a JSON report; without `--domain` it only reports. Follow the report's `nextAction` at each step: it says which DNS records the user adds, how they save OAuth credentials without pasting secrets into chat, and, once production is verified, how to put the production keys on the host without you reading them. Check progress with `npx -y clerk@latest deploy status --mode agent`, which exits 0 only when production is complete. Unclaimed apps and temporary keys aren't production-ready.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 
