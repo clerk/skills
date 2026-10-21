@@ -137,7 +137,8 @@ New Next.js apps set `cacheComponents: true` in `next.config` (the `create-next-
 
 - Wrap `<Show>` and any Server Component that calls `auth()` or `currentUser()` in `<Suspense>`, as close to the auth-dependent UI as possible. Keep `<ClerkProvider>` and static layout outside the boundary so Next.js can prerender them.
 - In a layout header, put one `<Suspense>` inside `<header>` around both the `signed-out` and `signed-in` `<Show>` blocks.
-- For a page that reads auth at the top (`await auth.protect()`), move the read into an async child under `<Suspense>`, or add a `loading.tsx` next to the page.
+- A page that calls `auth()` or `currentUser()` to render data: move the read into an async child inside `<Suspense>` and keep the default-export page synchronous.
+- A page that gates its whole render with `auth.protect()`, `redirectToSignIn()`, or `redirect()`: leave the page as is and add a `loading.tsx` next to it.
 - Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>`. They read the URL with `usePathname()`, even in a Client Component.
 - Never call `auth()` inside `'use cache'`. Read the ID outside and pass it in. See `references/caching-auth.md`.
 

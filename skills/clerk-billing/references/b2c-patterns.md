@@ -8,7 +8,7 @@ B2C billing in Clerk attaches subscriptions to **individual users**. Each user g
 
 Plans for B2C must be created as **User Plans** (Dashboard → Billing → Plans → User Plans tab, or `clerk config patch` with `billing.plans`). A `pro` plan registered as an Organization Plan is a separate entity and won't appear in `<PricingTable />`. Plan type isn't changeable, recreate if misplaced.
 
-> **Cache Components:** The Next.js pages below call `auth()` at the top level. With `cacheComponents: true` (the `create-next-app` default), `next build` fails unless that read is inside `<Suspense>`: add a `loading.tsx` next to each page, or move the `auth()` call into an async child rendered inside `<Suspense>`. Wrap catch-all `<UserProfile />` and `<OrganizationProfile />` pages in `<Suspense>`.
+> **Cache Components:** The Next.js pages below call `auth()` at the top level. With `cacheComponents: true` (the `create-next-app` default), `next build` fails unless that read is inside `<Suspense>`. A page that gates its render with `redirect()` gets a `loading.tsx` next to it. A page that uses `auth()` to render data moves the read into an async child inside `<Suspense>`. Wrap catch-all `<UserProfile />` and `<OrganizationProfile />` pages in `<Suspense>`.
 
 ## Core Pattern: User Plan Check
 

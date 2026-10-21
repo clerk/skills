@@ -27,24 +27,22 @@ Keep the `config.matcher` block. Without the `'/(api|trpc)(.*)'` entry, `auth()`
 
 `await auth.protect()` at the top of the function. For a signed-out request it redirects to sign-in from a page, returns `401` from a Server Action, and returns `404` from a Route Handler.
 
-In a page, call it in an async child rendered inside `<Suspense>`. `auth.protect()` reads the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. Adding a `loading.tsx` next to the page also works.
+A page that gates its whole render this way keeps the check at the top and gets a `loading.tsx` next to it. `auth.protect()` reads the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. `loading.tsx` wraps the page in one.
 
 ```tsx
 // app/dashboard/page.tsx
-import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 
-async function Dashboard() {
+export default async function Page() {
   await auth.protect();
   return <h1>Dashboard</h1>;
 }
+```
 
-export default function Page() {
-  return (
-    <Suspense>
-      <Dashboard />
-    </Suspense>
-  );
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <p>Loading...</p>;
 }
 ```
 
@@ -86,45 +84,29 @@ Two kinds of route skip the session check:
 
 For B2B apps where a page or handler requires a specific permission or role, pass `{ permission }`, `{ role }`, or a callback to `auth.protect()`. A signed-in user without the permission gets a `404`.
 
-```tsx
+```typescript
 // app/invoices/page.tsx
-import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 
-async function Invoices() {
+export default async function Page() {
   await auth.protect({ permission: 'org:invoices:create' });
   return <InvoiceEditor />;
 }
-
-export default function Page() {
-  return (
-    <Suspense>
-      <Invoices />
-    </Suspense>
-  );
-}
 ```
 
-```tsx
+```typescript
 // app/admin/page.tsx
-import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 
-async function Admin() {
+export default async function Page() {
   await auth.protect((has) =>
     has({ role: 'org:admin' }) || has({ role: 'org:billing_manager' })
   );
   return <AdminPanel />;
 }
-
-export default function Page() {
-  return (
-    <Suspense>
-      <Admin />
-    </Suspense>
-  );
-}
 ```
+
+Add a `loading.tsx` next to each, as in `app/dashboard` above.
 
 Prefer permissions over roles — permissions are more granular and easier to reassign across roles in the Dashboard. See the [authorization checks guide](https://clerk.com/docs/guides/secure/authorization-checks).
 

@@ -209,12 +209,11 @@ app/orgs/[slug]/settings/page.tsx
 
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
-```tsx
-import { Suspense } from 'react'
+```typescript
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-async function OrgHome({ params }: { params: Promise<{ slug: string }> }) {
+export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug } = await auth()
   if (orgSlug !== slug) {
@@ -222,17 +221,9 @@ async function OrgHome({ params }: { params: Promise<{ slug: string }> }) {
   }
   return <div>Welcome to {orgSlug}</div>
 }
-
-export default function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
-  return (
-    <Suspense>
-      <OrgHome params={params} />
-    </Suspense>
-  )
-}
 ```
 
-In Next.js, `auth()` runs in an async child inside `<Suspense>`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
+In Next.js, add a `loading.tsx` next to a page like this one that gates its render with `redirect()`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
 
 ### 3. Role-Based Access Control
 
@@ -423,12 +414,11 @@ Most "org-related" failures are configuration, not code. Do not edit components 
 
 Server component protecting a slug-scoped admin page:
 
-```tsx
-import { Suspense } from 'react'
+```typescript
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-async function AdminSettings({ params }: { params: Promise<{ slug: string }> }) {
+export default async function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug, has } = await auth()
 
@@ -437,15 +427,9 @@ async function AdminSettings({ params }: { params: Promise<{ slug: string }> }) 
 
   return <div>Admin settings for {orgSlug}</div>
 }
-
-export default function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
-  return (
-    <Suspense>
-      <AdminSettings params={params} />
-    </Suspense>
-  )
-}
 ```
+
+Add a `loading.tsx` next to it so `next build` passes with Cache Components.
 
 For per-page role and permission checks with `auth.protect()` (Next.js) see `references/nextjs-patterns.md`.
 
