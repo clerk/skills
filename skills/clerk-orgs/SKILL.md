@@ -210,6 +210,10 @@ app/orgs/[slug]/settings/page.tsx
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
 ```tsx
+import { Suspense } from 'react'
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+
 async function OrgHome({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug } = await auth()

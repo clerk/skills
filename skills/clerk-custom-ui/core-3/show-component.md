@@ -122,7 +122,7 @@ In a Client Component, `<Show>` reads client-side auth state and needs no bounda
 
 ## Security Caveat
 
-**`<Show>` only visually hides content** — it remains in browser source. It is not a security boundary. For protecting sensitive data, always verify authentication server-side with `auth()` or `auth.protect()` in the page or Route Handler.
+In a Client Component, **`<Show>` only visually hides content**: it remains in browser source. In a Next.js Server Component, the hidden branch isn't sent to the browser. Either way, `<Show>` doesn't protect data. Verify authentication server-side with `auth()` or `auth.protect()` in the page or Route Handler that fetches it.
 
 ## Migration from Core 2
 

@@ -81,13 +81,23 @@ Render `OrgData` inside `<Suspense>`, the same way as `Profile` above.
 
 `'use cache'` needs `cacheComponents: true` in `next.config`, the `create-next-app` default since Next.js 16.4. On apps without it, use `unstable_cache` and include the ID in the key and tags:
 
-```typescript
-const { userId } = await auth();
-const getCachedUserData = unstable_cache(
-  () => getUserData(userId),
-  [`user-${userId}`],
-  { revalidate: 60, tags: [`user-${userId}`] }
-);
+```tsx
+import { auth } from '@clerk/nextjs/server';
+import { unstable_cache } from 'next/cache';
+
+export default async function ProfilePage() {
+  const { userId } = await auth();
+  if (!userId) return <div>Not signed in</div>;
+
+  const getCachedUserData = unstable_cache(
+    () => db.users.findUnique({ where: { id: userId } }),
+    [`user-${userId}`],
+    { revalidate: 60, tags: [`user-${userId}`] }
+  );
+
+  const userData = await getCachedUserData();
+  return <div>{userData?.name}</div>;
+}
 ```
 
 [Docs](https://nextjs.org/docs/app/getting-started/caching)
