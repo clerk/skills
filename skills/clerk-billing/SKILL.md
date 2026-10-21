@@ -131,6 +131,8 @@ When a user says "gate the export feature" or "gate analytics", always use `has(
 
 ## Key Patterns
 
+Next.js server examples below call `auth()` at the top of a page. With Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary, so add a `loading.tsx` next to each such page, or move the `auth()` call into an async child rendered inside `<Suspense>` (see the `clerk-nextjs-patterns` skill).
+
 ### 1. Render the Pricing Table
 
 Show available plans to users with a single component:

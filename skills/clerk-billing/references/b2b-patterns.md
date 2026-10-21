@@ -6,6 +6,8 @@ B2B billing in Clerk attaches subscriptions to **organizations**, not individual
 
 > **Create the plan as an Organization Plan, not a User Plan.** Use [Dashboard → Billing → Plans](https://dashboard.clerk.com/last-active?path=billing/plans) (Organization Plans tab) or `clerk config patch` with `billing.plans`. Slugs are scoped per type. A `team` plan registered under User Plans will not appear in `<PricingTable for="organization" />`, and vice versa. Plan type cannot be changed after creation, recreate if misplaced.
 
+> **Cache Components:** The Next.js pages below call `auth()` at the top level. With `cacheComponents: true` (the `create-next-app` default), `next build` fails unless that read is inside `<Suspense>`: add a `loading.tsx` next to each page, or move the `auth()` call into an async child rendered inside `<Suspense>`. Wrap catch-all `<UserProfile />` and `<OrganizationProfile />` pages in `<Suspense>`.
+
 ## Core Pattern: Org-Level Plan Check
 
 ```typescript
@@ -46,10 +48,16 @@ No custom seat-counting code is needed. Read the active plan with `has({ plan: '
 Use `<OrganizationProfile />` for the org account billing UI. It renders the active org plan, members, invitations, and the upgrade / cancellation flow scoped to the active organization, with admin-only access to billing actions enforced by Clerk:
 
 ```tsx
+// app/org-account/[[...org-account]]/page.tsx
 import { OrganizationProfile } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 export default function OrgAccountPage() {
-	return <OrganizationProfile />
+	return (
+		<Suspense>
+			<OrganizationProfile />
+		</Suspense>
+	)
 }
 ```
 

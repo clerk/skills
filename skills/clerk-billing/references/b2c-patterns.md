@@ -8,6 +8,8 @@ B2C billing in Clerk attaches subscriptions to **individual users**. Each user g
 
 Plans for B2C must be created as **User Plans** (Dashboard → Billing → Plans → User Plans tab, or `clerk config patch` with `billing.plans`). A `pro` plan registered as an Organization Plan is a separate entity and won't appear in `<PricingTable />`. Plan type isn't changeable, recreate if misplaced.
 
+> **Cache Components:** The Next.js pages below call `auth()` at the top level. With `cacheComponents: true` (the `create-next-app` default), `next build` fails unless that read is inside `<Suspense>`: add a `loading.tsx` next to each page, or move the `auth()` call into an async child rendered inside `<Suspense>`. Wrap catch-all `<UserProfile />` and `<OrganizationProfile />` pages in `<Suspense>`.
+
 ## Core Pattern: User Plan Check
 
 ```typescript
@@ -79,10 +81,16 @@ export default async function BillingSuccessPage() {
 Use `<UserProfile />` for the user account billing UI. It renders the current plan, subscription status, payment methods, invoices, and the upgrade / cancellation flow with no custom code:
 
 ```tsx
+// app/account/[[...account]]/page.tsx
 import { UserProfile } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 export default function AccountPage() {
-	return <UserProfile />
+	return (
+		<Suspense>
+			<UserProfile />
+		</Suspense>
+	)
 }
 ```
 

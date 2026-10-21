@@ -209,8 +209,8 @@ app/orgs/[slug]/settings/page.tsx
 
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
-```typescript
-export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+```tsx
+async function OrgHome({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug } = await auth()
   if (orgSlug !== slug) {
@@ -218,7 +218,17 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
   }
   return <div>Welcome to {orgSlug}</div>
 }
+
+export default function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense>
+      <OrgHome params={params} />
+    </Suspense>
+  )
+}
 ```
+
+In Next.js, `auth()` runs in an async child inside `<Suspense>`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
 
 ### 3. Role-Based Access Control
 
@@ -250,6 +260,8 @@ On the server, `has({ permission })` works only with custom Permissions: System 
 Do NOT invent names like `org:create`, `org:manage_members`, `org:update_metadata` — those are not real permission slugs. See `references/roles-permissions.md` for custom roles and the permission table.
 
 ### 4. Conditional Rendering with `<Show>`
+
+In a Next.js Server Component, wrap `<Show>` in `<Suspense>`.
 
 ```tsx
 import { Show } from '@clerk/nextjs'
@@ -407,11 +419,12 @@ Most "org-related" failures are configuration, not code. Do not edit components 
 
 Server component protecting a slug-scoped admin page:
 
-```typescript
+```tsx
+import { Suspense } from 'react'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
+async function AdminSettings({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug, has } = await auth()
 
@@ -419,6 +432,14 @@ export default async function AdminPage({ params }: { params: Promise<{ slug: st
   if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
 
   return <div>Admin settings for {orgSlug}</div>
+}
+
+export default function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense>
+      <AdminSettings params={params} />
+    </Suspense>
+  )
 }
 ```
 

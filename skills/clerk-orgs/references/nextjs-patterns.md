@@ -8,16 +8,27 @@ For other frameworks see `clerk-react-patterns`, `clerk-astro-patterns`, `clerk-
 
 `auth.protect()` accepts the same shape as `has()` — pass `{ role }`, `{ permission }`, or a callback — so each org-scoped page and Route Handler enforces org authorization without any new API. A signed-in user without the role or permission gets a `404`. `proxy.ts` stays a bare `clerkMiddleware()`.
 
-```typescript
+The check runs in an async child inside `<Suspense>`. `auth()` and dynamic `params` read the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. Adding a `loading.tsx` next to the page also works.
+
+```tsx
 // app/orgs/[slug]/billing/page.tsx
+import { Suspense } from 'react'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function BillingPage({ params }: { params: Promise<{ slug: string }> }) {
+async function Billing({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug } = await auth.protect({ permission: 'org:billing:manage' })
   if (orgSlug !== slug) redirect('/dashboard')
   return <BillingSettings />
+}
+
+export default function BillingPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense>
+      <Billing params={params} />
+    </Suspense>
+  )
 }
 ```
 
@@ -27,17 +38,26 @@ export default async function BillingPage({ params }: { params: Promise<{ slug: 
 
 Nothing validates that the URL slug matches the active org. A user with active org `acme` can hit `/orgs/other-org/...` and your data layer will happily reply with `acme`'s data. Always verify on each org-scoped page, alongside the role or permission check:
 
-```typescript
+```tsx
 // app/orgs/[slug]/admin/page.tsx
+import { Suspense } from 'react'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
-export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+async function Admin({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug, has } = await auth()
   if (orgSlug !== slug) redirect('/dashboard')
   if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
   return <AdminContent />
+}
+
+export default function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense>
+      <Admin params={params} />
+    </Suspense>
+  )
 }
 ```
 
@@ -106,4 +126,5 @@ export async function GET(
 - **Validate `orgSlug === params.slug` on every org-scoped surface.** The slug in the URL is an identifier; the active org in the session is the authority. Don't let them diverge.
 - **Bind `orgId` from `auth()` at the database layer.** Never let a client supply it.
 - **Use `auth.protect({ role / permission })` in each org-scoped page and Route Handler.** Middleware doesn't decide which routes need auth.
+- **Read auth inside `<Suspense>` in pages.** Put the `auth()` / `auth.protect()` call in an async child under `<Suspense>`, or add a `loading.tsx`, so `next build` passes with Cache Components.
 - **`redirect()` throws** — it doesn't return. Don't put code after it expecting to run.

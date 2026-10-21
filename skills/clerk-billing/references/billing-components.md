@@ -116,7 +116,7 @@ import { Show } from '@clerk/nextjs'
 </Show>
 ```
 
-`<Show>` accepts `plan` and `feature` props in addition to `role` and `permission`. Renders children only if the condition is met.
+`<Show>` accepts `plan` and `feature` props in addition to `role` and `permission`. Renders children only if the condition is met. In a Next.js Server Component, wrap `<Show>` in `<Suspense>`: it reads the session from the request, and with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
 
 ## Import Reference
 

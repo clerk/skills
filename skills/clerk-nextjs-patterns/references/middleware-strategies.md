@@ -27,13 +27,24 @@ Keep the `config.matcher` block. Without the `'/(api|trpc)(.*)'` entry, `auth()`
 
 `await auth.protect()` at the top of the function. For a signed-out request it redirects to sign-in from a page, returns `401` from a Server Action, and returns `404` from a Route Handler.
 
-```typescript
+In a page, call it in an async child rendered inside `<Suspense>`. `auth.protect()` reads the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. Adding a `loading.tsx` next to the page also works.
+
+```tsx
 // app/dashboard/page.tsx
+import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 
-export default async function Page() {
+async function Dashboard() {
   await auth.protect();
   return <h1>Dashboard</h1>;
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <Dashboard />
+    </Suspense>
+  );
 }
 ```
 
@@ -60,7 +71,7 @@ export async function updateDashboard() {
 
 Every page checks for itself. A check in a layout is an addition, never a substitute: Next.js doesn't always re-render a layout when the page under it changes.
 
-If `auth.protect()` redirects after streaming has started, such as on a page under a root `loading.tsx`, the response keeps status `200` and carries a client-side redirect: Next.js `redirect()` inserts a meta tag in a streaming context. The `200` alone doesn't prove the check ran. Confirm the response redirects to sign-in and contains no protected data, and keep the check in the page before any protected work. Don't move it into the middleware.
+If `auth.protect()` redirects after streaming has started, such as inside `<Suspense>` or on a page under a `loading.tsx`, the response keeps status `200` and carries a client-side redirect: Next.js `redirect()` inserts a meta tag in a streaming context. The `200` alone doesn't prove the check ran. Confirm the response redirects to sign-in and contains no protected data, and keep the check in the page before any protected work. Don't move it into the middleware.
 
 To return `401` from a Route Handler instead of `404`, check `isAuthenticated` from `await auth()` and return the response yourself (see `references/api-routes.md`).
 
@@ -75,25 +86,43 @@ Two kinds of route skip the session check:
 
 For B2B apps where a page or handler requires a specific permission or role, pass `{ permission }`, `{ role }`, or a callback to `auth.protect()`. A signed-in user without the permission gets a `404`.
 
-```typescript
+```tsx
 // app/invoices/page.tsx
+import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 
-export default async function Page() {
+async function Invoices() {
   await auth.protect({ permission: 'org:invoices:create' });
   return <InvoiceEditor />;
 }
+
+export default function Page() {
+  return (
+    <Suspense>
+      <Invoices />
+    </Suspense>
+  );
+}
 ```
 
-```typescript
+```tsx
 // app/admin/page.tsx
+import { Suspense } from 'react';
 import { auth } from '@clerk/nextjs/server';
 
-export default async function Page() {
+async function Admin() {
   await auth.protect((has) =>
     has({ role: 'org:admin' }) || has({ role: 'org:billing_manager' })
   );
   return <AdminPanel />;
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+      <Admin />
+    </Suspense>
+  );
 }
 ```
 
