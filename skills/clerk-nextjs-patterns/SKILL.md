@@ -135,7 +135,7 @@ import { Suspense } from 'react'
 
 New Next.js apps set `cacheComponents: true` in `next.config` (the `create-next-app` default since Next.js 16.4). With it, `next build` fails on request data read outside a `<Suspense>` boundary: `Next.js encountered uncached or runtime data during prerendering`.
 
-- Wrap `<Show>` and any Server Component that calls `auth()` or `currentUser()` in `<Suspense>`, as close to the auth-dependent UI as possible. Keep `<ClerkProvider>` and static layout outside the boundary so Next.js can prerender them.
+- Wrap `<Show>` rendered in a Server Component, and any Server Component that calls `auth()` or `currentUser()`, in `<Suspense>`, as close to the auth-dependent UI as possible. Keep `<ClerkProvider>` and static layout outside the boundary so Next.js can prerender them.
 - In a layout header, put one `<Suspense>` inside `<header>` around both the `signed-out` and `signed-in` `<Show>` blocks.
 - A page that calls `auth()` or `currentUser()` to render data: move the read into an async child inside `<Suspense>` and keep the default-export page synchronous.
 - A page that gates its whole render with `auth.protect()`, `redirectToSignIn()`, or `redirect()`: leave the page as is and add a `loading.tsx` next to it.
