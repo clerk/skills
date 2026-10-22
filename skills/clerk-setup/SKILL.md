@@ -78,11 +78,9 @@ npx -y clerk@latest env pull
 
 Only when the user needs production keys, use `npx -y clerk@latest env pull --instance prod` instead. Do not replace working keys or switch applications without the user's confirmation.
 
-## Native iOS and macOS apps
-
-For a native iOS or macOS app in Xcode, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead of the steps below. It chooses a Clerk application, runs `init` on the Xcode project, and finishes the Swift integration. If there's no Xcode project yet, ask the user to create and save one in Xcode (File > New > Project > App, with SwiftUI and Swift), then continue from its project directory.
-
 ## Step 1a: Existing project without Clerk
+
+For a native iOS or macOS app in Xcode, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead of the remaining steps.
 
 For a project that does not already use Clerk, run from the project root:
 
@@ -94,6 +92,8 @@ npx -y clerk@latest init
 
 ## Step 1b: Empty directory
 
+For a native iOS or macOS app without an Xcode project, ask the user to create and save one in Xcode (File > New > Project > App, with SwiftUI and Swift), then follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) from its project directory instead of the remaining steps.
+
 Ask which framework and package manager to use, defaulting to Next.js and npm:
 
 ```bash
@@ -102,7 +102,7 @@ npx -y clerk@latest init --framework <framework> --pm <package-manager>
 
 `init` creates the app in a new subdirectory, such as `my-clerk-next-app`, not in the current directory. Run the remaining steps from that subdirectory. As in Step 1a, add `--no-skills` if Clerk's skills are already available to you or the user declined them.
 
-`init` can create Next.js, React Router, Astro, Nuxt, TanStack Start, React, Vue, JavaScript/Vite, and Expo apps. For Express, Fastify, iOS, or Android, create the project with that platform's own tooling first, then follow Step 1a.
+`init` can create Next.js, React Router, Astro, Nuxt, TanStack Start, React, Vue, JavaScript/Vite, and Expo apps. For Express, Fastify, or Android, create the project with that platform's own tooling first, then follow Step 1a.
 
 ## Step 1c: Accountless development keys
 
