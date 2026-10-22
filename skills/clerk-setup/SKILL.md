@@ -78,7 +78,7 @@ For missing development keys, pull them:
 npx -y clerk@latest env pull
 ```
 
-Only when the user needs production keys, have them run `npx -y clerk@latest env pull --instance prod --print` in a separate terminal, not through your session: a shell escape such as Claude Code's `!` would put the secret key in your transcript. If it says no production instance is configured, run `npx -y clerk@latest deploy status --mode agent`. If the report has a non-null `productionInstanceId`, have the user rerun the print command in their separate terminal with that ID in place of `prod`. Otherwise, follow the report's `nextAction` before retrying the pull. Have them add the printed lines as production environment variables on the host, along with the other Clerk variables from their env file, and don't ask them to paste the output. Without `--print`, the pull writes the production keys over the local development keys. Do not replace working keys or switch applications without the user's confirmation.
+Only when the user needs production keys, run `npx -y clerk@latest deploy status --mode agent` and follow its `nextAction`. Once production is complete, copy the keys to the host as described under "After setup". Never pull production keys without `--print`: a plain `env pull` writes them over the local development keys. Do not replace working keys or switch applications without the user's confirmation.
 
 ## Step 1a: Existing project without Clerk
 
@@ -206,7 +206,14 @@ Have the user sign up as their first test user. Congratulate them once the profi
 
 Then ask how they want users to sign up and sign in — identifiers (email, phone, username) and social providers. Changing these needs a claimed application: have the user run `npx -y clerk@latest auth login` first, then review with `npx -y clerk@latest config pull` and change with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md) for details.
 
-Before production, have the user claim the app with `npx -y clerk@latest auth login`. Ask which domain they own for production (not a hosting provider's URL such as `*.vercel.app`), then run `npx -y clerk@latest deploy --mode agent --domain <domain>`. It creates the production instance and prints a JSON report; without `--domain` it only reports. Follow the report's `nextAction` at each step: it says which DNS records the user adds, how they save OAuth credentials without pasting secrets into chat, and, once production is verified, how to put the production keys on the host without you reading them. Check progress with `npx -y clerk@latest deploy status --mode agent`, which exits 0 only when production is complete. Unclaimed apps and temporary keys aren't production-ready.
+When the user is ready for production:
+
+1. Have them claim the app with `npx -y clerk@latest auth login`, because unclaimed apps and temporary keys aren't production-ready.
+2. Ask which domain they own for production, one whose DNS they can change (not a hosting provider's URL such as `*.vercel.app`), and run `npx -y clerk@latest deploy --mode agent --domain <domain>`. It creates the production instance and prints a JSON report.
+3. Follow the report's `nextAction` at each step: it says when to add the records in `pendingDnsRecords` and how to save OAuth credentials without pasting secrets into chat. Pass on each `oauth.setup` entry's `note` to the user, such as Google's reminder to set the OAuth consent screen to "In production".
+4. Check progress with `npx -y clerk@latest deploy status --mode agent`, which exits 0 only when production is complete.
+5. Copy the production keys to the host. On Vercel, run `vercel whoami` yourself, which never starts a login, and if it prints "Logged out.", have the user run `vercel login` in their own terminal. Then, if the user confirms this directory is linked to the Vercel project that serves this app in production, run the `command` of the report's `hostSetup` entry as given. Otherwise, and on any other host, have the user run the `env pull --print` command from `nextAction` in a separate terminal in the project directory, not through your session, and add the printed lines to the host. Never write your own pipe into a host's CLI.
+6. Have the user add the other Clerk variables from their env file to the host too.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 

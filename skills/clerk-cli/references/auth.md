@@ -110,8 +110,8 @@ Examples:
 # Operate on a specific app without linking the repo
 clerk api /users --app app_abc123
 
-# Pull production env keys (dangerous - only when you know what you're doing)
-clerk env pull --app app_abc123 --instance prod
+# Read one production config section for an app without linking
+clerk config pull --app app_abc123 --instance prod --keys session
 
 # Target a specific instance directly
 clerk config pull --instance ins_2aB3c...

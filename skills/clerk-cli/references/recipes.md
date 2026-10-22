@@ -248,7 +248,7 @@ clerk env pull --file .env
 
 `env pull` merges into the existing file: existing Clerk keys are updated in place; new ones are appended under a `# Clerk` header; everything else is preserved.
 
-To put production keys on the host, follow [Put the production keys on the host](agent-mode.md#put-the-production-keys-on-the-host). Don't pull them into a local env file: that writes over the development keys.
+To copy production keys to the host, follow [Copy the production keys to the host](agent-mode.md#copy-the-production-keys-to-the-host). Don't pull them into a local env file: that writes over the development keys.
 
 ## Applications (Platform API)
 
