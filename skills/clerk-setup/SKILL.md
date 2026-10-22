@@ -40,6 +40,8 @@ See the [migration guide](https://clerk.com/docs/guides/development/migrating/ov
 
 ## Existing Clerk projects
 
+For a native iOS or macOS app, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead. It reuses the linked application and keeps existing configuration.
+
 If the project already uses Clerk, skip `init` in Steps 1a and 1b: a signed-out agent run could create another application and replace the project's Clerk keys. If Clerk already works and the user asked for setup, report that no setup is needed. If the user reports missing keys, restore them through the existing-application branch below. If inspection finds missing provider, middleware, or auth routes, add only those pieces from the matching quickstart in Step 2. Never create a replacement application.
 
 Inspect its Clerk package versions before changing anything and use the version table in the [clerk skill](https://clerk.com/.well-known/skills/clerk/SKILL.md) to identify its SDK generation. Preserve that generation unless the user asks to upgrade it, and apply these differences in every step below for Core 2 projects:
@@ -92,7 +94,7 @@ npx -y clerk@latest init
 
 ## Step 1b: Empty directory
 
-For a native iOS or macOS app without an Xcode project, ask the user to create and save one in Xcode (File > New > Project > App, with SwiftUI and Swift), then follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) from its project directory instead of the remaining steps.
+For a native iOS or macOS app, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead of the remaining steps. It covers creating the Xcode project.
 
 Ask which framework and package manager to use, defaulting to Next.js and npm:
 
