@@ -214,20 +214,21 @@ clerk deploy status --mode agent --wait
 
 `clerk deploy --mode agent` without `--domain` is read-only. With `--domain`, it creates the production instance by cloning development when none exists, or resumes the existing one, then emits the same JSON. It exits `0` once its own work succeeded; `clerk deploy status` is the pass/fail gate. Two of its failures mean different things:
 
-- `production_instance_exists`: the existing instance is on another domain. Ask the user whether to continue with that domain or change it in the Clerk Dashboard. Don't create again.
+- `production_instance_exists`: the application's production instance is on another domain, which the message names. Ask the user whether to continue with that domain, then run `clerk deploy status --mode agent` and follow its report, or change the domain in the Clerk Dashboard. Don't retry with another `--domain`.
 - `deploy_domain_unchecked`: an instance exists but Clerk hasn't returned its domain yet, so `--domain` couldn't be checked against it. Nothing was changed in Clerk. Wait, then run `clerk deploy status --mode agent`; don't rerun `clerk deploy --domain` until the report shows the domain.
 
-A 404 on the production domain's status or DNS check fails with `deploy_instance_unresolved`, in `clerk deploy --domain` and in `clerk deploy status`: the instance exists and its status isn't readable yet, so wait and run `clerk deploy status` again. Unless that run just created the instance, the message adds: "If the production instance was deleted, `clerk deploy status` reports `not_started` once Clerk stops listing it; then run `clerk deploy --domain`." Other API failures keep Clerk's own error code. After a create, their message still says the instance exists and to run `clerk deploy status`.
+A 404 on the production domain's status or DNS check fails with `deploy_instance_unresolved`, in `clerk deploy --domain` and in `clerk deploy status`: the instance exists and its status isn't readable yet, so wait and run `clerk deploy status` again. Unless that run just created the instance, the message adds: "If the production instance was deleted, `clerk deploy status` reports `not_started` once Clerk stops listing it; then run `clerk deploy --domain`." Other API failures on that read keep Clerk's own error code. From `clerk deploy --domain`, their message still says the instance exists and to run `clerk deploy status`. The same `deploy_instance_unresolved` code also means Clerk said an instance exists but didn't return it yet. Handle it the same way.
 
 The human wizard is the alternative when the user prefers to type values into a wizard, and the first choice for Apple's private key. Never try to run the human wizard through Claude's `! clerk deploy` shell escape or any non-interactive agent shell. The deploy wizard asks for domain, DNS export, OAuth, and verification inputs over stdin, so it needs a real human terminal. Tell the user to open a new terminal window in the project directory and run `clerk deploy` or `clerk deploy --mode human` there. After they finish, return to agent mode and run `clerk deploy status --mode agent`.
 
 `clerk deploy status --mode agent` is the gate. It is also read-only with respect to deploy configuration, but for an active production domain it triggers one Clerk DNS check, waits briefly, reads a live status/config snapshot, then reports DNS, SSL, email DNS, aggregate domain readiness, and OAuth completeness. By default it does not keep waiting or exponentially back off in agent mode. If the check is incomplete and the user asks the agent to continue waiting, run `clerk deploy status --mode agent --wait` instead of manually sleeping and retrying. `--wait` uses the shared poll loop: one immediate status read, then up to 5 exponential-backoff retries until aggregate domain status is complete. It emits the same status JSON. It exits:
 
-| Exit | Meaning                                                                              |
-| ---- | ------------------------------------------------------------------------------------ |
-| `0`  | Deploy is complete and verified.                                                     |
-| `1`  | The check ran successfully, but deploy is incomplete. Read `state` and `nextAction`. |
-| else | A real CLI error occurred. Read the standard agent error envelope on stderr.         |
+| Exit  | Meaning                                                                                                                                  |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`   | Deploy is complete and verified.                                                                                                         |
+| `1`   | Incomplete deploy or runtime failure. A deploy report on stdout describes incompleteness. An error envelope on stderr describes failure. |
+| `2`   | Usage or validation error. Read the error envelope on stderr.                                                                            |
+| `130` | Interrupted. Inspect any emitted report before retrying.                                                                                 |
 
 Deploy-specific agent errors still use the standard envelope and may include typed codes such as `plan_insufficient`, `provider_domain_not_allowed`, `home_url_taken`, or `form_param_invalid`. Other typed codes include `production_instance_exists` (the existing production instance is on another domain), `deploy_domain_unchecked` (Clerk has not returned the existing instance's domain yet, so nothing was changed), and `deploy_instance_unresolved` (the instance exists but its status is not readable yet).
 
@@ -241,15 +242,16 @@ The deploy report has this shape:
   "state": "domain_pending",
   "domain": "example.com",
   "productionInstanceId": "ins_...",
-  "domainStatus": { "dns": "complete", "ssl": "pending", "mail": "complete" },
+  "domainStatus": { "dns": "pending", "ssl": "pending", "mail": "complete" },
   "pendingDnsRecords": [{ "type": "CNAME", "host": "clerk.example.com", "value": "...", "required": true }],
   "oauth": { "complete": true, "configured": ["google"], "pending": [], "unsupported": [], "setup": [] },
+  "urls": { "domains": "https://dashboard.clerk.com/apps/app_.../instances/ins_.../domains", "instance": "https://dashboard.clerk.com/apps/app_.../instances/ins_..." },
   "hostSetup": [],
-  "nextAction": "SSL still provisioning for example.com. Re-run `clerk deploy status` in a few minutes, DNS propagation can take time. Ask the user to visit the Clerk Dashboard domains page, or offer to open it: https://dashboard.clerk.com/apps/app_.../instances/ins_.../domains"
+  "nextAction": "DNS records not found yet for example.com. Add the records in `pendingDnsRecords` at the domain's DNS provider if you haven't already, then re-run `clerk deploy status --wait`. Propagation usually takes minutes. Ask the user to visit the Clerk Dashboard domains page, or offer to open it: https://dashboard.clerk.com/apps/app_.../instances/ins_.../domains"
 }
 ```
 
-`oauth.setup` has one entry per pending provider, each with `fields` (each with `key`, `label`, `required`, `secret`, `options` when the value must be one of a fixed set, and `fileContents: true` when its value is a file's contents), `redirectUri`, `authorizedOrigins`, `docsUrl`, `payload`, and `command`. Apple has no entry while `nativeAppleReadinessIssue` is present: that field appears only for an iOS app using native-only Sign in with Apple that isn't ready in production, and `nextAction` carries its fix. `urls` holds the production instance's Dashboard pages, or `null` before one exists. `hostSetup` holds the commands that put the production keys on a host without you reading them: at `complete`, one entry per host the CLI has a recipe for (today Vercel), each with `host`, `label`, `shells` (`bash`, `zsh`), and `command`; `[]` in every other state.
+`oauth.setup` has one entry per pending provider, each with `provider`, `label`, `configKey`, `fields` (each with `key`, `label`, `required`, `secret`, `options` when the value must be one of a fixed set, and `fileContents: true` when its value is a file's contents), `redirectUri`, `authorizedOrigins`, `docsUrl`, `note` (a warning to pass on to the user, or `null`), `payload`, and `command`. Apple has no entry while `nativeAppleReadinessIssue` is present: that field appears only for an iOS app using native-only Sign in with Apple that isn't ready in production, and `nextAction` carries its fix. `urls` holds the production instance's Dashboard pages, or `null` before one exists. `hostSetup` holds the commands that put the production keys on a host without you reading them: at `complete`, one entry per host the CLI has a recipe for (today Vercel), each with `host`, `label`, `shells` (`bash`, `zsh`), and `command`; `[]` in every other state.
 
 `complete` is `true` only when the aggregate domain status is complete and all supported OAuth providers enabled in development have production credentials. The `domainStatus` object is a component summary; DNS, SSL, and email DNS can all read `complete` while `state` remains `domain_pending` if Clerk-side finalization is still pending.
 
