@@ -200,8 +200,8 @@ clerk deploy --mode agent
 # 2. With no production instance yet, ask the user for a domain they own, then create it:
 clerk deploy --mode agent --domain example.com
 
-# 3. Add the records in `pendingDnsRecords` at the DNS provider, and save the
-#    `oauth.setup` entries (see the oauth_pending row below).
+# 3. Have the user add the records in `pendingDnsRecords` at the DNS provider.
+#    Meanwhile, save the `oauth.setup` entries (see "Save OAuth credentials" below).
 
 # 4. Verify, and keep waiting when the user asks:
 clerk deploy status --mode agent
@@ -262,16 +262,38 @@ State precedence:
 | `not_started`         | Ask the user which domain they own for production (not a `*.vercel.app` or other hosting-provider URL), then run `clerk deploy --mode agent --domain <domain>`. It creates the production instance and prints the report with the DNS records to add. If `clerk deploy --domain` just succeeded, Clerk may not list the instance yet: rerun it with the same domain instead of asking the user for a new one. |
 | `domain_provisioning` | Wait briefly, then run `clerk deploy status --mode agent`. Don't rerun `clerk deploy --domain`: until Clerk returns the domain, it can't check the domain against the existing instance, so it fails with `deploy_domain_unchecked`.                          |
 | `domain_pending`      | Surface `pendingDnsRecords` when present. Re-run `clerk deploy status --mode agent` after DNS, SSL, or email DNS propagation. |
-| `oauth_pending`       | Have the user create each provider's OAuth app with its entry's `redirectUri` and `authorizedOrigins`. For each entry whose `fields` have no `fileContents: true`, create a file outside the project with `mktemp` (it prints the path, and only your user can read the file), write the entry's `payload` into it with a shell command rather than a file tool (`printf '%s' '<payload>' > <path>`), as it is, placeholders included, and ask the user to replace each `<placeholder>` with the real value; don't ask for the values or read the file. Dry-run each entry's `command` on its file with `--dry-run` (the diff and response it prints show secrets as `[REDACTED]`; don't add `--verbose`, whose output can include raw error bodies). Then confirm once with the user before saving the credentials to production, covering every provider, not once per provider. Run each `command` on its file's path inside the cleanup wrapper below the table: the wrapper keeps the command's exit status, so a failed save still fails, and it removes the file whether or not the save succeeds. If the dry run or the save fails with `usage_error` (exit 2) and a message starting "Nothing was saved:", the user hasn't replaced the placeholders it names yet, and nothing was written to Clerk. Ask them to fill in those fields, without asking for the values. After a dry run the file is still there, so they edit it and you dry-run again. After a save the wrapper has already removed the file, so create a new one the same way and have them fill it in again. Verify with `clerk deploy status --mode agent`. An entry with a `fileContents: true` item in its `fields` (Apple's private key) never goes through a file: save the other `oauth.setup` entries first, if there are any, then send the user to `clerk deploy` in a terminal for it, since the wizard reads the key from its file. When Apple's is the only entry, skip the file steps and send the user straight to the wizard. If `nativeAppleReadinessIssue` is present, Apple has no `oauth.setup` entry; follow `nextAction` for Apple instead. |
-| `complete`            | Clerk's side is done. If the production keys aren't on the host yet, put them there: on Vercel, run the `command` of the `hostSetup` entry whose `host` is `vercel` in bash or zsh, copied verbatim from the field; on any other host, follow `nextAction`. It pipes `clerk env pull --instance <productionInstanceId> --print` into Vercel's CLI without showing the keys. If it exits 3, a key is already set as a production Vercel variable that also targets another environment (Preview, Development, or a custom one): ask the user before replacing it, because `--force` may rewrite that shared variable and put the production secret key in those deployments. If they agree, run the same command again with its `allow_shared=0` changed to `allow_shared=1`; the consent applies to that one run. If it exits 1 before uploading, read its error: a failed `clerk env pull` or a failed `vercel env ls` stops it at once with that command's own error on stderr (for Vercel not logged in or the project not linked, have the user run `vercel login` or `vercel link`), and only a listing that succeeded but isn't recognizable prints "Couldn't read the variable list from vercel env ls", in which case the user should check the project's variables. Redeploy only after it exits 0, then have the user sign up on the domain to confirm. |
-
-For each OAuth save that uses a temporary file, use this cleanup wrapper with the entry's `command` (replacing its `<file>` with the temporary file path) and the same path as `<path>`:
-
-```sh
-( rc=0; <command> || rc=$?; rm -f "<path>"; exit "$rc" )
-```
+| `oauth_pending`       | Save each `oauth.setup` entry's credentials as in [Save OAuth credentials](#save-oauth-credentials), then run `clerk deploy status --mode agent`. |
+| `complete`            | Clerk's side is done. Put the production keys on the host as in [Put the production keys on the host](#put-the-production-keys-on-the-host), then redeploy and have the user sign up on the domain. |
 
 Unsupported OAuth providers do not block `complete`, because the wizard cannot configure them automatically. They are still surfaced in `oauth.unsupported` so you can warn the user to review them in the Clerk Dashboard.
+
+#### Save OAuth credentials
+
+An entry with a `fileContents: true` item in its `fields` (Apple's private key) never goes through a file: steps 2 to 6 skip it, and step 7 sends it to the wizard. If `nativeAppleReadinessIssue` is present, Apple has no `oauth.setup` entry. Follow `nextAction` for Apple instead.
+
+1. Have the user create each provider's OAuth app with its entry's `redirectUri` and `authorizedOrigins`, and pass on its `note` when there is one.
+2. For each entry without `fileContents: true`, create a file outside the project with `mktemp` (it prints the path, and only your user can read the file). Write the entry's `payload` into it with a shell command rather than a file tool (`printf '%s' '<payload>' > <path>`), as it is, placeholders included. Ask the user to replace each `<placeholder>` with the real value. Don't ask for the values or read the file.
+3. Dry-run each entry's `command` on its file with `--dry-run` added. The diff and response it prints show secrets as `[REDACTED]`. Don't add `--verbose`, whose output can include raw error bodies.
+4. If a dry run fails with `usage_error` (exit 2) and a message starting "Nothing was saved:", a field it names still holds its `<placeholder>` or the text `[REDACTED]`, and nothing was written to Clerk. Ask the user to put the real value in those fields, without asking for the values, then dry-run again.
+5. Confirm once with the user before saving the credentials to production, covering every provider. If they decline, or you stop before saving, remove each file with `rm -f "<path>"`.
+6. Save each entry by running its `command` in this wrapper, with the file's path in place of the command's `<file>` and of `<path>`. The wrapper keeps the command's exit status, so a failed save still fails, and it removes the file whether or not the save succeeds:
+
+   ```sh
+   ( rc=0; <command> || rc=$?; rm -f "<path>"; exit "$rc" )
+   ```
+
+   If a save fails with the "Nothing was saved:" error, the file is already gone. Create a new one as in step 2 and have the user fill it in again.
+7. For the `fileContents: true` entry, send the user to `clerk deploy` in a terminal: the wizard reads the key from its file and skips providers already saved. When it's the only entry, skip steps 2 to 6.
+8. Verify with `clerk deploy status --mode agent`.
+
+#### Put the production keys on the host
+
+1. If the production keys aren't on the host yet, put them there. On Vercel, run the `command` of the `hostSetup` entry whose `host` is `vercel` in bash or zsh, copied verbatim from the field. It pipes `clerk env pull --instance <productionInstanceId> --print` into Vercel's CLI without showing the keys. On any other host, follow `nextAction`.
+2. If it exits 3, a key is already set as a production Vercel variable that also targets another environment (Preview, Development, or a custom one): ask the user before replacing it, because `--force` may rewrite that shared variable and put the production secret key in those deployments. If they agree, run the same command again with its `allow_shared=0` changed to `allow_shared=1`; the consent applies to that one run.
+3. If it exits 1, read its stderr. A failed `clerk env pull`, `vercel env ls`, or `vercel env add` stops it with that command's own error (if Vercel isn't logged in or the project isn't linked, have the user run `vercel login` or `vercel link`). "Couldn't read the variable list from vercel env ls" means the listing ran but wasn't recognizable, so have the user check the project's variables. A failed upload can leave earlier keys already replaced, so rerun the command once the cause is fixed.
+4. For a host without a CLI, ask the user to run `clerk env pull --instance <productionInstanceId> --print` in a separate terminal, not through your session (a shell escape such as Claude Code's `!` would put the keys in your transcript), and add the lines themselves. On macOS, `clerk env pull --instance <productionInstanceId> --print | pbcopy` copies them without showing them.
+5. Both routes copy only the publishable and secret keys. Have the user also add the other Clerk variables their app needs from their env file, such as `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, to the host's production environment. Don't ask them to share the values.
+6. Redeploy only after those variables are set and the transfer command exits 0 (or the user finishes adding the keys manually), then have the user sign up on the domain to confirm.
 
 ### Use the catalog, not hard-coded paths
 
@@ -310,4 +332,4 @@ All three remediation commands are themselves interactive by default: `auth logi
 - **Don't run `clerk unlink` in agent mode without `--yes`** - it exits with a usage error instead of prompting.
 - **Don't run `clerk config put` without `--dry-run` first** - it's a full replacement and is destructive.
 - **Don't skip `--yes` on mutations and expect them to work** - agent mode disables prompts, so commands that require confirmation will error.
-- **Don't read secret keys into your context or logs** - `clerk env pull --instance <id> --print` writes the production secret key to stdout so it can be piped straight into a hosting provider's CLI. Pipe it, and never print, read, or paste its output. For Vercel, run the `command` of the `complete` report's `hostSetup` entry for Vercel, copied verbatim, in bash or zsh: it reads the keys and `vercel env ls` before changing anything, stops with exit 1 if it can't read that list, stops with exit 3 if a production key is shared with another environment (ask the user, and rerun with `allow_shared=1` only once they agree), replaces production values with `--force` otherwise, and exits non-zero if the pull or any upload fails; redeploy only after it exits 0. For a host without a CLI, ask the user to run `clerk env pull --instance <id> --print` in a separate terminal, not through your session (a shell escape such as Claude Code's `!` would put the keys in your transcript), and add the lines themselves; on macOS, `clerk env pull --instance <id> --print | pbcopy` copies them without showing them. OAuth client secrets go into a file the user fills in, never into chat or onto the command line. `clerk config patch` and `config put` show secrets as `[REDACTED]` in what they print, but `--verbose` output can include raw error bodies, so don't use `--verbose` around secrets.
+- **Don't read secrets into your context or logs** - never read or print `env pull --print` output or a filled-in OAuth credentials file. Follow [Save OAuth credentials](#save-oauth-credentials) and [Put the production keys on the host](#put-the-production-keys-on-the-host). `clerk config patch` and `config put` print secrets as `[REDACTED]` and refuse a payload that holds `[REDACTED]` under a secret-named key, so never copy their output back into a payload. `--verbose` output can include raw error bodies, so don't use `--verbose` around secrets.
