@@ -78,7 +78,7 @@ For missing development keys, pull them:
 npx -y clerk@latest env pull
 ```
 
-Only when the user needs production keys, have them run `npx -y clerk@latest env pull --instance prod --print` in a separate terminal, not through your session (a shell escape such as Claude Code's `!` also puts the output in your transcript), and add the printed lines as production environment variables on the host, plus any other Clerk variables from their env file. Do not read its output: it includes the secret key. Without `--print`, the pull writes the production keys over the local development keys. Do not replace working keys or switch applications without the user's confirmation.
+Only when the user needs production keys, have them run `npx -y clerk@latest env pull --instance prod --print` in a separate terminal, not through your session: a shell escape such as Claude Code's `!` would put the secret key in your transcript. If it says no production instance is configured, run `npx -y clerk@latest deploy status --mode agent`. If the report has a non-null `productionInstanceId`, have the user rerun the print command in their separate terminal with that ID in place of `prod`. Otherwise, follow the report's `nextAction` before retrying the pull. Have them add the printed lines as production environment variables on the host, along with the other Clerk variables from their env file, and don't ask them to paste the output. Without `--print`, the pull writes the production keys over the local development keys. Do not replace working keys or switch applications without the user's confirmation.
 
 ## Step 1a: Existing project without Clerk
 
