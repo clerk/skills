@@ -141,7 +141,7 @@ Skip this step for backend-only projects, such as Express or Fastify APIs. For E
 
 A web app needs sign-in, sign-up, and signed-in user controls, worked into the existing layout or navigation. If they already exist, adapt them instead of duplicating.
 
-For Next.js App Router, `<Show>` reads the request, so wrap it in `<Suspense>`:
+For Next.js App Router, when `<Show>` renders in a Server Component, it reads the request, so wrap it in `<Suspense>`:
 
 ```text
 import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs'
