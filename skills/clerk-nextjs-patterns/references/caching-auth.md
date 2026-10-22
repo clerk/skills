@@ -2,7 +2,7 @@
 
 **CRITICAL**: Cache entries MUST be scoped by `userId`/`orgId` to prevent data leaking between users.
 
-**Never call `auth()` or `currentUser()` inside `'use cache'`.** They read the request, and Next.js rejects request data inside a cached scope (`headers() can't be read inside "use cache"`). Read `userId` or `orgId` outside the cached function and pass it in as an argument. Arguments are part of the cache key, so each user gets their own entry.
+**Never call `auth()` or `currentUser()` inside `'use cache'`.** They read the request, and Next.js rejects request data inside a cached scope (`headers() can't be read inside "use cache"`). Read `userId` or `orgId` outside the cached function and pass it in as an argument. Arguments are part of the cache key, so each user gets their own entry. See [Cache data per user with `'use cache'`](https://clerk.com/docs/guides/development/rendering-modes#cache-data-per-user-with-use-cache).
 
 ## User-Scoped Cache
 

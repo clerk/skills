@@ -8,7 +8,7 @@ For other frameworks see `clerk-react-patterns`, `clerk-astro-patterns`, `clerk-
 
 `auth.protect()` accepts the same shape as `has()` — pass `{ role }`, `{ permission }`, or a callback — so each org-scoped page and Route Handler enforces org authorization without any new API. A signed-in user without the role or permission gets a `404`. `proxy.ts` stays a bare `clerkMiddleware()`.
 
-Each of these pages gates its whole render, so it keeps the checks at the top and gets a `loading.tsx` next to it. `auth()` and dynamic `params` read the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. `loading.tsx` wraps the page in one.
+Each of these pages gates its whole render, so it keeps the checks at the top and gets a `loading.tsx` next to it. `auth()` and dynamic `params` read the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. `loading.tsx` wraps the page in one. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
 
 ```tsx
 // app/orgs/[slug]/billing/page.tsx

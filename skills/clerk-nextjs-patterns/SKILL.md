@@ -133,14 +133,14 @@ import { Suspense } from 'react'
 
 ## Cache Components
 
-New Next.js apps set `cacheComponents: true` in `next.config` (the `create-next-app` default since Next.js 16.4). With it, `next build` fails on request data read outside a `<Suspense>` boundary: `Next.js encountered uncached or runtime data during prerendering`.
+New Next.js apps set `cacheComponents: true` in `next.config` (the `create-next-app` default since Next.js 16.4). With it, `next build` fails on request data read outside a `<Suspense>` boundary: `Next.js encountered uncached or runtime data during prerendering`. See [Cache Components](https://clerk.com/docs/guides/development/rendering-modes#cache-components) in Clerk's rendering modes guide.
 
 - Wrap `<Show>` rendered in a Server Component, and any Server Component that calls `auth()` or `currentUser()`, in `<Suspense>`, as close to the auth-dependent UI as possible. Keep `<ClerkProvider>` and static layout outside the boundary so Next.js can prerender them.
 - In a layout header, put one `<Suspense>` inside `<header>` around both the `signed-out` and `signed-in` `<Show>` blocks.
 - A page that calls `auth()` or `currentUser()` to render data: move the read into an async child inside `<Suspense>` and keep the default-export page synchronous.
-- A page that gates its whole render with `auth.protect()`, `redirectToSignIn()`, or `redirect()`: leave the page as is and add a `loading.tsx` next to it.
-- Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>`. They read the URL with `usePathname()`, even in a Client Component.
-- Never call `auth()` inside `'use cache'`. Read the ID outside and pass it in. See `references/caching-auth.md`.
+- A page that gates its whole render with `auth.protect()`, `redirectToSignIn()`, or `redirect()`: leave the page as is and add a `loading.tsx` next to it. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
+- Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>`. They read the URL with `usePathname()`, even in a Client Component. See [Prebuilt components on catch-all routes](https://clerk.com/docs/guides/development/rendering-modes#prebuilt-components-on-catch-all-routes).
+- Never call `auth()` inside `'use cache'`. Read the ID outside and pass it in. See `references/caching-auth.md` and [Cache data per user with `'use cache'`](https://clerk.com/docs/guides/development/rendering-modes#cache-data-per-user-with-use-cache).
 
 Use `next build --debug-prerender` to list every failing route. A plain `next build` stops at the first.
 

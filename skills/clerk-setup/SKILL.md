@@ -192,7 +192,7 @@ Add to global CSS:
 
 - Use Node.js 20.9.0 or later for current Clerk SDKs.
 - Next.js 15+: `auth()` is async. Always `await auth()`.
-- Next.js: when `next.config` sets `cacheComponents: true` (the `create-next-app` default), `next build` fails on request data read outside `<Suspense>`. Wrap `<Show>` rendered in a Server Component, and any Server Component that calls `auth()` or `currentUser()`, in `<Suspense>`, as close to the auth-dependent UI as possible. Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>` too, including the sign-in and sign-up pages the Clerk CLI creates.
+- Next.js: when `next.config` sets `cacheComponents: true` (the `create-next-app` default), `next build` fails on request data read outside `<Suspense>`. Wrap `<Show>` rendered in a Server Component, and any Server Component that calls `auth()` or `currentUser()`, in `<Suspense>`, as close to the auth-dependent UI as possible. Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>` too, including the sign-in and sign-up pages the Clerk CLI creates. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes.md#read-auth-data-inside-suspense) and [Prebuilt components on catch-all routes](https://clerk.com/docs/guides/development/rendering-modes.md#prebuilt-components-on-catch-all-routes).
 - For current Next.js SDKs, `ClerkProvider` goes inside `<body>`, not around `<html>`.
 - Never expose `CLERK_SECRET_KEY` in client code.
 - For fresh setups, use the current framework package, such as `@clerk/nextjs`, `@clerk/react`, `@clerk/expo`, `@clerk/react-router`, or `@clerk/tanstack-react-start`.

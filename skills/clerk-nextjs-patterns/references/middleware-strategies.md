@@ -27,7 +27,7 @@ Keep the `config.matcher` block. Without the `'/(api|trpc)(.*)'` entry, `auth()`
 
 `await auth.protect()` at the top of the function. For a signed-out request it redirects to sign-in from a page, returns `401` from a Server Action, and returns `404` from a Route Handler.
 
-A page that gates its whole render this way keeps the check at the top and gets a `loading.tsx` next to it. `auth.protect()` reads the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. `loading.tsx` wraps the page in one.
+A page that gates its whole render this way keeps the check at the top and gets a `loading.tsx` next to it. `auth.protect()` reads the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. `loading.tsx` wraps the page in one. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
 
 ```tsx
 // app/dashboard/page.tsx
