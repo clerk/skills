@@ -142,7 +142,7 @@ Find the connection string in the Supabase dashboard under **Connect**:
 
 The export keeps `raw_app_meta_data`. The import's checks read it for each user's providers, and reject users whose only provider is not enabled in Clerk, unless they can sign in by email code, email link or phone code instead.
 
-The source rejects deleted users (`deleted_at` set) and anonymous users with a skip reason, so the dry run lists them and the import needs `--allow-partial` to go ahead without them. A `banned_until` in the future imports as banned, and phones stored as bare digits get a `+`.
+The source skips deleted users (`deleted_at` set) and anonymous users. The dry run lists them as skipped, and the import goes ahead without them. A `banned_until` in the future imports as banned, and phones stored as bare digits get a `+`.
 
 ## Auth.js (NextAuth)
 
@@ -152,7 +152,11 @@ clerk migrate export authjs --db-url "mysql://user:…@127.0.0.1:3306/authjs"
 
 Postgres, MySQL, SQLite and libsql/Turso all work. Auth.js has no single schema — Prisma capitalizes the table, Drizzle does not — so the export tries `next_auth.users` on Postgres (for `@auth/supabase-adapter`), then `User`, `user` and `users`, and reports which it found.
 
-Auth.js core stores no passwords. Those users arrive with no credentials and will sign in through their OAuth provider or a fresh Clerk flow. Credentials-provider passwords live in the app's own tables, which the export does not read, and it warns about them.
+Auth.js core stores no passwords. Those users arrive with no credentials and will sign in through their OAuth provider or a fresh Clerk flow. An app that also uses the Credentials provider stores passwords wherever it chose, which the export does not read, even a password column on the user table. Migrate those separately, or have those users reset their password.
+
+The export also reads the account table (`Account`, `account`, `accounts` or `next_auth.accounts`) for each user's OAuth providers, and keeps them as `providers`. The import's checks count them and offer to turn on any provider Clerk has off.
+
+**Auth.js leaves an OAuth user's email unverified** (`emailVerified: null`; only an email-link sign-up gets a date). Imported as is, that user is rejected by an instance that requires an email. On one that doesn't, Clerk won't link their social sign-in to the unverified address, and it creates a second user. The export counts these users and warns. `--trust-oauth-emails` marks them verified, dated at the export. Ask the user before passing it, and recommend it only when every provider the app uses verifies addresses: a provider that never verified one lets whoever holds the address claim the account. Without an account table, the export can't tell who signs in with OAuth.
 
 ## Better Auth
 
@@ -161,7 +165,7 @@ clerk migrate export betterauth --db-url "./db.sqlite"
 clerk migrate export betterauth --db-url "libsql://app-org.turso.io?authToken=…"   # or set TURSO_AUTH_TOKEN
 ```
 
-Plugin columns are detected from the live schema rather than assumed, because selecting a column that is not there fails the whole query. Username, admin (`banned`), phone-number and the rest come across when the plugin is installed. A ban carries only while `banExpires` is unset or in the future. Anonymous-plugin users are rejected with a skip reason, so the import needs `--allow-partial` to go ahead without them.
+Plugin columns are detected from the live schema rather than assumed, because selecting a column that is not there fails the whole query. Username, admin (`banned`), phone-number and the rest come across when the plugin is installed. A ban carries only while `banExpires` is unset or in the future. Anonymous-plugin users are skipped. The dry run lists them, and the import goes ahead without them.
 
 Passwords come from a `LEFT JOIN` onto the credential `account` row — left, so a user who only ever signed in with OAuth is still exported. The import detects the hasher per user: Better Auth's own scrypt, bcrypt and argon2 come across, and any other hash is dropped. A user with two credential rows whose hashes differ is exported without a password. See [sources.md](sources.md#better-auth-passwords) for the NFKC caveat.
 
