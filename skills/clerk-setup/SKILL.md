@@ -210,10 +210,11 @@ When the user is ready for production:
 
 1. Have them claim the app with `npx -y clerk@latest auth login`, because unclaimed apps and temporary keys aren't production-ready.
 2. Ask which domain they own for production, one whose DNS they can change (not a hosting provider's URL such as `*.vercel.app`), and run `npx -y clerk@latest deploy --mode agent --domain <domain>`. It creates the production instance and prints a JSON report.
-3. Follow the report's `nextAction` at each step: it says when to add the records in `pendingDnsRecords` and how to save OAuth credentials without pasting secrets into chat. Pass on each `oauth.setup` entry's `note` to the user, such as Google's reminder to set the OAuth consent screen to "In production".
+3. Follow the report's `nextAction` at each step. Pass on each `oauth.setup` entry's `note` to the user, such as Google's reminder to set the OAuth consent screen to "In production".
 4. Check progress with `npx -y clerk@latest deploy status --mode agent`, which exits 0 only when production is complete.
-5. Copy the production keys to the host. On Vercel, run `vercel whoami` yourself, which never starts a login, and if it prints "Logged out.", have the user run `vercel login` in their own terminal. Then, if the user confirms this directory is linked to the Vercel project that serves this app in production, run the `command` of the report's `hostSetup` entry as given. Otherwise, and on any other host, have the user run the `env pull --print` command from `nextAction` in a separate terminal in the project directory, not through your session, and add the printed lines to the host. Never write your own pipe into a host's CLI.
-6. Have the user add the other Clerk variables from their env file to the host too.
+5. On Vercel, run `vercel whoami` yourself, which doesn't start a login just because you're logged out. If it prints "Logged out.", have the user run `vercel login` in their own terminal. Then, if the user confirms this directory is linked to the Vercel project that serves this app in production, copy the production keys by running the `command` of the report's `hostSetup` entry as given. If either command doesn't exit, Vercel is waiting for a browser login: stop it, have the user run the command that hung in their own terminal, from the project directory, and finish the login it opens, then rerun.
+6. On any other host, or if the user doesn't confirm the Vercel project, have the user run the `env pull --print` command from `nextAction` in a separate terminal in the project directory, not through your session, and add the printed lines to the host. Never write your own pipe into a host's CLI.
+7. Have the user add the other Clerk variables from their env file to the host too.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 
