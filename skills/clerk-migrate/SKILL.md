@@ -173,7 +173,7 @@ Pick one path:
   clerk migrate import <export-run-id>
   ```
 
-- **Run it yourself** after the user has said yes to your Step 2 summary and the dry-run checks. Relay the checks, then end your turn and wait for the answer. Never run `--yes` in the same turn as the dry run; a yes given before the user saw the checks doesn't count:
+- **Run it yourself** after the user has said yes to your Step 2 summary and the dry-run checks. Relay the checks, then end your turn and wait for the answer. Never run `--yes` in the same turn as the dry run; a yes given before the user saw the checks doesn't count. Ask the go-ahead as its own question, with the numbers the import will use: "Create 42 users and skip 8? This runs `clerk migrate import <export-run-id> --allow-partial --yes`." Only a yes to that question counts. An answer to the rejects, verification or settings questions doesn't, whatever it says about importing:
 
   ```sh
   clerk migrate import <export-run-id> --yes
@@ -230,7 +230,7 @@ Matching, refusals, run files and every undo case: [references/runs.md](referenc
 3. **Name the source instance when exporting from Clerk.** The linked project is usually the *destination*, so in agent mode `clerk migrate export clerk` refuses with exit `2` until `--secret-key`, `--app`/`--instance` or `CLERK_SECRET_KEY` names the source.
 4. **Never paste a secret key into chat or a file.** Use `clerk auth login`, or let the user set `CLERK_SECRET_KEY` themselves.
 5. **Report failures honestly.** A partial import is normal and recoverable. Re-run the same command to continue it.
-6. **Never pass a consent flag on your own.** `--yes`, `--include-signed-in`, `--reserve-unverified`, `--skip-legal-checks` and `--allow-partial` each need the user's yes. An answer counts as a yes only when it answers that flag's question: "import", "go ahead", or text about something else is not a yes to `--reserve-unverified` or `--skip-legal-checks`. Ask again, naming the flag and what it does.
+6. **Never pass a consent flag on your own.** `--yes`, `--include-signed-in`, `--reserve-unverified`, `--skip-legal-checks`, `--allow-partial` and `--trust-oauth-emails` each need the user's yes. An answer counts as a yes only when it answers that flag's question: "import", "go ahead", or text about something else is not a yes to `--reserve-unverified` or `--skip-legal-checks`. Likewise, choosing `--allow-partial` for the rejects is not a yes to `--yes`. Ask again, naming the flag and what it does.
 7. **Ask when two answers conflict.** If two of the user's answers disagree about the same change (one says to turn placeholder emails into phone numbers, another says not to make anything into a phone number), quote both and ask once which one holds. Don't settle it by reading one answer as covering less than it says. Until they answer, keep the option that changes less: import as exported. Users the dry run then rejects still need a yes to `--allow-partial`. If the answer is still unclear, keep that option and say so in your summary.
 
 ## References
