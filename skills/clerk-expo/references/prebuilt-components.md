@@ -3,7 +3,7 @@
 The default "add auth" path. `AuthView`, `UserButton`, and `UserProfileView` render Clerk's native UI — SwiftUI on iOS, Jetpack Compose on Android — and handle every enabled auth strategy (password, OTP, social, MFA) with no flow code.
 
 > Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> https://clerk.com/docs/reference/expo/native-components/overview — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
+> [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
 
 **Status and requirements — tell the developer up front:**
 - Beta. Works well, but flag it before a production rollout decision.
