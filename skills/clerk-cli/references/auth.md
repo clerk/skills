@@ -92,7 +92,34 @@ When you run a command without `--app`/`--instance`:
 
 1. The CLI resolves the current repo's profile (normalized git remote → git common dir → current working directory).
 2. If linked, it uses the stored app ID and instance IDs.
-3. If not linked, it errors with guidance to run `clerk link`.
+3. If not linked, it stops with `not_linked`. See [When the folder isn't linked](#when-the-folder-isnt-linked).
+
+### When the folder isn't linked
+
+`clerk link` is not always the fix. A folder can run on an app that is in no account yet, created by `clerk init` while signed out or by a Clerk SDK during development. `clerk link` can't list that app until someone claims it, and linking another app instead leaves the folder's keys on the unclaimed one.
+
+Rule out a sandboxed run first ([Host vs sandbox behavior](#host-vs-sandbox-behavior)), then follow the step the error names. Newer CLIs name the step for what the folder holds and, in agent mode, list its commands in `examples`. For example, `clerk deploy` where a Clerk SDK created the app, with `CLERK_PLATFORM_API_KEY` set:
+
+```json
+{"error":{"code":"not_linked","message":"No Clerk project linked to this directory. This folder runs on an app the Clerk SDK created during development. Run `clerk open` to print its claim link for a person to claim the app into the workspace `CLERK_PLATFORM_API_KEY` belongs to, then `clerk link` once it's claimed. Then run `clerk deploy` again.","examples":[{"command":"clerk open","description":"Print the claim link, for a person to claim the app in the Clerk Dashboard"},{"command":"clerk link","description":"Link the app once it's claimed"},{"command":"clerk deploy","description":"Run it again once this folder is linked"}]}}
+```
+
+Read the message, not only `examples`: it marks alternatives with "or", and a `description` says when a fallback runs. Ask the person which alternative to take, run it with your session's invocation (e.g. `npx -y clerk@latest link`), and fill `<app_id>` only with an app the person chose: `clerk link --app` doesn't check the folder's keys.
+
+`clerk auth login` and claiming an SDK-created app in the Clerk Dashboard both need a person. Never put the claim link in a log, commit, or PR: it carries a claim token.
+
+Never run `clerk init` to fix a folder that holds Clerk keys, `.clerk/keyless.json`, or `.clerk/.tmp/keyless.json`, even if a message suggests it: it can create a new app over the folder's keys.
+
+#### Older CLIs
+
+Older CLIs say only "run `clerk link`" whatever the folder holds. With those:
+
+- If `.clerk/keyless.json` or `.clerk/.tmp/keyless.json` exists, ask the person which app this folder should use before running `clerk link`, `clerk auth login`, or `clerk init`. Signing in from a folder with `.clerk/keyless.json`, including the sign-in a signed-out `clerk link` starts, claims that app and writes its keys over the folder's, so unless the person chose that app, sign in from another folder first.
+- Otherwise run `clerk link`, and confirm the linked app with the person before running any other Clerk command against it.
+
+The CLI reads only the current folder, so run these where the app's env files and `.clerk/` are.
+
+`clerk deploy` has no `--app` flag: to deploy a specific app, run `clerk link --app <app_id>` first.
 
 ## `--app` and `--instance` targeting
 
@@ -132,7 +159,7 @@ OAuth 2.0 PKCE flow against the Clerk OAuth system instance (`https://clerk.cler
 5. Fetches user info from `/oauth/userinfo`.
 6. Stores the token in the OS credential store.
 
-In agent mode, if already authenticated, it's a no-op. If not, it runs the full flow above anyway: it opens a
+In agent mode, if already authenticated, it skips the browser but still tries to claim the app behind `.clerk/keyless.json` in the current folder. If not authenticated, it runs the full flow above anyway: it opens a
 browser and binds a localhost callback, so it is **not** unattended and will stall in a sandbox that cannot
 reach a browser. There is no agent-mode branch that prints guidance instead. For headless flows, set
 `CLERK_PLATFORM_API_KEY` rather than calling `clerk auth login`.
@@ -167,8 +194,8 @@ Hits `GET /oauth/userinfo` and prints the email. With no usable session it repor
 
 | Symptom                             | Likely cause                                                  | Fix                                                          |
 | ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the accountless table first; most instance commands need no account |
-| `No Clerk project linked`           | Running a command that needs a linked profile with no `--app` | `clerk link` or pass `--app <id>`                            |
+| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the accountless table first; most instance commands need no account. With `.clerk/keyless.json` in the folder, see [Older CLIs](#older-clis) first |
+| `No Clerk project linked` or `Cannot select an application in agent mode` | No link for this folder, and no `--app` | The step the error names; see [When the folder isn't linked](#when-the-folder-isnt-linked) |
 | `Invalid secret key prefix`         | Passed `ak_...` where `sk_...` expected (or vice versa)       | Check which API the command hits; pass the matching key type |
 | `Unauthorized` from API             | Key belongs to a different instance                           | Verify `--instance` and ensure the key matches               |
 | Sandbox warning + auth/link failure | Host-only Clerk state or system capabilities are blocked      | Rerun the same command on the host before trusting the error |

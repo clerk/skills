@@ -206,9 +206,9 @@ Add to global CSS:
 
 Have the user sign up as their first test user. Congratulate them once the profile icon appears in the nav.
 
-Then ask how they want users to sign up and sign in — identifiers (email, phone, username) and social providers. Changing these needs a claimed application: have the user run `npx -y clerk@latest auth login` first, then review with `npx -y clerk@latest config pull` and change with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md) for details.
+Then ask how they want users to sign up and sign in — identifiers (email, phone, username) and social providers. Changing these needs a claimed application. If `init` created it in this session, have the user run `npx -y clerk@latest auth login`, which claims it. Otherwise, if the project has `.clerk/keyless.json` or `.clerk/.tmp/keyless.json`, ask the user which application it should use before signing in or linking: older CLIs claim the app in `.clerk/keyless.json` on any sign-in there, including the one a signed-out `npx -y clerk@latest link` starts, and write its keys over the project's, so unless the user chose that app, have them sign in from another folder first. Then review with `npx -y clerk@latest config pull` and change with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md) for details.
 
-Before production, have the user claim the app with `npx -y clerk@latest auth login`, then configure production with `npx -y clerk@latest deploy`. Unclaimed apps and temporary keys aren't production-ready.
+Before production, have the user claim the app the same way, then configure production with `npx -y clerk@latest deploy`. If `deploy` says the project isn't linked, have the user follow the step it names. Unclaimed apps and temporary keys aren't production-ready.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 
