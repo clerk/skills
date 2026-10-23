@@ -38,7 +38,7 @@ The mapping that matters most is **how each platform records verification**. Cle
 | `clerk`      | `id`          | Already split into verified/unverified arrays | n/a       | `password_digest` + `password_hasher` (Dashboard export only) |
 | `auth0`      | `user_id`     | `email_verified`, `phone_verified`            | boolean   | `passwordHash`, bcrypt (support request only)    |
 | `supabase`   | `id`          | `email_confirmed_at`, `phone_confirmed_at`    | timestamp | `encrypted_password`, bcrypt or argon2           |
-| `authjs`     | `id`          | `email_verified`                              | timestamp | none                                             |
+| `authjs`     | `id`          | `email_verified` (`0`, `"0"`, the epoch and non-date text are unverified) | timestamp | none                                             |
 | `betterauth` | `user_id`     | `email_verified`, `phone_number_verified`     | boolean   | `password_hash`, detected per user               |
 | `firebase`   | `localId`     | `emailVerified`                               | boolean   | `passwordHash` + `salt` (`passwordSalt` in CSV), `scrypt_firebase` |
 | `workos`     | `id`          | `email_verified`                              | boolean   | none                                             |
@@ -80,7 +80,7 @@ Better Auth normalizes a password to NFKC before hashing it, and Clerk hashes it
 
 - **`clerk`** carries the most, because both ends share a schema: every identifier list, username, names, metadata, and account state (`created_at`, `legal_accepted_at`, `banned`, organization and self-delete permissions). Passwords and MFA come across from a Dashboard export only, which carries no metadata, bans or legal acceptance.
 - **Bans.** Auth0 `blocked`, Firebase `disabled`, a Supabase `banned_until` in the future, and a Better Auth ban that has not expired all import as `banned`.
-- **Users left out.** Supabase deleted and anonymous users, and Better Auth anonymous users, are rejected with a skip reason. The import needs `--allow-partial` to go ahead without them.
+- **Users left out.** Supabase's deleted and anonymous users, Better Auth's anonymous users, and Firebase users with no email or phone are skipped with a reason. They don't stop the import, and they need no `--allow-partial`.
 - **`authjs`** and **`betterauth`** split a single `name` column into first and last name.
 - **`workos`** has no phone or username. The `identities` array from `--with-identities` is informational only.
 - **`firebase`** combines `passwordHash`, the salt and the project's four hash parameters into one digest.
@@ -194,9 +194,9 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
 
 ### Leaving users out
 
-To leave a user out (deleted, anonymous, a test account), set `user.skipReason` in `postTransform`. The import's checks reject that user with your reason, and the run lists them.
+To leave a user out (deleted, anonymous, a test account), set `user.skipReason` in `postTransform`. The dry run lists these users apart from the rejects, as skipped with your reason. They never stop the import and need no `--allow-partial`. The run records each as `skipped` with `code: "source_skip"`. On their own they leave the run `complete`, so a re-run says "Already imported".
 
-A skipped user is a reject, and any reject stops the import unless `--allow-partial` is passed. Say so in your summary: with the user's yes, import with `--allow-partial`, and each skipped user is recorded in the run with your reason.
+Say in your summary how many users the source skips and why. That's information for the user, not a choice they have to make.
 
 Don't filter rows out in `preTransform`: a removed row disappears without a trace, and nobody can tell later why the user is missing.
 
@@ -238,6 +238,8 @@ export default {
 };
 ```
 
+A `transformer` target that isn't a Clerk field, like `email_ok: "emailVerified"` above, is only a rename. `clerk migrate sources ./my-platform.ts` marks it "not a Clerk field: Clerk won't store it unless postTransform moves it". That's expected for a scratch field that `postTransform` reads and deletes.
+
 `carries` has three keys, `passwords`, `mfa` and `metadata`, each `{ level: "yes" | "no" | "partial", note }`. `clerk migrate sources ./my-platform.ts` shows it back.
 
 Two optional fields: `defaults`, merged into every row before mapping (a row's own value wins), and `caveats`, an array of strings that `clerk migrate sources` prints.
@@ -260,6 +262,7 @@ To map a `clerk migrate export` run, pass the run ID with your source: `clerk mi
 3. **Declare `carries`.** The CLI refuses a source without it.
 4. **Do not edit a registry.** There is no source tree to register in.
 5. **Leave users out with `skipReason`,** never by removing rows. See [Leaving users out](#leaving-users-out).
+6. **`postTransform` is synchronous.** Do any async work (reading another file, a lookup) in `preTransform`, which may be `async`, and return the rows with the results added as `data`. `preTransform` doesn't run on an envelope, so a source for an export run can't do async work.
 
 ### Preprocessing wrapped or headerless files
 
@@ -282,7 +285,7 @@ Return `{ filePath }` to leave the file alone, `{ filePath, data }` to supply th
 | Hook            | Signature                                     | Notes                                                         |
 | --------------- | --------------------------------------------- | ------------------------------------------------------------- |
 | `preTransform`  | `(filePath, fileType) => { filePath, data?, csvHeaders? }` | May be `async`. Runs before field mapping.       |
-| `postTransform` | `(user, context) => void`                     | Mutates one mapped user, before values are normalized. `context.firebaseHashConfig` is set only for an envelope from `export firebase` or `--source firebase`. |
+| `postTransform` | `(user, context) => void`                     | Mutates one mapped user in place, before values are normalized; the return value is ignored. **Must be synchronous**: an `async` hook, or one that returns a promise, stops the import. Columns the `transformer` doesn't name arrive under their own names. `context.firebaseHashConfig` is set only for an envelope from `export firebase` or `--source firebase`. |
 
 `description` is optional and defaults to `Custom source`.
 
@@ -306,6 +309,15 @@ The CLI validates the file before using it and names the problem:
 | `` `defaults` must be an object when present ``  | Make `defaults` an object.                                   |
 | `` `caveats` must be an array of strings… ``     | Make `caveats` an array of strings.                          |
 | `` `description` must be a string when present `` | Make `description` a string.                                |
+
+These stop the import while it maps users:
+
+| Message | What to fix |
+| --- | --- |
+| `` The "<key>" source's postTransform returned a promise. It must be synchronous… `` | Drop `async` and any `await` from `postTransform`. Move the async work into `preTransform`. |
+| `` The "<key>" source's postTransform failed on row N: … `` | The hook threw on that row. Run that row through the hook by hand (see step 2 of [After writing one](#after-writing-one)) and fix the case it misses. |
+
+Both exit `2` and link the CLI's Custom sources docs. A `CliError` the hook throws itself passes through with its own message and code.
 
 ## Schema fields to map onto
 

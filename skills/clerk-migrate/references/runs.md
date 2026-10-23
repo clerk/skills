@@ -10,11 +10,13 @@ Running the same import again continues it. The CLI matches on the file's sha256
 | ------------------- | ------------------------------------------------------------------------ |
 | none                | starts a new run                                                         |
 | interrupted         | continues the same run, skipping the users it created                    |
-| `partial`           | continues the same run, retrying the users that failed or were skipped   |
+| `partial`           | continues the same run, retrying the users that failed or were rejected. Users the source skipped stay skipped. |
 | `complete`          | nothing; prints "Already imported in run …" and exits `0`                |
 | `undone`            | starts a new run                                                         |
 
 `--new-run` skips the lookup and forces a fresh run.
+
+Only one import of a file into an instance runs at a time. A second one exits `2` while the first is live, whatever source or `--runs-dir` it uses, and names the lock file. A Ctrl-C or a crash can leave the lock behind; the next import reclaims it. The file is safe to delete when no `clerk migrate import` is running.
 
 A re-run refuses with exit `2`, and imports nothing, when:
 
@@ -42,7 +44,7 @@ Each run folder holds `run.json` (kind, status, target, source, file and its sha
 | `created`  | Clerk created the user. `pending` lists identifiers still to attach.           |
 | `creating` | sent, with no confirmed answer. `runs` shows it as "not confirmed".            |
 | `failed`   | Clerk refused the create. `error` and `code` say why.                          |
-| `skipped`  | left out by a reject under `--allow-partial`, `skipReason`, or `--require-password`. `reason` says which. |
+| `skipped`  | left out: by the source (`code: "source_skip"`), by a reject under `--allow-partial`, or by `--require-password`. `reason` says why. |
 | `deleted`  | removed by an undo                                                             |
 | `exported` | written by an export run                                                       |
 
@@ -52,7 +54,7 @@ Grep it directly:
 grep '"status":"failed"' .clerk/migrate/<run-id>/users.ndjson
 ```
 
-A run is `partial` when any user failed, was skipped, was not confirmed, was not sent, or has identifiers left to attach, and `complete` otherwise. A run whose process died before recording a finish time is `interrupted`, but only `clerk migrate runs` works that out: its `run.json` still says `running`. Read `state` from `runs --json` rather than `status` from `run.json`.
+A run is `partial` when any user failed, was skipped, was not confirmed, was not sent, or has identifiers left to attach, and `complete` otherwise. A user its source skipped (`code: "source_skip"`) doesn't count. A run whose only skips are those is `complete`. A run whose process died before recording a finish time is `interrupted`, but only `clerk migrate runs` works that out: its `run.json` still says `running`. Read `state` from `runs --json` rather than `status` from `run.json`.
 
 A run records the instance ID from `GET /v1/instance`. When that call fails and nothing else names the instance, it records `key_<hash>` instead.
 
