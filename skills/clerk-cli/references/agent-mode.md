@@ -208,6 +208,7 @@ clerk deploy status --mode agent --wait
 `clerk deploy --mode agent` exits `0` once its own work succeeds, even when production isn't complete yet. With `--domain`, it can fail with these errors:
 
 - `usage_error` (exit 2): the domain is malformed or a hosting provider's, such as `*.vercel.app`. The CLI doesn't catch every hosting domain, so confirm the user can change the domain's DNS before running `clerk deploy --domain`.
+- `provider_domain_not_allowed`: Clerk rejected the domain as a hosting provider's. Ask the user for a domain they own and can add DNS records to.
 - `home_url_taken`: another instance already uses that domain. Ask the user for another.
 - `plan_insufficient`: the plan doesn't cover features enabled in development, and nothing was created. The user upgrades their plan in the Clerk Dashboard or turns off the features the message lists.
 - `production_instance_exists`: the production instance is on another domain, which the message names. Ask the user whether to continue with that domain (run `clerk deploy status --mode agent`) or change it in the Clerk Dashboard. Don't retry with another `--domain`.
@@ -252,7 +253,7 @@ The example leaves these fields empty or out:
 - `nativeAppleReadinessIssue`: present when Sign in with Apple is native-only and not ready in production. `nextAction` gives the fix, and Apple has no `oauth.setup` entry until then.
 - `hostSetup`: at `complete`, the command that copies the production keys to Vercel. Vercel only, and `[]` in every other state.
 
-Run the `oauth.setup` and `hostSetup` commands as given; don't replace a quoted path with `clerk`.
+Run the `oauth.setup` and `hostSetup` commands as given; don't replace a quoted path with `clerk`. On Windows these commands and the `env pull --print` command the user runs call plain `clerk` (in the `hostSetup` command, inside `keys=$(...)`). If `clerk` isn't installed, replace that call with the package-runner form from [Invoking the CLI](../SKILL.md#invoking-the-cli) and keep the rest of the command.
 
 `complete` is `true` only when the domain is complete and every supported OAuth provider enabled in development has production credentials. Read `state`, not `domainStatus`: its DNS, SSL, and email DNS can all be `complete` while Clerk is still finishing.
 
@@ -268,7 +269,7 @@ What to do in each state:
 
 #### Save OAuth credentials
 
-Follow these steps rather than the shorter ones in `nextAction`, which leave out the dry run and the confirmation.
+Follow these steps rather than the shorter ones in `nextAction`, which leave out the dry run and the confirmation. Steps 2 to 6 need bash or zsh. In any other shell, after step 1, fix any `nativeAppleReadinessIssue` as `nextAction` says, then have the user run `clerk deploy` in a separate terminal, from the project directory, to enter every provider's credentials. Then go to step 8.
 
 1. Have the user create each provider's OAuth app with its entry's `redirectUri` and `authorizedOrigins`, and pass on its `note` when there is one.
 2. For each entry with no field marked `fileContents: true`, create a file outside the project with `mktemp` (it prints the path, and only your user can read the file). Write the entry's `payload` into it with a shell command rather than a file tool (`printf '%s' '<payload>' > <path>`), placeholders included. Ask the user to replace each `<placeholder>` with the real value. Don't ask for the values or read the file.
@@ -287,11 +288,11 @@ Follow these steps rather than the shorter ones in `nextAction`, which leave out
 
 #### Copy the production keys to the host
 
-On Vercel, you run the report's `hostSetup` command. On any other host, the user copies the keys.
+On Vercel, you usually run the report's `hostSetup` command. On any other host, the user copies the keys.
 
 On Vercel:
 
-1. Run `vercel whoami` yourself (it doesn't start a login just because you're logged out). If it prints "Logged out.", have the user run `vercel login` in their own terminal, then check again.
+1. If `vercel` isn't installed, or you can't run bash or zsh, follow the instructions for any other host. Otherwise, run `vercel whoami` yourself (it doesn't start a login just because you're logged out). If it prints "Logged out.", have the user run `vercel login` in their own terminal, then check again.
 2. The `hostSetup` command writes to the Vercel project this directory is linked to. Ask the user to confirm that project serves this app in production. If it doesn't, follow the instructions for any other host.
 3. Run the `hostSetup` entry's `command` in bash or zsh. It pipes the keys into Vercel's CLI without showing them. If `vercel whoami` or the `hostSetup` command doesn't exit, Vercel is waiting for a browser login it started: stop it, have the user run the command that hung in their own terminal, from the project directory, and finish the login it opens, then rerun.
 4. If the `hostSetup` command exits 3, a key is already set as a production Vercel variable that also targets another environment (Preview, Development, or a custom one). Ask the user before replacing it, because `--force` may rewrite that shared variable and put the production secret key in those deployments. If they agree, run the same command again with its `allow_shared=0` changed to `allow_shared=1`. The consent applies to that one run.
