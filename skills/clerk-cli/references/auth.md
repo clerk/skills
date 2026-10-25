@@ -49,7 +49,7 @@ The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, 
 
 **It follows the key, not the app.** No `--app` and no link means the CLI uses whatever local `sk_` key it finds — `sk_live_` included, claimed or not. In an unlinked repo a production key in `.env.local` is what gets mutated, unconfirmed in agent mode. Pass `--app <id>` when you mean a real application.
 
-`clerk auth login` auto-claims only what `clerk init` created (recorded in the `.clerk/keyless.json` breadcrumb — the filename keeps the old name for compatibility). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
+`clerk auth login` auto-claims only what `clerk init` created (recorded in the `.clerk/keyless.json` breadcrumb — the filename keeps the old name for compatibility). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; a person claims it by running `clerk open` in their own terminal.
 
 ## Host vs sandbox behavior
 
@@ -106,16 +106,16 @@ Rule out a sandboxed run first ([Host vs sandbox behavior](#host-vs-sandbox-beha
 
 Read the message, not only `examples`: it marks alternatives with "or", and a `description` says when a fallback runs. Ask the person which alternative to take, run it with your session's invocation (e.g. `npx -y clerk@latest link`), and fill `<app_id>` only with an app the person chose: `clerk link --app` doesn't check the folder's keys.
 
-`clerk auth login` and claiming an SDK-created app in the Clerk Dashboard both need a person. Never put the claim link in a log, commit, or PR: it carries a claim token.
+`clerk auth login` and claiming an SDK-created app both need a person. When the advice says `clerk open`, have the person run it in their own terminal, which opens the claim page in their browser: in agent mode it prints the claim link, which carries a claim token and must never reach your transcript, a log, a commit, or a PR.
 
 Never run `clerk init` to fix a folder that holds Clerk keys, `.clerk/keyless.json`, or `.clerk/.tmp/keyless.json`, even if a message suggests it: it can create a new app over the folder's keys.
 
 #### Older CLIs
 
-Older CLIs say only "run `clerk link`" whatever the folder holds. With those:
+If the error has no `examples` field, its advice (`clerk link`, `--app`, or `clerk apps list`) may not fit this folder. Then:
 
-- If `.clerk/keyless.json` or `.clerk/.tmp/keyless.json` exists, ask the person which app this folder should use before running `clerk link`, `clerk auth login`, or `clerk init`. Signing in from a folder with `.clerk/keyless.json`, including the sign-in a signed-out `clerk link` starts, claims that app and writes its keys over the folder's, so unless the person chose that app, sign in from another folder first.
-- Otherwise run `clerk link`, and confirm the linked app with the person before running any other Clerk command against it.
+- If `.clerk/keyless.json` or `.clerk/.tmp/keyless.json` exists, ask the person which app this folder should use before you link, sign in, or run `clerk init`. Signing in from a folder with `.clerk/keyless.json`, including the sign-in a signed-out `clerk link` starts, claims that app and writes its keys over the folder's, so unless the person chose that app, sign in from another folder first.
+- Otherwise follow its advice, and confirm the linked app with the person before running any other Clerk command against it.
 
 The CLI reads only the current folder, so run these where the app's env files and `.clerk/` are.
 
