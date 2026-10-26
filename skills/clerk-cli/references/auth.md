@@ -104,7 +104,7 @@ Rule out a sandboxed run first ([Host vs sandbox behavior](#host-vs-sandbox-beha
 {"error":{"code":"not_linked","message":"No Clerk project linked to this directory. This folder runs on an app the Clerk SDK created during development. Run `clerk open` to print its claim link for a person to claim the app into the workspace `CLERK_PLATFORM_API_KEY` belongs to, then `clerk link` once it's claimed. Then run `clerk deploy` again.","examples":[{"command":"clerk open","description":"Print the claim link, for a person to claim the app in the Clerk Dashboard"},{"command":"clerk link","description":"Link the app once it's claimed"},{"command":"clerk deploy","description":"Run it again once this folder is linked"}]}}
 ```
 
-Read the message, not only `examples`: it marks alternatives with "or", and a `description` says when a fallback runs. Ask the person which alternative to take, run it with your session's invocation (e.g. `npx -y clerk@latest link`), and fill `<app_id>` only with an app the person chose: `clerk link --app` doesn't check the folder's keys.
+Read the message, not only `examples`: it marks alternatives with "or", and a `description` says when a fallback runs. If the message offers alternatives, ask the person which path to take; otherwise follow its steps in order. Run each command with your session's invocation (e.g. `npx -y clerk@latest link`), and fill `<app_id>` only with an app the person chose: `clerk link --app` doesn't check the folder's keys.
 
 `clerk auth login` and claiming an SDK-created app both need a person. When the advice says `clerk open`, have the person run it in their own terminal, which opens the claim page in their browser: in agent mode it prints the claim link, which carries a claim token and must never reach your transcript, a log, a commit, or a PR.
 
@@ -114,7 +114,7 @@ Never run `clerk init` to fix a folder that holds Clerk keys, `.clerk/keyless.js
 
 If the error has no `examples` field, its advice (`clerk link`, `--app`, or `clerk apps list`) may not fit this folder. Then:
 
-- If `.clerk/keyless.json` or `.clerk/.tmp/keyless.json` exists, ask the person which app this folder should use before you link, sign in, or run `clerk init`. Signing in from a folder with `.clerk/keyless.json`, including the sign-in a signed-out `clerk link` starts, claims that app and writes its keys over the folder's, so unless the person chose that app, sign in from another folder first.
+- If `.clerk/keyless.json` or `.clerk/.tmp/keyless.json` exists, ask the person which app this folder should use before you link or sign in. Signing in from a folder with `.clerk/keyless.json`, including the sign-in a signed-out `clerk link` starts, claims that app and writes its keys over the folder's, so unless the person chose that app, sign in from another folder first.
 - Otherwise follow its advice, and confirm the linked app with the person before running any other Clerk command against it.
 
 The CLI reads only the current folder, so run these where the app's env files and `.clerk/` are.
