@@ -49,7 +49,7 @@ The `.clerk/` folder is gitignored automatically. The export file holds user dat
 | `supabase`   | `--db-url` (Postgres only)                                      | `SUPABASE_DB_URL`                                        | bcrypt or argon2, per user       |
 | `authjs`     | `--db-url`                                                      | `AUTHJS_DB_URL`                                          | none — Auth.js stores none       |
 | `betterauth` | `--db-url`                                                      | `BETTERAUTH_DB_URL`                                      | scrypt, bcrypt or argon2, per user |
-| `firebase`   | `--service-account <path>`                                      | none                                                     | scrypt digests + four parameters |
+| `firebase`   | `--service-account <path or JSON>`                              | none                                                     | scrypt digests + four parameters |
 
 Resolution is flag → environment variable → a masked prompt. The CLI does not read `.env` files for these platform credentials. In agent mode there is no prompt, so pass the flags; a missing credential exits naming every missing one at once. Ask the user for a credential; never guess one, and never write it into a `.env` file on their behalf.
 
@@ -181,7 +181,7 @@ Connection strings are redacted in every message the CLI prints (`postgres://***
 clerk migrate export firebase --service-account ./service-account.json
 ```
 
-Needs a service account key with the Firebase Authentication Admin role (or Viewer plus the `firebaseauth.configs.getHashConfig` permission): Firebase console → Project settings → Service accounts → Generate new private key. `--service-account` takes a path or the key's JSON. Without it, a human is prompted — the answer can be a path **or the key's JSON pasted whole**, so a key kept in a password manager never has to touch disk. Agent mode names the flag instead. The key is validated before any network call, so downloading the web app config by mistake fails immediately and names the right console page.
+Needs a service account key with the Firebase Authentication Admin role (or Viewer plus the `firebaseauth.configs.getHashConfig` permission): Firebase console → Project settings → Service accounts → Generate new private key. `--service-account` takes a path or the key's JSON. Without it, a human is prompted — the answer can be a path **or the key's JSON pasted whole**, so a key kept in a password manager never has to touch disk. Agent mode names the flag instead. When the user pastes the key's JSON, pass it whole as `--service-account '<json>'`, or write it to a temp file outside the project, pass that path, and delete the file after the export. Never save it inside the project. The key is validated before any network call, so downloading the web app config by mistake fails immediately and names the right console page.
 
 **Firebase's scrypt is a modified variant.** A digest is worthless without the project's four hash parameters. The export reads them from the project and saves them in the envelope, so the import needs no `--firebase-*` flags:
 
