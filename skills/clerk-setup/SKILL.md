@@ -204,13 +204,18 @@ Add to global CSS:
 
 Have the user sign up as their first test user. Congratulate them once the profile icon appears in the nav.
 
-Then ask how they want users to sign up and sign in — identifiers (email, phone, username) and social providers. Changing these needs a claimed application. If `init` created the app in this session and no SDK claim file exists, have the user run `npx -y clerk@latest auth login`, which claims it. Otherwise, if the project has `.clerk/keyless.json` (an `init` claim) or `.clerk/.tmp/keyless.json` (an SDK claim), ask which application the project should use before signing in or linking.
+Ask how users should sign up and sign in: email, phone, username, and social providers. The app must be claimed before changing these settings.
 
-If both claim files exist, stop before `auth login`, `open`, or `link`: `open` prefers the `init` claim even if the user chose the SDK app. Have the user confirm which claim belongs to the app whose keys the project uses, then move the other claim file out of the project themselves and keep it private. Do not read either claim file or the project's keys, and do not continue until the user confirms the remaining claim file and keys belong to the chosen app. If they cannot confirm this, leave the claim unresolved.
+If `init` created the app in this session and no SDK claim file exists, use the `init` claim steps below. Otherwise, if `.clerk/keyless.json` (`init`) or `.clerk/.tmp/keyless.json` (SDK) exists, ask which app the project should use before anyone signs in or links it.
 
-For an `init` claim, have the user run `npx -y clerk@latest auth login`. Older CLIs claim the app in `.clerk/keyless.json` on any sign-in from that folder, including the one a signed-out `npx -y clerk@latest link` starts, and write its keys over the project's; if the user chose another app, have them sign in from another folder first. Signing in can't claim an app a Clerk SDK created: for an SDK claim, have the user run `npx -y clerk@latest open` in their own terminal, which opens its claim page in their browser, then `npx -y clerk@latest link`. Then review with `npx -y clerk@latest config pull` and change with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md) for details.
+If both claim files exist, stop before `auth login`, `open`, or `link`: `open` prefers the `init` claim, even if the user chose the SDK app. Have the user identify which claim belongs to the app whose keys the project uses, move the other file out of the project, and keep it private. Never read the claim files or keys. Continue only after the user confirms that the remaining file and the project's keys belong to the chosen app.
 
-Before production, have the user claim the app with `npx -y clerk@latest auth login` or `npx -y clerk@latest open`, as above, then configure production with `npx -y clerk@latest deploy`. If `deploy` says the project isn't linked, have the user follow the step it names. Unclaimed apps and temporary keys aren't production-ready.
+- **`init` claim:** If this is the chosen app, have the user run `npx -y clerk@latest auth login`. On older CLIs, signing in from this folder claims the `init` app and replaces the project's keys; a signed-out `npx -y clerk@latest link` can start that sign-in. If the user chose another app, have them sign in from another folder first.
+- **SDK claim:** Have the user run `npx -y clerk@latest open` in their own terminal to open the claim page, then `npx -y clerk@latest link`. Signing in cannot claim an SDK-created app.
+
+Once the app is claimed, review settings with `npx -y clerk@latest config pull` and change them with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md).
+
+Before production, claim the app as described above and run `npx -y clerk@latest deploy`. If `deploy` says the project isn't linked, follow its instructions. Unclaimed apps and temporary keys aren't production-ready.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 
