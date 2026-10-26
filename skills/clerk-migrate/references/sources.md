@@ -124,7 +124,7 @@ Each Clerk metadata field has a different audience:
 | `privateMetadata` | the server only | the server | CRM and billing IDs, internal notes, risk scores |
 | `unsafeMetadata` | the browser and the server | the user | preferences the user changes themselves |
 
-Unwrap containers, not values. Don't keep an object named after the provider or the export column: `{ gatekeep: { attrs: { plan } } }` goes in as `{ plan }`. Don't store a packed string as-is. Parse it first: a JSON string becomes its keys, and `k=v;k=v` becomes one key per pair. Then place each key on its own. A value that is structured in its own right, such as `address: { city, zip }`, stays nested. The customer's app reads metadata by path, so list every key you moved in your summary.
+Unwrap containers, not values. Don't keep an object named after the provider or the export column: `{ gatekeep: { attrs: { plan } } }` goes in as `{ plan }`. Don't store a packed string as-is. Parse it first: a JSON string becomes its keys, and `k=v;k=v` becomes one key per pair. Then place each key on its own. Keep each key's name from the export: `billing.stripe_id` goes in as `stripe_id`, not `stripeId`. Rename one only when the user asks. A value that is structured in its own right, such as `address: { city, zip }`, stays nested. The customer's app reads metadata by path and by name, so list every key you moved in your summary.
 
 Never drop a metadata field you can't place. When unsure, use `privateMetadata`: nothing leaks from there, and the user can move it later. A field the export calls `internal`, `admin` or `app` belongs in `privateMetadata`.
 
@@ -344,6 +344,6 @@ Every user needs at least one identifier: email, phone, or username. The import'
 ## After writing one
 
 1. `clerk migrate sources ./my-platform.ts` confirms it loads and shows the mapping and `carries`.
-2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`.
+2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`. Then compare every key the mapped user has with [Schema fields to map onto](#schema-fields-to-map-onto). A key that isn't there (`phoneNumber`, `firstname`, `emailAddress`) is dropped with its value, and the import doesn't stop for it: the dry run only lists it under `Clerk won't store`. Rename it to the Clerk field, or move it in `postTransform`. Do this even when step 1 ran: it's the only check when the CLI isn't available.
 3. Summarize the mapping for the user, verification rules included.
 4. Follow [the import flow](../SKILL.md#step-3-dry-run) from the dry run: relay the checks, get a yes, then import with `--yes`.
