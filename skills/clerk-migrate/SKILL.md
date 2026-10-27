@@ -183,7 +183,7 @@ Pick one path:
 
 If you run the import without `--yes`, it prints the checks and exits `2` with the exact command. Show that output to the user and ask before re-running with `--yes`. An exit `2` there is the consent gate, not a failure.
 
-Firebase exports carry the project's hash parameters when the export could read them, so the import needs no `--firebase-*` flags. See [references/export.md](references/export.md#firebase) for files from `firebase auth:export`.
+Firebase exports carry the project's hash parameters when the export could read them, so the import needs no `--firebase-*` flags. See [references/export.md](references/export.md#firebase) for files from `firebase auth:export`. When the user gives the four parameters, pass them and keep the passwords, even if they also say users can reset. Never strip hashes from the export or write an edited copy of it.
 
 ### Step 5: report the result
 
