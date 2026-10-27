@@ -163,6 +163,8 @@ The dry run prints the target, then the checks, and writes nothing. Relay the ch
 
 If any user is rejected, the real import refuses unless `--allow-partial` is passed. Put the choice to the user: fix the export, change the instance with the printed `clerk config patch` command, or import the rest with `--allow-partial`. Never run a `clerk config patch` without the user's yes.
 
+Users without a password import even when the instance requires one. Pass `--require-password` only when the user asks to leave those users out ([checks.md](references/checks.md#passwords-and---require-password)).
+
 ### Step 4: get consent, then import
 
 Pick one path:

@@ -69,6 +69,8 @@ If the CLI cannot read the instance settings, it skips the required-field checks
 
 `--require-password` leaves users without a password digest out of the import. The run records each as `skipped` with the reason `no password (--require-password)`, `import --json` counts them as `withoutPassword`, and a continued run does not retry them.
 
+Pass it only when the user asks to leave out the users who have no password. An instance that requires a password still accepts imported users without one: the import sends them with `skip_password_requirement`, and they set a password when they reset it. "Passwords are required" describes the instance setting. It is not a request to skip anyone, and "they can reset their passwords" means import them.
+
 An unrecognized password hasher rejects that user as `invalid: Unknown password hasher "…"`, and the message lists every hasher the CLI accepts. Like any reject, it stops the import unless `--allow-partial` is passed.
 
 ## Development-instance limit
