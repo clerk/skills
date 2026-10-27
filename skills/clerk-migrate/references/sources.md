@@ -91,6 +91,8 @@ Do this when the file matches no signature in the routing table. Ask first: a cu
 
 ### Ask these six questions before writing anything
 
+First, sort every column that could hold a sign-in identifier (`login`, `email`, `user`, `handle`, `contact`) by the shape of its values: an `@` means email, digits and phone punctuation mean phone, anything else is a username. For phone-shaped values, also count how many start with `0` and how many have 11 or more digits. Put the counts in your questions. A column with more than one shape is a mixed identifier column. Route each value by its shape ([Common export shapes](#common-export-shapes)), and don't send the whole column to one field.
+
 Ask all six in one turn, every time, even when the file seems to answer one. For each, say what the data shows and ask the user to confirm it.
 
 1. **Email verification.** Which field records it? Look in the data first: a boolean, a timestamp (`confirmed_at` set means verified), a status, or a bitmask. Ask about every email field, secondary ones included. Default to unverified only when the data has no signal at all.
@@ -113,6 +115,8 @@ Before you act on an answer, compare it with the data. When they disagree, say w
 - told that users the data marks `suspended`, `locked` or `disabled` were deleted, or to skip them: import them banned, since the data doesn't say deleted
 
 When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. The user also wins when they name something that happened outside the system, which the file had no way to record: if support confirmed a number by phone, it goes in verified even though its flag says it isn't. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary. This covers an answer against the file. When two of the user's answers disagree with each other, follow Safety rule 7 in SKILL.md.
+
+When the user can't answer ("I don't know", "use your judgement"), choose the mapping that keeps every user able to sign in. A handle field becomes `username`, and the dry run then offers username sign-in (and extended special characters for a handle with a dot), each still needing the user's yes. Say in your summary which answers came from the data alone.
 
 ### Metadata
 
@@ -186,7 +190,7 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
 
 ### Common export shapes
 
-- **Phones** go into Clerk as E.164 (`+447911123456`). Strip spaces, dashes and brackets, and add the country code. A national number (`07911 123456`) needs its country: use a region column if there is one, and never assume `+1`. Drop the trunk prefix where the country uses one (the leading `0` in the UK, Germany or France), but not in Italy, where the `0` stays (`06 1234 5678` is `+390612345678`).
+- **Phones** go into Clerk as E.164 (`+447911123456`). Strip spaces, dashes and brackets, and add the country code. A number with no leading `0` and 11 to 15 digits already has its country code and is only missing the `+`: `44-7817-149359` is `+447817149359`, and `1-416-555-0104` is `+14165550104`. A number with 10 digits or fewer (`212-555-0100`) is national and needs its country. A region column, or the user's answer, wins over digit counts. A national number (`07911 123456`) needs its country: use a region column if there is one, and never assume `+1`. Drop the trunk prefix where the country uses one (the leading `0` in the UK, Germany or France), but not in Italy, where the `0` stays (`06 1234 5678` is `+390612345678`).
 - **Names.** `"First Last"` splits on the first space. `"Last, First"` splits on the comma. A single word is a first name.
 - **One column, mixed identifiers** (a `login` holding an email, a phone or a username): classify each value. An `@` means email; digits and phone punctuation mean phone; anything else is a username.
 - **Several emails or phones per user:** keep them all, and put the one the export marks as primary first. The CLI makes the first verified email or phone the primary and adds the rest to the user.
@@ -337,6 +341,8 @@ Validation drops anything not in this schema, and the dry run lists it as `Clerk
 | `skipReason`                                             | Leave this user out, with why. The checks report it; never sent to Clerk. |
 | `passwordDropped`                                        | Set with no `password` when a digest has no supported hasher. |
 
+The check in [After writing one](#after-writing-one) lists these names. Change both together.
+
 Every user needs at least one identifier: email, phone, or username. The import's checks reject users without one.
 
 `passwordHasher` must be one of the hashers in [Password hashes](#password-hashes). An unrecognized value rejects that user as `invalid: Unknown password hasher "…"`, and the message lists every accepted name.
@@ -344,6 +350,24 @@ Every user needs at least one identifier: email, phone, or username. The import'
 ## After writing one
 
 1. `clerk migrate sources ./my-platform.ts` confirms it loads and shows the mapping and `carries`.
-2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`. Then compare every key the mapped user has with [Schema fields to map onto](#schema-fields-to-map-onto). A key that isn't there (`phoneNumber`, `firstname`, `emailAddress`) is dropped with its value, and the import doesn't stop for it: the dry run only lists it under `Clerk won't store`. Rename it to the Clerk field, or move it in `postTransform`. Do this even when step 1 ran: it's the only check when the CLI isn't available.
+2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`. Then run every row, not just one of each kind, through the check below. It must print nothing. Build each user as the CLI does: rename the keys your `transformer` names, keep every other column under its own name, drop `""` and `null`, then call `postTransform`. A key Clerk doesn't know (`phoneNumber`, `firstname`, `emailAddress`) is dropped with its value, and the import doesn't stop for it: the dry run only lists it under `Clerk won't store`. Rename it to the Clerk field, or move it in `postTransform`. An email without `@` or a phone that isn't E.164 means a column holds more than one kind of identifier, or a phone still needs its country code (see [Common export shapes](#common-export-shapes)). Do this even when step 1 ran: it's the only check when the CLI isn't available.
+
+   ```js
+   const FIELDS = new Set(["userId", "email", "emailAddresses", "unverifiedEmailAddresses", "phone", "phoneNumbers",
+     "unverifiedPhoneNumbers", "username", "firstName", "lastName", "password", "passwordHasher", "totpSecret",
+     "backupCodes", "backupCodesEnabled", "unsafeMetadata", "publicMetadata", "privateMetadata", "createdAt",
+     "legalAcceptedAt", "banned", "banEndsAt", "createOrganizationEnabled", "createOrganizationsLimit",
+     "deleteSelfEnabled", "bypassClientTrust", "skipLegalChecks", "skipPasswordChecks", "skipReason", "passwordDropped"]);
+   const list = (v) => (v == null ? [] : [v].flat());
+   for (const u of users) { // users: every row after your mapping and postTransform
+     for (const k of Object.keys(u)) if (!FIELDS.has(k)) console.log(u.userId, "unknown key", k);
+     for (const e of [u.email, u.emailAddresses, u.unverifiedEmailAddresses].flatMap(list))
+       if (!String(e).includes("@")) console.log(u.userId, "email without @", e);
+     for (const p of [u.phone, u.phoneNumbers, u.unverifiedPhoneNumbers].flatMap(list))
+       if (!/^\+\d{7,15}$/.test(p)) console.log(u.userId, "phone not E.164", p);
+     if (!u.skipReason && ![u.email, u.emailAddresses, u.unverifiedEmailAddresses, u.phone, u.phoneNumbers,
+       u.unverifiedPhoneNumbers, u.username].flatMap(list).length) console.log(u.userId, "no identifier");
+   }
+   ```
 3. Summarize the mapping for the user, verification rules included.
 4. Follow [the import flow](../SKILL.md#step-3-dry-run) from the dry run: relay the checks, get a yes, then import with `--yes`.
