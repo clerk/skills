@@ -44,7 +44,7 @@ Users who pass all of those are then checked against each other and the instance
 13. The instance already has a user with its source ID, email, phone or username. Users a continued run created do not count.
 14. Development instances only: it falls past the user-limit headroom, counted in file order.
 
-Any reject stops the import with exit `2`, and the CLI prints the same command with `--allow-partial` added. Users the source skipped don't count. With `--allow-partial`, the rest import and each reject is recorded in the run as `skipped` with its reason.
+Any reject stops the import with exit `2`, and the CLI prints the same command with `--allow-partial` added. With `--allow-partial`, the rest import and each reject is recorded in the run as `skipped` with its reason.
 
 ## Imported, but not everything comes across
 
@@ -71,7 +71,7 @@ If the CLI cannot read the instance settings, it skips the required-field checks
 
 Pass it only when the user asks to leave out the users who have no password. An instance that requires a password still accepts imported users without one: the import sends them with `skip_password_requirement`, and they set a password when they reset it. "Passwords are required" describes the instance setting. It is not a request to skip anyone, and "they can reset their passwords" means import them.
 
-An unrecognized password hasher rejects that user as `invalid: Unknown password hasher "…"`, and the message lists every hasher the CLI accepts. Like any reject, it stops the import unless `--allow-partial` is passed.
+An unrecognized password hasher rejects that user as `invalid: Unknown password hasher "…"`, and the message lists every hasher the CLI accepts.
 
 ## Development-instance limit
 
