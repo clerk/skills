@@ -256,7 +256,7 @@ clerk migrate import users.json --source ./my-platform.ts --dry-run
 
 TypeScript works (Bun's transpiler is part of the runtime), and so does plain `.js`. The run records the source's key and a hash of the file, so an edited source counts as a different source. A re-run with it, while an import of the same file into the same instance with the earlier version is not undone, exits `2`: undo that run, or pass `--new-run`. The hash covers only the source file, not local files it imports.
 
-To map a `clerk migrate export` run, pass the run ID with your source: `clerk migrate import <export-run-id> --source ./my-platform.ts`. It replaces the export's built-in source.
+To map a `clerk migrate export` run, pass the run ID with your source: `clerk migrate import <export-run-id> --source ./my-platform.ts`. It replaces the export's built-in source and keeps the link to the export run.
 
 ### Common mistakes
 

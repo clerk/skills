@@ -65,7 +65,7 @@ Every `clerk migrate` command follows these five rules.
 4. **Target first.** `import`, `undo` and `export` print the environment, app and instance they target, and where the key came from. With `--json` the same data is in the `target` field.
 5. **`--json` everywhere.** Every subcommand takes it, and it means no prompts. `--json` on any `migrate` subcommand also forces agent mode.
 
-Exit codes: `0` success, `1` some users failed or any runtime, API or auth error, `2` a usage error or a refusal, `130` interrupted. **`0` does not mean every user arrived**: skips under `--allow-partial` and users the run did not send still exit `0`. Read `result.failed`, `result.skipped`, `result.notSent` and `result.pending` from `import --json`, or `state` from `clerk migrate runs <run-id> --json`.
+Exit codes: `0` success, `1` some users failed or any runtime, API or auth error, `2` a usage error or a refusal, `130` interrupted. **`0` does not mean every user arrived**: skips under `--allow-partial` still exit `0`. Users the run did not send come with `1` (Clerk refused a create, such as the user limit) or `130` (interrupted). Read `result.failed`, `result.skipped`, `result.notSent` and `result.pending` from `import --json`, or `state` from `clerk migrate runs <run-id> --json`.
 
 ## Invoking the CLI
 
@@ -79,14 +79,14 @@ If that prints `ok`, use bare `clerk`. Otherwise fall back to a package runner m
 
 ## Keys and targeting
 
-**Do not create or edit a `.env` file, and do not ask the user to paste a secret key** unless everything below has failed. The CLI resolves a Backend API key on its own, from flags, the process environment, the linked project, or (in an unlinked keyless project) the project's `.env`, `.env.local` and `.clerk/.tmp/keyless.json`:
+**Do not create or edit a `.env` file.** The CLI resolves a Backend API key on its own, from flags, the process environment, the linked project, or (in an unlinked keyless project) the project's `.env`, `.env.local` and `.clerk/.tmp/keyless.json`:
 
 ```sh
 clerk auth login          # once, on the user's host shell; opens a browser
 clerk doctor --json       # confirms login, link, keys; parse `remedy` on failure
 ```
 
-Resolution order: `--secret-key` → `--app` + Platform API lookup → `CLERK_SECRET_KEY` in the environment → the keyless project's own key → the linked project from `clerk link`.
+Resolution order: `--secret-key` → `--app` + Platform API lookup → `CLERK_SECRET_KEY` in the environment → the keyless project's own key → the linked project from `clerk link`. If none of these resolves a key, ask the user to run `clerk auth login` or set `CLERK_SECRET_KEY` themselves (Safety rule 4).
 
 Pass `--app <id>` and `--instance dev|prod|<instance_id>` to point a command somewhere specific. A dev → production migration needs no key swapping.
 
@@ -98,7 +98,7 @@ For auth internals, sandbox caveats, or `clerk api`, see the `clerk-cli` skill.
 
 ## The import flow
 
-Follow these steps in order. Do not skip the dry run or the user's confirmation.
+Follow these steps in order.
 
 ### Step 1: identify the source
 
@@ -135,14 +135,14 @@ A built-in `--source` that contradicts an envelope's `source` exits `2`. A path 
 
 ### Step 2: summarize what will happen
 
+Run the [Step 3](#step-3-dry-run) dry run first when a question needs its numbers. It writes nothing.
+
 Tell the user:
 
 1. Which source applies, and which instance the import targets.
 2. Which field decides whether an email or phone counts as **verified**. That mapping changes who can sign in. Per-source detail: [references/sources.md](references/sources.md#what-the-built-ins-carry).
 3. What the source cannot carry. Clerk (API export), Auth0 and WorkOS exports hold **no password hashes**, so users who signed in with a password reset it. **Social sign-ins are never copied**: the user enables the same providers in Clerk, and Clerk links a returning user by verified email ([account linking](https://clerk.com/docs/guides/configure/auth-strategies/social-connections/account-linking)).
 4. Sign-in identifiers outside the mapped fields: phone or username keys in metadata, a name field holding usernames or phone numbers, placeholder emails such as `<digits>@phone.local` that hide a phone. A built-in source imports these as metadata or a first name, and the dry run doesn't flag them. Ask the user to choose: convert them into real identifiers, or import them as exported (the default) and let the dry run reject what Clerk refuses. In a source you write, nothing is "as exported". A column that is itself the sign-in identifier (a `login` holding an email, a phone or a username per row) is not a conversion question: route each value by its shape ([Common export shapes](references/sources.md#common-export-shapes)), and don't ask A or B. When the user can't choose about another field that holds a sign-in handle (`username`, `nick`, `handle`), map it to `username`. Never pick a default that leaves a user with no identifier. "Import them", "go ahead" or a bare yes picks neither, so ask again and name both. Converting takes a [custom source](references/sources.md#writing-a-source), and the dry run then offers the instance changes it needs: phone or username sign-in, email made optional, extended special characters for usernames with a dot. Apply each only with the user's yes.
-
-   To map an export run with a source you wrote, pass the run ID and the path: `clerk migrate import <export-run-id> --source ./my-source.ts`. It replaces the built-in source and keeps the link to the export run. Its `preTransform` does not run on an envelope.
 5. Two choices the CLI makes only with the user's yes. Ask about each one that applies, and pass the flag only on a yes to that question:
    - **`--reserve-unverified`.** Users with an email or phone the source never verified. By default Clerk attaches those unverified. Reserved, they work for sign-in and are locked to the user, and they count toward a required email or phone. The source never confirmed these belong to the user, so whoever receives mail or texts at one can sign in as that user. Tell the user that when you ask, and recommend it only when the old platform confirmed addresses some other way. A reserved address another user already holds rejects the whole user. A continued run keeps the choice its first attempt recorded.
    - **`--skip-legal-checks`.** When the instance requires legal consent, users with no `legal_accepted_at` are rejected. The flag imports them without it.
@@ -200,9 +200,10 @@ Compare their identifiers, verification and metadata placement with what you tol
 Report:
 
 1. How many users were created, failed, and skipped. `runs <id>` shows the error breakdown and the users that failed or were skipped.
-2. The run ID, and that `clerk migrate undo <run-id>` reverses it.
-3. Any user who arrived without something: a dropped password, a field the instance does not store.
-4. Every mismatch the spot-check found.
+2. Users the run did not send (`result.notSent`) and why (`result.stopReason`). A run that hit the user limit stops at the first refusal: raise the limit or import into production, then re-run the same command to continue.
+3. The run ID, and that `clerk migrate undo <run-id>` reverses it.
+4. Any user who arrived without something: a dropped password, a field the instance does not store.
+5. Every mismatch the spot-check found.
 
 Report a partial import as partial.
 
@@ -213,7 +214,7 @@ Running the same import again continues it: an interrupted or `partial` run pick
 ```sh
 clerk migrate runs                        # every run, newest first
 clerk migrate runs <run-id>               # one run: counts, errors, the users that did not make it
-clerk migrate undo <run-id> --dry-run     # preview: how many, and a warning if any signed in since
+clerk migrate undo <run-id> --dry-run     # preview: how many, and a warning if any signed in since (`--json` always has `signedInSince`)
 clerk migrate undo <run-id> --yes
 ```
 

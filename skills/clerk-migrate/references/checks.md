@@ -61,7 +61,7 @@ Warnings, not rejects:
 
 ## The `clerk config patch` fixes
 
-When a check traces back to an instance setting, the CLI prints a `clerk config patch …` command for each fix under **Or change the instance instead** (a Dashboard link instead when Clerk did not confirm the instance, and an `--app APP_ID` placeholder when no app is known). It never applies them. Treat each as an offer: an instance that requires an email may be set up the way its owner wants, and fixing the export may be the right answer. Ask the user before running any of them.
+When a check traces back to an instance setting, the CLI prints a `clerk config patch …` command for each fix under **Or change the instance instead** (a Dashboard link instead when Clerk did not confirm the instance, and an `--app APP_ID` placeholder when no app is known: ask the user which app owns the instance and fill in its ID, never a guess). It never applies them. Treat each as an offer: an instance that requires an email may be set up the way its owner wants, and fixing the export may be the right answer. Ask the user before running any of them.
 
 If the CLI cannot read the instance settings, it skips the required-field checks and says so. "Could not read" is not "switched off"; tell the user which one applies.
 
