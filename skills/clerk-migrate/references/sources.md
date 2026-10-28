@@ -87,7 +87,7 @@ Better Auth normalizes a password to NFKC before hashing it, and Clerk hashes it
 
 ## Writing a source
 
-Do this when the file matches no signature in the routing table. Ask first: a custom source is a file the user keeps in their project.
+Do this when the file matches no signature in SKILL.md's Step 1 table. Ask first: a custom source is a file the user keeps in their project.
 
 ### Ask these six questions before writing anything
 
@@ -112,9 +112,8 @@ Before you act on an answer, compare it with the data. When they disagree, say w
 - told "they're all US numbers", but a `region` column holds `GB` and `DE`: use the region
 - told "everyone is verified", but `emailConfirmed` is `false` for some users: those stay unverified
 - told to drop some users, but nothing in the data marks them: ask which field does
-- told that users the data marks `suspended`, `locked` or `disabled` were deleted, or to skip them: import them banned, since the data doesn't say deleted
 
-When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. A `$2b$` digest is bcrypt whatever anyone remembers, and a `GB` number is not a US number. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. The user also wins when they name something that happened outside the system, which the file had no way to record: if support confirmed a number by phone, it goes in verified even though its flag says it isn't. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary. This covers an answer against the file. When two of the user's answers disagree with each other, follow Safety rule 7 in SKILL.md.
+When the file carries an explicit signal (a hash prefix, a verified flag, a region column, a status value), the data wins, even if the user repeats their answer after seeing the conflict. Follow the user only where the file is silent. A field with no flag of its own is silent: if `emailConfirmed` covers only the primary email and the user says every email is verified, the secondary emails go in verified. The user also wins when they name something that happened outside the system, which the file had no way to record: if support confirmed a number by phone, it goes in verified even though its flag says it isn't. Don't stop the migration over a disagreement, and list each conflict and how you settled it in your summary. When two of the user's answers disagree with each other, follow Safety rule 7 in SKILL.md.
 
 When the user can't answer ("I don't know", "use your judgement"), choose the mapping that keeps every user able to sign in. A handle field becomes `username`, and the dry run then offers username sign-in (and extended special characters for a handle with a dot), each still needing the user's yes. Say in your summary which answers came from the data alone.
 
@@ -259,7 +258,7 @@ TypeScript works (Bun's transpiler is part of the runtime), and so does plain `.
 
 To map a `clerk migrate export` run, pass the run ID with your source: `clerk migrate import <export-run-id> --source ./my-platform.ts`. It replaces the export's built-in source.
 
-### Rules that are easy to get wrong
+### Common mistakes
 
 1. **Nothing from the CLI.** The file cannot import the CLI's helpers; a compiled binary has nothing to import from. Node builtins and the project's own files are fine.
 2. **Something must map to `userId`.** The CLI refuses a source without it. Without `external_id`, a migration cannot be re-run or undone.
@@ -350,7 +349,7 @@ Every user needs at least one identifier: email, phone, or username. The import'
 ## After writing one
 
 1. `clerk migrate sources ./my-platform.ts` confirms it loads and shows the mapping and `carries`.
-2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`. Then run every row, not just one of each kind, through the check below. It must print nothing. Build each user as the CLI does: rename the keys your `transformer` names, keep every other column under its own name, drop `""` and `null`, then call `postTransform`. A key Clerk doesn't know (`phoneNumber`, `firstname`, `emailAddress`) is dropped with its value, and the import doesn't stop for it: the dry run only lists it under `Clerk won't store`. Rename it to the Clerk field, or move it in `postTransform`. An email without `@` or a phone that isn't E.164 means a column holds more than one kind of identifier, or a phone still needs its country code (see [Common export shapes](#common-export-shapes)). Do this even when step 1 ran: it's the only check when the CLI isn't available.
+2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`. Then run every row through the check below. It must print nothing. Build each user as the CLI does: rename the keys your `transformer` names, keep every other column under its own name, drop `""` and `null`, then call `postTransform`. A key Clerk doesn't know (`phoneNumber`, `firstname`, `emailAddress`) is dropped with its value, and the import doesn't stop for it: the dry run only lists it under `Clerk won't store`. Rename it to the Clerk field, or move it in `postTransform`. An email without `@` or a phone that isn't E.164 means a column holds more than one kind of identifier, or a phone still needs its country code (see [Common export shapes](#common-export-shapes)). Do this even when step 1 ran: it's the only check when the CLI isn't available.
 
    ```js
    const FIELDS = new Set(["userId", "email", "emailAddresses", "unverifiedEmailAddresses", "phone", "phoneNumbers",

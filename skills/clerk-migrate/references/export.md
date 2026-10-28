@@ -66,7 +66,7 @@ Field coverage
   ! 1102/1247 have a password (not exportable — see below)
 ```
 
-`✓` means every user has the field, `!` some, `✗` none. **Say something about the `!` and `✗` rows.** A user with a password the export cannot carry is a user who resets it after the import, and it is far cheaper to say so now than after.
+`✓` means every user has the field, `!` some, `✗` none. **Tell the user about the `!` and `✗` rows.** A user with a password the export cannot carry resets it after the import.
 
 Three platforms never export passwords, **Clerk, Auth0 and WorkOS**, and each shows it differently:
 
@@ -82,7 +82,7 @@ clerk migrate export clerk --app app_source123 --instance dev
 
 Pages the whole instance 500 users at a time. **Password digests, TOTP secrets and backup codes are never returned by the API** — only the `*_enabled` booleans. Migrated users must reset their password on the destination.
 
-**Name the source instance.** `--secret-key`, `--app`, `--instance` or an exported `CLERK_SECRET_KEY` are taken as-is. Without one, a human gets a picker of every instance on their account, and an **agent, `--json` or `-y` run exits `2`**, because what the CLI resolves on its own is usually the linked project, which is usually the migration's destination. Exporting the destination and importing it back into itself is the failure this rule prevents.
+**Name the source instance.** `--secret-key`, `--app`, `--instance` or an exported `CLERK_SECRET_KEY` are taken as-is. Without one, a human gets a picker of every instance on their account, and an **agent, `--json` or `-y` run exits `2`**, because what the CLI resolves on its own is usually the linked project, which is usually the migration's destination.
 
 The import sets each user's `external_id` to their old Clerk user ID, so an app's own `external_id` moves to `private_metadata.clerkExternalId`. The export warns about it: tell the user anything that looks users up by `external_id` needs updating. A user deleted while the export runs fails the export; run it again.
 
@@ -112,7 +112,7 @@ clerk migrate export workos --api-key sk_… --with-identities
 
 Needs the secret API key — the one starting `sk_`, from the WorkOS dashboard under **API Keys**. WorkOS is API-only, so there is no `--db-url` option. Pagination is cursor-based, so unlike Auth0 there is no user ceiling.
 
-- **No passwords, no TOTP.** WorkOS accepts password hashes on import and never returns them, and returns TOTP secrets only at enrolment. There is no support-request escape hatch. Every password user resets or signs in through SSO. The coverage table always shows `✗ 0/N have a password (WorkOS returns none)`.
+- **No passwords, no TOTP.** WorkOS accepts password hashes on import and never returns them, and returns TOTP secrets only at enrolment. Unlike Auth0, no support request gets them. Every password user resets or signs in through SSO.
 - **`--with-identities` is off by default, and it is not free.** WorkOS has no bulk endpoint for OAuth identities, so it is one extra request per user — 1,000 users means roughly 1,010 requests. Nothing it returns can be imported; it buys an **OAuth providers** block under the coverage table and an `identities` array in the export file. Useful for deciding which social connections to enable in Clerk. Ask before passing it on a large tenant. A human run asks once, defaulting to no; `-y` skips it unless `--with-identities` is passed.
 
 ```

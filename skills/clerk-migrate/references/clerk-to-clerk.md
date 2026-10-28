@@ -23,7 +23,7 @@ Every command prints its target first. Read those lines back to the user before 
 
 **Always name the source on the export.** With `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY`, the export runs against exactly that. Without any of them, a human gets a picker of every instance on their account, with the linked application's instances listed last and marked "(linked: usually the destination)". An agent, `--json` or `-y` run refuses with exit `2` and names the three ways to pass the source. An import of an export run into the instance it came from is refused too.
 
-## What survives, and what does not
+## What survives, and what doesn't
 
 The `clerk` source carries more than any other, because both ends share a schema:
 
@@ -47,7 +47,7 @@ The destination's key sets the pace, because the writes go there.
 
 | Destination | Requests per second | User limit                                   |
 | ----------- | ------------------- | -------------------------------------------- |
-| Production  | 100                 | none                                         |
+| Production  | 100                 | none by default; a plan can set one          |
 | Development | 10                  | **100 by default**, enforced by the checks   |
 
 Production → development hits the limit. The import's checks read the destination's user count and reject users past the headroom, which stops the import unless `--allow-partial` is passed. Clerk can raise a development instance's limit on request, and the CLI cannot see the raised value, so ask the user, and set `CLERK_MIGRATE_DEV_USER_LIMIT` to the raised limit. For a realistic copy of production in a dev instance, a subset of the file is usually the answer.
