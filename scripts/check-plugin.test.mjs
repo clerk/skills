@@ -259,10 +259,12 @@ test("rejects MCP configs that drift apart", () => {
   repo.files[".mcp.json"].mcpServers.clerk = {
     type: "streamable-http",
     url: "https://example.com/mcp",
+    headers: { "X-Clerk-MCP-Consumer": "plugin" },
   };
   assert.deepEqual(checkPlugin(repo), [
     ".mcp.json: clerk must use type http",
     "clerk: url differs between mcp.json and .mcp.json",
+    "clerk: headers differ between mcp.json and .mcp.json",
   ]);
 });
 
