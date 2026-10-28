@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "concurrently": "10.0.5",
+    "js-tiktoken": "1.0.21",
     "mdast-util-to-string": "4.0.0",
     "path-to-regexp": "8.4.2",
     "remark": "15.0.1",

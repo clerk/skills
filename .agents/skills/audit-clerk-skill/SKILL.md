@@ -121,7 +121,7 @@ If invoked with `--apply`, apply `drift` and `gap` edits directly, then list `po
 - Never invent flags. If a flag appears in tests but not in the command parser, mark it for human review.
 - Preserve the existing `clerk-cli` skill's terse, third-person voice.
 - Do not use em dashes in proposals or edits.
-- Every `skills/**/SKILL.md`, including `clerk-cli`, must stay at or below 500 lines and 20,000 UTF-8 bytes. Run `npm run check:skill-length` after edits; move detailed material to `references/` instead of bloating a main skill.
+- Every `skills/**/SKILL.md`, including `clerk-cli`, must stay at or below 500 lines and 5,000 body tokens (measured with CI's `o200k_base` reference tokenizer). Run `npm run check:skill-length` after edits; move detailed material to `references/` instead of bloating a main skill.
 - Do not treat the installed `clerk` binary as authoritative over source. Use `--help` only to confirm generated presentation when source and tests leave ambiguity.
 - Do not commit or print secrets. If the audit touches env guidance, preserve the repository's 1Password and no-plaintext-secret rules.
 
