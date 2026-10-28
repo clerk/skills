@@ -92,7 +92,7 @@ Pass `--app <id>` and `--instance dev|prod|<instance_id>` to point a command som
 
 `--instance` switches instances only when the key comes from a linked project or `--app`. A key from `--secret-key` or an exported `CLERK_SECRET_KEY` names its own instance, and a `--instance` that disagrees with it exits `2`. In an unlinked keyless project, any `--instance` exits `2`: link the project or pass `--app`.
 
-The key sets the **instance type**: `sk_live_…` is production, anything else development. The type sets the rate limit (100 req/s production, 10 req/s development) and the development-instance 100-user check. A slow run on a dev key is the rate limit at work.
+The key sets the **instance type**: `sk_live_…` is production, anything else development. The type sets the rate limit (100 req/s production, 10 req/s development) and the default user limit: 100 for a new development instance, none for production. A slow run on a dev key is the rate limit at work.
 
 For auth internals, sandbox caveats, or `clerk api`, see the `clerk-cli` skill.
 

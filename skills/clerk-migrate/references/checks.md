@@ -42,7 +42,7 @@ Users who pass all of those are then checked against each other and the instance
 
 12. Its source ID, email, phone or username repeats an earlier user in the file, or a user an earlier attempt of this run already created.
 13. The instance already has a user with its source ID, email, phone or username. Users a continued run created do not count.
-14. Development instances only: it falls past the user-limit headroom, counted in file order.
+14. It falls past the instance's user-limit headroom, counted in file order.
 
 Any reject stops the import with exit `2`, and the CLI prints the same command with `--allow-partial` added. With `--allow-partial`, the rest import and each reject is recorded in the run as `skipped` with its reason.
 
@@ -57,7 +57,7 @@ Warnings, not rejects:
 - emails, names, usernames or non-E.164 phones Clerk refuses, dropped from users who still have another identifier
 - temporary bans, which import as permanent: Clerk bans don't expire
 - users imported without legal acceptance under `--skip-legal-checks`
-- a development instance whose user count could not be read, so the limit was checked as if it were empty
+- an instance whose user count could not be read, so the limit was checked as if it were empty
 
 ## The `clerk config patch` fixes
 
@@ -73,9 +73,9 @@ Pass it only when the user asks to leave out the users who have no password. An 
 
 An unrecognized password hasher rejects that user as `invalid: Unknown password hasher "…"`, and the message lists every hasher the CLI accepts.
 
-## Development-instance limit
+## User limit
 
-New development instances allow 100 users. The checks read the live count and reject users past the headroom. Clerk can raise a development instance's limit on request, and the CLI cannot see the raised value, so ask the user rather than assuming either way. When Clerk has raised it, set `CLERK_MIGRATE_DEV_USER_LIMIT` to the new limit. `--allow-partial` imports up to the headroom. For a real user base, import into production.
+The checks read the user limit Clerk reports for the instance (`max_allowed_users`) and its live user count, and reject users past the headroom. New development instances allow 100 users, and Clerk can raise that on request. Production instances have no limit. When Clerk doesn't report a limit, a development instance falls back to `CLERK_MIGRATE_DEV_USER_LIMIT`, then 100. `--json` says which applied in `checks.quota.limitSource`: `instance`, `env` or `default`. Set the variable only when the source is `default` and the user says Clerk raised the limit. `--allow-partial` imports up to the headroom. For a real user base, import into production.
 
 ## Exit codes
 
