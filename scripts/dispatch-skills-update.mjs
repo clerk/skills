@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url'
 
-const repositories = ['clerk', 'dashboard', 'clerk-evals']
+const repositories = ['clerk', 'dashboard', 'clerk-evals', 'cloudflare-workers']
 const eventType = 'clerk_skills_updated'
 
 async function githubError(response) {

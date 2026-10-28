@@ -7,7 +7,7 @@ import { dispatchSkillsUpdate } from './dispatch-skills-update.mjs'
 
 const sha = 'a'.repeat(40)
 
-test('sends the exact skills SHA to all three receivers', async () => {
+test('sends the exact skills SHA to all four receivers', async () => {
   const requests = []
   const results = await dispatchSkillsUpdate({
     sha,
@@ -20,7 +20,9 @@ test('sends the exact skills SHA to all three receivers', async () => {
 
   assert.deepEqual(
     requests.map(({ url }) => url),
-    ['clerk', 'dashboard', 'clerk-evals'].map((repo) => `https://api.github.com/repos/clerk/${repo}/dispatches`)
+    ['clerk', 'dashboard', 'clerk-evals', 'cloudflare-workers'].map(
+      (repo) => `https://api.github.com/repos/clerk/${repo}/dispatches`
+    )
   )
   for (const { options } of requests) {
     assert.equal(options.method, 'POST')
@@ -43,11 +45,12 @@ test('attempts every receiver even when one rejects the dispatch', async () => {
     }
   })
 
-  assert.equal(attempted.length, 3)
+  assert.equal(attempted.length, 4)
   assert.deepEqual(results, [
     { repository: 'clerk', error: null },
     { repository: 'dashboard', error: 'GitHub returned HTTP 403' },
-    { repository: 'clerk-evals', error: null }
+    { repository: 'clerk-evals', error: null },
+    { repository: 'cloudflare-workers', error: null }
   ])
 })
 
@@ -98,10 +101,11 @@ test('records a network error and still attempts the remaining receivers', async
     }
   })
 
-  assert.equal(attempts, 3)
+  assert.equal(attempts, 4)
   assert.equal(results[0].error, 'network unavailable')
   assert.equal(results[1].error, null)
   assert.equal(results[2].error, null)
+  assert.equal(results[3].error, null)
 })
 
 test('refuses to send without a full SHA and dispatch token', async () => {
