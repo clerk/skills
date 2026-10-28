@@ -135,22 +135,22 @@ CRM IDs, billing IDs, internal notes and risk scores stay in `privateMetadata` e
 
 ### Password hashes
 
-Work out the format from the digests, then set `passwordHasher`. "As-is" means the digest goes in unchanged.
+Work out the format from the digests, then set `passwordHasher`. "As-is" means the digest goes in unchanged. The [`createUser()` reference](https://clerk.com/docs/reference/backend/user/create-user) documents each hasher's digest format. Clerk refuses a digest outside a hasher's limits when it creates the user, with the reason.
 
 | The digest looks like | `passwordHasher` |
 | --- | --- |
-| `$2a$…`, `$2b$…`, `$2y$…` | `bcrypt`, as-is. The cost (the number after the prefix) must be 4 to 15, and the digest 60 characters |
+| `$2a$…`, `$2b$…`, `$2y$…` | `bcrypt`, as-is |
 | bcrypt over the password with an app-wide pepper appended | `bcrypt_peppered`: append `$<pepper>` to the bcrypt digest |
 | `bcrypt_sha256$$2b$…` (Django) | `bcrypt_sha256_django`, as-is |
-| `$argon2id$v=19$m=…,t=…,p=…$…`, `$argon2i$…` | `argon2id`, `argon2i`, as-is. `t` must be 20 or less, `p` 16 or less, `m` 1048576 (1 GiB) or less |
+| `$argon2id$v=19$m=…,t=…,p=…$…`, `$argon2i$…` | `argon2id`, `argon2i`, as-is |
 | `pbkdf2_sha256$<iterations>$<salt>$<base64 key>` | `pbkdf2_sha256_django` or `pbkdf2_sha256`: see below |
 | `pbkdf2:sha256:<iterations>:<salt>:<base64 key>`, or other separators | the same: rebuild it as `pbkdf2_sha256$…` first |
 | `pbkdf2:sha256:<iterations>$<salt>$<hex key>` (Werkzeug, Flask) | `pbkdf2_sha256_django`: the salt is text. Convert the hex key to base64 and rebuild it as `pbkdf2_sha256$…` |
 | `$pbkdf2-sha256$<iterations>$<salt>$<key>` (passlib, Python) | `pbkdf2_sha256`: passlib hashes the salt's decoded bytes. Salt and key are in passlib's base64: swap `.` for `+` and pad each with `=` to a multiple of 4, then rebuild it as `pbkdf2_sha256$…` |
 | `pbkdf2_sha1$<iterations>$<salt>$<base64 key>` (Django) | `pbkdf2_sha1`: rebuild it as `pbkdf2_sha1$<iterations>$<hex salt>$<hex key>$20`. Hex-encode the salt's text, and convert the key from base64 to hex. `20` is the key length in bytes |
 | `$pbkdf2$<iterations>$<salt>$<key>` (passlib) | `pbkdf2_sha1`: decode salt and key from passlib's base64 (as above), then rebuild it as `pbkdf2_sha1$<iterations>$<hex salt>$<hex key>$20` |
-| PBKDF2-SHA512 with a text salt | `pbkdf2_sha512`: `pbkdf2_sha512$<iterations>$<salt>$<hex key>`, the salt as stored. Iterations must be 420,000 or fewer |
-| PBKDF2-SHA512 with a random-bytes salt; `$pbkdf2-sha512$…` (passlib) | `pbkdf2_sha512_hex`: `pbkdf2_sha512_hex$<iterations>$<hex salt>$<hex key>`. Decode passlib's base64 (as above) first. Iterations must be 420,000 or fewer |
+| PBKDF2-SHA512 with a text salt | `pbkdf2_sha512`: `pbkdf2_sha512$<iterations>$<salt>$<hex key>`, the salt as stored |
+| PBKDF2-SHA512 with a random-bytes salt; `$pbkdf2-sha512$…` (passlib) | `pbkdf2_sha512_hex`: `pbkdf2_sha512_hex$<iterations>$<hex salt>$<hex key>`. Decode passlib's base64 (as above) first |
 | `$P$…` (WordPress, phpass), `$S$…` (Drupal 7) | `phpass`, as-is |
 | `$H$…` (phpBB) | `phpass`: the same algorithm as `$P$`. Replace `$H$` with `$P$` |
 | `U$P$…` (Drupal 7, users carried over from Drupal 6) | `md5_phpass`: remove the leading `U` |
@@ -160,7 +160,7 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
 | 32 hex characters, no salt | `md5`, as-is. Ask first: a salt stored in another column makes a salted hash look the same |
 | 64 hex characters, no salt | `sha256`, as-is. Ask first, as for `md5` |
 | hex MD5 or SHA-256 of the password with a salt appended | `md5_salted`, `sha256_salted`: `<hex hash>$<salt>`, the salt as stored. A salt prepended to the password has no hasher |
-| Symfony's legacy SHA-512 encoder (`password{salt}`, base64 digest) | `sha512_symfony`: `sha512_symfony$<iterations>$<salt>$<base64 digest>`. The salt may hold only letters, digits, `.` and `/`. Iterations must be 100,000 or fewer (Symfony's default is 5,000) |
+| Symfony's legacy SHA-512 encoder (`password{salt}`, base64 digest) | `sha512_symfony`: `sha512_symfony$<iterations>$<salt>$<base64 digest>`. The salt may hold only letters, digits, `.` and `/` |
 | HMAC-SHA256 over the UTF-16LE password, keyed by UTF-16LE text (.NET `Encoding.Unicode`) | `hmac_sha256_utf16_b64`: `hmac_sha256_utf16_b64$<base64 digest>$<key>` |
 | AWS Cognito (no digest is exportable) | `awscognito`: `awscognito#<user pool ID>#<app client ID>#<username>`. Clerk checks the password against Cognito at the user's first sign-in. Clerk has to enable this for the instance first: ask the user to contact Clerk support |
 
@@ -170,21 +170,10 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
   - The salt is base64 of the random bytes that were hashed: use `pbkdf2_sha256`, with the salt still in base64.
   - Ask the user when the export doesn't say. A salt that isn't valid base64 can only be text.
   - If the user can't tell, read the salts. When no salt in the export contains `+`, `/`, `=`, `-` or `_`, they're text: use `pbkdf2_sha256_django`. Random base64, standard or URL-safe, across a dozen or more salts would almost certainly include one of those characters. Drop the passwords only when the salts still leave it open, such as a handful of users, or some salts with any of those characters.
-- **PBKDF2-SHA256 limits.** The key must be 32 bytes, which is 44 base64 characters. Convert a hex key to base64. Iterations must be 2,000,000 or fewer.
+- **PBKDF2-SHA256 keys are base64.** Convert a hex key to base64.
 - **Rebuild split formats.** An export that keeps a digest in parts (iterations, salt, key) goes into Clerk as the one string its row shows.
 - **Detect the hasher per user.** One export can mix formats.
-- **Not in the table:** before dropping the password, check whether Clerk has added a hasher since this skill was written. Print the `PasswordHasher` entry from the newest Backend API spec:
-
-  ```sh
-  latest=$(curl -fsSL https://api.github.com/repos/clerk/openapi-specs/contents/bapi \
-    | grep -o '"name": *"[0-9-]*\.yml"' | grep -o '[0-9-]*\.yml' | sort | tail -1)
-  curl -fsSL "https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/$latest" \
-    | sed -n '/^    PasswordHasher:/,/^    [A-Za-z]/p' | sed '$d'
-  ```
-
-  If that prints nothing, the spec's layout changed: search the same file with `grep -n -A20 'PasswordHasher:'`. If the entry has an `enum`, that is the list of names; otherwise read them from its description. The spec can lag behind: a hasher in this table but missing from the spec is still supported.
-
-  The spec names hashers but doesn't say what digest each expects. For a name that is in the spec but not in this table, ask the user how the old system built its digests, and use it only when they can describe the format. The CLI also has to know the name: run `clerk@latest`, and if the dry run rejects the hasher, the error lists every name the CLI accepts.
+- **Not in the table:** the CLI accepts only the hashers it knows, and the `Unknown password hasher` reject lists every one. For a name there but not in this table, read its digest format in the [`createUser()` reference](https://clerk.com/docs/reference/backend/user/create-user) and ask the user how the old system built its digests. Use it only when they can describe the format.
 - **Still no match:** leave the password out, set `passwordDropped: true`, and tell the user those users will reset their password. Don't guess a hasher.
 
 ### Common export shapes
