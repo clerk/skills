@@ -50,7 +50,7 @@ The destination's key sets the pace, because the writes go there.
 | Production  | 100                 | none                                         |
 | Development | 10                  | **100 by default**, enforced by the checks   |
 
-Production → development hits the limit. The import's checks read the destination's user count and reject users past the headroom, which stops the import unless `--allow-partial` is passed. Clerk can raise a development instance's limit on request, and the CLI cannot see the raised value, so ask the user, and set `CLERK_MIGRATE_DEV_USER_LIMIT` to the raised limit. For a realistic copy of production in a dev instance, a subset of the file is usually the answer.
+Production → development hits the limit. The import's checks read the destination's user count and reject users past the headroom, which stops the import unless `--allow-partial` is passed. Clerk can raise a development instance's limit on request, and the checks use the limit Clerk reports. For a realistic copy of production in a dev instance, a subset of the file is usually the answer.
 
 ## Re-running and undoing
 
