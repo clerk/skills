@@ -173,7 +173,7 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
 - **PBKDF2-SHA256 keys are base64.** Convert a hex key to base64.
 - **Rebuild split formats.** An export that keeps a digest in parts (iterations, salt, key) goes into Clerk as the one string its row shows.
 - **Detect the hasher per user.** One export can mix formats.
-- **Not in the table:** the CLI accepts only the hashers it knows, and the `Unknown password hasher` reject lists every one. For a name there but not in this table, read its digest format in the [`createUser()` reference](https://clerk.com/docs/reference/backend/user/create-user) and ask the user how the old system built its digests. Use it only when they can describe the format.
+- **Not in the table:** the CLI accepts only the hashers it knows, and the `Unknown password hasher` reject lists every one. For a name in that list but not in this table, read its digest format in the [`createUser()` reference](https://clerk.com/docs/reference/backend/user/create-user) and ask the user how the old system built its digests. Use it only when they can describe the format.
 - **Still no match:** leave the password out, set `passwordDropped: true`, and tell the user those users will reset their password. Don't guess a hasher.
 
 ### Common export shapes
