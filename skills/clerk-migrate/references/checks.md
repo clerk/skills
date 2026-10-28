@@ -6,7 +6,7 @@ Every `clerk migrate import` runs its checks against the destination instance be
 Checks
   120 users checked
   ✗ 12 users rejected
-      12: only has an unverified email, and this instance requires an email
+      12: only has an unverified email, and this instance requires an email (--reserve-unverified imports it reserved: usable for sign-in, though the source never verified it)
          u_17, u_22, u_40, u_51, u_88, and 7 more
   ⚠ Imported, but not everything comes across
       6 users have a username, which this instance does not use: it is stored, and works only once usernames are turned on

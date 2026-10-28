@@ -80,7 +80,7 @@ Three platforms never export passwords, **Clerk, Auth0 and WorkOS**, and each sh
 clerk migrate export clerk --app app_source123 --instance dev
 ```
 
-Pages the whole instance 500 users at a time. **Password digests, TOTP secrets and backup codes are never returned by the API** — only the `*_enabled` booleans. Migrated users must reset their password on the destination.
+Pages the whole instance 500 users at a time. **Password digests, TOTP secrets and backup codes are never returned by the API** — only the `*_enabled` booleans. Users who signed in with a password reset it on the destination.
 
 **Name the source instance.** `--secret-key`, `--app`, `--instance` or an exported `CLERK_SECRET_KEY` are taken as-is. Without one, a human gets a picker of every instance on their account, and an **agent, `--json` or `-y` run exits `2`**, because what the CLI resolves on its own is usually the linked project, which is usually the migration's destination.
 
