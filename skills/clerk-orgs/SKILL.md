@@ -210,6 +210,9 @@ app/orgs/[slug]/settings/page.tsx
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
 ```typescript
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+
 export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug } = await auth()
@@ -219,6 +222,8 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
   return <div>Welcome to {orgSlug}</div>
 }
 ```
+
+In Next.js, add a `loading.tsx` next to a page like this one that gates its render with `redirect()`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
 
 ### 3. Role-Based Access Control
 
@@ -251,16 +256,21 @@ Do NOT invent names like `org:create`, `org:manage_members`, `org:update_metadat
 
 ### 4. Conditional Rendering with `<Show>`
 
+In a Next.js Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`. In a Client Component, it reads client-side auth state and needs no boundary.
+
 ```tsx
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Show when={{ role: 'org:admin' }}>
-  <AdminPanel />
-</Show>
+<Suspense>
+  <Show when={{ role: 'org:admin' }}>
+    <AdminPanel />
+  </Show>
 
-<Show when={{ permission: 'org:invoices:create' }}>
-  <NewInvoiceButton />
-</Show>
+  <Show when={{ permission: 'org:invoices:create' }}>
+    <NewInvoiceButton />
+  </Show>
+</Suspense>
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<Protect role="org:admin">` / `<Protect permission="...">` instead of `<Show>`. `<Show>` replaced both `<Protect>` and `<SignedIn>`/`<SignedOut>` in Core 3.
@@ -421,6 +431,8 @@ export default async function AdminPage({ params }: { params: Promise<{ slug: st
   return <div>Admin settings for {orgSlug}</div>
 }
 ```
+
+Add a `loading.tsx` next to it so `next build` passes with Cache Components.
 
 For per-page role and permission checks with `auth.protect()` (Next.js) see `references/nextjs-patterns.md`.
 

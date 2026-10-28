@@ -49,7 +49,7 @@ The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, 
 
 **It follows the key, not the app.** No `--app` and no link means the CLI uses whatever local `sk_` key it finds — `sk_live_` included, claimed or not. In an unlinked repo a production key in `.env.local` is what gets mutated, unconfirmed in agent mode. Pass `--app <id>` when you mean a real application.
 
-`clerk auth login` auto-claims only what `clerk init` created (recorded in the `.clerk/keyless.json` breadcrumb — the filename keeps the old name for compatibility). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; claim it via `clerk open`.
+`clerk auth login` auto-claims only what `clerk init` created (recorded in the `.clerk/keyless.json` breadcrumb — the filename keeps the old name for compatibility). An SDK-minted app has no breadcrumb — login may create an unrelated default app instead; a person claims it by running `clerk open` in their own terminal.
 
 ## Host vs sandbox behavior
 
@@ -92,7 +92,29 @@ When you run a command without `--app`/`--instance`:
 
 1. The CLI resolves the current repo's profile (normalized git remote → git common dir → current working directory).
 2. If linked, it uses the stored app ID and instance IDs.
-3. If not linked, it errors with guidance to run `clerk link`.
+3. If there is no link, the CLI returns `not_linked`. Follow [When the folder isn't linked](#when-the-folder-isnt-linked).
+
+### When the folder isn't linked
+
+A project may have Clerk keys but no CLI link if a developer ran `clerk init` while signed out or a Clerk SDK created an app during development. `clerk link` cannot list that app until someone claims it. Linking a different app leaves the CLI and project using different apps.
+
+1. Rule out a sandboxed result first ([Host vs sandbox behavior](#host-vs-sandbox-behavior)). If warned that host state is unavailable, rerun on the host.
+2. Before following any command in the error, check whether both `.clerk/keyless.json` and `.clerk/.tmp/keyless.json` exist. If both do, stop: `clerk open` prefers the `init` claim. Have the person choose the app matching the project's keys, move the other file out themselves, and confirm the remaining file and keys match. Never read either file or the keys; do not continue without confirmation.
+3. Never rerun `clerk init` in a folder with Clerk keys or either claim file, even if the error suggests it: it can create another app over the keys.
+4. Read the error message and `examples` to decide what to do. If `examples` is absent, use [Older CLIs](#older-clis) below. Otherwise, read each `description`: "or" marks alternatives, and some commands are fallbacks. If the message offers alternatives, ask which one to use; otherwise follow its steps in order. Run a fallback only when its condition applies.
+5. Sign-in and SDK app claims require a person. When advised to use `clerk open`, have them run it in their own terminal to open the claim page. Agent mode prints a claim link with a token instead; keep it out of transcripts, logs, commits, and PRs.
+6. Use your session's CLI invocation (for example, `npx -y clerk@latest link`). Pass `<app_id>` only for an app the person chose: `clerk link --app` does not check the folder's keys. Retry the original command when directed.
+
+#### Older CLIs
+
+If the error has no `examples` field, its advice (`clerk link`, `--app`, or `clerk apps list`) may not fit this folder. Then:
+
+- If either `.clerk/keyless.json` or `.clerk/.tmp/keyless.json` exists, ask which app the person wants to use before linking or signing in. Signing in from a folder with `.clerk/keyless.json` claims that app and replaces the folder's keys. A signed-out `clerk link` can start that sign-in. If the person chose another app, sign in from a different folder first.
+- Otherwise follow its advice, and confirm the linked app with the person before running any other Clerk command against it.
+
+The CLI reads only the current folder, so run these where the app's env files and `.clerk/` are.
+
+`clerk deploy` has no `--app` flag: to deploy a specific app, run `clerk link --app <app_id>` first.
 
 ## `--app` and `--instance` targeting
 
@@ -132,7 +154,7 @@ OAuth 2.0 PKCE flow against the Clerk OAuth system instance (`https://clerk.cler
 5. Fetches user info from `/oauth/userinfo`.
 6. Stores the token in the OS credential store.
 
-In agent mode, if already authenticated, it's a no-op. If not, it runs the full flow above anyway: it opens a
+In agent mode, if already authenticated, it skips the browser but still tries to claim the app behind `.clerk/keyless.json` in the current folder. If not authenticated, it runs the full flow above anyway: it opens a
 browser and binds a localhost callback, so it is **not** unattended and will stall in a sandbox that cannot
 reach a browser. There is no agent-mode branch that prints guidance instead. For headless flows, set
 `CLERK_PLATFORM_API_KEY` rather than calling `clerk auth login`.
@@ -167,8 +189,8 @@ Hits `GET /oauth/userinfo` and prints the email. With no usable session it repor
 
 | Symptom                             | Likely cause                                                  | Fix                                                          |
 | ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the accountless table first; most instance commands need no account |
-| `No Clerk project linked`           | Running a command that needs a linked profile with no `--app` | `clerk link` or pass `--app <id>`                            |
+| `Not authenticated`                 | Account-path command with no token and no `CLERK_PLATFORM_API_KEY` | `clerk auth login` or export `CLERK_PLATFORM_API_KEY` — but check the accountless table first; most instance commands need no account. With `.clerk/keyless.json` in the folder, see [Older CLIs](#older-clis) first |
+| `No Clerk project linked` or `Cannot select an application in agent mode` | No link for this folder, and no `--app` | The step the error names; see [When the folder isn't linked](#when-the-folder-isnt-linked) |
 | `Invalid secret key prefix`         | Passed `ak_...` where `sk_...` expected (or vice versa)       | Check which API the command hits; pass the matching key type |
 | `Unauthorized` from API             | Key belongs to a different instance                           | Verify `--instance` and ensure the key matches               |
 | Sandbox warning + auth/link failure | Host-only Clerk state or system capabilities are blocked      | Rerun the same command on the host before trusting the error |

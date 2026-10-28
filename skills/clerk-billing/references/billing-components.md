@@ -36,6 +36,46 @@ export default function PricingPage() {
 
 For most cases, use `<PricingTable />` with no props (or just `for="organization"` for B2B).
 
+## Upgrade / Downgrade Page
+
+A billing page that changes its copy by plan reads `auth()` in an async child inside `<Suspense>`, so `next build` passes with Cache Components (`cacheComponents: true`, the `create-next-app` default):
+
+```tsx
+import { PricingTable } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
+
+async function Billing() {
+	const { has } = await auth()
+	const isPro = has({ plan: 'pro' })
+
+	return (
+		<div>
+			<h1>Billing</h1>
+			{isPro ? (
+				<div>
+					<p>You are on the Pro plan</p>
+					<PricingTable />
+				</div>
+			) : (
+				<div>
+					<p>Upgrade to access premium features</p>
+					<PricingTable />
+				</div>
+			)}
+		</div>
+	)
+}
+
+export default function BillingPage() {
+	return (
+		<Suspense>
+			<Billing />
+		</Suspense>
+	)
+}
+```
+
 ## CheckoutButton
 
 For custom checkout UX outside `<PricingTable />`, use `<CheckoutButton />` from `@clerk/nextjs/experimental`. It opens the same checkout drawer for a specific `planId`. Must be wrapped in `<Show when="signed-in">`.
@@ -106,17 +146,20 @@ If a user subscribes and then `has()` returns false, the session token needs to 
 
 ```tsx
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Show when={{ plan: 'pro' }}>
-	<ProFeatures />
-</Show>
+<Suspense>
+	<Show when={{ plan: 'pro' }}>
+		<ProFeatures />
+	</Show>
 
-<Show when={{ feature: 'analytics' }}>
-	<AnalyticsDashboard />
-</Show>
+	<Show when={{ feature: 'analytics' }}>
+		<AnalyticsDashboard />
+	</Show>
+</Suspense>
 ```
 
-`<Show>` accepts `plan` and `feature` props in addition to `role` and `permission`. Renders children only if the condition is met.
+`<Show>` accepts `plan` and `feature` props in addition to `role` and `permission`. Renders children only if the condition is met. In a Next.js Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. In a Client Component, it needs no boundary.
 
 ## Import Reference
 

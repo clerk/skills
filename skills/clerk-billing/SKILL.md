@@ -131,6 +131,8 @@ When a user says "gate the export feature" or "gate analytics", always use `has(
 
 ## Key Patterns
 
+Next.js server examples follow the Cache Components rules (`cacheComponents: true`, the `create-next-app` default), because `next build` fails on request data read outside a `<Suspense>` boundary. A page that uses `auth()` to render data reads it in an async child inside `<Suspense>`. A page that gates its render with `redirect()` keeps the check at the top and gets a `loading.tsx` next to it. See the `clerk-nextjs-patterns` skill and [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
+
 ### 1. Render the Pricing Table
 
 Show available plans to users with a single component:
@@ -154,10 +156,11 @@ export default function PricingPage() {
 
 Gate by individual features, this is the preferred approach for specific capabilities:
 
-```typescript
+```tsx
 import { auth } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
 
-export default async function AnalyticsPage() {
+async function Analytics() {
 	const { has } = await auth()
 
 	const canViewAnalytics = has({ feature: 'analytics' })
@@ -168,6 +171,14 @@ export default async function AnalyticsPage() {
 			{canViewAnalytics && <AnalyticsChart />}
 			{canExport && <ExportButton />}
 		</div>
+	)
+}
+
+export default function AnalyticsPage() {
+	return (
+		<Suspense>
+			<Analytics />
+		</Suspense>
 	)
 }
 ```
@@ -205,6 +216,7 @@ Server Components use `auth()`, Client Components use `useAuth()`. Both support 
 Gate access by subscription plan (use this for tier-level gates, not individual features):
 
 ```typescript
+// app/pro/page.tsx
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
@@ -218,6 +230,8 @@ export default async function ProDashboard() {
 	return <ProFeatures />
 }
 ```
+
+Add `app/pro/loading.tsx` next to it, such as `export default function Loading() { return <p>Loading...</p> }`.
 
 ### 5. Client-Side Plan Checks
 
@@ -255,10 +269,11 @@ Check specific plans with `has({ plan })`, or use `useSubscription()` for full s
 
 Server component, check for specific plans:
 
-```typescript
+```tsx
 import { auth } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
 
-export default async function AccountPage() {
+async function CurrentPlan() {
 	const { has } = await auth()
 
 	const currentPlan = has({ plan: 'pro' })
@@ -273,6 +288,14 @@ export default async function AccountPage() {
 			<p>You are on the {currentPlan} plan</p>
 			{currentPlan === 'free' && <a href="/pricing">Upgrade</a>}
 		</div>
+	)
+}
+
+export default function AccountPage() {
+	return (
+		<Suspense>
+			<CurrentPlan />
+		</Suspense>
 	)
 }
 ```
@@ -386,36 +409,7 @@ For the full template covering all 15 events, the TS type declarations from `@cl
 
 ### 10. Upgrade / Downgrade Flow
 
-Let users manage their subscription from inside the app:
-
-```tsx
-import { PricingTable } from '@clerk/nextjs'
-import { auth } from '@clerk/nextjs/server'
-
-export default async function BillingPage() {
-	const { has } = await auth()
-	const isPro = has({ plan: 'pro' })
-
-	return (
-		<div>
-			<h1>Billing</h1>
-			{isPro ? (
-				<div>
-					<p>You are on the Pro plan</p>
-					<PricingTable />
-				</div>
-			) : (
-				<div>
-					<p>Upgrade to access premium features</p>
-					<PricingTable />
-				</div>
-			)}
-		</div>
-	)
-}
-```
-
-`<PricingTable />` renders differently for subscribed users, it shows the current plan and allows upgrades or cancellations, all through Clerk's in-app checkout drawer.
+Let users manage their subscription from inside the app by rendering `<PricingTable />` on a billing page. It renders differently for subscribed users: it shows the current plan and allows upgrades or cancellations, all through Clerk's in-app checkout drawer. For a full billing page that changes its copy by plan, see `references/billing-components.md`.
 
 ## Plan and Feature Naming
 
