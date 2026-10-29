@@ -64,8 +64,8 @@ Force human mode with `--mode human` or `CLERK_MODE=human`. Typical AI-agent inv
 | `clerk open [subpath]`                                           | Opens the browser to the URL                                     | Does not open a browser. Prints a JSON descriptor (`{url, appId, appName, instanceId, instanceLabel, subpath, opened: false}`) on stdout so the agent can surface it                                                                                                                                                                                                                                                                 |
 | `clerk impersonate [user]`                                       | Picker when `[user]` omitted; confirms; prints URL + revoke hint | Requires the `[user]` positional (usage error `2` without it). Ambiguous search terms exit `2` listing candidate user IDs - retry with a `user_...` ID. Never opens a browser. Prints one JSON object `{url, id, userId, actor, appId, appLabel, instanceId, instanceLabel, expiresInSeconds}` on stdout - capture `id`; it is the only chance to record the revoke handle                                                           |
 | `clerk webhooks listen --forward-to <url>`                       | Banner + one formatted line per delivery                         | NDJSON on stdout: one `{type:"ready", relay_url, forward_to}` line, then one `event` line per delivery (feed lines to `webhooks verify --delivery`), plus `{type:"reconnecting"}` if the relay drops. Long-running - run it in the background                                                                                                                                                                                        |
-| `clerk deploy`                                                   | Interactive production deploy wizard                             | Read-only handoff. Emits deploy status JSON on stdout and exits `0` for linked projects. Does not prompt, mutate, trigger DNS checks, or poll.                                                                                                                                                                                                                                                                                       |
-| `clerk deploy status`                                            | Verify production deploy state                                   | Read-only verification gate. Triggers one DNS check for active production domains, waits briefly, reads one live status snapshot, emits status JSON on stdout, exits `0` when complete and `1` when incomplete. It does not keep waiting or back off in agent mode unless `--wait` is passed. Use `--wait` when the user asks the agent to keep waiting for DNS, SSL, email DNS, or final Clerk-side readiness.                      |
+| `clerk deploy`                                                   | Interactive production deploy wizard                             | Without `--domain`, prints the report on stdout and exits `0` for linked projects. With `--domain <domain>`, creates the production instance (or resumes the existing one on that domain) and prints the report. Never prompts, writes OAuth credentials, triggers DNS checks, or polls.                                                                                                                                                                                                                                                                                       |
+| `clerk deploy status`                                            | Verify production deploy state                                   | Read-only verification gate. Triggers one DNS check for active production domains, waits briefly, reads one live status snapshot, prints the report on stdout, exits `0` when complete and `1` when incomplete. It does not keep waiting or back off in agent mode unless `--wait` is passed. Use `--wait` when the user asks the agent to keep waiting for DNS, SSL, email DNS, or final Clerk-side readiness.                      |
 | `clerk auth login` when already authenticated                    | Prompt to re-auth (newer CLIs, with an init token: ask whether to claim it into the account or workspace it names) | Skips the browser, but tries to claim the app behind `.clerk/keyless.json` in this folder |
 | `clerk auth login` when **not** authenticated                    | Opens a browser, binds a localhost callback                      | Identical - it still opens a browser and binds a localhost callback. There is no guidance-only branch, so it stalls in a sandbox. Use `CLERK_PLATFORM_API_KEY` for headless flows |
 | `clerk init`                                                     | Full interactive scaffold flow                                   | Runs non-interactively. Explicit `--app` or a linked profile uses the real-app auth/link/env flow, but `--app` that would replace an existing application link stops with a usage error unless `--relink` is passed. With `--json`, it also emits an `input-required` status. Inside a Git repository, the link is shared by every project in it. On a framework with accountless support, an authenticated agent creates a real app and links it. Without `--app` or an existing link, an unauthenticated agent on a framework with accountless support mints an unclaimed app with temporary dev keys — no login, no flag, no browser. On those frameworks, `--accountless` forces the temporary-keys path over both a session and an existing link — the escape hatch when a stale link would otherwise trigger a browser login; `--login` forces the authenticated flow (usage error while signed out in agent mode). Non-native frameworks without temporary-key support print manual setup guidance when no app is selected. iOS and macOS apps (`--starter` included) require a real Clerk application and reject `--accountless`; with `--json`, they report setup as JSON statuses. Follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). |
@@ -151,8 +151,8 @@ Errors use the standard agent-mode format: bad JSON → `invalid_json`, missing 
 | `clerk config schema`                         | JSON Schema                                                                                   |
 | `clerk open [subpath]`                        | `{url, appId, appName, instanceId, instanceLabel, subpath, opened: false}` (agent mode)       |
 | `clerk open --print`                          | Plain dashboard URL on stdout                                                                 |
-| `clerk deploy` (agent mode)                   | Deploy handoff report with `complete`, `state`, domain status, OAuth status, and `nextAction` |
-| `clerk deploy status` (agent mode)            | Deploy verification report with the same shape, plus exit `0` complete or `1` incomplete      |
+| `clerk deploy` (agent mode)                   | The deploy report: `complete`, `state`, domain status, OAuth status, and `nextAction`         |
+| `clerk deploy status` (agent mode)            | The same report, plus exit `0` complete or `1` incomplete                                     |
 | Any command (agent mode)                      | On error: `{"error":{"code","message","docsUrl?","errors?","examples?"}}` on stderr           |
 
 For commands without an explicit `--json` flag, `clerk api` is your escape hatch: hit the underlying endpoint directly.
@@ -190,42 +190,49 @@ clerk api /users --app app_abc123 --instance prod
 
 The same advice applies to linking in agent mode: `clerk link --app app_abc123` is deterministic and works non-interactively, for an app the person named that's already in the account. If you omit `--app`, the command succeeds only when silent autolink can prove the target app from existing publishable keys, or, on newer CLIs, when it claims the app `clerk init` created in this folder.
 
-### Deploy handoff and verification
+### Deploy to production
 
-Do not try to drive the interactive deploy wizard from an agent. Use the handoff and check commands instead.
+`clerk deploy --mode agent` prints a JSON report on the production deploy. With `--domain`, it first creates the production instance by cloning development, or resumes the existing one. `clerk deploy status --mode agent` checks progress and prints the same report. The report's `nextAction` says what to do next.
 
 ```sh
-# 1. Inspect current production deploy state without mutating anything.
+# 1. Print the report without changing anything.
 clerk deploy --mode agent
 
-# 2. If the handoff says a human action is needed, ask the user to run this
-#    in a new terminal window, not through `! clerk deploy`:
-clerk deploy --mode human
+# 2. With no production instance yet, ask the user for a domain they own, then create it:
+clerk deploy --mode agent --domain example.com
 
-# 3. After the user finishes or DNS has had time to propagate, verify:
+# 3. Verify, and keep waiting when the user asks:
 clerk deploy status --mode agent
-
-# 4. If the user asks you to keep waiting, use the retrying wait loop:
 clerk deploy status --mode agent --wait
 ```
 
-`clerk deploy --mode agent` is read-only. It resolves the linked app and current production deploy snapshot, then emits JSON on stdout. It does **not** trigger DNS checks, poll, create production instances, patch OAuth config, or prompt. Linked projects exit `0` because this is an informational handoff. Not-linked and API failures still use the normal agent error envelope on stderr. For `not_linked`, follow [When the folder isn't linked](auth.md#when-the-folder-isnt-linked). `clerk deploy` has no `--app` flag: to deploy a specific app, link the folder first with `clerk link --app <app_id>`.
+For `not_linked`, follow [When the folder isn't linked](auth.md#when-the-folder-isnt-linked). `clerk deploy` has no `--app` flag: to deploy a specific app, link the folder first with `clerk link --app <app_id>`.
 
-Never try to run the human wizard through Claude's `! clerk deploy` shell escape or any non-interactive agent shell. The deploy wizard asks for domain, DNS export, OAuth, and verification inputs over stdin, so it needs a real human terminal. Tell the user to open a new terminal window in the project directory and run `clerk deploy` or `clerk deploy --mode human` there. After they finish, return to agent mode and run `clerk deploy status --mode agent`.
+`clerk deploy --mode agent` exits `0` once its own work succeeds, even when production isn't complete yet. With `--domain`, it can fail with these errors:
 
-`clerk deploy status --mode agent` is the gate. It is also read-only with respect to deploy configuration, but for an active production domain it triggers one Clerk DNS check, waits briefly, reads a live status/config snapshot, then reports DNS, SSL, email DNS, aggregate domain readiness, and OAuth completeness. By default it does not keep waiting or exponentially back off in agent mode. If the check is incomplete and the user asks the agent to continue waiting, run `clerk deploy status --mode agent --wait` instead of manually sleeping and retrying. `--wait` uses the shared poll loop: one immediate status read, then up to 5 exponential-backoff retries until aggregate domain status is complete. It emits the same status JSON. It exits:
+- `usage_error` (exit 2): the domain is malformed or a hosting provider's, such as `*.vercel.app`. The CLI doesn't catch every hosting domain, so confirm the user can change the domain's DNS before running `clerk deploy --domain`.
+- `provider_domain_not_allowed`: Clerk rejected the domain as a hosting provider's. Ask the user for a domain they own and can add DNS records to.
+- `home_url_taken`: another instance already uses that domain. Ask the user for another.
+- `plan_insufficient`: the plan doesn't cover features enabled in development, and nothing was created. The user upgrades their plan in the Clerk Dashboard or turns off the features the message lists.
+- `production_instance_exists`: the production instance is on another domain, which the message names. Ask the user whether to continue with that domain (run `clerk deploy status --mode agent`) or change it in the Clerk Dashboard. Don't retry with another `--domain`.
+- `deploy_domain_unchecked`: Clerk hasn't returned the existing instance's domain yet, and nothing was changed in Clerk. Wait, then run `clerk deploy status --mode agent`. Don't rerun `clerk deploy --domain` until the report shows the domain.
+- `deploy_instance_unresolved`: the instance exists, but Clerk can't return it or its status yet. Wait and run `clerk deploy status --mode agent`. If it keeps failing, stop and tell the user.
 
-| Exit | Meaning                                                                              |
-| ---- | ------------------------------------------------------------------------------------ |
-| `0`  | Deploy is complete and verified.                                                     |
-| `1`  | The check ran successfully, but deploy is incomplete. Read `state` and `nextAction`. |
-| else | A real CLI error occurred. Read the standard agent error envelope on stderr.         |
+Any other error from Clerk arrives in the same error envelope, so follow its message.
 
-Deploy-specific agent errors still use the standard envelope and may include typed codes such as `plan_insufficient`, `provider_domain_not_allowed`, `home_url_taken`, or `form_param_invalid`.
+The user can run the wizard instead, with `clerk deploy` in a separate terminal, from the project directory. It reads answers from stdin, so never run it through your session, including Claude Code's `!` shell escape. After the user finishes, run `clerk deploy status --mode agent`.
 
-When a production instance exists, `nextAction` includes the full Clerk Dashboard domains URL so agents can send the user directly to the same page the human CLI prints in its next steps. Always show that URL to the user. Ask whether they want you to open it for them instead of omitting or paraphrasing it away.
+`clerk deploy status --mode agent` exits:
 
-The deploy report has this shape:
+| Exit | Meaning                                                                                                                                  |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | Deploy is complete and verified.                                                                                                         |
+| `1`  | Incomplete deploy or runtime failure. A deploy report on stdout describes incompleteness. An error envelope on stderr describes failure. |
+| `2`  | Usage or validation error. Read the error envelope on stderr.                                                                            |
+
+When `nextAction` includes a Clerk Dashboard URL, show it to the user and offer to open it. `urls.domains` is the instance's Domains page and `urls.instance` its Dashboard home.
+
+The report has this shape:
 
 ```json
 {
@@ -233,26 +240,75 @@ The deploy report has this shape:
   "state": "domain_pending",
   "domain": "example.com",
   "productionInstanceId": "ins_...",
-  "domainStatus": { "dns": "complete", "ssl": "pending", "mail": "complete" },
-  "pendingDnsRecords": [{ "type": "CNAME", "host": "clerk.example.com", "value": "..." }],
-  "oauth": { "complete": true, "configured": ["google"], "pending": [], "unsupported": [] },
-  "nextAction": "SSL still provisioning for example.com. Re-run `clerk deploy status` in a few minutes, DNS propagation can take time. Ask the user to visit the Clerk Dashboard domains page, or offer to open it: https://dashboard.clerk.com/apps/app_.../instances/ins_.../domains"
+  "domainStatus": { "dns": "pending", "ssl": "pending", "mail": "complete" },
+  "pendingDnsRecords": [{ "type": "CNAME", "host": "clerk.example.com", "value": "...", "required": true }],
+  "oauth": { "complete": true, "configured": ["google"], "pending": [], "unsupported": [], "setup": [] },
+  "urls": { "domains": "https://dashboard.clerk.com/apps/app_.../instances/ins_.../domains", "instance": "https://dashboard.clerk.com/apps/app_.../instances/ins_..." },
+  "hostSetup": [],
+  "nextAction": "DNS records not found yet for example.com. Add the records in `pendingDnsRecords` at the domain's DNS provider if you haven't already, then re-run `clerk deploy status --wait`. Propagation usually takes minutes. Ask the user to visit the Clerk Dashboard domains page, or offer to open it: https://dashboard.clerk.com/apps/app_.../instances/ins_.../domains"
 }
 ```
 
-`complete` is `true` only when the aggregate domain status is complete and all supported OAuth providers enabled in development have production credentials. The `domainStatus` object is a component summary; DNS, SSL, and email DNS can all read `complete` while `state` remains `domain_pending` if Clerk-side finalization is still pending.
+The example leaves these fields empty or out:
 
-State precedence:
+- `oauth.setup`: one entry per provider missing production credentials, with `redirectUri`, `authorizedOrigins`, `note` (a warning to pass on to the user, or `null`), `payload`, `command`, and `fields`, where `fileContents: true` marks a value that is a file's contents.
+- `oauth.unsupported`: providers the CLI can't configure. They don't block `complete`, so tell the user to configure them in the Clerk Dashboard.
+- `nativeAppleReadinessIssue`: present when Sign in with Apple is native-only and not ready in production. `nextAction` gives the fix, and Apple has no `oauth.setup` entry until then.
+- `hostSetup`: at `complete`, the command that copies the production keys to Vercel. Vercel only, and `[]` in every other state.
+
+Run the `oauth.setup` and `hostSetup` commands as given; don't replace a quoted path with `clerk`. On Windows these commands and the `env pull --print` command the user runs call plain `clerk` (in the `hostSetup` command, inside `keys=$(...)`). If `clerk` isn't installed, replace that call with the package-runner form from [Invoking the CLI](../SKILL.md#invoking-the-cli) and keep the rest of the command.
+
+`complete` is `true` only when the domain is complete and every supported OAuth provider enabled in development has production credentials. Read `state`, not `domainStatus`: its DNS, SSL, and email DNS can all be `complete` while Clerk is still finishing.
+
+What to do in each state:
 
 | State                 | What to do                                                                                                                    |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `not_started`         | Ask the human to run `clerk deploy --mode human`, then run `clerk deploy status --mode agent`.                                |
-| `domain_provisioning` | Wait briefly or ask the human to finish `clerk deploy`, then run `clerk deploy status --mode agent`.                          |
-| `domain_pending`      | Surface `pendingDnsRecords` when present. Re-run `clerk deploy status --mode agent` after DNS, SSL, or email DNS propagation. |
-| `oauth_pending`       | Ask the human to finish the OAuth credential steps in `clerk deploy --mode human`, then verify with `deploy status`.          |
-| `complete`            | No action needed.                                                                                                             |
+| `not_started`         | Ask the user for a domain they own and can add DNS records to, then run `clerk deploy --mode agent --domain <domain>`. If that just succeeded, rerun it with the same domain: Clerk may not list the instance yet. |
+| `domain_provisioning` | Wait, then run `clerk deploy status --mode agent`.                                                                            |
+| `domain_pending`      | Have the user add `pendingDnsRecords` at their DNS provider, and meanwhile save any `oauth.setup` entries as in [Save OAuth credentials](#save-oauth-credentials). Rerun `clerk deploy status --mode agent` after propagation. |
+| `oauth_pending`       | Save the `oauth.setup` entries as in [Save OAuth credentials](#save-oauth-credentials), then run `clerk deploy status --mode agent`. |
+| `complete`            | Follow [Copy the production keys to the host](#copy-the-production-keys-to-the-host), and for an iOS or macOS app also follow `nextAction`'s `clerk doctor` step, which checks the Release build. |
 
-Unsupported OAuth providers do not block `complete`, because the wizard cannot configure them automatically. They are still surfaced in `oauth.unsupported` so you can warn the user to review them in the Clerk Dashboard.
+#### Save OAuth credentials
+
+Follow these steps rather than the shorter ones in `nextAction`, which leave out the dry run and the confirmation. Steps 2 to 6 need bash or zsh. In any other shell, after step 1, fix any `nativeAppleReadinessIssue` as `nextAction` says, then have the user run `clerk deploy` in a separate terminal, from the project directory, to enter every provider's credentials. Then go to step 8.
+
+1. Have the user create each provider's OAuth app with its entry's `redirectUri` and `authorizedOrigins`, and pass on its `note` when there is one.
+2. For each entry with no field marked `fileContents: true`, create a file outside the project with `mktemp` (it prints the path, and only your user can read the file). Write the entry's `payload` into it with a shell command rather than a file tool (`printf '%s' '<payload>' > <path>`), placeholders included. Ask the user to replace each `<placeholder>` with the real value. Don't ask for the values or read the file.
+3. Dry-run each entry's `command` on its file with `--dry-run` added. Its output shows the values of secret-named keys as `[REDACTED]`. Don't add `--verbose`, whose output can include raw error bodies.
+4. If a dry run fails with exit 2, read the error. "Nothing was saved:" names a field that still holds its `<placeholder>` or `[REDACTED]`. `invalid_json` means the file's JSON broke while the user edited it. Ask the user to fix the file, then dry-run again.
+5. Confirm once with the user before saving the credentials to production, covering every provider. If they decline, or you stop before saving, remove each file with `rm -f "<path>"`.
+6. Save each entry by running its `command` in this wrapper, with the file's path in place of `<file>` and `<path>`. The wrapper keeps the command's exit status and removes the file whether or not the save succeeds:
+
+   ```sh
+   ( rc=0; <command> || rc=$?; rm -f "<path>"; exit "$rc" )
+   ```
+
+   If a save fails, the file is already gone: create a new one as in step 2 and have the user fill it in again.
+7. For an entry with a field marked `fileContents: true` (Apple's private key), skip steps 2 to 6 and have the user run `clerk deploy` in a separate terminal, from the project directory. The wizard reads the key from its file and skips providers already saved, so save the other entries first.
+8. Verify with `clerk deploy status --mode agent`.
+
+#### Copy the production keys to the host
+
+On Vercel, you usually run the report's `hostSetup` command. On any other host, the user copies the keys.
+
+On Vercel:
+
+1. If `vercel` isn't installed, or you can't run bash or zsh, follow the instructions for any other host. Otherwise, run `vercel whoami` yourself (it doesn't start a login just because you're logged out). If it prints "Logged out.", have the user run `vercel login` in their own terminal, then check again.
+2. The `hostSetup` command writes to the Vercel project this directory is linked to. Ask the user to confirm that project serves this app in production. If it doesn't, follow the instructions for any other host.
+3. Run the `hostSetup` entry's `command` in bash or zsh. It pipes the keys into Vercel's CLI without showing them. If `vercel whoami` or the `hostSetup` command doesn't exit, Vercel is waiting for a browser login it started: stop it, have the user run the command that hung in their own terminal, from the project directory, and finish the login it opens, then rerun.
+4. If the `hostSetup` command exits 3, a key is already set as a production Vercel variable that also targets another environment (Preview, Development, or a custom one). Ask the user before replacing it, because `--force` may rewrite that shared variable and put the production secret key in those deployments. If they agree, run the same command again with its `allow_shared=0` changed to `allow_shared=1`. The consent applies to that one run.
+5. If it exits 1, read its stderr:
+   - A message starting "Couldn't read the variable list" or "vercel env ls printed escape codes" means the command couldn't read the output of `vercel env ls` and stopped before uploading anything. Don't rerun it or change its `allow_shared`. Tell the user, have them check the project's variables in Vercel, and follow the instructions for any other host.
+   - Any other message is the error of the `env pull`, `vercel env ls`, or `vercel env add` command that failed. Fix the cause, such as having the user run `vercel login` or `vercel link`, then rerun the command: a failed upload can leave earlier keys already replaced and later ones not uploaded.
+
+On any other host, have the user run the `env pull --instance <productionInstanceId> --print` command from `nextAction`, copied as given, in a separate terminal from the project directory, never through your session. They add the printed lines to the host's production environment. Don't pipe the keys into the host's CLI yourself, even though `nextAction` suggests it: some host CLIs print the values they set. On macOS, the `| pbcopy` form in `nextAction` copies the lines without showing them.
+
+Then, on every host:
+
+1. The report's commands copy only the publishable and secret keys. Have the user also add the other Clerk variables their app needs from their env file, such as `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, to the host's production environment. Don't open the env file yourself, because it also holds the development secret key, and don't ask the user to share the values.
+2. Once the keys and the other Clerk variables are on the host (on Vercel, once the `hostSetup` command exits 0), have the user redeploy, then sign up on the domain to confirm.
 
 ### Use the catalog, not hard-coded paths
 
@@ -291,4 +347,4 @@ All three remediation commands are themselves interactive by default: `auth logi
 - **Don't run `clerk unlink` in agent mode without `--yes`** - it exits with a usage error instead of prompting.
 - **Don't run `clerk config put` without `--dry-run` first** - it's a full replacement and is destructive.
 - **Don't skip `--yes` on mutations and expect them to work** - agent mode disables prompts, so commands that require confirmation will error.
-- **Don't leak secret keys into logs** - the CLI never prints the raw secret key, and you shouldn't either.
+- **Don't read secrets into your context or logs** - never read or print `env pull --print` output or a filled-in OAuth credentials file, never copy `[REDACTED]` from `config patch` or `config put` output back into a payload, and don't add `--verbose` around secrets.

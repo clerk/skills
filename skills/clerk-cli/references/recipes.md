@@ -242,14 +242,13 @@ clerk config put --file config.prod.json --instance prod --yes
 # Pull dev keys into .env.local (auto-detects framework and key names)
 clerk env pull
 
-# Pull production keys
-clerk env pull --instance prod
-
 # Target a specific file
 clerk env pull --file .env
 ```
 
 `env pull` merges into the existing file: existing Clerk keys are updated in place; new ones are appended under a `# Clerk` header; everything else is preserved.
+
+To copy production keys to the host, follow [Copy the production keys to the host](agent-mode.md#copy-the-production-keys-to-the-host). Don't pull them into a local env file: that writes over the development keys.
 
 ## Applications (Platform API)
 
