@@ -27,13 +27,22 @@ Keep the `config.matcher` block. Without the `'/(api|trpc)(.*)'` entry, `auth()`
 
 `await auth.protect()` at the top of the function. For a signed-out request it redirects to sign-in from a page, returns `401` from a Server Action, and returns `404` from a Route Handler.
 
-```typescript
+A page that gates its whole render this way keeps the check at the top and gets a `loading.tsx` next to it. `auth.protect()` reads the request, and with Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary. `loading.tsx` wraps the page in one. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
+
+```tsx
 // app/dashboard/page.tsx
 import { auth } from '@clerk/nextjs/server';
 
 export default async function Page() {
   await auth.protect();
   return <h1>Dashboard</h1>;
+}
+```
+
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  return <p>Loading...</p>;
 }
 ```
 
@@ -60,7 +69,7 @@ export async function updateDashboard() {
 
 Every page checks for itself. A check in a layout is an addition, never a substitute: Next.js doesn't always re-render a layout when the page under it changes.
 
-If `auth.protect()` redirects after streaming has started, such as on a page under a root `loading.tsx`, the response keeps status `200` and carries a client-side redirect: Next.js `redirect()` inserts a meta tag in a streaming context. The `200` alone doesn't prove the check ran. Confirm the response redirects to sign-in and contains no protected data, and keep the check in the page before any protected work. Don't move it into the middleware.
+If `auth.protect()` redirects after streaming has started, such as inside `<Suspense>` or on a page under a `loading.tsx`, the response keeps status `200` and carries a client-side redirect: Next.js `redirect()` inserts a meta tag in a streaming context. The `200` alone doesn't prove the check ran. Confirm the response redirects to sign-in and contains no protected data, and keep the check in the page before any protected work. Don't move it into the middleware.
 
 To return `401` from a Route Handler instead of `404`, check `isAuthenticated` from `await auth()` and return the response yourself (see `references/api-routes.md`).
 
@@ -96,6 +105,8 @@ export default async function Page() {
   return <AdminPanel />;
 }
 ```
+
+Add a `loading.tsx` next to each, as in `app/dashboard` above.
 
 Prefer permissions over roles — permissions are more granular and easier to reassign across roles in the Dashboard. See the [authorization checks guide](https://clerk.com/docs/guides/secure/authorization-checks).
 

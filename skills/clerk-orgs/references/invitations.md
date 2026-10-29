@@ -107,10 +107,16 @@ const invitation = await clerk.organizations.getOrganizationInvitation({
 Zero-code path — `<OrganizationProfile />` includes a full members tab with invite / revoke / role change:
 
 ```tsx
+// app/org-settings/[[...rest]]/page.tsx
 import { OrganizationProfile } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 export default function OrgSettings() {
-  return <OrganizationProfile />
+  return (
+    <Suspense>
+      <OrganizationProfile />
+    </Suspense>
+  )
 }
 ```
 
