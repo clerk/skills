@@ -292,6 +292,10 @@ function checkMcp(files, check) {
       other.url === server.url,
       `${name}: url differs between mcp.json and .mcp.json`,
     );
+    check(
+      JSON.stringify(other.headers) === JSON.stringify(server.headers),
+      `${name}: headers differ between mcp.json and .mcp.json`,
+    );
   }
 }
 
