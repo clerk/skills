@@ -11,63 +11,60 @@ Use message passing to request auth state from the background service worker.
 
 ## Pattern: Request Token from Background
 
-`src/content.ts`:
+`entrypoints/content.ts` (WXT):
 ```typescript
+export default defineContentScript({
+  matches: ['https://specific-site.com/*'],
+  async main() {
+    const token = await getToken()
+
+    if (!token) {
+      console.log('User not signed in, skipping injection')
+      return
+    }
+
+    const overlay = document.createElement('div')
+    overlay.id = 'my-extension-overlay'
+    document.body.appendChild(overlay)
+  },
+})
+
 async function getToken(): Promise<string | null> {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ type: 'GET_TOKEN' }, (response) => {
-      resolve(response?.token ?? null)
-    })
-  })
+  const response = await browser.runtime.sendMessage({ type: 'GET_TOKEN' })
+  return response?.token ?? null
 }
-
-async function isSignedIn(): Promise<boolean> {
-  const token = await getToken()
-  return token !== null
-}
-
-async function injectUI() {
-  const signedIn = await isSignedIn()
-
-  if (!signedIn) {
-    console.log('User not signed in, skipping injection')
-    return
-  }
-
-  const overlay = document.createElement('div')
-  overlay.id = 'my-extension-overlay'
-  document.body.appendChild(overlay)
-}
-
-injectUI()
 ```
 
-`src/background/index.ts`:
+`entrypoints/background.ts`:
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
-const publishableKey = process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY
+export default defineBackground(() => {
+  const publishableKey = import.meta.env.WXT_CLERK_PUBLISHABLE_KEY
 
-async function getToken(): Promise<string | null> {
-  const clerk = await createClerkClient({ publishableKey, background: true })
-  if (!clerk.session) return null
-  return await clerk.session.getToken()
-}
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GET_TOKEN') {
-    getToken()
-      .then((token) => sendResponse({ token }))
-      .catch(() => sendResponse({ token: null }))
-    return true
+  async function getToken(): Promise<string | null> {
+    const clerk = await createClerkClient({ publishableKey, background: true })
+    if (!clerk.session) return null
+    return await clerk.session.getToken()
   }
+
+  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === 'GET_TOKEN') {
+      getToken()
+        .then((token) => sendResponse({ token }))
+        .catch(() => sendResponse({ token: null }))
+      return true
+    }
+  })
 })
 ```
+
+WXT imports content scripts and the background in Node.js at build time. Keep DOM access, listeners, and env checks inside `main()` / the `defineBackground()` callback. Function declarations (like `getToken` above) can live at the top level because they don't run until called.
 
 ## Pattern: Authenticated Fetch from Content Script
 
 ```typescript
-// content.ts
+// called from main() in entrypoints/content.ts
 async function fetchUserData() {
   const token = await getToken()
   if (!token) return null
@@ -80,45 +77,34 @@ async function fetchUserData() {
 }
 ```
 
+## Content Script Registration (WXT)
+
+WXT adds every content script entrypoint to the manifest for you. Set `matches` (and options such as `runAt` or `world`) in `defineContentScript()` -- don't edit the manifest.
+
+For multiple content scripts with different match patterns, create one entrypoint per script:
+
+```
+entrypoints/
+  github.content.ts     # defineContentScript({ matches: ['https://github.com/*'], ... })
+  youtube.content.ts    # defineContentScript({ matches: ['https://www.youtube.com/*'], ... })
+```
+
+WXT's React template ships an example `entrypoints/content.ts` that matches `*://*.google.com/*`. Delete it if you don't need it -- otherwise your extension requests access to Google sites.
+
 ## Manifest Permissions
 
-`package.json` (Plasmo):
-```json
-{
-  "manifest": {
-    "permissions": ["storage", "tabs"],
-    "host_permissions": ["<all_urls>"]
-  }
-}
+`wxt.config.ts`:
+```ts
+import { defineConfig } from 'wxt'
+
+export default defineConfig({
+  manifest: {
+    permissions: ['storage'],
+  },
+})
 ```
 
-For content scripts on specific domains only:
-```json
-{
-  "manifest": {
-    "permissions": ["storage"],
-    "host_permissions": ["https://specific-site.com/*"]
-  }
-}
-```
-
-## Content Script Registration (Plasmo)
-
-A file named `content.ts` or `content.tsx` at the project root is auto-registered as a content script matching all URLs.
-
-For multiple content scripts with different match patterns, use `package.json`:
-```json
-{
-  "manifest": {
-    "content_scripts": [
-      {
-        "matches": ["https://specific-site.com/*"],
-        "js": ["content.js"]
-      }
-    ]
-  }
-}
-```
+A content script's `matches` already grants it access to those pages. Add `host_permissions` only for hosts the extension calls from other contexts (for example, your sync host and Frontend API URL).
 
 ## Why Clerk Can't Be Used Directly in Content Scripts
 

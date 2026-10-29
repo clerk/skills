@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "i need to wrap my chrome extension popup in ClerkProvider from @clerk/chrome-extension. what props does it need for redirect URLs to work inside a chrome extension?",
-      "expected_output": "ClerkProvider with publishableKey, redirect URLs using chrome.runtime.getURL",
+      "expected_output": "ClerkProvider with publishableKey, redirect URLs using browser.runtime.getURL",
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
         "Imports ClerkProvider from @clerk/chrome-extension (not @clerk/react or @clerk/nextjs)",
         "Passes publishableKey prop to ClerkProvider",
-        "Uses chrome.runtime.getURL for redirect URL props (afterSignOutUrl, signInFallbackRedirectUrl, or similar)",
+        "Uses browser.runtime.getURL (WXT) or chrome.runtime.getURL for redirect URL props (afterSignOutUrl, signInFallbackRedirectUrl, or similar)",
         "Uses SignInButton or SignUpButton for unauthenticated state",
         "Uses UserButton or user profile component for authenticated state"
       ]
@@ -23,8 +23,9 @@
         "Imports createClerkClient from @clerk/chrome-extension/client (not @clerk/chrome-extension)",
         "Calls createClerkClient with background: true option",
         "Checks clerk.session before calling getToken()",
-        "Returns true from the chrome.runtime.onMessage listener to keep connection open for async sendResponse",
-        "Explains that background: true keeps the session fresh when popup is closed"
+        "Returns true from the runtime.onMessage listener to keep connection open for async sendResponse",
+        "Explains that background: true keeps the session fresh when popup is closed",
+        "Puts the listener inside defineBackground() in entrypoints/background.ts"
       ]
     },
     {
@@ -34,10 +35,11 @@
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
         "Explains that Clerk cannot be used directly in content scripts due to origin restrictions",
-        "Uses chrome.runtime.sendMessage to request auth state from background service worker",
+        "Uses browser.runtime.sendMessage (or chrome.runtime.sendMessage) to request auth state from background service worker",
         "Background script uses createClerkClient from @clerk/chrome-extension/client",
         "Shows how to conditionally inject UI based on the response",
-        "Handles the async nature of message passing with return true in background listener"
+        "Handles the async nature of message passing with return true in background listener",
+        "Defines the content script with defineContentScript({ matches, main }) in entrypoints/"
       ]
     },
     {
@@ -49,7 +51,7 @@
         "States clearly that OAuth is NOT supported in the popup or side panel",
         "Explains that OAuth requires a redirect from the Identity Provider which Chrome extensions do not support",
         "Introduces the syncHost approach to delegate auth to a companion web app",
-        "Mentions adding PLASMO_PUBLIC_CLERK_SYNC_HOST env var",
+        "Mentions adding the WXT_CLERK_SYNC_HOST env var",
         "Mentions adding syncHost prop to ClerkProvider"
       ]
     },
@@ -60,9 +62,9 @@
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
         "Introduces the syncHost feature to sync auth state from web app to extension",
-        "Shows PLASMO_PUBLIC_CLERK_SYNC_HOST env var setup for dev and prod",
+        "Shows WXT_CLERK_SYNC_HOST env var setup for dev (.env.development) and prod (.env.production)",
         "Shows adding syncHost prop to ClerkProvider",
-        "Shows host_permissions configuration in package.json manifest",
+        "Shows host_permissions configuration in the wxt.config.ts manifest",
         "Shows the curl command to add extension ID to allowed_origins via Clerk API"
       ]
     },
@@ -73,10 +75,35 @@
       "scaffold": "chrome-ext-basic-auth",
       "expectations": [
         "Explains that the extension ID changes because Chrome derives it from the key field",
-        "Shows how to pin the extension ID by providing a consistent key via .env.chrome and package.json",
-        "Mentions the CRX_PUBLIC_KEY env var and manifest key field",
+        "Shows how to pin the extension ID by providing a consistent key via .env.chrome and the wxt.config.ts manifest",
+        "Mentions the WXT_CRX_PUBLIC_KEY env var and manifest key field",
         "Mentions updating the Clerk Dashboard or allowed_origins with the stable chrome-extension:// URL",
-        "Notes that Plasmo Itero can generate the keypair"
+        "Shows the openssl commands to generate the key, public key, and CRX ID"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "i'm migrating my clerk chrome extension from plasmo to wxt. what do i need to change?",
+      "expected_output": "Rename env vars to the WXT_ prefix, move the manifest from package.json to wxt.config.ts, move entrypoints, wrap the background in defineBackground, use browser.*, and reuse the existing public key",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Renames PLASMO_PUBLIC_* env vars to WXT_* and reads them with import.meta.env",
+        "Moves the manifest config from package.json to wxt.config.ts using the function form manifest: () => ({ ... })",
+        "Moves the background to entrypoints/background.ts wrapped in defineBackground()",
+        "Uses browser.* instead of chrome.*",
+        "Reuses the existing public key as WXT_CRX_PUBLIC_KEY in .env.chrome so the CRX ID stays the same"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "my chrome extension uses syncHost with my local web app. when i try to sign in to the extension i get 'Unable to authenticate this browser for your development instance'. how do i fix it?",
+      "expected_output": "Open the web app in the same browser first so the dev browser cookie exists; if it persists, clear localhost __clerk cookies and reload the web app",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Explains that in development the extension uses the dev browser cookie the web app sets on localhost",
+        "Tells the user to open the web app (e.g. http://localhost:5173) in the same browser, then retry",
+        "Explains that cookies are shared across localhost ports, so another Clerk app can overwrite the cookie",
+        "Tells the user to delete __clerk/__client cookies for http://localhost in DevTools and reload the web app if the error persists"
       ]
     }
   ]
