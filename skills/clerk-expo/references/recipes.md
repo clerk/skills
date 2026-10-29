@@ -3,7 +3,7 @@
 Post-auth patterns. Hooks below are imported from `@clerk/expo` unless noted; they mirror `@clerk/react`.
 
 > Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> https://clerk.com/docs/reference/expo/overview — plus `local-credentials` and `passkeys` pages under the Expo reference
+> [Expo SDK reference](https://clerk.com/docs/reference/expo/overview) — plus `local-credentials` and `passkeys` pages under the Expo reference
 
 ## User profile data
 
@@ -120,7 +120,7 @@ import { passkeys } from '@clerk/expo/passkeys'
 <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} __experimental_passkeys={passkeys}>
 ```
 
-Requires associated-domains setup (iOS) / asset links (Android). Fetch https://clerk.com/docs/reference/expo/passkeys for the current platform configuration before implementing — this surface is still experimental and changes.
+Requires associated-domains setup (iOS) / asset links (Android). Fetch the [Expo passkeys reference](https://clerk.com/docs/reference/expo/passkeys) for the current platform configuration before implementing — this surface is still experimental and changes.
 
 ## Offline resource caching
 

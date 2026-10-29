@@ -7,7 +7,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 2.3.0
+  version: 2.3.1
 ---
 
 # Custom UI
@@ -48,12 +48,12 @@ Appearance customization applies to both Core 2 and the current SDK.
 
 | Task | Documentation |
 |------|---------------|
-| Appearance prop overview | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview |
-| Options (structure, logo, buttons) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/options |
-| Themes (pre-built dark/light) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes |
-| Variables (colors, fonts, spacing) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables |
-| CAPTCHA configuration | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha |
-| Bring your own CSS | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css |
+| Appearance prop overview | [Overview](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview) |
+| Options (structure, logo, buttons) | [Options](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/options) |
+| Themes (pre-built dark/light) | [Themes](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes) |
+| Variables (colors, fonts, spacing) | [Variables](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables) |
+| CAPTCHA configuration | [CAPTCHA configuration](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha) |
+| Bring your own CSS | [Bring your own CSS](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css) |
 
 ### Appearance Pattern
 
