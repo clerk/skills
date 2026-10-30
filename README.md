@@ -86,13 +86,13 @@ The Clerk MCP server lets AI agents work with your Clerk account. Clerk hosts it
 
 Add `https://mcp.clerk.com/mcp` to your agent as a streamable HTTP server, then sign in with your Clerk Dashboard account when prompted. The `clerk` plugin above does this for you.
 
-See the [Clerk MCP server docs](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server) for setup steps for each agent.
+See the [Clerk MCP server docs](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server) for setup steps in popular agents.
 
 ### Permissions
 
 The server acts as you, so it can only do what your workspace role allows. It never returns secret keys, and tools that make changes are flagged so your agent can ask before running them.
 
-### Example prompts
+### Example Prompts
 
 - "Which Clerk applications do I have?"
 - "List the five most recent sign-ups"
