@@ -40,7 +40,7 @@ The mapping that matters most is **how each platform records verification**. Cle
 | `supabase`   | `id`          | `email_confirmed_at`, `phone_confirmed_at`    | timestamp | `encrypted_password`, bcrypt or argon2           |
 | `authjs`     | `id`          | `email_verified` (`0`, `"0"`, the epoch and non-date text are unverified) | timestamp | none                                             |
 | `betterauth` | `user_id`     | `email_verified`, `phone_number_verified`     | boolean   | `password_hash`, detected per user               |
-| `firebase`   | `localId`     | `emailVerified`                               | boolean   | `passwordHash` + `salt` (`passwordSalt` in CSV), `scrypt_firebase` |
+| `firebase`   | `localId`     | `emailVerified`. Phones import verified, and `--reserve-unverified` skips them: Firebase has no phone flag, since a user confirms a number by SMS and an admin vouches for one they set | boolean   | `passwordHash` + `salt` (`passwordSalt` in CSV), `scrypt_firebase` |
 | `workos`     | `id`          | `email_verified`                              | boolean   | none                                             |
 
 - **Boolean style** treats `true`, `1`, and the strings `true`, `1`, `yes`, `y` and `t` in any case as verified. `false` and its string forms (what a CSV export or `psql` produces) are not.
