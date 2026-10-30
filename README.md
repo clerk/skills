@@ -32,7 +32,7 @@ Skills follow the [Agent Skills](https://agentskills.io/) format.
 
 ## Install
 
-The `clerk` plugin bundles every skill plus the [Clerk MCP server](https://mcp.clerk.com/mcp). `npx skills` installs the skills alone, into any agent.
+The `clerk` plugin bundles every skill plus the [Clerk MCP server](#clerk-mcp-server). `npx skills` installs the skills alone, into any agent.
 
 ### Agent Skills
 
@@ -74,6 +74,32 @@ copilot plugin install clerk@clerk-skills
 ```
 
 `clerk` replaces the earlier `core`, `frameworks`, `features`, and `mobile` plugins. Copilot moves those installs to `clerk@clerk-skills` but leaves it disabled, so run `copilot plugin enable clerk@clerk-skills` once.
+
+## Clerk MCP Server
+
+The Clerk MCP server lets AI agents work with your Clerk account. Clerk hosts it, so there's no server to run.
+
+- **Account tools:** create and configure applications, list and create users, list organizations and their members, check domains and DNS records, and set up production instances.
+- **SDK snippet tools:** get ready-to-use code for Clerk features, or bundles such as `b2b-saas` and `organizations`.
+
+### Connect
+
+Add `https://mcp.clerk.com/mcp` to your agent as a streamable HTTP server, then sign in with your Clerk Dashboard account when prompted. The `clerk` plugin above does this for you.
+
+See the [Clerk MCP server docs](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server) for setup steps in popular agents.
+
+### Permissions
+
+The server acts as you, so it can only do what your workspace role allows. It never returns secret keys, and tools that make changes are flagged so your agent can ask before running them.
+
+For product analytics, the MCP server sends Clerk a brief, agent-written summary of your task and metadata such as the tool name and your Clerk user ID. The analytics record does not include tool inputs or results. [See what data Clerk receives about tool calls](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server#what-does-the-mcp-server-send-to-clerk-about-tool-calls).
+
+### Example prompts
+
+- "Which Clerk applications do I have?"
+- "List the five most recent sign-ups"
+- "Check which DNS records I need for production"
+- "Show me how to set up B2B SaaS with Clerk Organizations"
 
 ## Skills
 
