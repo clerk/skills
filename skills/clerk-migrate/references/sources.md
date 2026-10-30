@@ -44,7 +44,7 @@ The mapping that matters most is **how each platform records verification**. Cle
 | `workos`     | `id`          | `email_verified`                              | boolean   | none                                             |
 
 - **Boolean style** treats `true`, `1`, and the strings `true`, `1`, `yes`, `y` and `t` in any case as verified. `false` and its string forms (what a CSV export or `psql` produces) are not.
-- **Timestamp style** treats any real date or number as verified. `""`, `null`, `nil`, `undefined` and `\N` are not.
+- **Timestamp style** treats any number, and any string other than `""`, `null`, `nil`, `undefined` or `\N` (in any case), as verified. Only `authjs` also checks that the string is a date.
 
 The import's checks count only verified (or reserved) identifiers toward a required one, so a user whose only email is unverified is rejected when the instance requires an email.
 
@@ -57,7 +57,7 @@ Where each built-in source puts metadata:
 - WorkOS `metadata` → `privateMetadata`, with WorkOS's `external_id` as `workosExternalId`
 - Clerk keeps all three blocks in place from `export clerk`, and moves the app's own `external_id` to `privateMetadata.clerkExternalId`. A Dashboard CSV carries no metadata.
 
-Every import also writes `private_metadata.clerkMigrateRun`, the run ID, onto each user it creates. It replaces a source value with that key, and it stays on the user. `undo` uses it.
+Every import also writes `private_metadata.clerkMigrateRun`, the run ID, onto each user it creates. It replaces any value the export had under that key, and it stays on the user. `undo` uses it.
 
 ### Better Auth passwords
 
@@ -70,6 +70,8 @@ Better Auth hashes with its own scrypt by default and lets an app swap in bcrypt
 | `$argon2id$` or `$argon2i$` | `argon2id` or `argon2i`                           |
 | anything else               | dropped                                           |
 
+Only a well-formed digest counts: a bcrypt cost outside 4 to 15, or an argon2 digest outside the limits Clerk verifies, is dropped too.
+
 A dropped password does not reject the user: they import without it and their run line carries `passwordDropped: true`.
 
 Better Auth normalizes a password to NFKC before hashing it, and Clerk hashes it as typed. A password whose NFKC form differs (full-width characters, some ligatures) will not verify, and that user resets it. Mention this when the user base is likely to have non-ASCII passwords.
@@ -81,7 +83,7 @@ Better Auth normalizes a password to NFKC before hashing it, and Clerk hashes it
 - **`clerk`** carries the most, because both ends share a schema: every identifier list, username, names, metadata, and account state (`created_at`, `legal_accepted_at`, `banned`, organization and self-delete permissions). Passwords and MFA come across from a Dashboard export only, which carries no metadata, bans or legal acceptance.
 - **Bans.** Auth0 `blocked`, Firebase `disabled`, a Supabase `banned_until` in the future, and a Better Auth ban that has not expired all import as `banned`.
 - **Users left out.** Supabase's deleted and anonymous users, Better Auth's anonymous users, and Firebase users with no email or phone are skipped with a reason. They don't stop the import, and they need no `--allow-partial`.
-- **`authjs`** and **`betterauth`** split a single `name` column into first and last name.
+- **Single name fields** are split into first and last name: `name` (`authjs`, `betterauth`, and `auth0` without `given_name`/`family_name`), Firebase's `displayName`, and Supabase's name in user metadata.
 - **`workos`** has no phone or username. The `identities` array from `--with-identities` is informational only.
 - **`firebase`** combines `passwordHash`, the salt and the project's four hash parameters into one digest.
 
@@ -135,11 +137,11 @@ CRM IDs, billing IDs, internal notes and risk scores stay in `privateMetadata` e
 
 ### Password hashes
 
-Work out the format from the digests, then set `passwordHasher`. "As-is" means the digest goes in unchanged. The [`createUser()` reference](https://clerk.com/docs/reference/backend/user/create-user) documents each hasher's digest format. Clerk refuses a digest outside a hasher's limits when it creates the user, with the reason.
+Work out the format from the digests, then set `passwordHasher`. "As-is" means the digest goes in unchanged. The [`createUser()` reference](https://clerk.com/docs/reference/backend/user/create-user) documents each hasher's digest format. The dry run rejects a malformed `bcrypt`, `argon2i`/`argon2id`, `scrypt_werkzeug` or `scrypt_firebase` digest. Clerk refuses other hashers' bad digests when it creates the user, with the reason.
 
 | The digest looks like | `passwordHasher` |
 | --- | --- |
-| `$2a$…`, `$2b$…`, `$2y$…` | `bcrypt`, as-is |
+| `$2a$…`, `$2b$…`, `$2y$…` (cost 4 to 15, 60 characters) | `bcrypt`, as-is |
 | bcrypt over the password with an app-wide pepper appended | `bcrypt_peppered`: append `$<pepper>` to the bcrypt digest |
 | `bcrypt_sha256$$2b$…` (Django) | `bcrypt_sha256_django`, as-is |
 | `$argon2id$v=19$m=…,t=…,p=…$…`, `$argon2i$…` | `argon2id`, `argon2i`, as-is |
@@ -283,20 +285,22 @@ Return `{ filePath }` to leave the file alone, `{ filePath, data }` to supply th
 
 ### Load errors
 
-The CLI validates the file before using it and names the problem:
+The CLI validates the file before using it and names the problem, as `<file> is not a valid source: <problem>`. Each message below is the part to look for:
 
 | Message                                          | What to fix                                                  |
 | ------------------------------------------------ | ------------------------------------------------------------ |
 | `No source file at …`                            | Wrong path; it resolves against the current directory.       |
 | `… is a directory, not a source file`            | Point at the file itself.                                    |
 | `has no default export. Found named export …`    | Use `export default`, not a named export.                    |
+| `the default export is …, not an object`         | Export the source object itself.                             |
 | `Could not load …`                               | A syntax error, or an import that fails to resolve.          |
 | `` `key` must be a non-empty string `` (or `label`) | Set both.                                                 |
 | `` `transformer` must be an object… ``           | The field map is missing or not an object.                   |
 | `` `transformer.<field>` must map to a Clerk field name `` | Each value must be a Clerk field name string.      |
-| `no source field maps to userId`                 | Add the mapping.                                             |
+| `` no source field maps to `userId` ``           | Add the mapping.                                             |
 | `` `carries` must say what the source brings across `` | Add `carries` with all three keys.                     |
-| `key is "clerk", which is already a built-in`    | Pick a different `key`.                                      |
+| `` `carries.<kind>` must be { level: … } ``     | Give each of `passwords`, `mfa` and `metadata` a `level` (`yes`, `no` or `partial`) and a `note`. |
+| `` `key` is "clerk", which is already a built-in source `` | Pick a different `key`.                                      |
 | `` `postTransform` must be a function when present `` | A hook was set to something that is not a function.    |
 | `` `defaults` must be an object when present ``  | Make `defaults` an object.                                   |
 | `` `caveats` must be an array of strings… ``     | Make `caveats` an array of strings.                          |
@@ -327,6 +331,7 @@ Validation drops anything not in this schema, and the dry run lists it as `Clerk
 | `createdAt`, `legalAcceptedAt`                           | Date strings. `createdAt` preserves original signup dates.   |
 | `banned`, `banEndsAt`, `createOrganizationEnabled`, `createOrganizationsLimit`, `deleteSelfEnabled`, `bypassClientTrust`, `skipLegalChecks`, `skipPasswordChecks` | Account state, passed through to the API. `banEndsAt` is not sent: Clerk bans don't expire. |
 | `skipReason`                                             | Leave this user out, with why. The checks report it; never sent to Clerk. |
+| `socialProviders`                                        | Array of the social providers the user signs in with. Accepted, but never sent to Clerk. |
 | `passwordDropped`                                        | Set with no `password` when a digest has no supported hasher. |
 
 The check in [After writing one](#after-writing-one) lists these names. Change both together.
@@ -345,7 +350,8 @@ Every user needs at least one identifier: email, phone, or username. The import'
      "unverifiedPhoneNumbers", "username", "firstName", "lastName", "password", "passwordHasher", "totpSecret",
      "backupCodes", "backupCodesEnabled", "unsafeMetadata", "publicMetadata", "privateMetadata", "createdAt",
      "legalAcceptedAt", "banned", "banEndsAt", "createOrganizationEnabled", "createOrganizationsLimit",
-     "deleteSelfEnabled", "bypassClientTrust", "skipLegalChecks", "skipPasswordChecks", "skipReason", "passwordDropped"]);
+     "deleteSelfEnabled", "bypassClientTrust", "skipLegalChecks", "skipPasswordChecks", "skipReason", "passwordDropped",
+     "socialProviders"]);
    const list = (v) => (v == null ? [] : [v].flat());
    for (const u of users) { // users: every row after your mapping and postTransform
      for (const k of Object.keys(u)) if (!FIELDS.has(k)) console.log(u.userId, "unknown key", k);

@@ -21,7 +21,7 @@ clerk migrate import <export-run-id> --app app_dest456 --instance prod --dry-run
 
 Every command prints its target first. Read those lines back to the user before the import writes anything.
 
-**Always name the source on the export.** With `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY`, the export runs against exactly that. Without any of them, a human gets a picker of every instance on their account, with the linked application's instances listed last and marked "(linked: usually the destination)". An agent, `--json` or `-y` run refuses with exit `2` and names the three ways to pass the source. An import of an export run into the instance it came from is refused too.
+**Always name the source instance on the export.** With `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY`, the export runs against exactly that. Without any of them, a human gets a picker of every instance on their account, with the linked application's instances listed last and marked "(linked: usually the destination)". An agent, `--json` or `-y` run refuses with exit `2` and names the three ways to pass the source instance. An import of an export run into the instance it came from is refused too.
 
 ## What survives, and what doesn't
 
@@ -29,7 +29,7 @@ The `clerk` source carries more than any other, because both ends share a schema
 
 - Every email and phone, already split into verified and unverified
 - Username, first and last name
-- All three metadata blocks, each in its original place. The source app's own `external_id`, if it set one, moves to `private_metadata.clerkExternalId`, and the export warns about it: anything that looks users up by `external_id` needs updating.
+- All three metadata blocks, each in its original place. The old app's own `external_id`, if it set one, moves to `private_metadata.clerkExternalId`, and the export warns about it: anything that looks users up by `external_id` needs updating.
 - `created_at`, so users keep their original signup dates
 - `legal_accepted_at`, `banned`, and the organization and self-delete permissions
 
@@ -54,7 +54,7 @@ Production → development hits the limit. The import's checks read the destinat
 
 ## Re-running and undoing
 
-Every imported user carries `external_id` set to their source Clerk user ID, and `private_metadata.clerkMigrateRun` set to the import's run ID.
+Every imported user carries `external_id` set to their Clerk user ID on the source instance, and `private_metadata.clerkMigrateRun` set to the import's run ID.
 
 - **The checks reject users already in the destination**, matched on source ID, email, phone or username. A second import cannot fork a user into two accounts.
 - **Re-running the same import continues it.** A partial or interrupted run resumes; a complete one prints "Already imported in run …".
@@ -62,9 +62,9 @@ Every imported user carries `external_id` set to their source Clerk user ID, and
 
 ## Flow
 
-1. Confirm which instance is the source and which is the destination. Ask if there is any doubt.
-2. Export from the source with `--instance` (and `--app`), and report the count and coverage.
+1. Confirm which instance is the source instance and which is the destination. Ask if there is any doubt.
+2. Export from the source instance with `--instance` (and `--app`), and report the count and coverage.
 3. Tell the user passwords and MFA are not included.
-4. Dry-run the import against the destination and relay the checks. They catch an identifier the destination requires but the source did not collect.
+4. Dry-run the import against the destination and relay the checks. They catch an identifier the destination requires but the source instance did not collect.
 5. Get a yes, then import with `--yes`. For a production destination, consider handing the command to the human instead.
 6. Report created, failed and skipped counts from `clerk migrate runs <run-id>`.
