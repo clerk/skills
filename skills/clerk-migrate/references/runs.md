@@ -20,14 +20,14 @@ Only one import of a file into an instance runs at a time. A second one exits `2
 
 A re-run refuses with exit `2`, and imports nothing, when:
 
-- another process holds the run, or is importing into the same instance
+- another process holds the run, or is importing this same file into the same instance
 - the same file went into this instance under a different source, or an earlier version of a source you wrote, and that run was not undone. Undo it, or pass `--new-run` to import alongside it. The source's hash covers only its own file, not local files it imports.
 - an undo of the matching run is unfinished. Finish the undo first.
 - Clerk did not confirm which instance the key addresses (a stand-in `key_…` ID), and a run of this file exists under a real instance ID, so the CLI cannot tell whether it is the same instance. Try again, or pass `--new-run`.
 - a Firebase run is continued with different hash parameters
 - `--reserve-unverified` is passed to continue a run created without it. A continue keeps the mode the run recorded.
 
-An export run imported into the instance it was exported from is refused too: every user is already there.
+Importing an export run by its ID into the instance it was exported from is refused too: every user is already there.
 
 ## Run files
 
@@ -54,7 +54,7 @@ Grep it directly:
 grep '"status":"failed"' .clerk/migrate/<run-id>/users.ndjson
 ```
 
-A run is `partial` when any user failed, was skipped, was not confirmed, was not sent, or has identifiers left to attach, and `complete` otherwise. A user its source skipped (`code: "source_skip"`) doesn't count. A run whose only skips are those is `complete`. A run whose process died before recording a finish time is `interrupted`, but only `clerk migrate runs` works that out: its `run.json` still says `running`. Read `state` from `runs --json` rather than `status` from `run.json`.
+A run is `partial` when any user failed, was skipped, was not confirmed, was not sent, or has identifiers left to attach, and `complete` otherwise. A user its source skipped (`code: "source_skip"`) doesn't count. A run whose only skips are those is `complete`. A run whose process died before recording a finish time is `interrupted`, but only `clerk migrate runs` works that out: its `run.json` still says `running`. Read `run.state` from `runs <run-id> --json` (or `runs[].state` from `runs --json`) rather than `status` from `run.json`.
 
 A run records the instance ID from `GET /v1/instance`. When that call fails and nothing else names the instance, it records `key_<hash>` instead.
 
@@ -73,7 +73,7 @@ Show the user the preview, including how many imported users have signed in sinc
 It refuses with exit `2`, and deletes nothing, when:
 
 - the key addresses a different instance than the run imported into
-- the run's stand-in instance ID (`key_…`) means the CLI cannot confirm the instance
+- Clerk could not confirm the instance (a stand-in `key_…` ID on the run or for the current key), unless the run was recorded with this same key. Try again in a minute.
 - the run is not an import (an export or an undo run)
 - the run is already undone
 - the import is still running in another process
