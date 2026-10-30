@@ -220,7 +220,7 @@ clerk migrate undo <run-id> --yes
 
 `undo` deletes only users that run created. Show the user the preview and get a yes before passing `--yes`. If any imported user has signed in since, `--yes` alone exits `2` and deletes nothing: those are accounts people have used, so pass `--include-signed-in` only after the user says yes to deleting them too.
 
-After a complete import, the CLI prints the `rm -rf` for the export's run folder (it holds user data), an `rm` for an export file written outside it, and says to keep the import's run while it might still be undone. `--json` prints none of this. Relay it; do not delete anything without asking.
+After a complete import, the CLI says to keep the import's run while it might still be undone, with the `rm -rf` for later. An import of an export run also gets the `rm -rf` for the export's run folder (it holds user data), and an `rm` for an export file written outside it. `--json` prints none of this. Relay it; do not delete anything without asking.
 
 Matching, refusals, run files and every undo case: [references/runs.md](references/runs.md).
 

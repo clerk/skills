@@ -44,7 +44,7 @@ The mapping that matters most is **how each platform records verification**. Cle
 | `workos`     | `id`          | `email_verified`                              | boolean   | none                                             |
 
 - **Boolean style** treats `true`, `1`, and the strings `true`, `1`, `yes`, `y` and `t` in any case as verified. `false` and its string forms (what a CSV export or `psql` produces) are not.
-- **Timestamp style** treats any number, and any string other than `""`, `null`, `nil`, `undefined` or `\N` (in any case), as verified. Only `authjs` also checks that the string is a date.
+- **Timestamp style** treats any number, and any string other than `""`, `null`, `nil`, `undefined` or `\N` (in any case), as verified. For `authjs`, `0` (the epoch) and a value that isn't a date are unverified too.
 
 The import's checks count only verified (or reserved) identifiers toward a required one, so a user whose only email is unverified is rejected when the instance requires an email.
 
@@ -285,7 +285,7 @@ Return `{ filePath }` to leave the file alone, `{ filePath, data }` to supply th
 
 ### Load errors
 
-The CLI validates the file before using it and names the problem, as `<file> is not a valid source: <problem>`. Each message below is the part to look for:
+The CLI validates the file before using it and names the problem. A validation error reads `<file> is not a valid source: <problem>`. Each message below is the part to look for:
 
 | Message                                          | What to fix                                                  |
 | ------------------------------------------------ | ------------------------------------------------------------ |
