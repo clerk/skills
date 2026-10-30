@@ -92,6 +92,8 @@ See the [Clerk MCP server docs](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-s
 
 The server acts as you, so it can only do what your workspace role allows. It never returns secret keys, and tools that make changes are flagged so your agent can ask before running them.
 
+For product analytics, each tool call sends Clerk a short summary your agent writes and details like the tool name and your Clerk user ID, but not the tool's inputs or results ([details](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server#what-does-the-mcp-server-send-to-clerk-about-tool-calls)).
+
 ### Example Prompts
 
 - "Which Clerk applications do I have?"
