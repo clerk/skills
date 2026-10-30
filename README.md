@@ -79,7 +79,7 @@ copilot plugin install clerk@clerk-skills
 
 The Clerk MCP server lets AI agents work with your Clerk account. Clerk hosts it, so there's nothing to install or run.
 
-- **Account tools:** create and configure applications, list and create users, check domains and DNS records, and set up production instances.
+- **Account tools:** create and configure applications, list and create users, list organizations and their members, check domains and DNS records, and set up production instances.
 - **SDK snippet tools:** get ready-to-use code for Clerk features, or bundles such as `b2b-saas` and `organizations`.
 
 ### Connect
