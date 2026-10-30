@@ -28,7 +28,7 @@ Users Clerk would refuse. Each gets the first reason that applies, in this order
 
 1. It failed schema validation (`invalid: …`): no identifier at all, or an unknown password hasher.
 2. It has only emails Clerk refuses (malformed, or a domain such as `.local` that can't receive mail), or only phones not in E.164 form while numeric usernames are on. With numeric usernames on, a user whose phones aren't in E.164 form is also rejected when the instance requires a phone number.
-3. It lacks an identifier the instance requires. An email or phone counts only when it is **verified**, or reserved with `--reserve-unverified`: an unverified-only email does not satisfy a required email, because Clerk attaches unverified identifiers after the user exists.
+3. It lacks an identifier the instance requires. An email or phone counts only when it is **verified**, or reserved with `--reserve-unverified`: an unverified-only email does not satisfy a required email, because Clerk attaches unverified identifiers after the user exists. When the reject names `--reserve-unverified`, reserving clears it on the user's yes ([SKILL.md Step 3](../SKILL.md#step-3-dry-run)).
 4. It has no identifier the instance accepts, once the turned-off ones are removed.
 5. It lacks a first or last name the instance requires.
 6. It has TOTP or backup codes, and the instance has them off.
