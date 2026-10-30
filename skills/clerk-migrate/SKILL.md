@@ -159,7 +159,7 @@ clerk migrate import users.json --source auth0 --dry-run      # a file from anyw
 
 The dry run prints the target, then the checks, and writes nothing. Relay the checks in full. Read [references/checks.md](references/checks.md) to explain each reject reason and the `clerk config patch` fixes it offers.
 
-If any user is rejected, the real import refuses unless `--allow-partial` is passed. Put the choice to the user: fix the export, change the instance with the printed `clerk config patch` command, or import the rest with `--allow-partial`. Never run a `clerk config patch` without the user's yes.
+If any user is rejected, the real import refuses unless `--allow-partial` is passed. Put the choice to the user: fix the export, change the instance with the printed `clerk config patch` command, or import the rest with `--allow-partial`. When a reject names `--reserve-unverified`, reserving those users is a fourth choice in the same question: tell the user that whoever receives mail or texts at the address can sign in as that user ([Step 2](#step-2-summarize-what-will-happen), item 5). Never run a `clerk config patch` without the user's yes.
 
 Users without a password import even when the instance requires one, unless a password is its only way to sign in. Pass `--require-password` only when the user asks to leave those users out ([checks.md](references/checks.md#passwords-and---require-password)).
 
