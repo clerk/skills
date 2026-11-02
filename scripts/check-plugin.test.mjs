@@ -5,6 +5,7 @@ import { checkPlugin, run } from "./check-plugin.mjs";
 const SPEC = "https://agent-plugins.org/schemas/1.0.0";
 const description = "Add authentication with Clerk.";
 const url = "https://mcp.clerk.com/mcp";
+const headers = { "X-Clerk-MCP-Consumer": "plugin" };
 const keywords = ["auth", "clerk", "nextjs"];
 
 function validRepo() {
@@ -64,9 +65,13 @@ function validRepo() {
       },
       "mcp.json": {
         $schema: `${SPEC}/mcp.schema.json`,
-        mcpServers: { clerk: { type: "streamable-http", url } },
+        mcpServers: {
+          clerk: { type: "streamable-http", url, headers: { ...headers } },
+        },
       },
-      ".mcp.json": { mcpServers: { clerk: { type: "http", url } } },
+      ".mcp.json": {
+        mcpServers: { clerk: { type: "http", url, headers: { ...headers } } },
+      },
       ".claude-plugin/marketplace.json": {
         owner: { name: author.name, email: author.email },
         plugins: [{ name: "clerk", source: "./", description }],
@@ -259,7 +264,6 @@ test("rejects MCP configs that drift apart", () => {
   repo.files[".mcp.json"].mcpServers.clerk = {
     type: "streamable-http",
     url: "https://example.com/mcp",
-    headers: { "X-Clerk-MCP-Consumer": "plugin" },
   };
   assert.deepEqual(checkPlugin(repo), [
     ".mcp.json: clerk must use type http",
@@ -267,6 +271,20 @@ test("rejects MCP configs that drift apart", () => {
     "clerk: headers differ between mcp.json and .mcp.json",
   ]);
 });
+
+for (const [label, edit] of [
+  ["missing", (server) => delete server.headers],
+  ["wrong", (server) => (server.headers["X-Clerk-MCP-Consumer"] = "plugins")],
+]) {
+  test(`rejects a ${label} MCP consumer header in both configs`, () => {
+    const repo = validRepo();
+    edit(repo.files["mcp.json"].mcpServers.clerk);
+    edit(repo.files[".mcp.json"].mcpServers.clerk);
+    assert.deepEqual(checkPlugin(repo), [
+      "mcp.json: clerk must send X-Clerk-MCP-Consumer: plugin",
+    ]);
+  });
+}
 
 test("requires Cursor and Codex to load the skills and the http MCP config", () => {
   const repo = validRepo();
