@@ -36,7 +36,7 @@ Read `STYLEGUIDE.md` before editing agent-facing setup instructions. It separate
 2. Place it in `skills/<skill-name>/`. The folder name must match the frontmatter `name`
 3. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 4. Plugin names are permanent. Renaming or removing one needs a `renames` entry in `.claude-plugin/marketplace.json`
-5. Keep `SKILL.md` at or below 500 lines and its body at or below 5,000 estimated tokens. Run `npm run check:skill-length` and move detail into `references/`. CI estimates tokens from body bytes after collapsing whitespace; model token counts may differ
+5. Keep `SKILL.md` at or below 500 lines and its body at or below 5,000 estimated tokens. Run `pnpm run check:skill-length` and move detail into `references/`. CI estimates tokens from body bytes after collapsing whitespace; model token counts may differ
 
 ## CI checks
 
