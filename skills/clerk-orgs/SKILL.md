@@ -71,6 +71,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 | Invitation lifecycle (create, list, revoke, built-in UI) | references/invitations.md |
 | Enterprise SSO setup, provider field access, domain verification | references/enterprise-sso.md |
 | Next.js adaptations for orgs (per-page role/permission checks, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
+| Org errors and symptoms (undefined `orgId`, `has()` returning `false`, no Personal Account) | references/errors.md |
 
 ## References
 
@@ -80,6 +81,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 | `references/invitations.md` | Backend API for invitations + built-in UI |
 | `references/enterprise-sso.md` | SAML/OIDC per-org, domain verification, correct field access |
 | `references/nextjs-patterns.md` | Next.js adaptations specific to orgs. For generic Next.js patterns see `clerk-nextjs-patterns` skill. |
+| `references/errors.md` | Error signatures with root causes and fixes |
 
 ## Dashboard shortcuts
 

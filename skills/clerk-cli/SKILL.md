@@ -251,9 +251,11 @@ Full matrix and sandbox details in [references/agent-mode.md](references/agent-m
 3. **Target explicitly in production:** pass `--instance prod` rather than relying on defaults, and confirm with the user before any production mutation.
 4. **Never commit secrets:** `env pull` writes to `.env.local` (which should be gitignored). Don't paste secret keys into code or chat.
 5. **Use `doctor --json`** to diagnose before assuming the CLI is broken.
+6. **Confirm before impersonating in production:** `clerk impersonate` bypasses the user's MFA and may count against the impersonation quota.
 
 ## References
 
 - [references/auth.md](references/auth.md) - auth flow, key resolution order, host-vs-sandbox behavior, `--app`/`--instance` targeting, Backend vs Platform API.
 - [references/recipes.md](references/recipes.md) - copy-pasteable recipes for common Clerk tasks.
 - [references/agent-mode.md](references/agent-mode.md) - agent-mode behavior matrix, sandbox warning semantics, exit codes, error format.
+- [references/commands.md](references/commands.md) - command catalog with each command's purpose and key flags.
