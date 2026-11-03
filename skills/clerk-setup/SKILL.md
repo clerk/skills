@@ -13,7 +13,7 @@ metadata:
 
 Use the [Clerk CLI](https://clerk.com/docs/cli) to add authentication. In agent environments, supported frameworks default to accountless setup: `npx -y clerk@latest init` provisions a claimable application and writes temporary development keys without requiring a Clerk account.
 
-Run the versioned CLI through a package runner. The commands below use `npx -y clerk@latest`; equivalent runners are `pnpm dlx clerk@latest`, `bunx clerk@latest`, and `yarn dlx clerk@latest` (Yarn 2+). Do not install the CLI globally.
+The commands below use `npx -y clerk@latest`. In a project that uses pnpm, Bun, or Yarn 2+, run them with `pnpm dlx clerk@latest`, `bunx clerk@latest`, or `yarn dlx clerk@latest` instead. Do not install the CLI globally.
 
 ## Before you start
 
