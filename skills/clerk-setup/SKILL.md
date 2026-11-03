@@ -98,7 +98,7 @@ npx -y clerk@latest init
 
 For a native iOS or macOS app, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead of the remaining steps. It covers creating the Xcode project.
 
-Ask which framework to use, defaulting to Next.js. If a lockfile remains in the directory, use its package manager instead of asking: `pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `bun.lock` or `bun.lockb` → `bun`, and `package-lock.json` → `npm`. If there is no lockfile, ask which package manager to use, defaulting to npm:
+Ask which framework to use, defaulting to Next.js. If a lockfile remains in the directory, use its package manager instead of asking: `pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `bun.lock` or `bun.lockb` → `bun`, and `package-lock.json` → `npm`. If there's no lockfile, ask which package manager to use, defaulting to npm:
 
 ```bash
 npx -y clerk@latest init --framework <framework> --pm <package-manager>
