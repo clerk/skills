@@ -54,7 +54,8 @@ Force human mode with `--mode human` or `CLERK_MODE=human`. Typical AI-agent inv
 | `clerk link --app <id>`                                          | Links directly                                                   | Links directly                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `clerk link` without `--app`                                     | Interactive picker / create UI                                   | Tries silent autolink from detected publishable keys; if no deterministic match exists, exits with a usage error. The next step depends on what the folder holds: see [auth.md](auth.md#when-the-folder-isnt-linked)                                                                                                                                                                                                              |
 | `unlink` confirmation                                            | Prompt y/n                                                       | Requires `--yes`; exits with a usage error without it |
-| All other mutation confirmations (`config patch` / `put`, `api -X POST/PATCH/DELETE`, `users create`, `enable` / `disable`) | Prompt y/n | **Silently skipped - the mutation executes.** These gates are `isHuman() && !options.yes`, so agent mode bypasses them entirely: `--yes` is neither required nor meaningful, and nothing errors. `--dry-run` is the only safety net                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `security fix` confirmation | Prompt y/n (no ids: checklist picker) | Requires `--yes` unless `--dry-run`, and ids or `--all`; `mfa` / `passwordless-auth` need `--factors` / `--strategy`. Exits with a usage error otherwise |
+| Other mutation confirmations (`config patch` / `put`, `api -X POST/PATCH/DELETE`, `users create`, `enable` / `disable`) | Prompt y/n | **Silently skipped - the mutation executes.** These gates are `isHuman() && !options.yes`, so agent mode bypasses them entirely: `--yes` is neither required nor meaningful, and nothing errors. `--dry-run` is the only safety net                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `clerk doctor --fix`                                             | Interactively offers fixes                                       | **Ignored**; output the `remedy` field and let the caller act                                                                                                                                                                                                                                                                                                                                                                        |
 | `clerk apps list` default output                                 | Table                                                            | JSON (when piped)                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `clerk apps create <name>` output                                | Human-readable summary                                           | JSON (auto-detected, same as `apps list`); `--json` also works explicitly                                                                                                                                                                                                                                                                                                                                                            |
@@ -180,6 +181,21 @@ clerk api /users/user_abc123 -X DELETE --dry-run
 # If the preview is what you expected, run it with --yes
 clerk api /users/user_abc123 -X DELETE --yes
 ```
+
+### Audit and harden security
+
+```sh
+# Grade the instance; JSON in agent mode. Exit code is 0 whatever the grade.
+clerk security audit --instance prod > /tmp/audit.json
+jq '.score' /tmp/audit.json
+jq '[.findings[] | select(.status != "met") | {id, severity, status, decision, customFlows}]' /tmp/audit.json
+
+# Preview, then apply after the user agrees. Ask which factors / strategy for mfa and passwordless-auth.
+clerk security fix --all --instance prod --dry-run
+clerk security fix --all --factors authenticator,backup-code --instance prod --yes
+```
+
+Findings are `met`, `unmet`, or `blocked` (`mfa-required` waits on `mfa`; both in one call works). `--all` covers critical and recommended checks; add `--good-to-have` or name ids for the rest. `oauth-custom-credentials` stays manual. `fix` prints `{changed, dryRun, applied, decisions, skipped, score: {before, after}, remaining}`. `clerk security checks` lists every id offline.
 
 ### Target explicitly
 
@@ -346,5 +362,5 @@ All three remediation commands are themselves interactive by default: `auth logi
 - **Don't call `clerk link` without `--app` and assume the agent can pick for you** - it only succeeds when silent autolink can determine the app from detected keys, or, on newer CLIs, when it claims the app `clerk init` created.
 - **Don't run `clerk unlink` in agent mode without `--yes`** - it exits with a usage error instead of prompting.
 - **Don't run `clerk config put` without `--dry-run` first** - it's a full replacement and is destructive.
-- **Don't skip `--yes` on mutations and expect them to work** - agent mode disables prompts, so commands that require confirmation will error.
+- **Don't skip `--yes` on `unlink`, `security fix`, or `update`** - the first two exit with a usage error, and `update` exits `0` without updating.
 - **Don't read secrets into your context or logs** - never read or print `env pull --print` output or a filled-in OAuth credentials file, never copy `[REDACTED]` from `config patch` or `config put` output back into a payload, and don't add `--verbose` around secrets.

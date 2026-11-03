@@ -42,7 +42,7 @@ The CLI then finds the secret key in `CLERK_SECRET_KEY`, `.env` / `.env.local`, 
 
 | Works without an account                                                                                | Needs a claimed app                                              |
 | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| `whoami`¹, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`² | `apps`, `impersonate`, `link`, `enable billing`, `config schema/put` |
+| `whoami`¹, `env pull`, `config pull/patch`, `enable/disable orgs`, `users`, `api`, `doctor`, `open`² | `apps`, `impersonate`, `link`, `enable billing`, `config schema/put`, `security audit/fix` |
 
 ¹ `whoami --json` reports the instance under `accountless` (canonical, CLI 3.3+), with `keyless` kept as a deprecated alias carrying the same object. Signed in, `whoami` reports the account and drops both — don't use it to read back `accountless.instanceId`.
 ² Returns the one-time claim URL, not a dashboard link. That token is credential-equivalent: never put it in a log, commit, or PR. `users open` needs a claimed app.

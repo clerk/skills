@@ -3,10 +3,10 @@ name: clerk-cli
 description: >-
   Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session
   management, impersonation, local webhook testing, deploy verification,
-  instance config, env keys, feature toggles, and any Clerk Backend, Platform,
+  instance config, security audits, env keys, feature toggles, and any Clerk Backend, Platform,
   or Frontend API call. Use when the user mentions Clerk management tasks,
   "list clerk users", "impersonate a user", "test webhooks locally",
-  "enable orgs", "enable billing",
+  "enable orgs", "enable billing", "clerk security", "harden my Clerk instance",
   "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", or any ad-hoc
   Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key
   resolution, app/instance targeting, and formatting automatically.
@@ -226,8 +226,9 @@ The CLI auto-detects agent mode when stdout is not a TTY, or when `--mode agent`
 - **If a Clerk CLI command returns an error with code `not_linked`, follow [When the folder isn't linked](references/auth.md#when-the-folder-isnt-linked).** It covers sandbox checks, unclaimed apps, competing claim files, and older CLIs. Do not assume `clerk link` is the next step.
 - **For `init`, follow `clerk-setup`.** It owns framework-support, accountless, app-linking, migration, and login-order guidance so setup instructions have one source of truth.
 - **`--fresh` is destructive.** It replaces the temporary app and overwrites the env keys and `.clerk/keyless.json` breadcrumb with no prompt, orphaning the previous app and its users. Never pass it just to re-run `init`.
-- **`unlink` requires `--yes` in agent mode.** It gates on `isAgent() && !options.yes` and exits with a usage error without it. This is the exception, not the pattern - see the next bullet.
-- **Only `unlink` actually requires `--yes`.** Every other confirmation gate is written as `isHuman() && !options.yes`, so agent mode skips it outright: the mutation executes with no prompt and no error. Passing `--yes` is harmless but changes nothing. Do not treat it as a safety gate - `--dry-run` is the real one.
+- **A few commands require `--yes` in agent mode.** `unlink`, `security fix` (unless `--dry-run`), and `disable orgs` while organization billing is on exit with a usage error without it. `update` without `--yes` prints a hint and exits `0` without updating.
+- **Every other confirmation is skipped in agent mode.** `config patch` / `put`, `api` mutations, `users create`, and `enable` / `disable` execute with no prompt and no error. Passing `--yes` is harmless but changes nothing. Do not treat it as a safety gate - `--dry-run` is the real one.
+- **Before `security fix`, tell the user what changes.** Several fixes add a CAPTCHA, verification, second-factor, or passkey step, or force a password reset; findings with a `customFlows` note break custom sign-in flows until they are updated. `mfa` and `passwordless-auth` are product decisions: ask which `--factors` / `--strategy` rather than picking. See [Audit and harden security](references/agent-mode.md#audit-and-harden-security).
 - **`impersonate` requires the `[user]` positional in agent mode.** If a search term matches multiple users, it exits `2` listing candidate user IDs — retry with a specific `user_...` ID. Output is a JSON object (`{url, id, userId, actor, ...}`); surface `url` to the user and capture `id` — it is the only chance to record the revoke handle.
 - **`webhooks listen` is long-running.** Run it in the background. In agent mode (or with `--json`) it emits NDJSON: one `ready` line (`{type:"ready", relay_url, forward_to}`), then one `event` line per delivery — each event line can be fed back to `clerk webhooks verify --delivery`.
 - **`doctor --fix` is ignored.** Parse `doctor --json` output's `remedy` field and act on it yourself.
@@ -247,7 +248,7 @@ Full matrix and sandbox details in [references/agent-mode.md](references/agent-m
 ## Safety rules for autonomous use
 
 1. **Discover before acting:** `clerk api ls <keyword>` before `clerk api <path>`.
-2. **Preview mutations:** `--dry-run` on every `config patch`, `config put`, `api -X POST/PATCH/PUT/DELETE`.
+2. **Preview mutations:** `--dry-run` on every `config patch`, `config put`, `security fix`, `api -X POST/PATCH/PUT/DELETE`.
 3. **Target explicitly in production:** pass `--instance prod` rather than relying on defaults, and confirm with the user before any production mutation.
 4. **Never commit secrets:** `env pull` writes to `.env.local` (which should be gitignored). Don't paste secret keys into code or chat.
 5. **Use `doctor --json`** to diagnose before assuming the CLI is broken.
