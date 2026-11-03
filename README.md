@@ -92,7 +92,7 @@ See the [Clerk MCP server docs](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-s
 
 The server acts as you, so it can only do what your workspace role allows. It never returns secret keys, and tools that make changes are flagged so your agent can ask before running them.
 
-For product analytics, the MCP server sends Clerk an event for each tool call. It records the tool name, whether the call succeeded, your Clerk user ID, your AI client, and the application ID when the tool takes one. It doesn't include the tool's other inputs or its results. [See what data Clerk receives about tool calls](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server#what-does-the-mcp-server-send-to-clerk-about-tool-calls).
+For product analytics, the MCP server sends Clerk an event for each tool call. It records the tool name, whether the call succeeded, your Clerk user ID, your AI client, and, when the tool takes them, the application ID and whether the call was a dry run. It doesn't include the tool's other inputs or its results. [See what data Clerk receives about tool calls](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server#what-does-the-mcp-server-send-to-clerk-about-tool-calls).
 
 ### Example prompts
 
