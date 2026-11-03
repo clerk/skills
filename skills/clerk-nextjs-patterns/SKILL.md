@@ -27,6 +27,7 @@ For basic setup, see `clerk-setup` skill.
 | Protect Server Actions | references/server-actions.md |
 | API route auth (401 vs 403) | references/api-routes.md |
 | Cache auth data (user-scoped caching) | references/caching-auth.md |
+| Fix `next build` errors under Cache Components | [Cache Components](#cache-components) |
 
 ## References
 
@@ -36,7 +37,7 @@ For basic setup, see `clerk-setup` skill.
 | `references/middleware-strategies.md` | `auth.protect()` in each resource, bare `clerkMiddleware()` in `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | `references/server-actions.md` | Protect mutations |
 | `references/api-routes.md` | 401 vs 403 |
-| `references/caching-auth.md` | User-scoped caching |
+| `references/caching-auth.md` | User-scoped caching with `'use cache'` |
 
 ## Mental Model
 
@@ -55,34 +56,48 @@ Key properties from `auth()`:
 
 ## Minimal Pattern
 
-```typescript
+```tsx
 // Server Component
 import { auth } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
 
-export default async function Page() {
+async function Greeting() {
   const { isAuthenticated, userId } = await auth()  // MUST await!
   if (!isAuthenticated) return <p>Not signed in</p>
   return <p>Hello {userId}</p>
 }
+
+export default function Page() {
+  return (
+    <Suspense>
+      <Greeting />
+    </Suspense>
+  )
+}
 ```
+
+`auth()` reads the request, so it runs in an async child inside `<Suspense>`, not in the page itself. See [Cache Components](#cache-components).
 
 > **Core 2 ONLY (skip if current SDK):** `isAuthenticated` is not available. Use `if (!userId)` instead.
 
 ### Conditional Rendering with `<Show>`
 
-For client-side conditional rendering based on auth state. `<Show>` covers both authentication checks and authorization (feature, plan, role, permission) in one component.
+`<Show>` renders its children based on auth state. It covers both authentication checks and authorization (feature, plan, role, permission) in one component. In a Server Component, it reads the session from the request on the server, so wrap it in `<Suspense>`. In a Client Component, it reads client-side auth state and needs no boundary.
 
 **Authentication check:**
 
 ```tsx
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Show when="signed-in" fallback={<p>Please sign in</p>}>
-  <Dashboard />
-</Show>
+<Suspense>
+  <Show when="signed-in" fallback={<p>Please sign in</p>}>
+    <Dashboard />
+  </Show>
+</Suspense>
 ```
 
-**Authorization checks (B2B):**
+**Authorization checks (B2B)** (wrap in `<Suspense>` the same way when rendered in a Server Component):
 
 ```tsx
 // Feature-based (preferred — features can move between plans without redeploy)
@@ -116,13 +131,27 @@ import { Show } from '@clerk/nextjs'
 
 > **Core 2 ONLY (skip if current SDK):** `<Show>` does not exist. For authentication, use `<SignedIn>` and `<SignedOut>`. For authorization (role / permission), use `<Protect>` with the same prop names (`role`, `permission`, `condition`). Feature- and plan-based variants require Core 3. See `clerk-custom-ui` skill, `core-3/show-component.md` for the full migration table.
 
+## Cache Components
+
+New Next.js apps set `cacheComponents: true` in `next.config` (the `create-next-app` default since Next.js 16.4). With it, `next build` fails on request data read outside a `<Suspense>` boundary: `Next.js encountered uncached or runtime data during prerendering`. See [Cache Components](https://clerk.com/docs/guides/development/rendering-modes#cache-components) in Clerk's rendering modes guide.
+
+- Wrap `<Show>` rendered in a Server Component, and any Server Component that calls `auth()` or `currentUser()`, in `<Suspense>`, as close to the auth-dependent UI as possible. Keep `<ClerkProvider>` and static layout outside the boundary so Next.js can prerender them.
+- In a layout header, put one `<Suspense>` inside `<header>` around both the `signed-out` and `signed-in` `<Show>` blocks.
+- A page that calls `auth()` or `currentUser()` to render data: move the read into an async child inside `<Suspense>` and keep the default-export page synchronous.
+- A page that gates its whole render with `auth.protect()`, `redirectToSignIn()`, or `redirect()`: leave the page as is and add a `loading.tsx` next to it. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
+- Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>`. They read the URL with `usePathname()`, even in a Client Component. See [Prebuilt components on catch-all routes](https://clerk.com/docs/guides/development/rendering-modes#prebuilt-components-on-catch-all-routes).
+- Never call `auth()` inside `'use cache'`. Read the ID outside and pass it in. See `references/caching-auth.md` and [Cache data per user with `'use cache'`](https://clerk.com/docs/guides/development/rendering-modes#cache-data-per-user-with-use-cache).
+
+Use `next build --debug-prerender` to list every failing route. A plain `next build` stops at the first.
+
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `undefined` userId in Server Component | Missing `await` | `await auth()` not `auth()` |
 | Auth not working on API routes | Missing matcher | Add `'/(api|trpc)(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`) |
-| Cache returns wrong user's data | Missing userId in key | Include `userId` in `unstable_cache` key |
+| `next build` fails with "uncached or runtime data during prerendering" | `auth()`, `currentUser()`, or server `<Show>` outside `<Suspense>` | Wrap the auth-dependent UI in `<Suspense>` (see [Cache Components](#cache-components)) |
+| Cache returns wrong user's data | `userId` not part of the cache key | Pass `userId` into the `'use cache'` function as an argument |
 | Mutations bypass auth | Unprotected Server Action | Check `auth()` at start of action |
 | Protected page returns 200, not 307, while signed out | The redirect happened after streaming started (e.g. under a `loading.tsx`) | Confirm the body redirects to sign-in and has no protected data. Keep the check in the page |
 | Wrong HTTP error code | Confused 401/403 | 401 = not signed in, 403 = no permission |
@@ -135,10 +164,10 @@ Pass a custom JWT to third-party services (Hasura, Supabase, etc.) using JWT tem
 
 **Server-side (Server Component or Route Handler)**:
 
-```typescript
+```tsx
 import { auth } from '@clerk/nextjs/server'
 
-export default async function Page() {
+export async function ExternalData() {
   const { getToken } = await auth()
   const token = await getToken({ template: 'hasura' })
   if (!token) return <p>Not authenticated</p>
@@ -150,6 +179,8 @@ export default async function Page() {
   return <pre>{JSON.stringify(data)}</pre>
 }
 ```
+
+Render `<ExternalData />` inside `<Suspense>`.
 
 **Client-side (Client Component)**:
 

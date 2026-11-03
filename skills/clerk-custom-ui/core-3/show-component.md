@@ -103,9 +103,26 @@ The `treatPendingAsSignedOut` prop controls how pending sessions (sessions with 
 </Show>
 ```
 
+## Next.js Server Components
+
+In a Next.js Server Component, `<Show>` reads the session from the request. With Cache Components (`cacheComponents: true`, the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary, so wrap it in `<Suspense>` ([Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense)):
+
+```tsx
+import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
+
+<Suspense>
+  <Show when="signed-in">
+    <p>Welcome back!</p>
+  </Show>
+</Suspense>
+```
+
+In a Client Component, `<Show>` reads client-side auth state and needs no boundary.
+
 ## Security Caveat
 
-**`<Show>` only visually hides content** — it remains in browser source. It is not a security boundary. For protecting sensitive data, always verify authentication server-side with `auth()` or `auth.protect()` in the page or Route Handler.
+In a Client Component, **`<Show>` only visually hides content**: it remains in browser source. In a Next.js Server Component, the hidden branch isn't sent to the browser. Either way, `<Show>` doesn't protect data. Verify authentication server-side with `auth()` or `auth.protect()` in the page or Route Handler that fetches it.
 
 ## Migration from Core 2
 
