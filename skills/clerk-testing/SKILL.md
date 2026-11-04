@@ -12,13 +12,11 @@ compatibility: Requires a publishable key and either CLERK_SECRET_KEY or CLERK_T
 
 # Testing
 
-## Decision Tree
+## Documentation
 
-| Framework | Documentation |
-|-----------|---------------|
-| Overview | [Testing overview](https://clerk.com/docs/guides/development/testing/overview) |
-| Playwright | [Playwright testing](https://clerk.com/docs/guides/development/testing/playwright/overview) |
-| Cypress | [Cypress testing](https://clerk.com/docs/guides/development/testing/cypress/overview) |
+- [Testing overview](https://clerk.com/docs/guides/development/testing/overview)
+- [Playwright](https://clerk.com/docs/guides/development/testing/playwright/overview)
+- [Cypress](https://clerk.com/docs/guides/development/testing/cypress/overview)
 
 ## Mental Model
 
@@ -30,7 +28,7 @@ Test auth = isolated session state. Each test needs fresh auth context.
 ## Workflow
 
 1. Identify test framework (Playwright or Cypress)
-2. WebFetch the appropriate URL from decision tree above
+2. WebFetch the appropriate documentation link above
 3. Follow official setup instructions
 4. Use development-instance keys only (`pk_test_*` / `sk_test_*`). If the project has no keys yet, `npx clerk@latest init` (the Clerk CLI; see `clerk-setup`) creates a Clerk application and writes development-instance keys to the env file. No Clerk account or Dashboard visit is needed.
 
