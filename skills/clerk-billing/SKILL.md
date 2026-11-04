@@ -131,7 +131,7 @@ When a user says "gate the export feature" or "gate analytics", always use `has(
 
 ## Key Patterns
 
-Next.js server examples follow the Cache Components rules (`cacheComponents: true`, the `create-next-app` default), because `next build` fails on request data read outside a `<Suspense>` boundary. A page that uses `auth()` to render data reads it in an async child inside `<Suspense>`. A page that gates its render with `redirect()` keeps the check at the top and gets a `loading.tsx` next to it. See the `clerk-nextjs-patterns` skill and [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
+With Cache Components (`cacheComponents: true`, the `create-next-app` default), request data outside `<Suspense>` fails `next build`. Wrap an async `auth()` child in `<Suspense>` when rendering data; add a sibling `loading.tsx` when `auth()` gates a page with `redirect()`. See `clerk-nextjs-patterns` and [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense).
 
 ### 1. Render the Pricing Table
 
