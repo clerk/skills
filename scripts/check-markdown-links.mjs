@@ -15,9 +15,9 @@ const parser = remark().use(remarkFrontmatter).use(remarkGfm);
 export function findUndescribedLinks(content) {
   const findings = [];
   visit(parser.parse(content), "link", (node) => {
-    // GFM autolink literals and [https://...](https://...) both have a URL
-    // for their entire label. Neither gives rendered Markdown useful text.
-    if (/^https?:\/\//.test(node.url) && toString(node).trim() === node.url) {
+    // Autolinks and links whose label is a URL show raw URLs in rendered
+    // Markdown, whether or not the label matches the target.
+    if (/^https?:\/\//.test(toString(node).trim())) {
       findings.push({ line: node.position?.start.line ?? 1, url: node.url });
     }
   });

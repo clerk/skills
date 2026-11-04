@@ -120,7 +120,7 @@ import { passkeys } from '@clerk/expo/passkeys'
 <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} __experimental_passkeys={passkeys}>
 ```
 
-Requires associated-domains setup (iOS) / asset links (Android). Fetch the [Expo passkeys reference](https://clerk.com/docs/reference/expo/passkeys) for the current platform configuration before implementing — this surface is still experimental and changes.
+Requires associated-domains setup (iOS) / asset links (Android). Fetch the [Expo passkeys reference](https://clerk.com/docs/reference/expo/passkeys) for the current platform configuration before implementing — the passkeys API is still experimental and changes.
 
 ## Offline resource caching
 
