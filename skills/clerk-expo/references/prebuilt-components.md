@@ -10,6 +10,8 @@ The default "add auth" path. `AuthView`, `UserButton`, and `UserProfileView` ren
 - Requires a development build (`npx expo run:ios` / `run:android`). Not Expo Go, not web.
 - Requires the `@clerk/expo` config plugin and a prebuild (see setup.md).
 
+For native email-link sign-in, use `<AuthView />` in a development build. JavaScript-only custom email-link flows work on Expo web; use email codes for native custom UI. See [Clerk's sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options).
+
 ## Components
 
 Import from `@clerk/expo/native`:

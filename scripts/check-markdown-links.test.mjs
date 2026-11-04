@@ -20,6 +20,13 @@ test("flags GFM bare and parenthesized URLs, including raw URL labels", () => {
   ]);
 });
 
+test("flags URL labels even when the link target differs", () => {
+  assert.deepEqual(
+    findUndescribedLinks("[https://clerk.com/docs/a](https://clerk.com/docs/b)\n"),
+    [{ line: 1, url: "https://clerk.com/docs/b" }],
+  );
+});
+
 test("accepts descriptive links and ignores code, images, and frontmatter", () => {
   const content = [
     "---",

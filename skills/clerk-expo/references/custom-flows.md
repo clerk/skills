@@ -8,7 +8,7 @@ Build your own auth UI with `useSignIn()` / `useSignUp()`. Works everywhere incl
 > - [Combined sign-in-or-up](https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up)
 > - [MFA](https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication)
 > - [Forgot password](https://clerk.com/docs/guides/development/custom-flows/authentication/forgot-password)
-> - [Email links](https://clerk.com/docs/guides/development/custom-flows/authentication/email-links) — Expo web custom flows only; on native, use email codes for custom UI or `<AuthView />` for email links
+> - [Email links](https://clerk.com/docs/guides/development/custom-flows/authentication/email-links) — Expo web custom flows only
 > - [Error handling](https://clerk.com/docs/guides/development/custom-flows/error-handling)
 
 ## The current API (v3.4+) — not the legacy one
