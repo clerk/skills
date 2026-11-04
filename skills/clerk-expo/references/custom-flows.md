@@ -2,14 +2,14 @@
 
 Build your own auth UI with `useSignIn()` / `useSignUp()`. Works everywhere including Expo Go and web. Use when the developer wants their own UI, needs Expo Go, or asked for a specific strategy like SMS.
 
-> Canonical docs — each has an Expo tab with a full working example; fetch the relevant one to re-verify if the installed SDK is newer than 3.6.x:
-> - Email/password: https://clerk.com/docs/guides/development/custom-flows/authentication/email-password
-> - Email/SMS OTP: https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp
-> - Combined sign-in-or-up: https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up
-> - MFA: https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication
-> - Forgot password: https://clerk.com/docs/guides/development/custom-flows/authentication/forgot-password
-> - Email links: https://clerk.com/docs/guides/development/custom-flows/authentication/email-links
-> - Error handling: https://clerk.com/docs/guides/development/custom-flows/error-handling
+> Canonical docs — use the Expo example when the guide has one; otherwise adapt the guide to Expo. Fetch the relevant guide to re-verify if the installed SDK is newer than 3.6.x:
+> - [Email/password](https://clerk.com/docs/guides/development/custom-flows/authentication/email-password)
+> - [Email/SMS OTP](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp)
+> - [Combined sign-in-or-up](https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up)
+> - [MFA](https://clerk.com/docs/guides/development/custom-flows/authentication/multi-factor-authentication)
+> - [Forgot password](https://clerk.com/docs/guides/development/custom-flows/authentication/forgot-password)
+> - [Email links](https://clerk.com/docs/guides/development/custom-flows/authentication/email-links) — Expo web custom flows only
+> - [Error handling](https://clerk.com/docs/guides/development/custom-flows/error-handling)
 
 ## The current API (v3.4+) — not the legacy one
 
@@ -160,7 +160,7 @@ After a successful verify, `signIn.status` becomes `complete` → `finalize()`. 
 ## Other flows
 
 - **Forgot password**: `signIn.resetPasswordEmailCode.sendCode()` → `verifyCode({ code })` (status becomes `needs_new_password`) → `submitPassword({ password })`. Phone variant: `signIn.resetPasswordPhoneCode.*`.
-- **Email link**: `signIn.emailLink.sendLink({ ... })` + `signIn.emailLink.waitForVerification()`.
+- **Email link (Expo web only)**: `signIn.emailLink.sendLink({ ... })` + `signIn.emailLink.waitForVerification()`. Per [Clerk's sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options), native iOS and Android don't support JavaScript-only custom email-link flows. For native custom UI, use email codes; for native email links, use `<AuthView />` in a development build.
 - **Passkeys**: `signIn.passkey()`; requires `@clerk/expo-passkeys` and dev build.
 - **Social/SSO**: see sso-and-native-auth.md — SSO does not use this method API.
 

@@ -3,12 +3,14 @@
 The default "add auth" path. `AuthView`, `UserButton`, and `UserProfileView` render Clerk's native UI — SwiftUI on iOS, Jetpack Compose on Android — and handle every enabled auth strategy (password, OTP, social, MFA) with no flow code.
 
 > Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> https://clerk.com/docs/reference/expo/native-components/overview — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
+> [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
 
 **Status and requirements — tell the developer up front:**
 - Beta. Works well, but flag it before a production rollout decision.
 - Requires a development build (`npx expo run:ios` / `run:android`). Not Expo Go, not web.
 - Requires the `@clerk/expo` config plugin and a prebuild (see setup.md).
+
+For native email-link sign-in, use `<AuthView />`. JavaScript-only custom email-link flows work on Expo web; use email codes for native custom UI. See [Clerk's sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options).
 
 ## Components
 
