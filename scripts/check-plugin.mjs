@@ -292,6 +292,16 @@ function checkMcp(files, check) {
       other.url === server.url,
       `${name}: url differs between mcp.json and .mcp.json`,
     );
+    check(
+      JSON.stringify(other.headers) === JSON.stringify(server.headers),
+      `${name}: headers differ between mcp.json and .mcp.json`,
+    );
+    // The server leaves skills out for this value, since plugins bundle them.
+    // .mcp.json must match this one, so checking it covers both.
+    check(
+      server.headers?.["X-Clerk-MCP-Consumer"] === "plugin",
+      `mcp.json: ${name} must send X-Clerk-MCP-Consumer: plugin`,
+    );
   }
 }
 

@@ -11,7 +11,7 @@ license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. Organizations must be enabled in Clerk Dashboard → Organizations. Membership mode (required vs optional) must match the B2B vs B2C + B2B coexistence story of your app.
 metadata:
   author: clerk
-  version: 3.1.1
+  version: 3.1.2
 ---
 
 # Organizations (B2B SaaS)
@@ -71,6 +71,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 | Invitation lifecycle (create, list, revoke, built-in UI) | references/invitations.md |
 | Enterprise SSO setup, provider field access, domain verification | references/enterprise-sso.md |
 | Next.js adaptations for orgs (per-page role/permission checks, slug invariants, orgId-scoped writes) | references/nextjs-patterns.md |
+| Org errors and symptoms (undefined `orgId`, `has()` returning `false`, no Personal Account) | references/errors.md |
 
 ## References
 
@@ -80,6 +81,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 | `references/invitations.md` | Backend API for invitations + built-in UI |
 | `references/enterprise-sso.md` | SAML/OIDC per-org, domain verification, correct field access |
 | `references/nextjs-patterns.md` | Next.js adaptations specific to orgs. For generic Next.js patterns see `clerk-nextjs-patterns` skill. |
+| `references/errors.md` | Error signatures with root causes and fixes |
 
 ## Dashboard shortcuts
 
@@ -210,6 +212,9 @@ app/orgs/[slug]/settings/page.tsx
 Always verify the URL slug matches the active org slug — otherwise users can hit `/orgs/other-org/...` with a stale `orgSlug` in their session:
 
 ```typescript
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+
 export default async function OrgPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { orgSlug } = await auth()
@@ -219,6 +224,8 @@ export default async function OrgPage({ params }: { params: Promise<{ slug: stri
   return <div>Welcome to {orgSlug}</div>
 }
 ```
+
+In Next.js, add a `loading.tsx` next to a page like this one that gates its render with `redirect()`: with Cache Components (the `create-next-app` default), `next build` fails on request data read outside a `<Suspense>` boundary.
 
 ### 3. Role-Based Access Control
 
@@ -251,16 +258,21 @@ Do NOT invent names like `org:create`, `org:manage_members`, `org:update_metadat
 
 ### 4. Conditional Rendering with `<Show>`
 
+In a Next.js Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`. In a Client Component, it reads client-side auth state and needs no boundary.
+
 ```tsx
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Show when={{ role: 'org:admin' }}>
-  <AdminPanel />
-</Show>
+<Suspense>
+  <Show when={{ role: 'org:admin' }}>
+    <AdminPanel />
+  </Show>
 
-<Show when={{ permission: 'org:invoices:create' }}>
-  <NewInvoiceButton />
-</Show>
+  <Show when={{ permission: 'org:invoices:create' }}>
+    <NewInvoiceButton />
+  </Show>
+</Suspense>
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<Protect role="org:admin">` / `<Protect permission="...">` instead of `<Show>`. `<Show>` replaced both `<Protect>` and `<SignedIn>`/`<SignedOut>` in Core 3.
@@ -391,68 +403,15 @@ Applies identically to `privateMetadata` and to user metadata via `clerkClient.u
 
 ## Error Signatures (diagnose fast)
 
-Most "org-related" failures are configuration, not code. Do not edit components before checking these:
+If org roles, permissions, or UI behave unexpectedly, check the [organization error signatures](references/errors.md) before changing code. Configuration and session state cause many of these symptoms.
 
-| Error / symptom | Root cause | Fix |
-|---|---|---|
-| `orgId` / `orgSlug` is `undefined` for a signed-in user | Organizations not enabled for this instance, OR user has no active org (personal account) | Enable in Dashboard → Organizations; check Membership mode; surface `<OrganizationSwitcher />` |
-| `has({ permission: ... })` always `false` | An invented slug (`org:manage_members`), or a System Permission (`org:sys_*`), which `has()` can't check | Check the role (`has({ role: 'org:admin' })`) or a custom Permission created in the Dashboard (see roles-permissions.md) |
-| `has({ role })` returns `false` but user looks like an admin | Session token stale after role change | Re-sign-in, or refresh the session: `await clerk.session?.reload()` |
-| `has({ permission })` `false` even with the role assigned | Feature not attached to active Plan (Billing gates permissions) | Dashboard → Billing → Plans → attach Feature |
-| `<OrganizationSwitcher />` doesn't show "Personal Account" | `Membership required` mode is on (the default since Aug 22, 2025) | Dashboard → Organizations settings → `Membership optional` |
-| `TaskChooseOrganization` throws "cannot render when a user doesn't have current session tasks" | Rendered outside a `choose-organization` task context | Wrap in a `choose-organization` session-task route only; don't render unconditionally |
-| `enterpriseAccounts[0].provider` is `undefined` | Accessing `provider` at the wrong nesting level | Use `user.enterpriseAccounts[0].enterpriseConnection?.provider` |
+## Authorization pattern
 
-## Authorization Pattern (Complete Example)
+For a complete slug-scoped admin-page example, read [Next.js organization patterns](references/nextjs-patterns.md#url-slug-safety-invariant).
 
-Server component protecting a slug-scoped admin page:
+## Invitations
 
-```typescript
-import { auth } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
-
-export default async function AdminPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const { orgSlug, has } = await auth()
-
-  if (orgSlug !== slug) redirect('/dashboard')
-  if (!has({ role: 'org:admin' })) redirect(`/orgs/${orgSlug}`)
-
-  return <div>Admin settings for {orgSlug}</div>
-}
-```
-
-For per-page role and permission checks with `auth.protect()` (Next.js) see `references/nextjs-patterns.md`.
-
-## Invitations (short form)
-
-Send from a server action or route handler:
-
-```typescript
-import { clerkClient, auth } from '@clerk/nextjs/server'
-
-export async function inviteMember(emailAddress: string, role: string) {
-  const { userId, orgId, has } = await auth()
-
-  if (!userId || !orgId) throw new Error('No active organization')
-  // Inviting needs the System Permission org:sys_memberships:manage, which
-  // has() can't check, so check a role that carries it.
-  if (!has({ role: 'org:admin' })) {
-    throw new Error('Not authorized to invite members')
-  }
-
-  const clerk = await clerkClient()
-  return clerk.organizations.createOrganizationInvitation({
-    organizationId: orgId,       // the active org that has() checked
-    inviterUserId: userId,       // required per Backend API
-    emailAddress,
-    role,                        // e.g. 'org:admin' or 'org:member'
-    redirectUrl: 'https://yourapp.com/accept-invite',
-  })
-}
-```
-
-The full lifecycle (list, revoke, bulk create, built-in `<OrganizationProfile />` UI) lives in `references/invitations.md`.
+For a server-side invitation example and the full lifecycle (list, revoke, bulk create, built-in UI), read [references/invitations.md](references/invitations.md). Check a role that carries `org:sys_memberships:manage`; `has()` cannot check System Permissions directly.
 
 ## Workflow
 
