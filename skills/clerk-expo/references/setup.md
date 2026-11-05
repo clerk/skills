@@ -1,6 +1,6 @@
 # Setup: install, provider, token cache, builds
 
-Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what clerk-setup already did instead of repeating it.
+Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what `clerk-setup` already did instead of repeating it.
 
 > Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
 
