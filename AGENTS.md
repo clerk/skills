@@ -24,7 +24,7 @@ Internal maintenance skills live in `.agents/skills/`. Mirror each one into `.cl
 
 `.claude-plugin/marketplace.json`, `.cursor-plugin/marketplace.json`, `.agents/plugins/marketplace.json` - marketplace catalogs, each listing the one `clerk` plugin at `./`.
 
-The manifests overlap on purpose: no single file is valid for every loader. `scripts/check-plugin.mjs` keeps them consistent and runs in CI with `npm run check`.
+The manifests overlap on purpose: no single file is valid for every loader. `scripts/check-plugin.mjs` keeps them consistent and runs in CI with `pnpm run check`.
 
 `.claude-plugin/plugin.json` has no `version` on purpose. Claude Code keeps users on their cached copy while `version` is unchanged; without it, every commit is an update.
 
@@ -36,7 +36,8 @@ Read `STYLEGUIDE.md` before editing agent-facing setup instructions. It separate
 2. Place it in `skills/<skill-name>/`. The folder name must match the frontmatter `name`
 3. Skill names use `clerk-` prefix (e.g. `clerk-nextjs-patterns`)
 4. Plugin names are permanent. Renaming or removing one needs a `renames` entry in `.claude-plugin/marketplace.json`
+5. Keep `SKILL.md` at or below 500 lines and its body at or below 5,000 estimated tokens. Run `pnpm run check:skill-length` and move detail into `references/`. CI estimates tokens from body bytes after collapsing whitespace; model token counts may differ
 
 ## CI checks
 
-The `Test` and `Check` workflows in `.github/workflows/` run npm scripts backed by `scripts/`. Run `npm test` to test the checkers and `npm run check` to validate the skills.
+The `Test` and `Check` workflows in `.github/workflows/` run npm scripts backed by `scripts/`. Run `pnpm test` to test the checkers and `pnpm run check` to validate the skills.

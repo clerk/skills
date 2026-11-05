@@ -8,9 +8,12 @@ B2C billing in Clerk attaches subscriptions to **individual users**. Each user g
 
 Plans for B2C must be created as **User Plans** (Dashboard → Billing → Plans → User Plans tab, or `clerk config patch` with `billing.plans`). A `pro` plan registered as an Organization Plan is a separate entity and won't appear in `<PricingTable />`. Plan type isn't changeable, recreate if misplaced.
 
+> **Cache Components:** With `cacheComponents: true` (the `create-next-app` default), `next build` fails on request data read outside `<Suspense>`. The Next.js pages below follow the matching shapes: a page that gates its render with `redirect()` gets a `loading.tsx` next to it, a page that uses `auth()` to render data reads it in an async child inside `<Suspense>`, and catch-all `<UserProfile />` and `<OrganizationProfile />` pages render inside `<Suspense>`. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes#read-auth-data-inside-suspense) and [Prebuilt components on catch-all routes](https://clerk.com/docs/guides/development/rendering-modes#prebuilt-components-on-catch-all-routes).
+
 ## Core Pattern: User Plan Check
 
 ```typescript
+// app/pro/page.tsx
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
@@ -29,14 +32,22 @@ export default async function ProDashboard() {
 }
 ```
 
+```tsx
+// app/pro/loading.tsx
+export default function Loading() {
+	return <p>Loading...</p>
+}
+```
+
 ## Tiered Feature Gating
 
 Prefer `has({ feature })` over `has({ plan })` for capability gating: features can be reattached between plans without a code deploy.
 
-```typescript
+```tsx
 import { auth } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
 
-export default async function AppPage() {
+async function GatedFeatures() {
 	const { has } = await auth()
 
 	const canAnalytics = has({ feature: 'analytics' })
@@ -44,11 +55,21 @@ export default async function AppPage() {
 	const canApi = has({ feature: 'api_access' })
 
 	return (
-		<div>
-			<BasicFeature />
+		<>
 			{canAnalytics && <AnalyticsDashboard />}
 			{canExport && <ExportButton />}
 			{canApi && <APIAccess />}
+		</>
+	)
+}
+
+export default function AppPage() {
+	return (
+		<div>
+			<BasicFeature />
+			<Suspense>
+				<GatedFeatures />
+			</Suspense>
 		</div>
 	)
 }
@@ -74,15 +95,28 @@ export default async function BillingSuccessPage() {
 }
 ```
 
+```tsx
+// app/billing/success/loading.tsx
+export default function Loading() {
+	return <p>Loading...</p>
+}
+```
+
 ## Account Billing Page
 
 Use `<UserProfile />` for the user account billing UI. It renders the current plan, subscription status, payment methods, invoices, and the upgrade / cancellation flow with no custom code:
 
 ```tsx
+// app/account/[[...account]]/page.tsx
 import { UserProfile } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 export default function AccountPage() {
-	return <UserProfile />
+	return (
+		<Suspense>
+			<UserProfile />
+		</Suspense>
+	)
 }
 ```
 

@@ -37,7 +37,8 @@
         "Removes useUser hook import and usage",
         "Uses Show with when='signed-in' (preferred) OR SignedIn/SignedOut components from @clerk/nextjs for conditional rendering",
         "Preserves the same visual output (welcome message when signed in, sign-in prompt when not)",
-        "Page works as a server component"
+        "Page works as a server component",
+        "Wraps the server-rendered Show in <Suspense>, so next build passes with cacheComponents: true"
       ]
     },
     {
@@ -47,7 +48,8 @@
       "scaffold": "nextjs-basic-auth",
       "assertions": [
         "Does NOT import or call createRouteMatcher",
-        "The dashboard page itself calls await auth.protect(), or checks auth() and redirects to sign-in",
+        "The dashboard page itself (or an async child it renders) calls await auth.protect(), or checks auth() and redirects to sign-in",
+        "The dashboard page reads auth inside <Suspense> or next to a loading.tsx, so next build passes with cacheComponents: true",
         "The /api/dashboard route handler checks auth itself and rejects signed-out requests",
         "The Server Action rejects signed-out calls before it reads protected data or performs any mutation",
         "/ and /sign-in remain reachable while signed out",

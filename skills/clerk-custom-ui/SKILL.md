@@ -7,7 +7,7 @@ allowed-tools: WebFetch
 license: MIT
 metadata:
   author: clerk
-  version: 2.3.0
+  version: 2.3.1
 ---
 
 # Custom UI
@@ -46,14 +46,12 @@ Appearance customization applies to both Core 2 and the current SDK.
 
 ### Component Customization Options
 
-| Task | Documentation |
-|------|---------------|
-| Appearance prop overview | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview |
-| Options (structure, logo, buttons) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/options |
-| Themes (pre-built dark/light) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes |
-| Variables (colors, fonts, spacing) | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables |
-| CAPTCHA configuration | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha |
-| Bring your own CSS | https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css |
+- [Appearance prop overview](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/overview)
+- [Options](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/options): structure, logo, buttons
+- [Themes](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/themes): prebuilt dark and light themes
+- [Variables](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/variables): colors, fonts, spacing
+- [CAPTCHA configuration](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/captcha)
+- [Bring your own CSS](https://clerk.com/docs/nextjs/guides/customizing-clerk/appearance-prop/bring-your-own-css)
 
 ### Appearance Pattern
 
@@ -155,7 +153,7 @@ Also import shadcn CSS in your global styles:
 
 1. Identify customization needs (custom flow or appearance)
 2. For custom flows: check SDK version → read appropriate `core-2/` or `core-3/` reference
-3. For appearance: WebFetch the appropriate documentation from table above
+3. For appearance: WebFetch the appropriate documentation above
 4. Apply appearance prop to your Clerk components or build custom flow with hooks
 
 ## Common Pitfalls

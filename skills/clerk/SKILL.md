@@ -39,6 +39,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Framework detection and quickstart
 - Environment setup, API keys, temporary dev keys via `clerk init`
 - Migration from other auth providers
+- Native iOS and macOS apps in Xcode, through the iOS setup prompt
 
 **Operating Clerk from the CLI** → Use `clerk-cli`
 - Auth, linking, `doctor`, and environment pulls
@@ -124,9 +125,10 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Test utilities
 
 **Swift / native iOS auth** → Use `clerk-swift`
-- Native iOS Swift and SwiftUI projects
-- ClerkKit and ClerkKitUI implementation guidance
+- Sign-in UI in native iOS and macOS Swift and SwiftUI projects
+- ClerkKitUI prebuilt views and custom ClerkKit flows
 - Source-driven patterns from `clerk-ios`
+- If Clerk isn't set up yet, set it up first through `clerk-setup`
 
 **Android / native mobile auth** → Use `clerk-android`
 - Native Android Kotlin and Jetpack Compose projects
@@ -158,7 +160,7 @@ If you know your task, you can directly access:
 - `/clerk-billing` - Billing & subscriptions
 - `/clerk-webhooks` - Webhooks
 - `/clerk-testing` - Testing
-- `/clerk-swift` - Swift/native iOS
+- `/clerk-swift` - Swift/native iOS and macOS UI
 - `/clerk-android` - Native Android
 - `/clerk-backend-api` - Backend REST API
 
