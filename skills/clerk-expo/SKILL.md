@@ -9,7 +9,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 2.0.1
+  version: 2.0.2
 compatibility: Requires @clerk/expo v3.4+ (written against v3.6.x, July 2026). Expo SDK 53-56, React Native 0.75+.
 ---
 
