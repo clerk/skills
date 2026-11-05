@@ -4,6 +4,8 @@ Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the 
 
 > Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
 
+For CLI setup and key retrieval, follow `clerk-setup` over the quickstart; use the quickstart for Expo-specific integration details.
+
 ## Supported versions
 
 Written against `@clerk/expo` v3.6.x (July 2026). Peer requirements: Expo SDK 53–56, React Native ≥ 0.75, React 18 or 19. If the project's Expo SDK or RN version is below the floor, upgrading the app comes before adding Clerk.
@@ -39,7 +41,7 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 Rules:
 - The prefix must be `EXPO_PUBLIC_` — Metro only inlines env vars with this prefix into the client bundle.
 - Read the variable in app code and pass it explicitly to `ClerkProvider`. Env reads inside `node_modules` are not inlined in production builds.
-- If no key is available, follow the appropriate setup path for a new or existing Clerk application in [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) before continuing. Never replace an existing Clerk application's keys by running a fresh `init`.
+- If no key is available, follow [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Expo has no accountless keys, so a signed-out `init` will not write one. For a new application, have the developer sign in before `init`. For an existing application, have them sign in, link the selected application if needed, then run `npx -y clerk@latest env pull`. Alternatively, ask the developer for the publishable key from Clerk Dashboard → **API keys** and wait; set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` as shown above. Do not continue without a real key or run a fresh `init` for an existing Clerk project.
 
 ## 3. Dashboard prerequisites
 
