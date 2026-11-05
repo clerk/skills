@@ -41,7 +41,7 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 Rules:
 - The prefix must be `EXPO_PUBLIC_` — Metro only inlines env vars with this prefix into the client bundle.
 - Read the variable in app code and pass it explicitly to `ClerkProvider`. Env reads inside `node_modules` are not inlined in production builds.
-- If no key is available, follow [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Expo has no accountless keys, so a signed-out `init` will not write one. For a new application, have the developer sign in before `init`. For an existing application, have them sign in, link the selected application if needed, then run `npx -y clerk@latest env pull`. Alternatively, ask the developer for the publishable key from Clerk Dashboard → **API keys** and wait; set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` as shown above. Do not continue without a real key or run a fresh `init` for an existing Clerk project.
+- If no key is available, follow [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Expo has no accountless keys, and an agent's `init` won't write one without a target application, even when signed in. For a new application, have the developer sign in and select or create an application, then run `npx -y clerk@latest init --app <application_id>`. For an existing application, have them sign in, link the selected application if needed, then run `npx -y clerk@latest env pull`. Alternatively, ask the developer for the publishable key from Clerk Dashboard → **API keys** and wait; set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` as shown above. Don't continue without a real key, and never run a fresh `init` for an existing Clerk project.
 
 ## 3. Dashboard prerequisites
 
