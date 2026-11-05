@@ -190,10 +190,12 @@ clerk security audit --instance prod > /tmp/audit.json
 jq '.score' /tmp/audit.json
 jq '[.findings[] | select(.status != "met") | {id, severity, status, decision, customFlows}]' /tmp/audit.json
 
-# Preview, then apply after the user agrees. Ask which factors / strategy for mfa and passwordless-auth.
-clerk security fix --all --instance prod --dry-run
-clerk security fix --all --factors authenticator,backup-code --instance prod --yes
+# Ask the user for --factors / --strategy first. Preview and apply with identical flags.
+clerk security fix --all --factors <factors> --strategy <strategy> --instance prod --dry-run
+clerk security fix --all --factors <factors> --strategy <strategy> --instance prod --yes
 ```
+
+Omitting `--factors` or `--strategy` skips `mfa` or `passwordless-auth` in both commands; that is a valid choice if the user isn't ready for it.
 
 Findings are `met`, `unmet`, or `blocked` (`mfa-required` waits on `mfa`; both in one call works). `--all` covers critical and recommended checks; add `--good-to-have` or name ids for the rest. `oauth-custom-credentials` stays manual. `fix` prints `{changed, dryRun, applied, decisions, skipped, score: {before, after}, remaining}`. `clerk security checks` lists every id offline.
 
