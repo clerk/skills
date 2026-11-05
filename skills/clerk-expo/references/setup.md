@@ -1,6 +1,6 @@
 # Setup: install, provider, token cache, builds
 
-Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what `init` already did instead of repeating it.
+Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what clerk-setup already did instead of repeating it.
 
 > Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): https://clerk.com/docs/getting-started/quickstart (Expo SDK tab)
 
@@ -26,7 +26,7 @@ npx expo install expo-dev-client
 | Biometrics (`useLocalCredentials`) | `npx expo install expo-local-authentication` |
 | Passkeys | `npx expo install @clerk/expo-passkeys` |
 
-For CLI bootstrap, follow `clerk-setup` rather than starting a second `init` path from this reference. `init` may leave Expo-specific steps to complete; use this reference for those remaining steps.
+`init` wraps the root layout with `ClerkProvider` and `tokenCache`. It doesn't install `expo-secure-store` or `expo-dev-client`, or add the config plugin, so complete those steps here.
 
 ## 2. Publishable key
 

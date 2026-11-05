@@ -59,7 +59,7 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 ## Quick Workflow
 
 1. Confirm project type (Expo/RN) and pick the path per the Intent Map / Default Path rules.
-2. For initial application setup, existing-app linking, or missing keys, follow the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Do not start a separate `init` flow here. Then follow the [Expo setup reference](references/setup.md) for provider, token cache, config plugin, and build-type steps not already completed.
+2. For initial application setup, existing-app linking, or missing keys, follow the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Don't start a separate `init` flow here. Then follow the [Expo setup reference](references/setup.md) for provider, token cache, config plugin, and build-type steps not already completed.
 3. Verify dashboard prerequisites (Gate 2 and Gate 3 below).
 4. Implement from the selected reference only.
 5. Verify by building, not just by writing:
