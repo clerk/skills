@@ -28,7 +28,7 @@ npx expo install expo-dev-client
 | Biometrics (`useLocalCredentials`) | `npx expo install expo-local-authentication` |
 | Passkeys | `npx expo install @clerk/expo-passkeys` |
 
-`init` wraps the root layout with `ClerkProvider` and `tokenCache`. It doesn't install `expo-secure-store` or `expo-dev-client`, or add the config plugin, so complete those steps here.
+`init` wraps the root layout with `ClerkProvider` and `tokenCache` when it can, so check the layout before step 5. It doesn't install `expo-secure-store` or `expo-dev-client`, or add the config plugin, so complete those steps here.
 
 ## 2. Publishable key
 
