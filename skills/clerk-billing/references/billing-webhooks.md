@@ -33,6 +33,17 @@ Payment attempt events (2):
 
 > There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
 
+Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks. The closest Stripe equivalents are:
+
+| Intent                     | Stripe event name               | Clerk event name            |
+| -------------------------- | ------------------------------- | --------------------------- |
+| Subscription created       | `customer.subscription.created` | `subscription.created`      |
+| Subscription updated       | `customer.subscription.updated` | `subscription.updated`      |
+| Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
+| Subscription item past due | `invoice.payment_failed`        | `subscriptionItem.pastDue`  |
+
+The other Clerk events in the catalog above have no one-to-one Stripe event in this comparison.
+
 ## Payload Shape (important)
 
 Clerk billing webhook payloads are nested. Common mistakes come from destructuring fields that live deeper than the top level. The canonical shape:

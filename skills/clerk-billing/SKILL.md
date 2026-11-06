@@ -346,67 +346,9 @@ export async function GET() {
 
 ### 9. Handle Billing Webhooks
 
-> **Clerk event names differ from Stripe event names.** Clerk billing webhooks use dot-notation and camelCase, not Stripe's underscore format.
->
-> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
->
-> | Intent                             | Stripe event name               | Clerk event name                   |
-> | ---------------------------------- | ------------------------------- | ---------------------------------- |
-> | Subscription created               | `customer.subscription.created` | `subscription.created`             |
-> | Subscription updated               | `customer.subscription.updated` | `subscription.updated`             |
-> | Subscription active                | (none)                          | `subscription.active`              |
-> | Subscription past due              | (none)                          | `subscription.pastDue`             |
-> | Subscription item canceled         | `customer.subscription.deleted` | `subscriptionItem.canceled`        |
-> | Subscription item past due         | `invoice.payment_failed`        | `subscriptionItem.pastDue`         |
-> | Subscription item updated          | (none)                          | `subscriptionItem.updated`         |
-> | Subscription item active           | (none)                          | `subscriptionItem.active`          |
-> | Subscription item upcoming renewal | (none)                          | `subscriptionItem.upcoming`        |
-> | Subscription item ended            | (none)                          | `subscriptionItem.ended`           |
-> | Subscription item abandoned        | (none)                          | `subscriptionItem.abandoned`       |
-> | Subscription item expired          | (none)                          | `subscriptionItem.expired`         |
-> | Subscription item incomplete       | (none)                          | `subscriptionItem.incomplete`      |
-> | Free trial ending soon             | (none)                          | `subscriptionItem.freeTrialEnding` |
-> | Payment attempt created            | (none)                          | `paymentAttempt.created`           |
-> | Payment attempt updated            | (none)                          | `paymentAttempt.updated`           |
->
-> Always use Clerk's event names, never Stripe's, in `evt.type` checks.
+> **Clerk event names differ from Stripe event names.** Use Clerk's dot-notation and camelCase names in `evt.type` checks. There is no `subscription.canceled` event; cancellation fires as `subscriptionItem.canceled`.
 
-> **Payload shape.** Clerk billing webhook payloads are nested. The subscribing entity lives under `evt.data.payer` (fields: `user_id?`, `organization_id?`). The plan info is on each item under `evt.data.items[i].plan.slug`. The subscription id is simply `evt.data.id`. Subscription items do not carry a `subscription_id` field back-reference, so in `subscriptionItem.*` handlers you identify the record by the item id (`evt.data.id`) or look up by payer plus plan.
-
-Minimal handler to anchor the pattern (import from `@clerk/nextjs/webhooks`, verify, branch on Clerk event name):
-
-```typescript
-import { verifyWebhook } from '@clerk/nextjs/webhooks'
-import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
-
-export async function POST(req: NextRequest) {
-	let evt
-	try {
-		evt = await verifyWebhook(req)
-	} catch {
-		return new Response('Verification failed', { status: 400 })
-	}
-
-	if (evt.type === 'subscription.created') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.upsert({
-			where: { subscriptionId: id },
-			create: { subscriptionId: id, entityId, plan, status },
-			update: { entityId, plan, status },
-		})
-	}
-
-	// Add more branches per the event catalog above (subscription.updated,
-	// subscriptionItem.canceled, subscriptionItem.pastDue, etc.)
-
-	return new Response('OK', { status: 200 })
-}
-```
-
-For the full template covering all 15 events, the TS type declarations from `@clerk/backend`, the `proxy.ts` public-route setup, and the subscription status value table, see `references/billing-webhooks.md`.
+Billing payloads are nested: the subscribing entity is `evt.data.payer`, and plan slugs are on subscription items. Read [billing webhooks](references/billing-webhooks.md) for the event catalog, Stripe-name comparison, payload shapes, verified handler, and public-route setup before implementing a handler.
 
 ### 10. Upgrade / Downgrade Flow
 

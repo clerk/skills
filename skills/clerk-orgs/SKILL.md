@@ -332,12 +332,7 @@ export default function Page() {
 
 ## Default Roles + System Permissions
 
-| Role         | Default meaning                                                    |
-| ------------ | ------------------------------------------------------------------ |
-| `org:admin`  | Full access — all System Permissions, can manage org + memberships |
-| `org:member` | Read members + Read billing Permissions only                       |
-
-You can create up to 10 custom roles per instance in Dashboard → Organizations → Roles & Permissions. Role-per-org is controlled via **Role Sets** — see `references/roles-permissions.md` for the full model (custom roles, Creator/Default role settings, role sets, and the System Permissions catalog).
+The default roles are `org:admin` and `org:member`. Read [roles and permissions](references/roles-permissions.md) for their exact System Permissions, custom roles (up to 10 per instance), Creator/Default role settings, and Role Sets.
 
 ## Billing Checks
 
@@ -413,15 +408,6 @@ For a complete slug-scoped admin-page example, read [Next.js organization patter
 ## Invitations
 
 For a server-side invitation example and the full lifecycle (list, revoke, bulk create, built-in UI), read [references/invitations.md](references/invitations.md). Check a role that carries `org:sys_memberships:manage`; `has()` cannot check System Permissions directly.
-
-## Workflow
-
-1. **Enable** — Organizations + Membership mode in Dashboard
-2. **Create org** — via UI component or Backend API
-3. **Invite members** — Backend API or built-in UI, with `inviterUserId`
-4. **Gate access** — `has({ role })`, or `has({ permission })` with a custom Permission. `has()` can't check System Permissions (`org:sys_*`)
-5. **Scope routes** — `orgSlug === params.slug` on every protected page
-6. **Switch orgs** — `<OrganizationSwitcher />` handles the whole flow
 
 ## See Also
 
