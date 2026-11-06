@@ -17,26 +17,27 @@ metadata:
 > **Version**: Check `package.json` for the SDK version — see `clerk` skill for the version table. This determines which custom flow references to use below.
 
 This skill covers two areas:
+
 1. **Custom authentication flows** — build your own sign-in/sign-up UI with hooks
 2. **Appearance customization** — theme, style, and brand Clerk's pre-built components
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Custom sign-in (Core 2 / LTS) | core-2/custom-sign-in.md |
-| Custom sign-up (Core 2 / LTS) | core-2/custom-sign-up.md |
-| Custom sign-in (Current SDK v7+) | core-3/custom-sign-in.md |
-| Custom sign-up (Current SDK v7+) | core-3/custom-sign-up.md |
+| Task                                 | Reference                |
+| ------------------------------------ | ------------------------ |
+| Custom sign-in (Core 2 / LTS)        | core-2/custom-sign-in.md |
+| Custom sign-up (Core 2 / LTS)        | core-2/custom-sign-up.md |
+| Custom sign-in (Current SDK v7+)     | core-3/custom-sign-in.md |
+| Custom sign-up (Current SDK v7+)     | core-3/custom-sign-up.md |
 | Show component pattern (Current SDK) | core-3/show-component.md |
 
 ## Custom Flow References
 
-| Task | Core 2 | Current |
-|------|--------|---------|
-| Custom sign-in (useSignIn) | `core-2/custom-sign-in.md` | `core-3/custom-sign-in.md` |
-| Custom sign-up (useSignUp) | `core-2/custom-sign-up.md` | `core-3/custom-sign-up.md` |
-| `<Show>` component | *(use `<SignedIn>`, `<SignedOut>`, `<Protect>`)* | `core-3/show-component.md` |
+| Task                       | Core 2                                           | Current                    |
+| -------------------------- | ------------------------------------------------ | -------------------------- |
+| Custom sign-in (useSignIn) | `core-2/custom-sign-in.md`                       | `core-3/custom-sign-in.md` |
+| Custom sign-up (useSignUp) | `core-2/custom-sign-up.md`                       | `core-3/custom-sign-up.md` |
+| `<Show>` component         | _(use `<SignedIn>`, `<SignedOut>`, `<Protect>`)_ | `core-3/show-component.md` |
 
 ---
 
@@ -74,11 +75,11 @@ Appearance customization applies to both Core 2 and the current SDK.
 
 ### variables (colors, typography, borders)
 
-| Property | Description |
-|----------|-------------|
-| `colorPrimary` | Primary color throughout |
-| `colorBackground` | Background color |
-| `borderRadius` | Border radius (default: `0.375rem`) |
+| Property          | Description                         |
+| ----------------- | ----------------------------------- |
+| `colorPrimary`    | Primary color throughout            |
+| `colorBackground` | Background color                    |
+| `borderRadius`    | Border radius (default: `0.375rem`) |
 
 **Opacity change:** `colorRing` and `colorModalBackdrop` now render at full opacity. Use explicit `rgba()` values if you need transparency.
 
@@ -86,12 +87,12 @@ Appearance customization applies to both Core 2 and the current SDK.
 
 ### options (structure, logo, social buttons)
 
-| Property | Description |
-|----------|-------------|
-| `logoImageUrl` | URL to custom logo |
-| `socialButtonsVariant` | `'blockButton'` \| `'iconButton'` \| `'auto'` |
-| `socialButtonsPlacement` | `'top'` \| `'bottom'` |
-| `showOptionalFields` | Show optional fields (default: `false`) |
+| Property                 | Description                                   |
+| ------------------------ | --------------------------------------------- |
+| `logoImageUrl`           | URL to custom logo                            |
+| `socialButtonsVariant`   | `'blockButton'` \| `'iconButton'` \| `'auto'` |
+| `socialButtonsPlacement` | `'top'` \| `'bottom'`                         |
+| `showOptionalFields`     | Show optional fields (default: `false`)       |
 
 > **Core 2 ONLY (skip if current SDK):** This property is called `layout`, not `options`. Also, `showOptionalFields` defaulted to `true`.
 
@@ -136,15 +137,18 @@ import { shadcn } from '@clerk/ui/themes'
 ```
 
 Also import shadcn CSS in your global styles:
+
 ```css
 @import 'tailwindcss';
 @import '@clerk/ui/themes/shadcn.css';
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Import from `@clerk/themes` and `@clerk/themes/shadcn.css`:
+>
 > ```typescript
 > import { shadcn } from '@clerk/themes'
 > ```
+>
 > ```css
 > @import '@clerk/themes/shadcn.css';
 > ```
@@ -158,12 +162,12 @@ Also import shadcn CSS in your global styles:
 
 ## Common Pitfalls
 
-| Issue | Solution |
-|-------|----------|
-| Colors not applying | Use `colorPrimary` not `primaryColor` |
-| Logo not showing | Put `logoImageUrl` inside `options: {}` (or `layout: {}` in Core 2) |
-| Social buttons wrong | Add `socialButtonsVariant: 'iconButton'` in `options` (or `layout` in Core 2) |
-| Styling not working | Use appearance prop, not direct CSS (unless with bring-your-own-css) |
+| Issue                        | Solution                                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------------------------- |
+| Colors not applying          | Use `colorPrimary` not `primaryColor`                                                         |
+| Logo not showing             | Put `logoImageUrl` inside `options: {}` (or `layout: {}` in Core 2)                           |
+| Social buttons wrong         | Add `socialButtonsVariant: 'iconButton'` in `options` (or `layout` in Core 2)                 |
+| Styling not working          | Use appearance prop, not direct CSS (unless with bring-your-own-css)                          |
 | Hook returns different shape | Check SDK version — Core 2 and current have completely different `useSignIn`/`useSignUp` APIs |
 
 ## See Also

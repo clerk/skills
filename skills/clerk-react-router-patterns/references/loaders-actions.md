@@ -45,13 +45,13 @@ export async function loader(args: Route.LoaderArgs) {
 
 ## Available Auth Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `userId` | `string \| null` | Current user ID |
-| `sessionId` | `string \| null` | Current session ID |
-| `orgId` | `string \| null` | Active org ID |
-| `orgRole` | `string \| null` | User's role in active org |
-| `has()` | `function` | Check permissions/features |
+| Field       | Type             | Description                |
+| ----------- | ---------------- | -------------------------- |
+| `userId`    | `string \| null` | Current user ID            |
+| `sessionId` | `string \| null` | Current session ID         |
+| `orgId`     | `string \| null` | Active org ID              |
+| `orgRole`   | `string \| null` | User's role in active org  |
+| `has()`     | `function`       | Check permissions/features |
 
 ## CRITICAL
 

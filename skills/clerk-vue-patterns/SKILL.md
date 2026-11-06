@@ -17,11 +17,11 @@ SDK: `@clerk/vue` v2+ (Vue 3). For Nuxt, use `clerk-nuxt-patterns`.
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Composables: useAuth, useUser, useOrganization | references/composables.md |
-| Vue Router navigation guards | references/vue-router-guards.md |
-| Pinia store with auth state | references/pinia-integration.md |
+| Task                                           | Reference                       |
+| ---------------------------------------------- | ------------------------------- |
+| Composables: useAuth, useUser, useOrganization | references/composables.md       |
+| Vue Router navigation guards                   | references/vue-router-guards.md |
+| Pinia store with auth state                    | references/pinia-integration.md |
 
 ## Mental Model
 
@@ -90,17 +90,18 @@ const { userMemberships, setActive } = useOrganizationList()
 
 ## Common Pitfalls
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Composables return `undefined` | Not inside `ClerkProvider` tree | Ensure `app.use(clerkPlugin, { publishableKey })` is called |
-| `userId` reactive but not updating | Destructuring loses reactivity | Use `const { userId } = useAuth()` (toRefs-style composable, reactive) |
+| Symptom                            | Cause                           | Fix                                                                    |
+| ---------------------------------- | ------------------------------- | ---------------------------------------------------------------------- |
+| Composables return `undefined`     | Not inside `ClerkProvider` tree | Ensure `app.use(clerkPlugin, { publishableKey })` is called            |
+| `userId` reactive but not updating | Destructuring loses reactivity  | Use `const { userId } = useAuth()` (toRefs-style composable, reactive) |
+
 ## Import Map
 
-| What | Import |
-|------|--------|
-| Composables | `@clerk/vue` |
+| What         | Import       |
+| ------------ | ------------ |
+| Composables  | `@clerk/vue` |
 | Plugin setup | `@clerk/vue` |
-| Components | `@clerk/vue` |
+| Components   | `@clerk/vue` |
 
 ## See Also
 

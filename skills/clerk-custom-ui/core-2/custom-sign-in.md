@@ -12,11 +12,11 @@ import { useSignIn } from '@clerk/nextjs' // or @clerk/clerk-react, @clerk/clerk
 const { signIn, isLoaded, setActive } = useSignIn()
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `signIn` | `SignIn` | Sign-in object with methods |
-| `isLoaded` | `boolean` | Whether the hook has loaded |
-| `setActive` | `(params) => Promise` | Sets the active session |
+| Property    | Type                  | Description                 |
+| ----------- | --------------------- | --------------------------- |
+| `signIn`    | `SignIn`              | Sign-in object with methods |
+| `isLoaded`  | `boolean`             | Whether the hook has loaded |
+| `setActive` | `(params) => Promise` | Sets the active session     |
 
 ## Sign-In Flow
 

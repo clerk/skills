@@ -17,21 +17,21 @@ metadata:
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| useAuth / useUser / useClerk hooks | references/hooks.md |
-| Protected routes with React Router | references/protected-routes.md |
-| Custom sign-in / sign-up forms | references/custom-flows.md |
-| React Router v6/v7 integration | references/router-integration.md |
+| Task                               | Reference                        |
+| ---------------------------------- | -------------------------------- |
+| useAuth / useUser / useClerk hooks | references/hooks.md              |
+| Protected routes with React Router | references/protected-routes.md   |
+| Custom sign-in / sign-up forms     | references/custom-flows.md       |
+| React Router v6/v7 integration     | references/router-integration.md |
 
 ## References
 
-| Reference | Description |
-|-----------|-------------|
-| `references/hooks.md` | useAuth, isLoaded guard |
-| `references/protected-routes.md` | ProtectedRoute pattern |
-| `references/custom-flows.md` | useSignIn, useSignUp flows |
-| `references/router-integration.md` | React Router v6/v7 setup |
+| Reference                          | Description                |
+| ---------------------------------- | -------------------------- |
+| `references/hooks.md`              | useAuth, isLoaded guard    |
+| `references/protected-routes.md`   | ProtectedRoute pattern     |
+| `references/custom-flows.md`       | useSignIn, useSignUp flows |
+| `references/router-integration.md` | React Router v6/v7 setup   |
 
 ## Setup
 
@@ -40,11 +40,13 @@ npm install @clerk/react
 ```
 
 `.env`:
+
 ```
 VITE_CLERK_PUBLISHABLE_KEY=pk_...
 ```
 
 `src/main.tsx`:
+
 ```tsx
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -135,13 +137,13 @@ export function DataFetcher() {
 
 ## Common Pitfalls
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `isSignedIn` is `undefined` | `isLoaded` is still `false` | Always check `isLoaded` first |
-| `ClerkProvider` missing | Provider not at root | Wrap `<App>` in `main.tsx` |
-| Env var undefined | Wrong Vite prefix | Use `VITE_CLERK_PUBLISHABLE_KEY`, access via `import.meta.env` |
-| Token is `null` | User not signed in | Null-check `getToken()` result |
-| Sign-in component shows blank | No `publishableKey` on provider | Pass `publishableKey` explicitly |
+| Symptom                       | Cause                           | Fix                                                            |
+| ----------------------------- | ------------------------------- | -------------------------------------------------------------- |
+| `isSignedIn` is `undefined`   | `isLoaded` is still `false`     | Always check `isLoaded` first                                  |
+| `ClerkProvider` missing       | Provider not at root            | Wrap `<App>` in `main.tsx`                                     |
+| Env var undefined             | Wrong Vite prefix               | Use `VITE_CLERK_PUBLISHABLE_KEY`, access via `import.meta.env` |
+| Token is `null`               | User not signed in              | Null-check `getToken()` result                                 |
+| Sign-in component shows blank | No `publishableKey` on provider | Pass `publishableKey` explicitly                               |
 
 ## See Also
 

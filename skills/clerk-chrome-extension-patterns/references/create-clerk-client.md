@@ -3,6 +3,7 @@
 ## When to Use
 
 Use `createClerkClient()` when:
+
 - Your extension doesn't use React
 - You need Clerk in a background service worker
 - You need Clerk in a content script context (via message passing from background)
@@ -15,6 +16,7 @@ Import from `@clerk/chrome-extension/client`, NOT from `@clerk/chrome-extension`
 The key option is `background: true`. This tells Clerk to refresh the session token continuously, even when no popup or side panel is open. Without it, tokens expire after 60 seconds of the UI being closed.
 
 `src/background/index.ts`:
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -80,6 +82,7 @@ async function makeAuthenticatedRequest() {
 For popups or side panels that use plain TypeScript instead of React:
 
 `src/popup.ts`:
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -110,11 +113,11 @@ clerk.load({
 
 ## createClerkClient() Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `publishableKey` | `string` | Required. Your Clerk publishable key. |
-| `background` | `boolean` | Set `true` in service workers to keep sessions fresh. |
-| `syncHost` | `string` | The web app domain to sync auth from (headless extensions). |
+| Option           | Type      | Description                                                 |
+| ---------------- | --------- | ----------------------------------------------------------- |
+| `publishableKey` | `string`  | Required. Your Clerk publishable key.                       |
+| `background`     | `boolean` | Set `true` in service workers to keep sessions fresh.       |
+| `syncHost`       | `string`  | The web app domain to sync auth from (headless extensions). |
 
 ## Making Authenticated API Calls from Background
 

@@ -3,6 +3,7 @@
 ## When to Use
 
 Use `syncHost` when you need:
+
 - OAuth (Google, GitHub, etc.)
 - SAML
 - Email magic links
@@ -19,6 +20,7 @@ The extension reads Clerk's session cookie from your web app's domain using `hos
 Use separate files for dev vs prod so Plasmo passes the right values to each build.
 
 `.env.development`:
+
 ```
 PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
@@ -26,6 +28,7 @@ PLASMO_PUBLIC_CLERK_SYNC_HOST=http://localhost
 ```
 
 `.env.production`:
+
 ```
 PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_FRONTEND_API=https://clerk.your-domain.com

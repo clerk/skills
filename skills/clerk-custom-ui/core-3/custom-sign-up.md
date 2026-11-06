@@ -10,11 +10,11 @@ import { useSignUp } from '@clerk/nextjs' // or @clerk/react, @clerk/expo
 const { signUp, errors, fetchStatus } = useSignUp()
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `signUp` | `SignUpFuture` | Sign-up object with namespaced methods |
-| `errors` | `Errors<SignUpFields>` | Structured error object |
-| `fetchStatus` | `'idle' \| 'fetching'` | Network request status |
+| Property      | Type                   | Description                            |
+| ------------- | ---------------------- | -------------------------------------- |
+| `signUp`      | `SignUpFuture`         | Sign-up object with namespaced methods |
+| `errors`      | `Errors<SignUpFields>` | Structured error object                |
+| `fetchStatus` | `'idle' \| 'fetching'` | Network request status                 |
 
 ## Sign-Up Methods
 
