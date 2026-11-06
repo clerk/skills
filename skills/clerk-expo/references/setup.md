@@ -1,8 +1,10 @@
 # Setup: install, provider, token cache, builds
 
-Shared prerequisites for every path (prebuilt or custom). Complete this file top to bottom before implementing a flow.
+Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what `clerk-setup` already did instead of repeating it.
 
 > Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
+
+For CLI setup and key retrieval, follow `clerk-setup` over the quickstart; use the quickstart for Expo-specific integration details.
 
 ## Supported versions
 
@@ -26,7 +28,7 @@ npx expo install expo-dev-client
 | Biometrics (`useLocalCredentials`) | `npx expo install expo-local-authentication` |
 | Passkeys | `npx expo install @clerk/expo-passkeys` |
 
-Alternative bootstrap: `npx clerk@latest init --framework expo` installs `@clerk/expo` and writes the publishable key to the env file (it does not scaffold screens).
+`init` wraps the root layout with `ClerkProvider` and `tokenCache` when it can, so check the layout before step 5. It doesn't install `expo-secure-store` or `expo-dev-client`, or add the config plugin, so complete those steps here.
 
 ## 2. Publishable key
 
@@ -39,7 +41,7 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 Rules:
 - The prefix must be `EXPO_PUBLIC_` — Metro only inlines env vars with this prefix into the client bundle.
 - Read the variable in app code and pass it explicitly to `ClerkProvider`. Env reads inside `node_modules` are not inlined in production builds.
-- If no key is available, ask the developer (Clerk Dashboard → API keys) and wait.
+- If no key is available, follow [the Expo skill's publishable-key gate](../SKILL.md#execution-gates-do-not-skip). Set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` as shown above, and wait until a real key is available.
 
 ## 3. Dashboard prerequisites
 

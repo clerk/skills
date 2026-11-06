@@ -9,7 +9,7 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 2.0.1
+  version: 2.0.2
 compatibility: Requires @clerk/expo v3.4+ (written against v3.6.x, July 2026). Expo SDK 53-56, React Native 0.75+.
 ---
 
@@ -60,7 +60,7 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 ## Quick Workflow
 
 1. Confirm project type (Expo/RN) and pick the path per the Intent Map / Default Path rules.
-2. Follow references/setup.md: install, env key, provider, token cache, config plugin, build type.
+2. For initial application setup, existing-app linking, or missing keys, follow the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Don't start a separate `init` flow here. Then follow the [Expo setup reference](references/setup.md) for provider, token cache, config plugin, and build-type steps not already completed.
 3. Verify dashboard prerequisites (Gate 2 and Gate 3 below).
 4. Implement from the selected reference only.
 5. Verify by building, not just by writing:
@@ -70,7 +70,7 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 
 ## Execution Gates (Do Not Skip)
 
-1. **Publishable key** — Read from `process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (`.env` file). Never `NEXT_PUBLIC_`, never hardcoded. If no key exists, ask the developer for one (or run `npx clerk@latest init --framework expo`, which installs the SDK and writes the env file) and wait before editing files.
+1. **Publishable key** — Read from `process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` in app code. Never `NEXT_PUBLIC_`, never hardcoded. If the key is missing, follow the appropriate new or existing application path in [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Expo has no accountless keys, and an agent's `init` won't write one without a target application, even when signed in. For a new application, have the developer sign in and select or create an application, then run `npx -y clerk@latest init --app <application_id>`. For an existing application, have them sign in, link the selected application if needed, then run `npx -y clerk@latest env pull`. Alternatively, ask the developer for the publishable key from Clerk Dashboard → **API keys** and wait. Don't continue until a real key is set, and never run a fresh `init` for an existing Clerk project.
 2. **Native API dashboard toggle** — Clerk's Native API must be enabled for the instance: Clerk Dashboard → **Native applications** (`https://dashboard.clerk.com/~/native-applications`). Tell the developer to verify this during setup; it is required for any native integration.
 3. **Factor availability** — Before implementing a specific strategy (SMS, email code, social provider), confirm it's enabled for the instance. Derive the Frontend API URL from the publishable key (base64-decode the middle segment) and fetch `<frontendApiUrl>/v1/environment?_is_native=true`, or ask the developer to check the dashboard (**User & authentication**). SMS in particular is instance-configuration-dependent — code written for a disabled factor fails at runtime, not build time.
 4. **Current custom-flows API only** — `useSignIn()` / `useSignUp()` from `@clerk/expo` (v3.4+) return `{ signIn, errors, fetchStatus }` and use method-based flows: `signIn.password()`, `signIn.phoneCode.sendCode()`, `signIn.finalize()`. Never generate the legacy pattern: destructuring `isLoaded`/`setActive` from `useSignIn()`/`useSignUp()` (the current hooks don't return them), or `signIn.create()` chained with `prepareFirstFactor()`/`attemptFirstFactor()` + `setActive({ session })`. That pattern lives at `@clerk/expo/legacy` and is only for maintaining existing legacy code, never for new work. Scope notes: `isLoaded` from `useAuth()`/`useUser()` is current API and required in guards; `signIn.create()` itself still exists for advanced cases — prefer the factor-specific methods.
