@@ -77,8 +77,8 @@ If that prints `latest` or any version you trust, use bare `clerk` for the rest 
 
 Otherwise fall back to a package runner, in this order (matches the CLI's own `preferredRunner` logic, which prefers the runner that matches the project's lockfile):
 
-| Project package manager   | Invocation                       |
-| ------------------------- | -------------------------------- |
+| Project package manager   | Invocation              |
+| ------------------------- | ----------------------- |
 | bun (`bun.lock*`)         | `bunx clerk@latest`     |
 | npm (`package-lock.json`) | `npx -y clerk@latest`   |
 | pnpm (`pnpm-lock.yaml`)   | `pnpm dlx clerk@latest` |
@@ -105,7 +105,7 @@ If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <c
 
 ## Accountless setup
 
-`clerk init` does **not** require `clerk auth login`: on a framework with accountless support, an unauthenticated bootstrap with no `--app`, or an unauthenticated agent run with no `--app` or existing project link, mints an unclaimed accountless app with temporary development keys — no account, no browser, no flag. (A signed-out human re-running it in an *existing* project gets the login flow instead — `--accountless` forces the temporary-keys path.) Most instance commands then work on that key alone.
+`clerk init` does **not** require `clerk auth login`: on a framework with accountless support, an unauthenticated bootstrap with no `--app`, or an unauthenticated agent run with no `--app` or existing project link, mints an unclaimed accountless app with temporary development keys — no account, no browser, no flag. (A signed-out human re-running it in an _existing_ project gets the login flow instead — `--accountless` forces the temporary-keys path.) Most instance commands then work on that key alone.
 
 Two things to know before you use it: the accountless path follows whatever `sk_` key is local — `sk_live_` included, claimed or not — so pass `--app <id>` when you mean a real app; and `clerk open` returns a credential-equivalent claim URL, never safe to paste into a log or PR.
 

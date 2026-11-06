@@ -24,7 +24,7 @@ Webhooks are **asynchronous and eventually consistent**. Delivery is fast but no
 - Notifications (welcome emails, Slack pings, internal alerts)
 - Integrations triggered by lifecycle events
 
-Do NOT rely on webhook delivery as part of a synchronous flow such as onboarding ("user signs up, then we read X from our DB"). For data the user just created, read it from the [Clerk session token](https://clerk.com/docs/guides/sessions/session-tokens) or call the Backend API directly. Webhooks fill the gap when you need data about *other* users or events the session token doesn't carry.
+Do NOT rely on webhook delivery as part of a synchronous flow such as onboarding ("user signs up, then we read X from our DB"). For data the user just created, read it from the [Clerk session token](https://clerk.com/docs/guides/sessions/session-tokens) or call the Backend API directly. Webhooks fill the gap when you need data about _other_ users or events the session token doesn't carry.
 
 ## Verify Every Webhook
 
@@ -228,6 +228,7 @@ For manual typing of nested payloads, import the JSON types from your framework'
 ## Payload Field Reference
 
 ### User events (`user.created`, `user.updated`, `user.deleted`)
+
 ```typescript
 const {
   id,                  // Clerk user ID
@@ -240,6 +241,7 @@ const {
 ```
 
 ### Organization events (`organization.created`, `organization.updated`, `organization.deleted`)
+
 ```typescript
 const {
   id,    // org ID
@@ -249,6 +251,7 @@ const {
 ```
 
 ### Organization Membership events (`organizationMembership.created`, `organizationMembership.updated`, `organizationMembership.deleted`)
+
 ```typescript
 const {
   organization,        // { id, name, ... }
@@ -294,15 +297,15 @@ const {
 
 ## Common Pitfalls
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Verification fails (Next.js) | Wrong import or usage | Use `@clerk/nextjs/webhooks`, pass `req` directly |
-| Verification fails (Express) | Using `express.json()` | Use `express.raw({ type: 'application/json' })` for webhook route |
-| Route not found (404) | Wrong path | Use `/api/webhooks` or preserve existing path |
+| Symptom                      | Cause                                                                       | Fix                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Verification fails (Next.js) | Wrong import or usage                                                       | Use `@clerk/nextjs/webhooks`, pass `req` directly                      |
+| Verification fails (Express) | Using `express.json()`                                                      | Use `express.raw({ type: 'application/json' })` for webhook route      |
+| Route not found (404)        | Wrong path                                                                  | Use `/api/webhooks` or preserve existing path                          |
 | 401 or 404 on every delivery | `auth.protect()` covers the webhook route (in middleware or in the handler) | Remove that check; `verifyWebhook()` is the only check the route needs |
-| No data in DB | Async job pending | Wait/check logs |
-| Duplicate entries | Only handling `user.created` | Also handle `user.updated` |
-| Timeouts | Handler too slow | Queue async work, return 200 first |
+| No data in DB                | Async job pending                                                           | Wait/check logs                                                        |
+| Duplicate entries            | Only handling `user.created`                                                | Also handle `user.updated`                                             |
+| Timeouts                     | Handler too slow                                                            | Queue async work, return 200 first                                     |
 
 ## Testing & Deployment
 
@@ -318,8 +321,8 @@ Add the printed relay URL (`https://webhooks.clerk.com/in/c_.../`) as a webhook 
 
 ## References
 
-| Reference | Description |
-|-----------|-------------|
+| Reference                  | Description                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
 | `references/frameworks.md` | Webhook handler examples for Express, Astro, Fastify, Nuxt, React Router, TanStack Start |
 
 ## See Also

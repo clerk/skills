@@ -20,10 +20,12 @@ Implement Clerk in Expo / React Native projects. This skill inlines verified pat
 ## Activation Rules
 
 Activate when either is true:
+
 - The user asks for auth in an Expo or React Native app, or mentions `@clerk/expo`, `ClerkProvider`, Expo Router auth, or Clerk hooks in a native app.
 - The project is Expo/React Native (`app.json` / `app.config.js`, `expo` in `package.json`, `metro.config.js`, `@clerk/expo` dependency).
 
 Route away when:
+
 - Native iOS/Swift project (`.xcodeproj`, `Package.swift`) → `clerk-swift`
 - Native Android/Kotlin project (`build.gradle` without React Native) → `clerk-android`
 - Web-only framework (Next.js, Remix, plain React, etc.) → the matching framework skill
@@ -32,17 +34,17 @@ Route away when:
 
 Match what the user asked for, then load the reference(s) listed. Load only what the task needs.
 
-| User intent (examples) | Path | Reference |
-|------------------------|------|-----------|
-| "Add auth to my app" / "add sign-in with Clerk" | Prebuilt native components (default) | references/setup.md + references/prebuilt-components.md |
-| "Add auth" but Expo Go / web / custom UI required | Custom flows | references/setup.md + references/custom-flows.md |
-| "Add phone / SMS auth", "email OTP", "passwordless" | Custom flow, `phoneCode` / `emailCode` | references/custom-flows.md |
-| "Sign in with Google/Apple/GitHub", "social login", "SSO" | Browser SSO or native buttons | references/sso-and-native-auth.md |
-| "MFA / 2FA / TOTP", "forgot password" | Custom flow additions | references/custom-flows.md |
-| "Email link" | Expo web custom flow; native apps use email codes for custom UI or `<AuthView />` in a development build | references/custom-flows.md + references/prebuilt-components.md |
-| "Protect routes/screens", "redirect if signed out" | Expo Router guards | references/protected-routes.md |
-| "Show user profile", "org switching", "push notifications", "sign out", "call my backend" | App recipes | references/recipes.md |
-| "Biometric login", "Face ID", "passkeys" | Device features | references/recipes.md |
+| User intent (examples)                                                                    | Path                                                                                                     | Reference                                                      |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| "Add auth to my app" / "add sign-in with Clerk"                                           | Prebuilt native components (default)                                                                     | references/setup.md + references/prebuilt-components.md        |
+| "Add auth" but Expo Go / web / custom UI required                                         | Custom flows                                                                                             | references/setup.md + references/custom-flows.md               |
+| "Add phone / SMS auth", "email OTP", "passwordless"                                       | Custom flow, `phoneCode` / `emailCode`                                                                   | references/custom-flows.md                                     |
+| "Sign in with Google/Apple/GitHub", "social login", "SSO"                                 | Browser SSO or native buttons                                                                            | references/sso-and-native-auth.md                              |
+| "MFA / 2FA / TOTP", "forgot password"                                                     | Custom flow additions                                                                                    | references/custom-flows.md                                     |
+| "Email link"                                                                              | Expo web custom flow; native apps use email codes for custom UI or `<AuthView />` in a development build | references/custom-flows.md + references/prebuilt-components.md |
+| "Protect routes/screens", "redirect if signed out"                                        | Expo Router guards                                                                                       | references/protected-routes.md                                 |
+| "Show user profile", "org switching", "push notifications", "sign out", "call my backend" | App recipes                                                                                              | references/recipes.md                                          |
+| "Biometric login", "Face ID", "passkeys"                                                  | Device features                                                                                          | references/recipes.md                                          |
 
 ## Default Path Decision
 
@@ -92,21 +94,21 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 
 ## Common Pitfalls
 
-| Level | Issue | Prevention |
-|-------|-------|------------|
-| CRITICAL | Generating legacy custom-flow code (`signIn.create` + `prepareFirstFactor` + `setActive`) | Use the current method-based API (Gate 4) |
-| CRITICAL | Using `useOAuth()` | Use `useSSO()` (Gate 5) |
-| CRITICAL | Implementing SMS/social auth without checking the factor is enabled | Check environment/dashboard first (Gate 3) |
-| CRITICAL | Native components targeted at Expo Go or web | Require a dev build; offer custom flows otherwise (Gate 8) |
-| CRITICAL | Sign-up screen missing `<View nativeID="clerk-captcha" />` | Always include it (Gate 10) |
-| HIGH | `NEXT_PUBLIC_` env prefix, or env var read inside `node_modules` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, passed explicitly to `ClerkProvider` |
-| HIGH | Session lost on restart | `tokenCache` from `@clerk/expo/token-cache` on the provider |
-| HIGH | Calling `setActive()` after `AuthView` / `UserButton` auth | Native components sync sessions automatically |
-| HIGH | Pairing `AuthView` with `useSignInWithGoogle`/`useSignInWithApple` | `AuthView` renders enabled social providers itself |
-| HIGH | Calling `WebBrowser.maybeCompleteAuthSession()` manually | `ClerkProvider` handles it |
-| HIGH | Splitting sign-in / sign-up without being asked | Combined flow by default (Gate 9) |
-| MEDIUM | Missing `isLoaded` check before `isSignedIn` in guards | Always gate on `isLoaded` first |
-| MEDIUM | Using `yalc`/`pnpm link` for local `@clerk/expo` development | Use Verdaccio or pkg.pr.new |
+| Level    | Issue                                                                                     | Prevention                                                                |
+| -------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| CRITICAL | Generating legacy custom-flow code (`signIn.create` + `prepareFirstFactor` + `setActive`) | Use the current method-based API (Gate 4)                                 |
+| CRITICAL | Using `useOAuth()`                                                                        | Use `useSSO()` (Gate 5)                                                   |
+| CRITICAL | Implementing SMS/social auth without checking the factor is enabled                       | Check environment/dashboard first (Gate 3)                                |
+| CRITICAL | Native components targeted at Expo Go or web                                              | Require a dev build; offer custom flows otherwise (Gate 8)                |
+| CRITICAL | Sign-up screen missing `<View nativeID="clerk-captcha" />`                                | Always include it (Gate 10)                                               |
+| HIGH     | `NEXT_PUBLIC_` env prefix, or env var read inside `node_modules`                          | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, passed explicitly to `ClerkProvider` |
+| HIGH     | Session lost on restart                                                                   | `tokenCache` from `@clerk/expo/token-cache` on the provider               |
+| HIGH     | Calling `setActive()` after `AuthView` / `UserButton` auth                                | Native components sync sessions automatically                             |
+| HIGH     | Pairing `AuthView` with `useSignInWithGoogle`/`useSignInWithApple`                        | `AuthView` renders enabled social providers itself                        |
+| HIGH     | Calling `WebBrowser.maybeCompleteAuthSession()` manually                                  | `ClerkProvider` handles it                                                |
+| HIGH     | Splitting sign-in / sign-up without being asked                                           | Combined flow by default (Gate 9)                                         |
+| MEDIUM   | Missing `isLoaded` check before `isSignedIn` in guards                                    | Always gate on `isLoaded` first                                           |
+| MEDIUM   | Using `yalc`/`pnpm link` for local `@clerk/expo` development                              | Use Verdaccio or pkg.pr.new                                               |
 
 ## See Also
 

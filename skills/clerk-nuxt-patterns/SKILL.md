@@ -14,21 +14,21 @@ metadata:
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Protect routes with middleware | references/nuxt-middleware.md |
+| Task                              | Reference                       |
+| --------------------------------- | ------------------------------- |
+| Protect routes with middleware    | references/nuxt-middleware.md   |
 | Auth in server API routes (Nitro) | references/server-api-routes.md |
-| useAuth / useUser in components | references/composables.md |
-| SSR-safe auth patterns | references/ssr-auth.md |
+| useAuth / useUser in components   | references/composables.md       |
+| SSR-safe auth patterns            | references/ssr-auth.md          |
 
 ## References
 
-| Reference | Description |
-|-----------|-------------|
-| `references/nuxt-middleware.md` | Route protection, clerkMiddleware() |
-| `references/server-api-routes.md` | Nitro server route auth |
-| `references/composables.md` | useAuth, useUser, useClerk |
-| `references/ssr-auth.md` | SSR hydration, server vs client |
+| Reference                         | Description                         |
+| --------------------------------- | ----------------------------------- |
+| `references/nuxt-middleware.md`   | Route protection, clerkMiddleware() |
+| `references/server-api-routes.md` | Nitro server route auth             |
+| `references/composables.md`       | useAuth, useUser, useClerk          |
+| `references/ssr-auth.md`          | SSR hydration, server vs client     |
 
 ## Setup
 
@@ -37,12 +37,14 @@ npm install @clerk/nuxt
 ```
 
 `.env`:
+
 ```
 NUXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
 NUXT_CLERK_SECRET_KEY=sk_...
 ```
 
 `nuxt.config.ts`:
+
 ```typescript
 export default defineNuxtConfig({
   modules: ['@clerk/nuxt'],
@@ -79,13 +81,13 @@ const { userId } = useAuth()
 
 ## Common Pitfalls
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Composables return `undefined` on server | useAuth is client-only | Use `event.context.auth` in server routes |
-| Route not protected | Missing `middleware: 'auth'` meta | Add `definePageMeta({ middleware: 'auth' })` |
-| `clerkClient` not available | Wrong import path | Import from `@clerk/nuxt/server` |
-| Hydration mismatch | Rendering auth state before mounted | Wrap in `<ClientOnly>` or check `isLoaded` |
-| Env vars not picked up | Wrong prefix | Nuxt requires `NUXT_PUBLIC_` for public, `NUXT_` for server |
+| Symptom                                  | Cause                               | Fix                                                         |
+| ---------------------------------------- | ----------------------------------- | ----------------------------------------------------------- |
+| Composables return `undefined` on server | useAuth is client-only              | Use `event.context.auth` in server routes                   |
+| Route not protected                      | Missing `middleware: 'auth'` meta   | Add `definePageMeta({ middleware: 'auth' })`                |
+| `clerkClient` not available              | Wrong import path                   | Import from `@clerk/nuxt/server`                            |
+| Hydration mismatch                       | Rendering auth state before mounted | Wrap in `<ClientOnly>` or check `isLoaded`                  |
+| Env vars not picked up                   | Wrong prefix                        | Nuxt requires `NUXT_PUBLIC_` for public, `NUXT_` for server |
 
 ## Org-Aware Pattern
 

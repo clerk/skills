@@ -6,6 +6,7 @@ The default "add auth" path. `AuthView`, `UserButton`, and `UserProfileView` ren
 > [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
 
 **Status and requirements — tell the developer up front:**
+
 - Beta. Works well, but flag it before a production rollout decision.
 - Requires a development build (`npx expo run:ios` / `run:android`). Not Expo Go, not web.
 - Requires the `@clerk/expo` config plugin and a prebuild (see setup.md).
@@ -16,11 +17,11 @@ For native email-link sign-in, use `<AuthView />`. JavaScript-only custom email-
 
 Import from `@clerk/expo/native`:
 
-| Component | Renders | Props |
-|-----------|---------|-------|
-| `AuthView` | Sign-in/sign-up UI, inline (fills parent) | `mode?: 'signInOrUp' \| 'signIn' \| 'signUp'` (default `signInOrUp`), `isDismissible?: boolean` (default true), `onDismiss?: () => void` |
-| `UserButton` | Avatar button that opens the native user profile | — |
-| `UserProfileView` | Profile/account management, inline | `isDismissible?`, `onDismiss?`, `style?` |
+| Component         | Renders                                          | Props                                                                                                                                    |
+| ----------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthView`        | Sign-in/sign-up UI, inline (fills parent)        | `mode?: 'signInOrUp' \| 'signIn' \| 'signUp'` (default `signInOrUp`), `isDismissible?: boolean` (default true), `onDismiss?: () => void` |
+| `UserButton`      | Avatar button that opens the native user profile | —                                                                                                                                        |
+| `UserProfileView` | Profile/account management, inline               | `isDismissible?`, `onDismiss?`, `style?`                                                                                                 |
 
 These are the only public props. Do not invent event handlers (`onAuthEvent`, `onSignIn`, etc.) — react to auth state with `useAuth()` / `useUser()` instead. Verify props against `node_modules/@clerk/expo/dist/native/*.d.ts` for the installed version.
 

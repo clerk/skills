@@ -3,6 +3,7 @@
 ## Constraint
 
 Content scripts run in an isolated JavaScript world injected into web pages. They cannot:
+
 - Use Clerk React hooks
 - Call Clerk APIs directly (Clerk enforces strict origin restrictions -- content scripts could run on any domain)
 - Access the extension's React context
@@ -12,6 +13,7 @@ Use message passing to request auth state from the background service worker.
 ## Pattern: Request Token from Background
 
 `src/content.ts`:
+
 ```typescript
 async function getToken(): Promise<string | null> {
   return new Promise((resolve) => {
@@ -43,6 +45,7 @@ injectUI()
 ```
 
 `src/background/index.ts`:
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -83,6 +86,7 @@ async function fetchUserData() {
 ## Manifest Permissions
 
 `package.json` (Plasmo):
+
 ```json
 {
   "manifest": {
@@ -93,6 +97,7 @@ async function fetchUserData() {
 ```
 
 For content scripts on specific domains only:
+
 ```json
 {
   "manifest": {
@@ -107,6 +112,7 @@ For content scripts on specific domains only:
 A file named `content.ts` or `content.tsx` at the project root is auto-registered as a content script matching all URLs.
 
 For multiple content scripts with different match patterns, use `package.json`:
+
 ```json
 {
   "manifest": {

@@ -100,8 +100,8 @@ export default function Username() {
 
 ## Key Differences
 
-| Import | From | Use In |
-|--------|------|--------|
-| `Show`, `UserButton` | `@clerk/astro/components` | `.astro` files (SSR) |
-| `Show`, `UserButton` | `@clerk/astro/react` | `.tsx` files, mounted with `client:load` |
-| `$userStore` | `@clerk/astro/client` | React components (via `useSyncExternalStore`) |
+| Import               | From                      | Use In                                        |
+| -------------------- | ------------------------- | --------------------------------------------- |
+| `Show`, `UserButton` | `@clerk/astro/components` | `.astro` files (SSR)                          |
+| `Show`, `UserButton` | `@clerk/astro/react`      | `.tsx` files, mounted with `client:load`      |
+| `$userStore`         | `@clerk/astro/client`     | React components (via `useSyncExternalStore`) |

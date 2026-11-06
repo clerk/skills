@@ -4,13 +4,13 @@ Send, list, revoke. Backend API methods live on `clerkClient().organizations.*`.
 
 > **Framework wrappers.** Method signatures on `clerk.organizations.*` are identical across SDKs; only the wrapper that gives you the client differs:
 >
-> | SDK | Get the client | Get the auth context |
-> |---|---|---|
-> | `@clerk/nextjs/server` | `const clerk = await clerkClient()` | `const { userId, has } = await auth()` |
-> | `@clerk/backend` (agnostic) | `const clerk = createClerkClient({ secretKey })` | n/a (verify the session token yourself with `verifyToken` imported from `@clerk/backend`) |
-> | `@clerk/astro/server` | `const clerk = clerkClient(context)` | `const { userId } = context.locals.auth()` |
-> | `@clerk/nuxt/server` | `const clerk = clerkClient(event)` | `const { userId } = event.context.auth()` |
-> | `@clerk/express` | `const clerk = clerkClient` (after `clerkMiddleware()`) | `const { userId } = getAuth(req)` |
+> | SDK                         | Get the client                                          | Get the auth context                                                                      |
+> | --------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+> | `@clerk/nextjs/server`      | `const clerk = await clerkClient()`                     | `const { userId, has } = await auth()`                                                    |
+> | `@clerk/backend` (agnostic) | `const clerk = createClerkClient({ secretKey })`        | n/a (verify the session token yourself with `verifyToken` imported from `@clerk/backend`) |
+> | `@clerk/astro/server`       | `const clerk = clerkClient(context)`                    | `const { userId } = context.locals.auth()`                                                |
+> | `@clerk/nuxt/server`        | `const clerk = clerkClient(event)`                      | `const { userId } = event.context.auth()`                                                 |
+> | `@clerk/express`            | `const clerk = clerkClient` (after `clerkMiddleware()`) | `const { userId } = getAuth(req)`                                                         |
 >
 > Examples below use `@clerk/nextjs` as the default flavor.
 
@@ -42,14 +42,14 @@ export async function inviteMember(emailAddress: string, role: string) {
 
 **Params:**
 
-| Param | Type | Notes |
-|-------|------|-------|
-| `organizationId` | `string` | Required |
-| `inviterUserId` | `string \| null` | Required. The user sending the invite. Pass `null` only for system-originated invites (rare). |
-| `emailAddress` | `string` | Required. Target email. |
-| `role` | `string` | Required. `'org:admin'`, `'org:member'`, or any custom role slug. |
-| `redirectUrl?` | `string` | Where the user lands after accepting. |
-| `publicMetadata?` | `object` | Readable by Frontend + Backend; settable only from Backend. |
+| Param             | Type             | Notes                                                                                         |
+| ----------------- | ---------------- | --------------------------------------------------------------------------------------------- |
+| `organizationId`  | `string`         | Required                                                                                      |
+| `inviterUserId`   | `string \| null` | Required. The user sending the invite. Pass `null` only for system-originated invites (rare). |
+| `emailAddress`    | `string`         | Required. Target email.                                                                       |
+| `role`            | `string`         | Required. `'org:admin'`, `'org:member'`, or any custom role slug.                             |
+| `redirectUrl?`    | `string`         | Where the user lands after accepting.                                                         |
+| `publicMetadata?` | `object`         | Readable by Frontend + Backend; settable only from Backend.                                   |
 
 **Rate limit:** 250 requests/hour per application instance.
 

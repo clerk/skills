@@ -4,9 +4,9 @@ Clerk Organizations use Role-Based Access Control (RBAC). Every member has one R
 
 ## Default Roles
 
-| Role | Default meaning |
-|------|-----------------|
-| `org:admin` | Full access — holds all System Permissions, can manage the Organization and its memberships |
+| Role         | Default meaning                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| `org:admin`  | Full access — holds all System Permissions, can manage the Organization and its memberships  |
 | `org:member` | Read-only members. By default has only `org:sys_memberships:read` and `org:sys_billing:read` |
 
 Both slugs are automatically created when Organizations are enabled. You cannot delete a default Role if it's set as the org's **Creator** or **Default** Role — reassign to another Role first.
@@ -15,16 +15,16 @@ Both slugs are automatically created when Organizations are enabled. You cannot 
 
 These are the only built-in Permissions. Use them verbatim; do NOT invent shorter forms like `org:manage_members` or `org:create`.
 
-| Slug | Purpose |
-|------|---------|
-| `org:sys_profile:manage` | Edit Organization profile (name, slug, logo) |
-| `org:sys_profile:delete` | Delete the Organization |
-| `org:sys_memberships:read` | View the member list |
-| `org:sys_memberships:manage` | Invite, remove, and change roles of members |
-| `org:sys_domains:read` | View Verified Domains |
-| `org:sys_domains:manage` | Add / verify / remove Verified Domains |
-| `org:sys_billing:read` | View billing info (subscription, invoices) |
-| `org:sys_billing:manage` | Manage billing (change plan, payment method) |
+| Slug                         | Purpose                                      |
+| ---------------------------- | -------------------------------------------- |
+| `org:sys_profile:manage`     | Edit Organization profile (name, slug, logo) |
+| `org:sys_profile:delete`     | Delete the Organization                      |
+| `org:sys_memberships:read`   | View the member list                         |
+| `org:sys_memberships:manage` | Invite, remove, and change roles of members  |
+| `org:sys_domains:read`       | View Verified Domains                        |
+| `org:sys_domains:manage`     | Add / verify / remove Verified Domains       |
+| `org:sys_billing:read`       | View billing info (subscription, invoices)   |
+| `org:sys_billing:manage`     | Manage billing (change plan, payment method) |
 
 **Creator Role requirement.** The Role that Clerk assigns to a user who creates a new Organization MUST carry at minimum:
 

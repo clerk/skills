@@ -20,34 +20,36 @@ For basic setup, see `clerk-setup` skill.
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Server vs client auth (`auth()` vs hooks) | references/server-vs-client.md |
-| Protect routes (check in each page, handler, and Server Function) | references/middleware-strategies.md |
-| Protect Server Actions | references/server-actions.md |
-| API route auth (401 vs 403) | references/api-routes.md |
-| Cache auth data (user-scoped caching) | references/caching-auth.md |
-| Fix `next build` errors under Cache Components | [Cache Components](#cache-components) |
+| Task                                                              | Reference                             |
+| ----------------------------------------------------------------- | ------------------------------------- |
+| Server vs client auth (`auth()` vs hooks)                         | references/server-vs-client.md        |
+| Protect routes (check in each page, handler, and Server Function) | references/middleware-strategies.md   |
+| Protect Server Actions                                            | references/server-actions.md          |
+| API route auth (401 vs 403)                                       | references/api-routes.md              |
+| Cache auth data (user-scoped caching)                             | references/caching-auth.md            |
+| Fix `next build` errors under Cache Components                    | [Cache Components](#cache-components) |
 
 ## References
 
-| Reference | Description |
-|-----------|-------------|
-| `references/server-vs-client.md` | `await auth()` vs hooks |
+| Reference                             | Description                                                                                               |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `references/server-vs-client.md`      | `await auth()` vs hooks                                                                                   |
 | `references/middleware-strategies.md` | `auth.protect()` in each resource, bare `clerkMiddleware()` in `proxy.ts` (Next.js <=15: `middleware.ts`) |
-| `references/server-actions.md` | Protect mutations |
-| `references/api-routes.md` | 401 vs 403 |
-| `references/caching-auth.md` | User-scoped caching with `'use cache'` |
+| `references/server-actions.md`        | Protect mutations                                                                                         |
+| `references/api-routes.md`            | 401 vs 403                                                                                                |
+| `references/caching-auth.md`          | User-scoped caching with `'use cache'`                                                                    |
 
 ## Mental Model
 
 Server vs Client = different auth APIs:
+
 - **Server**: `await auth()` from `@clerk/nextjs/server` (async!)
 - **Client**: `useAuth()` hook from `@clerk/nextjs` (sync)
 
 Never mix them. Server Components use server imports, Client Components use hooks.
 
 Key properties from `auth()`:
+
 - `isAuthenticated` — boolean, replaces the `!!userId` pattern
 - `sessionStatus` — `'active'` | `'pending'`, for detecting incomplete session tasks
 - `userId`, `orgId`, `orgSlug`, `has()`, `protect()` — unchanged
@@ -146,15 +148,15 @@ Use `next build --debug-prerender` to list every failing route. A plain `next bu
 
 ## Common Pitfalls
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `undefined` userId in Server Component | Missing `await` | `await auth()` not `auth()` |
-| Auth not working on API routes | Missing matcher | Add `'/(api|trpc)(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`) |
-| `next build` fails with "uncached or runtime data during prerendering" | `auth()`, `currentUser()`, or server `<Show>` outside `<Suspense>` | Wrap the auth-dependent UI in `<Suspense>` (see [Cache Components](#cache-components)) |
-| Cache returns wrong user's data | `userId` not part of the cache key | Pass `userId` into the `'use cache'` function as an argument |
-| Mutations bypass auth | Unprotected Server Action | Check `auth()` at start of action |
-| Protected page returns 200, not 307, while signed out | The redirect happened after streaming started (e.g. under a `loading.tsx`) | Confirm the body redirects to sign-in and has no protected data. Keep the check in the page |
-| Wrong HTTP error code | Confused 401/403 | 401 = not signed in, 403 = no permission |
+| Symptom                                                                | Cause                                                                      | Fix                                                                                         |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `undefined` userId in Server Component                                 | Missing `await`                                                            | `await auth()` not `auth()`                                                                 |
+| Auth not working on API routes                                         | Missing matcher                                                            | Add `'/(api                                                                                 | trpc)(.\*)'`to`proxy.ts`(Next.js <=15:`middleware.ts`) |
+| `next build` fails with "uncached or runtime data during prerendering" | `auth()`, `currentUser()`, or server `<Show>` outside `<Suspense>`         | Wrap the auth-dependent UI in `<Suspense>` (see [Cache Components](#cache-components))      |
+| Cache returns wrong user's data                                        | `userId` not part of the cache key                                         | Pass `userId` into the `'use cache'` function as an argument                                |
+| Mutations bypass auth                                                  | Unprotected Server Action                                                  | Check `auth()` at start of action                                                           |
+| Protected page returns 200, not 307, while signed out                  | The redirect happened after streaming started (e.g. under a `loading.tsx`) | Confirm the body redirects to sign-in and has no protected data. Keep the check in the page |
+| Wrong HTTP error code                                                  | Confused 401/403                                                           | 401 = not signed in, 403 = no permission                                                    |
 
 ## Session Tokens & Custom JWTs
 
@@ -268,6 +270,7 @@ try {
 ```
 
 Token sources:
+
 - **Same-origin requests**: `__session` cookie (Clerk sets this automatically)
 - **Cross-origin / mobile / API-to-API**: `Authorization: Bearer <token>` header
 

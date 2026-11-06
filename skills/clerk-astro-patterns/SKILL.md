@@ -17,13 +17,13 @@ SDK: `@clerk/astro` v4+. Requires Astro 5+.
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Configure middleware (bare `clerkMiddleware()`, checks per page) | references/middleware.md |
-| Protect SSR pages | references/ssr-pages.md |
-| Use Clerk in island components | references/island-components.md |
-| Auth in API routes | references/api-routes.md |
-| Use Clerk with React in Astro | references/astro-react.md |
+| Task                                                             | Reference                       |
+| ---------------------------------------------------------------- | ------------------------------- |
+| Configure middleware (bare `clerkMiddleware()`, checks per page) | references/middleware.md        |
+| Protect SSR pages                                                | references/ssr-pages.md         |
+| Use Clerk in island components                                   | references/island-components.md |
+| Auth in API routes                                               | references/api-routes.md        |
+| Use Clerk with React in Astro                                    | references/astro-react.md       |
 
 ## Mental Model
 
@@ -90,21 +90,21 @@ export const GET: APIRoute = ({ locals }) => {
 
 ## Common Pitfalls
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `Astro.locals.auth` is undefined | Missing middleware | Add `clerkMiddleware` to `src/middleware.ts` |
-| Auth works in dev but not production | `output: 'static'` globally | Set `output: 'server'` or `hybrid` for protected pages |
-| Static page has no auth | Prerendered pages skip middleware | Use `export const prerender = false` or move to island |
-| Island not reactive to sign-in | Missing `client:load` directive | Add `client:load` to the island component |
+| Symptom                              | Cause                             | Fix                                                    |
+| ------------------------------------ | --------------------------------- | ------------------------------------------------------ |
+| `Astro.locals.auth` is undefined     | Missing middleware                | Add `clerkMiddleware` to `src/middleware.ts`           |
+| Auth works in dev but not production | `output: 'static'` globally       | Set `output: 'server'` or `hybrid` for protected pages |
+| Static page has no auth              | Prerendered pages skip middleware | Use `export const prerender = false` or move to island |
+| Island not reactive to sign-in       | Missing `client:load` directive   | Add `client:load` to the island component              |
 
 ## Import Map
 
-| What | Import From |
-|------|-------------|
-| `clerkMiddleware`, `clerkClient` | `@clerk/astro/server` |
-| `useAuth`, `UserButton` (no `useUser`) | `@clerk/astro/react` |
-| `$userStore`, `$authStore` | `@clerk/astro/client` |
-| Astro components (`<SignIn>`, etc.) | `@clerk/astro/components` |
+| What                                   | Import From               |
+| -------------------------------------- | ------------------------- |
+| `clerkMiddleware`, `clerkClient`       | `@clerk/astro/server`     |
+| `useAuth`, `UserButton` (no `useUser`) | `@clerk/astro/react`      |
+| `$userStore`, `$authStore`             | `@clerk/astro/client`     |
+| Astro components (`<SignIn>`, etc.)    | `@clerk/astro/components` |
 
 ## Env Variables
 

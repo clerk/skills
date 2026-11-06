@@ -7,12 +7,14 @@ Billing webhooks use the same `verifyWebhook(req)` pattern as all Clerk webhooks
 Subscribe to the billing events you care about. Full catalog:
 
 Subscription events (4):
+
 - `subscription.created`
 - `subscription.updated`
 - `subscription.active`
 - `subscription.pastDue`
 
 SubscriptionItem events (10):
+
 - `subscriptionItem.updated`
 - `subscriptionItem.active`
 - `subscriptionItem.canceled`
@@ -25,6 +27,7 @@ SubscriptionItem events (10):
 - `subscriptionItem.freeTrialEnding`
 
 Payment attempt events (2):
+
 - `paymentAttempt.created`
 - `paymentAttempt.updated`
 
@@ -162,7 +165,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 }
 ```
 
-### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.*
+### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.\*
 
 The event data IS the item itself, not the parent subscription:
 
@@ -218,13 +221,13 @@ The event data IS the item itself, not the parent subscription:
 
 ## Subscription Status Values
 
-| Status | Meaning |
-|--------|---------|
-| `active` | Subscription is active and paid |
-| `past_due` | Payment failed, grace period |
-| `canceled` | Subscription ended |
-| `ended` | Subscription reached the end of its term |
-| `abandoned` | Checkout started but user never completed payment |
-| `incomplete` | Checkout in progress |
-| `expired` | Subscription expired without renewal |
-| `upcoming` | Scheduled subscription not yet active |
+| Status       | Meaning                                           |
+| ------------ | ------------------------------------------------- |
+| `active`     | Subscription is active and paid                   |
+| `past_due`   | Payment failed, grace period                      |
+| `canceled`   | Subscription ended                                |
+| `ended`      | Subscription reached the end of its term          |
+| `abandoned`  | Checkout started but user never completed payment |
+| `incomplete` | Checkout in progress                              |
+| `expired`    | Subscription expired without renewal              |
+| `upcoming`   | Scheduled subscription not yet active             |
