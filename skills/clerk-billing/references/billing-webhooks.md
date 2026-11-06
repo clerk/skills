@@ -33,16 +33,26 @@ Payment attempt events (2):
 
 > There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
 
-Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks. The closest Stripe equivalents are:
+Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks. The full comparison includes events without a Stripe equivalent:
 
-| Intent                     | Stripe event name               | Clerk event name            |
-| -------------------------- | ------------------------------- | --------------------------- |
-| Subscription created       | `customer.subscription.created` | `subscription.created`      |
-| Subscription updated       | `customer.subscription.updated` | `subscription.updated`      |
-| Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
-| Subscription item past due | `invoice.payment_failed`        | `subscriptionItem.pastDue`  |
-
-The other Clerk events in the catalog above have no one-to-one Stripe event in this comparison.
+| Intent                             | Stripe event name               | Clerk event name                   |
+| ---------------------------------- | ------------------------------- | ---------------------------------- |
+| Subscription created               | `customer.subscription.created` | `subscription.created`             |
+| Subscription updated               | `customer.subscription.updated` | `subscription.updated`             |
+| Subscription active                | (none)                          | `subscription.active`              |
+| Subscription past due              | (none)                          | `subscription.pastDue`             |
+| Subscription item canceled         | `customer.subscription.deleted` | `subscriptionItem.canceled`        |
+| Subscription item past due         | `invoice.payment_failed`        | `subscriptionItem.pastDue`         |
+| Subscription item updated          | (none)                          | `subscriptionItem.updated`         |
+| Subscription item active           | (none)                          | `subscriptionItem.active`          |
+| Subscription item upcoming renewal | (none)                          | `subscriptionItem.upcoming`        |
+| Subscription item ended            | (none)                          | `subscriptionItem.ended`           |
+| Subscription item abandoned        | (none)                          | `subscriptionItem.abandoned`       |
+| Subscription item expired          | (none)                          | `subscriptionItem.expired`         |
+| Subscription item incomplete       | (none)                          | `subscriptionItem.incomplete`      |
+| Free trial ending soon             | (none)                          | `subscriptionItem.freeTrialEnding` |
+| Payment attempt created            | (none)                          | `paymentAttempt.created`           |
+| Payment attempt updated            | (none)                          | `paymentAttempt.updated`           |
 
 ## Payload Shape (important)
 
