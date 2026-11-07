@@ -83,6 +83,7 @@ copilot plugin install clerk@clerk-skills
 |-------|---------|-------------|
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
 | `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, deploy checks |
+| `clerk-protect` | Clerk Protect CLI (early access) | Fraud rules, protections, investigating sign-in and sign-up decisions, replays |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
 | `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
@@ -135,6 +136,7 @@ for how temporary keys and later account claiming work.
 | You Say | Skill Used |
 |---------|------------|
 | "List Clerk users" | `clerk-cli` |
+| "Why were these sign-ups blocked?" | `clerk-protect` |
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
