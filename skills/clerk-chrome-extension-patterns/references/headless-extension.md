@@ -17,87 +17,95 @@ Examples:
 
 ## Background Service Worker
 
-`src/background/index.ts`:
+`entrypoints/background.ts` (WXT):
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
-const publishableKey = process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY
-const syncHost = process.env.PLASMO_PUBLIC_CLERK_SYNC_HOST
+export default defineBackground(() => {
+  const publishableKey = import.meta.env.WXT_CLERK_PUBLISHABLE_KEY
+  const syncHost = import.meta.env.WXT_CLERK_SYNC_HOST
 
-if (!publishableKey || !syncHost) {
-  throw new Error('Missing publishable key or sync host')
-}
+  if (!publishableKey || !syncHost) {
+    throw new Error('Missing WXT_CLERK_PUBLISHABLE_KEY or WXT_CLERK_SYNC_HOST')
+  }
 
-async function getAuthenticatedUser() {
-  const clerk = await createClerkClient({
-    publishableKey,
-    syncHost,
-    background: true,
-  })
+  async function getAuthenticatedUser() {
+    const clerk = await createClerkClient({
+      publishableKey,
+      syncHost,
+      background: true,
+    })
 
-  return clerk.user
-}
+    return clerk.user
+  }
 
-async function getSessionToken(): Promise<string | null> {
-  const clerk = await createClerkClient({
-    publishableKey,
-    syncHost,
-    background: true,
-  })
+  async function getSessionToken(): Promise<string | null> {
+    const clerk = await createClerkClient({
+      publishableKey,
+      syncHost,
+      background: true,
+    })
 
-  if (!clerk.session) return null
+    if (!clerk.session) return null
 
-  return await clerk.session.getToken()
-}
+    return await clerk.session.getToken()
+  }
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status !== 'complete') return
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (changeInfo.status !== 'complete') return
 
-  const token = await getSessionToken()
-  if (!token) return
+    const token = await getSessionToken()
+    if (!token) return
 
-  await fetch('https://api.yourapp.com/page-visit', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ url: tab.url }),
+    await fetch('https://api.yourapp.com/page-visit', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: tab.url }),
+    })
   })
 })
 ```
+
+All runtime code (env checks, listeners) goes inside `defineBackground()`, because WXT imports this file in Node.js at build time.
 
 ## Environment Variables
 
 `.env.development`:
 ```
-PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
-PLASMO_PUBLIC_CLERK_SYNC_HOST=http://localhost
+WXT_CLERK_PUBLISHABLE_KEY=pk_test_...
+WXT_CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
+WXT_CLERK_SYNC_HOST=http://localhost
 ```
 
 `.env.production`:
 ```
-PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
-CLERK_FRONTEND_API=https://clerk.your-domain.com
-PLASMO_PUBLIC_CLERK_SYNC_HOST=https://clerk.your-domain.com
+WXT_CLERK_PUBLISHABLE_KEY=pk_live_...
+WXT_CLERK_FRONTEND_API=https://clerk.your-domain.com
+WXT_CLERK_SYNC_HOST=https://clerk.your-domain.com
 ```
 
 ## Manifest Configuration
 
-`package.json`:
-```json
-{
-  "manifest": {
-    "key": "$CRX_PUBLIC_KEY",
-    "permissions": ["cookies", "storage", "tabs"],
-    "host_permissions": [
-      "$PLASMO_PUBLIC_CLERK_SYNC_HOST/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
-  }
-}
+`wxt.config.ts`:
+```ts
+import { defineConfig } from 'wxt'
+
+export default defineConfig({
+  manifest: () => ({
+    key: import.meta.env.WXT_CRX_PUBLIC_KEY,
+    permissions: ['cookies', 'storage', 'tabs'],
+    host_permissions: [
+      `${import.meta.env.WXT_CLERK_SYNC_HOST}/*`,
+      `${import.meta.env.WXT_CLERK_FRONTEND_API}/*`,
+    ],
+  }),
+})
 ```
+
+Use the function form `manifest: () => ({ ... })` so WXT reads the `.env` files before building the manifest. A headless extension has no popup, so leave out `entrypoints/popup/` (and delete the template's popup and `content.ts` if you started from `wxt init`).
 
 `host_permissions` for the sync host domain is what allows the extension to read the Clerk session cookie from the web app.
 
@@ -130,3 +138,4 @@ If `user` is null despite being signed in on the web app, check:
 1. `host_permissions` includes the sync host domain
 2. The extension ID is in Clerk's allowed origins
 3. The `syncHost` value matches the Clerk Frontend API URL (not the web app's main domain)
+4. In development, the web app has been opened at least once in the same browser. Until it loads, the `__clerk_db_jwt` cookie doesn't exist, and signing in fails with "Unable to authenticate this browser for your development instance". See the troubleshooting section in `sync-host.md`.
