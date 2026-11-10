@@ -165,7 +165,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 }
 ```
 
-### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.\*
+### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.*
 
 The event data IS the item itself, not the parent subscription:
 
