@@ -121,11 +121,15 @@ Use `<Show>` to render content based on auth state. In a Server Component, `<Sho
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-;<Suspense>
-  <Show when="signed-in" fallback={<div>Please sign in</div>}>
-    <Dashboard />
-  </Show>
-</Suspense>
+export function AuthenticatedDashboard() {
+  return (
+    <Suspense>
+      <Show when="signed-in" fallback={<div>Please sign in</div>}>
+        <Dashboard />
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<SignedIn>` and `<SignedOut>` components instead of `<Show>`.

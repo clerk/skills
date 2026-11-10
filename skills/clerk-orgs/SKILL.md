@@ -259,15 +259,19 @@ In a Next.js Server Component, `<Show>` reads the session from the request, so w
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-;<Suspense>
-  <Show when={{ role: 'org:admin' }}>
-    <AdminPanel />
-  </Show>
+export function AdminControls() {
+  return (
+    <Suspense>
+      <Show when={{ role: 'org:admin' }}>
+        <AdminPanel />
+      </Show>
 
-  <Show when={{ permission: 'org:invoices:create' }}>
-    <NewInvoiceButton />
-  </Show>
-</Suspense>
+      <Show when={{ permission: 'org:invoices:create' }}>
+        <NewInvoiceButton />
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<Protect role="org:admin">` / `<Protect permission="...">` instead of `<Show>`. `<Show>` replaced both `<Protect>` and `<SignedIn>`/`<SignedOut>` in Core 3.
@@ -285,11 +289,15 @@ Astro template syntax for the same component (imported from `@clerk/astro/compon
 ```tsx
 import { OrganizationSwitcher } from '@clerk/nextjs'
 
-;<OrganizationSwitcher
-  hidePersonal
-  afterCreateOrganizationUrl="/orgs/:slug/dashboard"
-  afterSelectOrganizationUrl="/orgs/:slug/dashboard"
-/>
+export function OrgSwitcher() {
+  return (
+    <OrganizationSwitcher
+      hidePersonal
+      afterCreateOrganizationUrl="/orgs/:slug/dashboard"
+      afterSelectOrganizationUrl="/orgs/:slug/dashboard"
+    />
+  )
+}
 ```
 
 Key props:
@@ -306,10 +314,15 @@ When `Membership required` is enabled (the default), users without an org are ro
 
 ```tsx
 import { ClerkProvider } from '@clerk/nextjs'
+import type { ReactNode } from 'react'
 
-;<ClerkProvider taskUrls={{ 'choose-organization': '/session-tasks/choose-organization' }}>
-  {children}
-</ClerkProvider>
+export function ChooseOrganizationProvider({ children }: { children: ReactNode }) {
+  return (
+    <ClerkProvider taskUrls={{ 'choose-organization': '/session-tasks/choose-organization' }}>
+      {children}
+    </ClerkProvider>
+  )
+}
 ```
 
 ```tsx

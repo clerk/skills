@@ -91,11 +91,15 @@ export default function Page() {
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-;<Suspense>
-  <Show when="signed-in" fallback={<p>Please sign in</p>}>
-    <Dashboard />
-  </Show>
-</Suspense>
+export function AuthenticatedDashboard() {
+  return (
+    <Suspense>
+      <Show when="signed-in" fallback={<p>Please sign in</p>}>
+        <Dashboard />
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 **Authorization checks (B2B)** (wrap in `<Suspense>` the same way when rendered in a Server Component):

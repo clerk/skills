@@ -111,11 +111,15 @@ In a Next.js Server Component, `<Show>` reads the session from the request. With
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-;<Suspense>
-  <Show when="signed-in">
-    <p>Welcome back!</p>
-  </Show>
-</Suspense>
+export function WelcomeMessage() {
+  return (
+    <Suspense>
+      <Show when="signed-in">
+        <p>Welcome back!</p>
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 In a Client Component, `<Show>` reads client-side auth state and needs no boundary.
