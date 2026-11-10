@@ -79,7 +79,7 @@ export function UserDashboard() {
 
 ## Hybrid Pattern
 
-Server: fetch initial data in `ProfilePage.tsx`.
+Server: fetch initial data in `app/profile/page.tsx`.
 
 ```tsx
 import { currentUser } from '@clerk/nextjs/server'
