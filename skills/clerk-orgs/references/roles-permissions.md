@@ -13,7 +13,7 @@ Both slugs are automatically created when Organizations are enabled. You cannot 
 
 ## System Permissions (canonical catalog)
 
-These are all the built-in Permissions. Use them verbatim; do NOT invent shorter forms like `org:manage_members` or `org:create`. The first eight exist on every instance with Organizations enabled. The rest exist only when their feature is enabled, and Clerk grants them to `org:admin` only.
+These are all the built-in Permissions. Use them verbatim; do NOT invent shorter forms like `org:manage_members` or `org:create`. The first eight exist on every instance with Organizations enabled. Clerk creates the rest when their feature is enabled and grants them to `org:admin` by default.
 
 | Slug | Purpose |
 | --- | --- |
@@ -28,7 +28,7 @@ These are all the built-in Permissions. Use them verbatim; do NOT invent shorter
 | `org:sys_api_keys:read` | View the Organization's API keys. Requires API keys enabled |
 | `org:sys_api_keys:manage` | Create and revoke the Organization's API keys. Requires API keys enabled |
 | `org:sys_entconns:manage` | Manage the Organization's enterprise connections. Requires self-serve SSO enabled |
-| `org:sys_entconns_sso_bypass:manage` | Manage the Organization's SSO bypass allowlist. Requires SSO bypass enabled and a plan that includes enterprise connections |
+| `org:sys_entconns_sso_bypass:manage` | Manage the Organization's SSO bypass allowlist. Created when SSO bypass is enabled and the plan includes enterprise connections. A plan downgrade keeps it |
 
 `org:sys_enterprise_connections:manage` is the legacy name of `org:sys_entconns:manage`. Use the current one.
 

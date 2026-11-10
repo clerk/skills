@@ -188,7 +188,7 @@ The event data IS the item itself, not the parent subscription. This is the payl
 }
 ```
 
-`@clerk/backend`'s `BillingSubscriptionItemWebhookEventJSON` doesn't declare `subscription_id` or `updated_at`, and it declares `canceled_at`, `past_due_at`, and `amount`, which this payload doesn't carry. Widen the type to read `subscription_id`, as the handler above does.
+`@clerk/backend`'s `BillingSubscriptionItemWebhookEventJSON` doesn't declare `subscription_id` or `updated_at`, and it declares `canceled_at`, `past_due_at`, and `amount`, which this payload doesn't carry.
 
 ### paymentAttempt.created / paymentAttempt.updated
 
