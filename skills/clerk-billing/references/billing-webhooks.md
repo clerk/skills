@@ -42,7 +42,7 @@ Clerk billing webhook payloads are nested. Common mistakes come from destructuri
 - `evt.data.status`: server-side status string (snake_case, e.g. `past_due`, even though event names are camelCase)
 - `evt.data.items[]`: on subscription events only, the array of subscription items
 - `evt.data.items[i].plan.slug`: the plan slug for a given item (plan is a nested object)
-- `evt.data.subscription_id`: on subscriptionItem events, the parent subscription id. The event data IS the item, and `subscription_id` links it back to its subscription. `@clerk/backend`'s type doesn't declare the field yet, so widen the type to read it. If it's missing, match by `payer` + `plan.slug`.
+- `evt.data.subscription_id`: on subscriptionItem events, the parent subscription id. The event data IS the item, so key item rows on `evt.data.id` and store `subscription_id` to link each one to its subscription. `@clerk/backend`'s type doesn't declare the field yet, so widen the type to read it.
 
 ## Complete Billing Webhook Handler
 
@@ -91,17 +91,21 @@ export async function POST(req: NextRequest) {
   if (evt.type === 'subscriptionItem.canceled' || evt.type === 'subscriptionItem.pastDue') {
     // The payload carries subscription_id and updated_at, but @clerk/backend's type doesn't declare them yet
     const item = evt.data as typeof evt.data & { subscription_id?: string; updated_at: number }
-    const plan = item.plan?.slug
-    // Prefer the parent subscription id. Fall back to payer + plan slug.
-    const where = item.subscription_id
-      ? { subscriptionId: item.subscription_id, plan }
-      : { entityId: item.payer?.organization_id ?? item.payer?.user_id, plan }
-    await db.subscriptionItems.update({
-      where,
-      data:
-        evt.type === 'subscriptionItem.canceled'
-          ? { status: 'canceled', canceledAt: item.updated_at }
-          : { status: 'past_due', pastDueAt: item.updated_at },
+    const change =
+      evt.type === 'subscriptionItem.canceled'
+        ? { status: 'canceled', canceledAt: item.updated_at }
+        : { status: 'past_due', pastDueAt: item.updated_at }
+    // A subscription can hold several items on the same plan over time, so key rows on the item id
+    await db.subscriptionItems.upsert({
+      where: { itemId: item.id },
+      create: {
+        itemId: item.id,
+        subscriptionId: item.subscription_id,
+        entityId: item.payer?.organization_id ?? item.payer?.user_id,
+        plan: item.plan?.slug,
+        ...change,
+      },
+      update: change,
     })
     // Notify user/org admin of the cancellation or payment failure
   }
