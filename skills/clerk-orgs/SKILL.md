@@ -416,6 +416,8 @@ If org roles, permissions, or UI behave unexpectedly, check the [organization er
 
 ## Authorization pattern
 
+Validate `orgSlug === params.slug` on every org-scoped page; the session's active organization is authoritative.
+
 For a complete slug-scoped admin-page example, read [Next.js organization patterns](references/nextjs-patterns.md#url-slug-safety-invariant).
 
 ## Invitations
