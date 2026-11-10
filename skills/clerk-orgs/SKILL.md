@@ -313,14 +313,19 @@ The full prop list lives in the [component reference](https://clerk.com/docs/ref
 When `Membership required` is enabled (the default), users without an org are routed through a `choose-organization` session task after sign-in. Clerk handles this automatically inside `<SignIn />`, but you can host the UI yourself:
 
 ```tsx
+// app/layout.tsx
 import { ClerkProvider } from '@clerk/nextjs'
 import type { ReactNode } from 'react'
 
-export function ChooseOrganizationProvider({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <ClerkProvider taskUrls={{ 'choose-organization': '/session-tasks/choose-organization' }}>
-      {children}
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <ClerkProvider taskUrls={{ 'choose-organization': '/session-tasks/choose-organization' }}>
+          {children}
+        </ClerkProvider>
+      </body>
+    </html>
   )
 }
 ```
