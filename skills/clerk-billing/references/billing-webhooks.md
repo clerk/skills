@@ -7,12 +7,14 @@ Billing webhooks use the same `verifyWebhook(req)` pattern as all Clerk webhooks
 Subscribe to the billing events you care about. Full catalog:
 
 Subscription events (4):
+
 - `subscription.created`
 - `subscription.updated`
 - `subscription.active`
 - `subscription.pastDue`
 
 SubscriptionItem events (10):
+
 - `subscriptionItem.updated`
 - `subscriptionItem.active`
 - `subscriptionItem.canceled`
@@ -25,6 +27,7 @@ SubscriptionItem events (10):
 - `subscriptionItem.freeTrialEnding`
 
 Payment attempt events (2):
+
 - `paymentAttempt.created`
 - `paymentAttempt.updated`
 
@@ -49,65 +52,65 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
-	let evt
-	try {
-		evt = await verifyWebhook(req)
-	} catch {
-		return new Response('Verification failed', { status: 400 })
-	}
+  let evt
+  try {
+    evt = await verifyWebhook(req)
+  } catch {
+    return new Response('Verification failed', { status: 400 })
+  }
 
-	if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.upsert({
-			where: { subscriptionId: id },
-			create: { subscriptionId: id, entityId, plan, status },
-			update: { entityId, plan, status },
-		})
-	}
+  if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
+    const { id, payer, items, status } = evt.data
+    const entityId = payer.organization_id ?? payer.user_id
+    const plan = items[0]?.plan?.slug
+    await db.subscriptions.upsert({
+      where: { subscriptionId: id },
+      create: { subscriptionId: id, entityId, plan, status },
+      update: { entityId, plan, status },
+    })
+  }
 
-	if (evt.type === 'subscription.updated') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { entityId, plan, status },
-		})
-	}
+  if (evt.type === 'subscription.updated') {
+    const { id, payer, items, status } = evt.data
+    const entityId = payer.organization_id ?? payer.user_id
+    const plan = items[0]?.plan?.slug
+    await db.subscriptions.update({
+      where: { subscriptionId: id },
+      data: { entityId, plan, status },
+    })
+  }
 
-	if (evt.type === 'subscription.pastDue') {
-		const { id, status } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { status },
-		})
-	}
+  if (evt.type === 'subscription.pastDue') {
+    const { id, status } = evt.data
+    await db.subscriptions.update({
+      where: { subscriptionId: id },
+      data: { status },
+    })
+  }
 
-	if (evt.type === 'subscriptionItem.canceled') {
-		// Subscription item events carry only the item, not its parent subscription id.
-		// Identify the record by payer + plan slug.
-		const { payer, plan, canceled_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'canceled', canceledAt: canceled_at },
-		})
-		// Notify user/org admin of cancellation
-	}
+  if (evt.type === 'subscriptionItem.canceled') {
+    // Subscription item events carry only the item, not its parent subscription id.
+    // Identify the record by payer + plan slug.
+    const { payer, plan, canceled_at } = evt.data
+    const entityId = payer?.organization_id ?? payer?.user_id
+    await db.subscriptionItems.update({
+      where: { entityId, plan: plan?.slug },
+      data: { status: 'canceled', canceledAt: canceled_at },
+    })
+    // Notify user/org admin of cancellation
+  }
 
-	if (evt.type === 'subscriptionItem.pastDue') {
-		const { payer, plan, past_due_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'past_due', pastDueAt: past_due_at },
-		})
-		// Notify user/org admin of payment failure
-	}
+  if (evt.type === 'subscriptionItem.pastDue') {
+    const { payer, plan, past_due_at } = evt.data
+    const entityId = payer?.organization_id ?? payer?.user_id
+    await db.subscriptionItems.update({
+      where: { entityId, plan: plan?.slug },
+      data: { status: 'past_due', pastDueAt: past_due_at },
+    })
+    // Notify user/org admin of payment failure
+  }
 
-	return new Response('OK', { status: 200 })
+  return new Response('OK', { status: 200 })
 }
 ```
 
@@ -218,13 +221,13 @@ The event data IS the item itself, not the parent subscription:
 
 ## Subscription Status Values
 
-| Status | Meaning |
-|--------|---------|
-| `active` | Subscription is active and paid |
-| `past_due` | Payment failed, grace period |
-| `canceled` | Subscription ended |
-| `ended` | Subscription reached the end of its term |
-| `abandoned` | Checkout started but user never completed payment |
-| `incomplete` | Checkout in progress |
-| `expired` | Subscription expired without renewal |
-| `upcoming` | Scheduled subscription not yet active |
+| Status       | Meaning                                           |
+| ------------ | ------------------------------------------------- |
+| `active`     | Subscription is active and paid                   |
+| `past_due`   | Payment failed, grace period                      |
+| `canceled`   | Subscription ended                                |
+| `ended`      | Subscription reached the end of its term          |
+| `abandoned`  | Checkout started but user never completed payment |
+| `incomplete` | Checkout in progress                              |
+| `expired`    | Subscription expired without renewal              |
+| `upcoming`   | Scheduled subscription not yet active             |

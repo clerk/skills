@@ -1,7 +1,6 @@
 ---
 name: clerk-testing
-description: E2E testing for Clerk apps. Use with Playwright or Cypress for auth flow
-  tests.
+description: E2E testing for Clerk apps. Use with Playwright or Cypress for auth flow tests.
 allowed-tools: WebFetch
 license: MIT
 metadata:
@@ -21,6 +20,7 @@ compatibility: Requires a publishable key and either CLERK_SECRET_KEY or CLERK_T
 ## Mental Model
 
 Test auth = isolated session state. Each test needs fresh auth context.
+
 - `clerkSetup()` initializes test environment
 - `setupClerkTestingToken()` bypasses bot detection
 - `storageState` persists auth between tests for speed
@@ -41,16 +41,15 @@ Test auth = isolated session state. Each test needs fresh auth context.
 
 ## Anti-Patterns
 
-| Pattern | Problem | Fix |
-|---------|---------|-----|
-| Production keys in tests | Security risk | Use `pk_test_*` keys |
-| No `setupClerkTestingToken()` | Auth fails | Call before navigation |
-| UI-based sign-in every test | Slow tests | Use `storageState` |
+| Pattern                       | Problem       | Fix                    |
+| ----------------------------- | ------------- | ---------------------- |
+| Production keys in tests      | Security risk | Use `pk_test_*` keys   |
+| No `setupClerkTestingToken()` | Auth fails    | Call before navigation |
+| UI-based sign-in every test   | Slow tests    | Use `storageState`     |
 
 ## Framework-Specific
 
-**Playwright**: Use `globalSetup` for auth state
-**Cypress**: Add `addClerkCommands({ Cypress, cy })` to support file
+**Playwright**: Use `globalSetup` for auth state **Cypress**: Add `addClerkCommands({ Cypress, cy })` to support file
 
 ## See Also
 

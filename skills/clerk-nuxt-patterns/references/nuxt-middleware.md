@@ -59,6 +59,7 @@ export default defineEventHandler(async (event) => {
 ## Redirect URLs
 
 Configure in `.env`:
+
 ```
 NUXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NUXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up

@@ -3,6 +3,7 @@
 Build your own auth UI with `useSignIn()` / `useSignUp()`. Works everywhere including Expo Go and web. Use when the developer wants their own UI, needs Expo Go, or asked for a specific strategy like SMS.
 
 > Canonical docs — use the Expo example when the guide has one; otherwise adapt the guide to Expo. Fetch the relevant guide to re-verify if the installed SDK is newer than 3.6.x:
+>
 > - [Email/password](https://clerk.com/docs/guides/development/custom-flows/authentication/email-password)
 > - [Email/SMS OTP](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp)
 > - [Combined sign-in-or-up](https://clerk.com/docs/guides/development/custom-flows/authentication/sign-in-or-up)
@@ -149,7 +150,7 @@ For the OTP-only variant, do the same with `signIn.phoneCode` / `signUp.create({
 When `signIn.status === 'needs_second_factor'`, check `signIn.supportedSecondFactors` and use `signIn.mfa`:
 
 | Factor | Send | Verify |
-|--------|------|--------|
+| --- | --- | --- |
 | SMS code | `signIn.mfa.sendPhoneCode()` | `signIn.mfa.verifyPhoneCode({ code })` |
 | Email code | `signIn.mfa.sendEmailCode()` | `signIn.mfa.verifyEmailCode({ code })` |
 | TOTP (authenticator app) | — | `signIn.mfa.verifyTOTP({ code })` |

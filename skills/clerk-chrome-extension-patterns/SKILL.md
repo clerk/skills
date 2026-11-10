@@ -1,10 +1,6 @@
 ---
 name: clerk-chrome-extension-patterns
-description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel
-  setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers
-  and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, Plasmo
-  clerk, popup sign-in, syncHost, background service worker token, createClerkClient,
-  headless extension.'
+description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, Plasmo clerk, popup sign-in, syncHost, background service worker token, createClerkClient, headless extension.'
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY (Plasmo prefix for public env vars) and CLERK_FRONTEND_API.
@@ -12,10 +8,10 @@ metadata:
   author: clerk
   version: 2.0.0
   references:
-  - references/sync-host.md
-  - references/create-clerk-client.md
-  - references/content-scripts.md
-  - references/headless-extension.md
+    - references/sync-host.md
+    - references/create-clerk-client.md
+    - references/content-scripts.md
+    - references/headless-extension.md
 ---
 
 # Chrome Extension Patterns
@@ -33,18 +29,18 @@ metadata:
 
 ## Authentication Options
 
-| Method | Popup | Side Panel | syncHost (with web app) |
-|--------|-------|------------|------------------------|
-| Email + OTP | Yes | Yes | Yes |
-| Email + Link | No | No | Yes |
-| Email + Password | Yes | Yes | Yes |
-| Username + Password | Yes | Yes | Yes |
-| SMS + OTP | Yes | Yes | Yes |
-| OAuth (Google, GitHub, etc.) | **NO** | **NO** | **YES** |
-| SAML | **NO** | **NO** | **YES** |
-| Passkeys | Yes | Yes | Yes |
-| Google One Tap | No | No | Yes |
-| Web3 | No | No | Yes |
+| Method                       | Popup  | Side Panel | syncHost (with web app) |
+| ---------------------------- | ------ | ---------- | ----------------------- |
+| Email + OTP                  | Yes    | Yes        | Yes                     |
+| Email + Link                 | No     | No         | Yes                     |
+| Email + Password             | Yes    | Yes        | Yes                     |
+| Username + Password          | Yes    | Yes        | Yes                     |
+| SMS + OTP                    | Yes    | Yes        | Yes                     |
+| OAuth (Google, GitHub, etc.) | **NO** | **NO**     | **YES**                 |
+| SAML                         | **NO** | **NO**     | **YES**                 |
+| Passkeys                     | Yes    | Yes        | Yes                     |
+| Google One Tap               | No     | No         | Yes                     |
+| Web3                         | No     | No         | Yes                     |
 
 ## Quick Start (Plasmo)
 
@@ -57,14 +53,22 @@ npm install @clerk/chrome-extension
 Enable **Native API** in Clerk Dashboard under Native applications. Required for all extension integrations.
 
 `.env.development`:
+
 ```
 PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
 ```
 
 `src/popup.tsx`:
+
 ```tsx
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/chrome-extension'
+import {
+  ClerkProvider,
+  Show,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/chrome-extension'
 
 const PUBLISHABLE_KEY = process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY
 const EXTENSION_URL = chrome.runtime.getURL('.')
@@ -106,6 +110,7 @@ Use this when you need OAuth, SAML, or want the extension to reflect sign-in fro
 **Step 1 -- Environment variables:**
 
 `.env.development`:
+
 ```
 PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
@@ -113,6 +118,7 @@ PLASMO_PUBLIC_CLERK_SYNC_HOST=http://localhost
 ```
 
 `.env.production`:
+
 ```
 PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 CLERK_FRONTEND_API=https://clerk.your-domain.com
@@ -140,10 +146,7 @@ const SYNC_HOST = process.env.PLASMO_PUBLIC_CLERK_SYNC_HOST
   "manifest": {
     "key": "$CRX_PUBLIC_KEY",
     "permissions": ["cookies", "storage"],
-    "host_permissions": [
-      "$PLASMO_PUBLIC_CLERK_SYNC_HOST/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
+    "host_permissions": ["$PLASMO_PUBLIC_CLERK_SYNC_HOST/*", "$CLERK_FRONTEND_API/*"]
   }
 }
 ```
@@ -215,15 +218,17 @@ const POPUP_URL = `${EXTENSION_URL}popup.html`
 
 const clerk = createClerkClient({ publishableKey })
 
-clerk.load({
-  afterSignOutUrl: POPUP_URL,
-  signInForceRedirectUrl: POPUP_URL,
-  signUpForceRedirectUrl: POPUP_URL,
-  allowedRedirectProtocols: ['chrome-extension:'],
-}).then(() => {
-  clerk.addListener(render)
-  render()
-})
+clerk
+  .load({
+    afterSignOutUrl: POPUP_URL,
+    signInForceRedirectUrl: POPUP_URL,
+    signUpForceRedirectUrl: POPUP_URL,
+    allowedRedirectProtocols: ['chrome-extension:'],
+  })
+  .then(() => {
+    clerk.addListener(render)
+    render()
+  })
 ```
 
 Full guide: `references/create-clerk-client.md`
@@ -286,30 +291,31 @@ Full guide: `references/content-scripts.md`
 Without a pinned key, Chrome derives the CRX ID from a random key at build time. This rotates every rebuild, breaking allowed origins.
 
 **Option A -- Plasmo Itero (recommended):**
+
 1. Visit [Plasmo Itero Generate Keypairs](https://itero.plasmo.com/ext/generate-keypairs)
 2. Click "Generate KeyPairs" -- save Private Key securely, copy Public Key and CRX ID
 
 **Option B -- OpenSSL:**
+
 ```bash
 openssl genrsa -out key.pem 2048
 # Use Plasmo Itero to convert or extract the public key in correct format
 ```
 
 **`.env.chrome`:**
+
 ```
 CRX_PUBLIC_KEY="<PUBLIC KEY from Itero>"
 ```
 
 **`package.json`:**
+
 ```json
 {
   "manifest": {
     "key": "$CRX_PUBLIC_KEY",
     "permissions": ["cookies", "storage"],
-    "host_permissions": [
-      "http://localhost/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
+    "host_permissions": ["http://localhost/*", "$CLERK_FRONTEND_API/*"]
   }
 }
 ```
@@ -335,17 +341,17 @@ const tokenCache = {
 <ClerkProvider publishableKey={PUBLISHABLE_KEY} tokenCache={tokenCache}>
 ```
 
-| Storage type | Scope | Clears on |
-|---|---|---|
-| `chrome.storage.local` | Device | Uninstall or manual clear |
-| `chrome.storage.session` | Session | Browser close |
-| `chrome.storage.sync` | All devices | Uninstall (size-limited, 8KB) |
-| `localStorage` | Popup only | Popup close -- do not use for auth |
+| Storage type             | Scope       | Clears on                          |
+| ------------------------ | ----------- | ---------------------------------- |
+| `chrome.storage.local`   | Device      | Uninstall or manual clear          |
+| `chrome.storage.session` | Session     | Browser close                      |
+| `chrome.storage.sync`    | All devices | Uninstall (size-limited, 8KB)      |
+| `localStorage`           | Popup only  | Popup close -- do not use for auth |
 
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --- | --- | --- |
 | Redirect loop on sign-in | Missing CRX URL in ClerkProvider props | Set `afterSignOutUrl`, `signInFallbackRedirectUrl` |
 | OAuth button not working | OAuth not supported in popup | Use `syncHost` to delegate to web app |
 | Auth state stale after web app sign-in | `syncHost` not configured | Add `syncHost` prop + `host_permissions` |
@@ -359,14 +365,14 @@ const tokenCache = {
 
 ## Plan Requirements
 
-| Feature | Plan |
-|---------|------|
-| Basic popup auth (email/password, OTP) | Free |
-| Passkeys | Free |
-| syncHost | Requires Pro (custom domain) |
-| OAuth through syncHost | Pro + OAuth configured on web app |
-| SAML through syncHost | Enterprise |
-| Bot protection | N/A -- must be disabled for extensions |
+| Feature                                | Plan                                   |
+| -------------------------------------- | -------------------------------------- |
+| Basic popup auth (email/password, OTP) | Free                                   |
+| Passkeys                               | Free                                   |
+| syncHost                               | Requires Pro (custom domain)           |
+| OAuth through syncHost                 | Pro + OAuth configured on web app      |
+| SAML through syncHost                  | Enterprise                             |
+| Bot protection                         | N/A -- must be disabled for extensions |
 
 ## See Also
 

@@ -2,8 +2,7 @@
 
 Post-auth patterns. Hooks below are imported from `@clerk/expo` unless noted; they mirror `@clerk/react`.
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> [Expo SDK reference](https://clerk.com/docs/reference/expo/overview) — plus `local-credentials` and `passkeys` pages under the Expo reference
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo SDK reference](https://clerk.com/docs/reference/expo/overview) — plus `local-credentials` and `passkeys` pages under the Expo reference
 
 ## User profile data
 

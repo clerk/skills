@@ -1,10 +1,6 @@
 ---
 name: clerk-expo
-description: Add Clerk authentication to Expo and React Native apps using @clerk/expo.
-  Use for Expo setup, prebuilt native components (AuthView, UserButton), custom sign-in/sign-up
-  flows (email, password, SMS/phone OTP, MFA), OAuth/SSO, native Google/Apple sign-in,
-  Expo Router protected routes, biometrics, and push notifications. Do not use for
-  native Swift/iOS, native Android/Kotlin, or web-only framework projects.
+description: Add Clerk authentication to Expo and React Native apps using @clerk/expo. Use for Expo setup, prebuilt native components (AuthView, UserButton), custom sign-in/sign-up flows (email, password, SMS/phone OTP, MFA), OAuth/SSO, native Google/Apple sign-in, Expo Router protected routes, biometrics, and push notifications. Do not use for native Swift/iOS, native Android/Kotlin, or web-only framework projects.
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -20,10 +16,12 @@ Implement Clerk in Expo / React Native projects. This skill inlines verified pat
 ## Activation Rules
 
 Activate when either is true:
+
 - The user asks for auth in an Expo or React Native app, or mentions `@clerk/expo`, `ClerkProvider`, Expo Router auth, or Clerk hooks in a native app.
 - The project is Expo/React Native (`app.json` / `app.config.js`, `expo` in `package.json`, `metro.config.js`, `@clerk/expo` dependency).
 
 Route away when:
+
 - Native iOS/Swift project (`.xcodeproj`, `Package.swift`) → `clerk-swift`
 - Native Android/Kotlin project (`build.gradle` without React Native) → `clerk-android`
 - Web-only framework (Next.js, Remix, plain React, etc.) → the matching framework skill
@@ -33,7 +31,7 @@ Route away when:
 Match what the user asked for, then load the reference(s) listed. Load only what the task needs.
 
 | User intent (examples) | Path | Reference |
-|------------------------|------|-----------|
+| --- | --- | --- |
 | "Add auth to my app" / "add sign-in with Clerk" | Prebuilt native components (default) | references/setup.md + references/prebuilt-components.md |
 | "Add auth" but Expo Go / web / custom UI required | Custom flows | references/setup.md + references/custom-flows.md |
 | "Add phone / SMS auth", "email OTP", "passwordless" | Custom flow, `phoneCode` / `emailCode` | references/custom-flows.md |
@@ -93,7 +91,7 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 ## Common Pitfalls
 
 | Level | Issue | Prevention |
-|-------|-------|------------|
+| --- | --- | --- |
 | CRITICAL | Generating legacy custom-flow code (`signIn.create` + `prepareFirstFactor` + `setActive`) | Use the current method-based API (Gate 4) |
 | CRITICAL | Using `useOAuth()` | Use `useSSO()` (Gate 5) |
 | CRITICAL | Implementing SMS/social auth without checking the factor is enabled | Check environment/dashboard first (Gate 3) |

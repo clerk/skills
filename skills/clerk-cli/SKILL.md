@@ -1,15 +1,7 @@
 ---
 name: clerk-cli
 description: >-
-  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session
-  management, impersonation, local webhook testing, deploy verification,
-  instance config, security audits, env keys, feature toggles, and any Clerk Backend, Platform,
-  or Frontend API call. Use when the user mentions Clerk management tasks,
-  "list clerk users", "impersonate a user", "test webhooks locally",
-  "enable orgs", "enable billing", "clerk security", "harden my Clerk instance",
-  "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", or any ad-hoc
-  Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key
-  resolution, app/instance targeting, and formatting automatically.
+  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
 license: MIT
 ---
 
@@ -23,46 +15,29 @@ For setup or `init` requests, use the [`clerk-setup`](../clerk-setup/SKILL.md) s
 
 ## Execution environment (prefer the host, understand the sandbox warning)
 
-Most AI coding agents default to running shell commands in a sandbox where the
-user's home directory, OS keychain, browser launch, localhost callback
-binding, or network access may be blocked. The Clerk CLI depends on all of
-those host capabilities:
+Most AI coding agents default to running shell commands in a sandbox where the user's home directory, OS keychain, browser launch, localhost callback binding, or network access may be blocked. The Clerk CLI depends on all of those host capabilities:
 
-- **OS credential store**: `clerk auth login` stores the OAuth token in the
-  system keychain. A sandbox without keychain access reports "not logged in"
-  even when the host is authenticated.
-- **Home-directory Clerk state**: saved config, cached metadata, and fallback
-  credentials live under the user's Clerk config/data directories.
-- **Linked project metadata**: resolved from the repo's git remote plus Clerk
-  config. Sandboxes with stripped repo state or blocked home-dir reads can
-  misreport "not linked".
-- **Local `.env*` files**: publishable and secret keys materialized by
-  `clerk env pull`.
+- **OS credential store**: `clerk auth login` stores the OAuth token in the system keychain. A sandbox without keychain access reports "not logged in" even when the host is authenticated.
+- **Home-directory Clerk state**: saved config, cached metadata, and fallback credentials live under the user's Clerk config/data directories.
+- **Linked project metadata**: resolved from the repo's git remote plus Clerk config. Sandboxes with stripped repo state or blocked home-dir reads can misreport "not linked".
+- **Local `.env*` files**: publishable and secret keys materialized by `clerk env pull`.
 - **Outbound network access to Clerk**: every Backend and Platform API call.
 - **Browser + localhost OAuth callback**: `clerk auth login` needs both.
 
-In agent mode, the CLI now does a **best-effort warn-once check** at the
-host-sensitive library boundaries. When it detects that host-only Clerk state
-or system capabilities are unavailable, it emits:
+In agent mode, the CLI now does a **best-effort warn-once check** at the host-sensitive library boundaries. When it detects that host-only Clerk state or system capabilities are unavailable, it emits:
 
 ```text
 Host-only Clerk state or system capabilities may be unavailable in agent mode. This may be a sandboxed run.
 Re-run this command on the host shell before trusting auth, link, env, or API failures.
 ```
 
-Treat that warning as authoritative. The command may continue, but any auth,
-link, env, config, API, browser, or OAuth callback failure from that
-invocation is untrusted until you rerun the same command on the host.
+Treat that warning as authoritative. The command may continue, but any auth, link, env, config, API, browser, or OAuth callback failure from that invocation is untrusted until you rerun the same command on the host.
 
 **Prefer these commands on the user's host shell, not in a sandbox:**
 
-`clerk doctor`, `clerk whoami`, `clerk auth login`, `clerk link`, `clerk env pull`,
-`clerk apps ...`, `clerk config ...`, `clerk api ...`.
+`clerk doctor`, `clerk whoami`, `clerk auth login`, `clerk link`, `clerk env pull`, `clerk apps ...`, `clerk config ...`, `clerk api ...`.
 
-If a command was accidentally run in a sandbox and it reports `Not logged in`,
-`auth_required`, `not linked`, missing env, keychain/file permission errors,
-or network failures, **do not treat the result as authoritative**. Rerun it on
-the host before acting on it or reporting it to the user.
+If a command was accidentally run in a sandbox and it reports `Not logged in`, `auth_required`, `not linked`, missing env, keychain/file permission errors, or network failures, **do not treat the result as authoritative**. Rerun it on the host before acting on it or reporting it to the user.
 
 ## Invoking the CLI
 
@@ -77,8 +52,8 @@ If that prints `latest` or any version you trust, use bare `clerk` for the rest 
 
 Otherwise fall back to a package runner, in this order (matches the CLI's own `preferredRunner` logic, which prefers the runner that matches the project's lockfile):
 
-| Project package manager   | Invocation                       |
-| ------------------------- | -------------------------------- |
+| Project package manager   | Invocation              |
+| ------------------------- | ----------------------- |
 | bun (`bun.lock*`)         | `bunx clerk@latest`     |
 | npm (`package-lock.json`) | `npx -y clerk@latest`   |
 | pnpm (`pnpm-lock.yaml`)   | `pnpm dlx clerk@latest` |
@@ -105,7 +80,7 @@ If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <c
 
 ## Accountless setup
 
-`clerk init` does **not** require `clerk auth login`: on a framework with accountless support, an unauthenticated bootstrap with no `--app`, or an unauthenticated agent run with no `--app` or existing project link, mints an unclaimed accountless app with temporary development keys — no account, no browser, no flag. (A signed-out human re-running it in an *existing* project gets the login flow instead — `--accountless` forces the temporary-keys path.) Most instance commands then work on that key alone.
+`clerk init` does **not** require `clerk auth login`: on a framework with accountless support, an unauthenticated bootstrap with no `--app`, or an unauthenticated agent run with no `--app` or existing project link, mints an unclaimed accountless app with temporary development keys — no account, no browser, no flag. (A signed-out human re-running it in an _existing_ project gets the login flow instead — `--accountless` forces the temporary-keys path.) Most instance commands then work on that key alone.
 
 Two things to know before you use it: the accountless path follows whatever `sk_` key is local — `sk_live_` included, claimed or not — so pass `--app <id>` when you mean a real app; and `clerk open` returns a credential-equivalent claim URL, never safe to paste into a log or PR.
 
@@ -113,13 +88,13 @@ Which commands need an account, and the full rules: [auth.md](references/auth.md
 
 ## The mental model
 
-| Layer                           | What it does                                                                                 | Commands                                                       |
-| ------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| **Session / project**           | Auth, link a repo to a Clerk app, pull env keys                                              | `auth login`, `link`, `unlink`, `whoami`, `env pull`, `doctor` |
-| **Instance config**             | Manage the configuration (social providers, session lifetimes, etc.) for a specific instance | `config pull`, `config schema`, `config patch`, `config put`   |
-| **Backend API (default)**       | Runtime data: users, orgs, sessions, invitations, JWT templates, webhooks                    | `clerk api <path>`                                             |
-| **Platform API (`--platform`)** | Account-level: applications, instances, billing                                              | `clerk api --platform <path>`                                  |
-| **Frontend API (`--fapi`)**     | The instance's public client-facing API (what clerk-js calls)                                | `clerk api --fapi <path>`                                      |
+| Layer | What it does | Commands |
+| --- | --- | --- |
+| **Session / project** | Auth, link a repo to a Clerk app, pull env keys | `auth login`, `link`, `unlink`, `whoami`, `env pull`, `doctor` |
+| **Instance config** | Manage the configuration (social providers, session lifetimes, etc.) for a specific instance | `config pull`, `config schema`, `config patch`, `config put` |
+| **Backend API (default)** | Runtime data: users, orgs, sessions, invitations, JWT templates, webhooks | `clerk api <path>` |
+| **Platform API (`--platform`)** | Account-level: applications, instances, billing | `clerk api --platform <path>` |
+| **Frontend API (`--fapi`)** | The instance's public client-facing API (what clerk-js calls) | `clerk api --fapi <path>` |
 
 A project is "linked" to an application via `clerk link`. Once linked, most commands auto-resolve the target app and dev instance from the repo's git remote. To target something else, pass `--app <id>` and/or `--instance dev|prod|<instance_id>`. See [references/auth.md](references/auth.md) for the full resolution order.
 

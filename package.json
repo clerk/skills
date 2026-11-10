@@ -5,6 +5,8 @@
   "scripts": {
     "test": "node --test scripts/*.test.mjs",
     "check": "concurrently \"pnpm:check:*\"",
+    "format:skills": "oxfmt --write \"skills/**/*.md\"",
+    "check:format": "oxfmt --check \"skills/**/*.md\"",
     "check:docs-links": "node scripts/check-docs-links.mjs",
     "check:markdown-links": "node scripts/check-markdown-links.mjs",
     "check:skill-length": "node scripts/check-skill-length.mjs",
@@ -14,6 +16,7 @@
   "devDependencies": {
     "concurrently": "10.0.5",
     "mdast-util-to-string": "4.0.0",
+    "oxfmt": "0.77.0",
     "path-to-regexp": "8.4.2",
     "remark": "15.0.1",
     "remark-frontmatter": "5.0.0",

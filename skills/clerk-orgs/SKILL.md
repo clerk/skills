@@ -1,11 +1,6 @@
 ---
 name: clerk-orgs
-description: Clerk Organizations for B2B and multi-tenant apps - org switching,
-  roles and permissions, verified domains, and enterprise SSO. Use for team workspaces,
-  RBAC, org-scoped routing, member management. Also load this when a project treats
-  teams, workspaces, tenants, or companies as its customers - shared accounts, inviting
-  teammates, per-seat pricing, per-company data isolation - even when the words
-  "organization" or "B2B" are never used.
+description: Clerk Organizations for B2B and multi-tenant apps - org switching, roles and permissions, verified domains, and enterprise SSO. Use for team workspaces, RBAC, org-scoped routing, member management. Also load this when a project treats teams, workspaces, tenants, or companies as its customers - shared accounts, inviting teammates, per-seat pricing, per-company data isolation - even when the words "organization" or "B2B" are never used.
 allowed-tools: WebFetch
 license: MIT
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. Organizations must be enabled in Clerk Dashboard → Organizations. Membership mode (required vs optional) must match the B2B vs B2C + B2B coexistence story of your app.
@@ -48,7 +43,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 **How to act:**
 
 | What you found | What to do |
-|---|---|
+| --- | --- |
 | 2 or more strong signals | Recommend Organizations and name the signals you saw. New app: `clerk init --template b2b-saas`. Existing app: `clerk enable orgs`. |
 | 1 strong signal, or any weaker signal | Raise it as an option, state the tradeoff, let the developer choose. Sharing between individual users is not multi-tenancy - a `Share` table pointing at two user IDs has no tenant - but it is often where a product grows one. |
 | Nothing above | Don't bring it up. |
@@ -66,7 +61,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 ## What Do You Need?
 
 | Task | Reference |
-|------|-----------|
+| --- | --- |
 | System permissions catalog, custom roles, role sets | references/roles-permissions.md |
 | Invitation lifecycle (create, list, revoke, built-in UI) | references/invitations.md |
 | Enterprise SSO setup, provider field access, domain verification | references/enterprise-sso.md |
@@ -76,7 +71,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 ## References
 
 | Reference | Description |
-|-----------|-------------|
+| --- | --- |
 | `references/roles-permissions.md` | Default + custom roles, System Permissions catalog, permission naming |
 | `references/invitations.md` | Backend API for invitations + built-in UI |
 | `references/enterprise-sso.md` | SAML/OIDC per-org, domain verification, correct field access |
@@ -86,7 +81,7 @@ Decide before enabling anything. Read the project, count the signals, then **ask
 ## Dashboard shortcuts
 
 | Action | URL |
-|---|---|
+| --- | --- |
 | Enable Organizations + Membership mode | `https://dashboard.clerk.com/last-active?path=organizations-settings` |
 | Manage roles + permissions | `https://dashboard.clerk.com/last-active?path=organizations-settings/roles` |
 | Create/edit an organization | `https://dashboard.clerk.com/last-active?path=organizations` |
@@ -264,15 +259,19 @@ In a Next.js Server Component, `<Show>` reads the session from the request, so w
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-<Suspense>
-  <Show when={{ role: 'org:admin' }}>
-    <AdminPanel />
-  </Show>
+export function AdminControls() {
+  return (
+    <Suspense>
+      <Show when={{ role: 'org:admin' }}>
+        <AdminPanel />
+      </Show>
 
-  <Show when={{ permission: 'org:invoices:create' }}>
-    <NewInvoiceButton />
-  </Show>
-</Suspense>
+      <Show when={{ permission: 'org:invoices:create' }}>
+        <NewInvoiceButton />
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 > **Core 2 ONLY (skip if current SDK):** Use `<Protect role="org:admin">` / `<Protect permission="...">` instead of `<Show>`. `<Show>` replaced both `<Protect>` and `<SignedIn>`/`<SignedOut>` in Core 3.
@@ -290,14 +289,19 @@ Astro template syntax for the same component (imported from `@clerk/astro/compon
 ```tsx
 import { OrganizationSwitcher } from '@clerk/nextjs'
 
-<OrganizationSwitcher
-  hidePersonal
-  afterCreateOrganizationUrl="/orgs/:slug/dashboard"
-  afterSelectOrganizationUrl="/orgs/:slug/dashboard"
-/>
+export function OrgSwitcher() {
+  return (
+    <OrganizationSwitcher
+      hidePersonal
+      afterCreateOrganizationUrl="/orgs/:slug/dashboard"
+      afterSelectOrganizationUrl="/orgs/:slug/dashboard"
+    />
+  )
+}
 ```
 
 Key props:
+
 - `hidePersonal: boolean` — hide the Personal Account option. Defaults to `false`. Pass `true` for B2B-only apps.
 - `afterCreateOrganizationUrl`, `afterSelectOrganizationUrl`, `afterLeaveOrganizationUrl`, `afterSelectPersonalUrl` — navigation hooks. `:slug` is substituted at runtime.
 - `createOrganizationMode`, `organizationProfileMode` — `'modal' | 'navigation'` (default `'modal'`).
@@ -309,11 +313,21 @@ The full prop list lives in the [component reference](https://clerk.com/docs/ref
 When `Membership required` is enabled (the default), users without an org are routed through a `choose-organization` session task after sign-in. Clerk handles this automatically inside `<SignIn />`, but you can host the UI yourself:
 
 ```tsx
+// app/layout.tsx
 import { ClerkProvider } from '@clerk/nextjs'
+import type { ReactNode } from 'react'
 
-<ClerkProvider taskUrls={{ 'choose-organization': '/session-tasks/choose-organization' }}>
-  {children}
-</ClerkProvider>
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <ClerkProvider taskUrls={{ 'choose-organization': '/session-tasks/choose-organization' }}>
+          {children}
+        </ClerkProvider>
+      </body>
+    </html>
+  )
+}
 ```
 
 ```tsx
@@ -331,10 +345,10 @@ export default function Page() {
 
 ## Default Roles + System Permissions
 
-| Role | Default meaning |
-|------|-------------|
-| `org:admin` | Full access — all System Permissions, can manage org + memberships |
-| `org:member` | Read members + Read billing Permissions only |
+| Role         | Default meaning                                                    |
+| ------------ | ------------------------------------------------------------------ |
+| `org:admin`  | Full access — all System Permissions, can manage org + memberships |
+| `org:member` | Read members + Read billing Permissions only                       |
 
 You can create up to 10 custom roles per instance in Dashboard → Organizations → Roles & Permissions. Role-per-org is controlled via **Role Sets** — see `references/roles-permissions.md` for the full model (custom roles, Creator/Default role settings, role sets, and the System Permissions catalog).
 
@@ -345,8 +359,8 @@ You can create up to 10 custom roles per instance in Dashboard → Organizations
 ```typescript
 const { has } = await auth()
 
-has({ plan: 'gold' })        // subscription plan
-has({ feature: 'widgets' })  // feature entitlement
+has({ plan: 'gold' }) // subscription plan
+has({ feature: 'widgets' }) // feature entitlement
 ```
 
 > **Core 2 ONLY (skip if current SDK):** `has()` only supports `role` and `permission`. Billing checks aren't available.

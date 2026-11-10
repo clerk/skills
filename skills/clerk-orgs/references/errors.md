@@ -5,7 +5,7 @@
 Most "org-related" failures are configuration, not code. Do not edit components before checking these:
 
 | Error / symptom | Root cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `orgId` / `orgSlug` is `undefined` for a signed-in user | Organizations not enabled for this instance, OR user has no active org (personal account) | Enable in Dashboard → Organizations; check Membership mode; surface `<OrganizationSwitcher />` |
 | `has({ permission: ... })` always `false` | An invented slug (`org:manage_members`), or a System Permission (`org:sys_*`), which `has()` can't check | Check the role (`has({ role: 'org:admin' })`) or a custom Permission created in the Dashboard (see roles-permissions.md) |
 | `has({ role })` returns `false` but user looks like an admin | Session token stale after role change | Re-sign-in, or refresh the session: `await clerk.session?.reload()` |
