@@ -108,12 +108,15 @@ has?.({ role: 'org:admin' })
 ```tsx
 // JSX conditional
 import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
 export function AdminOnly() {
   return (
-    <Show when={{ role: 'org:admin' }}>
-      <AdminPanel />
-    </Show>
+    <Suspense>
+      <Show when={{ role: 'org:admin' }}>
+        <AdminPanel />
+      </Show>
+    </Suspense>
   )
 }
 ```
