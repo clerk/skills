@@ -149,12 +149,12 @@ For the OTP-only variant, do the same with `signIn.phoneCode` / `signUp.create({
 
 When `signIn.status === 'needs_second_factor'`, check `signIn.supportedSecondFactors` and use `signIn.mfa`:
 
-| Factor                   | Send                         | Verify                                  |
-| ------------------------ | ---------------------------- | --------------------------------------- |
-| SMS code                 | `signIn.mfa.sendPhoneCode()` | `signIn.mfa.verifyPhoneCode({ code })`  |
-| Email code               | `signIn.mfa.sendEmailCode()` | `signIn.mfa.verifyEmailCode({ code })`  |
-| TOTP (authenticator app) | —                            | `signIn.mfa.verifyTOTP({ code })`       |
-| Backup code              | —                            | `signIn.mfa.verifyBackupCode({ code })` |
+| Factor | Send | Verify |
+| --- | --- | --- |
+| SMS code | `signIn.mfa.sendPhoneCode()` | `signIn.mfa.verifyPhoneCode({ code })` |
+| Email code | `signIn.mfa.sendEmailCode()` | `signIn.mfa.verifyEmailCode({ code })` |
+| TOTP (authenticator app) | — | `signIn.mfa.verifyTOTP({ code })` |
+| Backup code | — | `signIn.mfa.verifyBackupCode({ code })` |
 
 After a successful verify, `signIn.status` becomes `complete` → `finalize()`. The same `mfa` methods serve `needs_client_trust` (new-device verification).
 

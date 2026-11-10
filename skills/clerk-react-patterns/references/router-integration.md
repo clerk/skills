@@ -80,11 +80,7 @@ export function SignOutButton() {
   const { signOut } = useClerk()
   const navigate = useNavigate()
 
-  return (
-    <button onClick={() => signOut(() => navigate('/'))}>
-      Sign out
-    </button>
-  )
+  return <button onClick={() => signOut(() => navigate('/'))}>Sign out</button>
 }
 ```
 

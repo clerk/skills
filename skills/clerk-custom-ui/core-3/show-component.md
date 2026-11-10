@@ -7,19 +7,19 @@ The `<Show>` component conditionally renders content based on authentication sta
 ## Import
 
 ```typescript
-import { Show } from '@clerk/nextjs'       // Next.js
-import { Show } from '@clerk/react'         // React
-import { Show } from '@clerk/react-router'  // React Router
-import { Show } from '@clerk/expo'          // Expo
+import { Show } from '@clerk/nextjs' // Next.js
+import { Show } from '@clerk/react' // React
+import { Show } from '@clerk/react-router' // React Router
+import { Show } from '@clerk/expo' // Expo
 ```
 
 ## Props
 
-| Prop                       | Type                           | Description                                            |
-| -------------------------- | ------------------------------ | ------------------------------------------------------ |
-| `when`                     | `string \| object \| function` | Condition for rendering children                       |
-| `fallback?`                | `ReactNode`                    | Content shown when condition fails                     |
-| `treatPendingAsSignedOut?` | `boolean`                      | Treat pending sessions as signed-out (default: `true`) |
+| Prop | Type | Description |
+| --- | --- | --- |
+| `when` | `string \| object \| function` | Condition for rendering children |
+| `fallback?` | `ReactNode` | Content shown when condition fails |
+| `treatPendingAsSignedOut?` | `boolean` | Treat pending sessions as signed-out (default: `true`) |
 
 ## `when` Prop Variants
 
@@ -111,7 +111,7 @@ In a Next.js Server Component, `<Show>` reads the session from the request. With
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-<Suspense>
+;<Suspense>
   <Show when="signed-in">
     <p>Welcome back!</p>
   </Show>
@@ -126,16 +126,16 @@ In a Client Component, **`<Show>` only visually hides content**: it remains in b
 
 ## Migration from Core 2
 
-| Core 2                                      | Current                                              |
-| ------------------------------------------- | ---------------------------------------------------- |
-| `<SignedIn>`                                | `<Show when="signed-in">`                            |
-| `<SignedOut>`                               | `<Show when="signed-out">`                           |
-| `<Protect role="org:admin">`                | `<Show when={{ role: 'org:admin' }}>`                |
+| Core 2 | Current |
+| --- | --- |
+| `<SignedIn>` | `<Show when="signed-in">` |
+| `<SignedOut>` | `<Show when="signed-out">` |
+| `<Protect role="org:admin">` | `<Show when={{ role: 'org:admin' }}>` |
 | `<Protect permission="org:billing:manage">` | `<Show when={{ permission: 'org:billing:manage' }}>` |
-| `<Protect condition={(has) => expr}>`       | `<Show when={(has) => expr}>`                        |
-| `<Protect fallback={...}>`                  | `<Show when={...} fallback={...}>`                   |
-| _(no equivalent)_                           | `<Show when={{ feature: 'widgets' }}>`               |
-| _(no equivalent)_                           | `<Show when={{ plan: 'gold' }}>`                     |
+| `<Protect condition={(has) => expr}>` | `<Show when={(has) => expr}>` |
+| `<Protect fallback={...}>` | `<Show when={...} fallback={...}>` |
+| _(no equivalent)_ | `<Show when={{ feature: 'widgets' }}>` |
+| _(no equivalent)_ | `<Show when={{ plan: 'gold' }}>` |
 
 ## Docs
 

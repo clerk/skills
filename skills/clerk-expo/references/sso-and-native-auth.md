@@ -8,11 +8,11 @@
 
 Three ways to do social auth in Expo. Pick by platform and build type:
 
-| Approach                                         | UX                                    | Works in Expo Go | Platforms                            |
-| ------------------------------------------------ | ------------------------------------- | ---------------- | ------------------------------------ |
-| `AuthView` (prebuilt)                            | Native, renders all enabled providers | No (dev build)   | iOS, Android                         |
-| `useSSO()` browser flow                          | Opens a browser session               | Yes              | iOS, Android, web                    |
-| `useSignInWithGoogle()` / `useSignInWithApple()` | Fully native sheet, no browser        | No (dev build)   | Google: iOS+Android; Apple: iOS only |
+| Approach | UX | Works in Expo Go | Platforms |
+| --- | --- | --- | --- |
+| `AuthView` (prebuilt) | Native, renders all enabled providers | No (dev build) | iOS, Android |
+| `useSSO()` browser flow | Opens a browser session | Yes | iOS, Android, web |
+| `useSignInWithGoogle()` / `useSignInWithApple()` | Fully native sheet, no browser | No (dev build) | Google: iOS+Android; Apple: iOS only |
 
 If the app already uses `AuthView`, stop — it handles social providers itself; configure providers in the dashboard instead. Whatever the approach, the provider must be enabled in Clerk Dashboard → **User & authentication → Social connections** (Gate 3).
 

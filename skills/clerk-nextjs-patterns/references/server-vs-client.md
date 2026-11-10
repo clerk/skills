@@ -4,10 +4,10 @@
 
 ```tsx
 // WRONG
-const { userId } = auth(); // undefined!
+const { userId } = auth() // undefined!
 
 // CORRECT
-const { userId } = await auth();
+const { userId } = await auth()
 ```
 
 ## When to Use
@@ -17,27 +17,31 @@ const { userId } = await auth();
 
 ## Import Rules
 
-```tsx
-// Server Components
-import { auth, currentUser } from '@clerk/nextjs/server';
+Server Components:
 
-// Client Components
-'use client';
-import { useAuth, useUser } from '@clerk/nextjs';
+```tsx
+import { auth, currentUser } from '@clerk/nextjs/server'
+```
+
+Client Components:
+
+```tsx
+'use client'
+import { useAuth, useUser } from '@clerk/nextjs'
 ```
 
 ## Server Component
 
 ```tsx
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { Suspense } from 'react';
+import { auth, currentUser } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
 
 async function Welcome() {
-  const { isAuthenticated } = await auth();
-  if (!isAuthenticated) return <div>Please sign in</div>;
+  const { isAuthenticated } = await auth()
+  if (!isAuthenticated) return <div>Please sign in</div>
 
-  const user = await currentUser();
-  return <h1>Welcome, {user?.firstName}!</h1>;
+  const user = await currentUser()
+  return <h1>Welcome, {user?.firstName}!</h1>
 }
 
 export default function DashboardPage() {
@@ -45,7 +49,7 @@ export default function DashboardPage() {
     <Suspense>
       <Welcome />
     </Suspense>
-  );
+  )
 }
 ```
 
@@ -54,37 +58,38 @@ export default function DashboardPage() {
 ## Client Component
 
 ```tsx
-'use client';
-import { useUser, useAuth } from '@clerk/nextjs';
+'use client'
+import { useUser, useAuth } from '@clerk/nextjs'
 
 export function UserDashboard() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const { signOut } = useAuth();
+  const { isLoaded, isSignedIn, user } = useUser()
+  const { signOut } = useAuth()
 
-  if (!isLoaded) return <div>Loading...</div>;
-  if (!isSignedIn) return <div>Not signed in</div>;
+  if (!isLoaded) return <div>Loading...</div>
+  if (!isSignedIn) return <div>Not signed in</div>
 
   return (
     <div>
       <p>Hello, {user.firstName}!</p>
       <button onClick={() => signOut()}>Sign out</button>
     </div>
-  );
+  )
 }
 ```
 
 ## Hybrid Pattern
 
+Server: fetch initial data in `ProfilePage.tsx`.
+
 ```tsx
-// Server: fetch initial data
-import { currentUser } from '@clerk/nextjs/server';
-import { Suspense } from 'react';
-import { ProfileForm } from './ProfileForm';
+import { currentUser } from '@clerk/nextjs/server'
+import { Suspense } from 'react'
+import { ProfileForm } from './ProfileForm'
 
 async function Profile() {
-  const user = await currentUser();
-  if (!user) return <div>Please sign in</div>;
-  return <ProfileForm initialData={{ firstName: user.firstName }} />;
+  const user = await currentUser()
+  if (!user) return <div>Please sign in</div>
+  return <ProfileForm initialData={{ firstName: user.firstName }} />
 }
 
 export default function ProfilePage() {
@@ -92,16 +97,19 @@ export default function ProfilePage() {
     <Suspense>
       <Profile />
     </Suspense>
-  );
+  )
 }
+```
 
-// Client: handle interactions
-'use client';
-import { useUser } from '@clerk/nextjs';
+Client: handle interactions in `ProfileForm.tsx`.
+
+```tsx
+'use client'
+import { useUser } from '@clerk/nextjs'
 
 export function ProfileForm({ initialData }) {
-  const { user } = useUser();
-  return <form>...</form>;
+  const { user } = useUser()
+  return <form>...</form>
 }
 ```
 
@@ -110,10 +118,10 @@ export function ProfileForm({ initialData }) {
 Use `<Show>` to render content based on auth state. In a Server Component, `<Show>` reads the session from the request, so wrap it in `<Suspense>`. In a Client Component, it reads client-side auth state and needs no boundary.
 
 ```tsx
-import { Show } from '@clerk/nextjs';
-import { Suspense } from 'react';
+import { Show } from '@clerk/nextjs'
+import { Suspense } from 'react'
 
-<Suspense>
+;<Suspense>
   <Show when="signed-in" fallback={<div>Please sign in</div>}>
     <Dashboard />
   </Show>

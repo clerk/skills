@@ -2,8 +2,7 @@
 
 The default "add auth" path. `AuthView`, `UserButton`, and `UserProfileView` render Clerk's native UI — SwiftUI on iOS, Jetpack Compose on Android — and handle every enabled auth strategy (password, OTP, social, MFA) with no flow code.
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x): [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
 
 **Status and requirements — tell the developer up front:**
 
@@ -17,11 +16,11 @@ For native email-link sign-in, use `<AuthView />`. JavaScript-only custom email-
 
 Import from `@clerk/expo/native`:
 
-| Component         | Renders                                          | Props                                                                                                                                    |
-| ----------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthView`        | Sign-in/sign-up UI, inline (fills parent)        | `mode?: 'signInOrUp' \| 'signIn' \| 'signUp'` (default `signInOrUp`), `isDismissible?: boolean` (default true), `onDismiss?: () => void` |
-| `UserButton`      | Avatar button that opens the native user profile | —                                                                                                                                        |
-| `UserProfileView` | Profile/account management, inline               | `isDismissible?`, `onDismiss?`, `style?`                                                                                                 |
+| Component | Renders | Props |
+| --- | --- | --- |
+| `AuthView` | Sign-in/sign-up UI, inline (fills parent) | `mode?: 'signInOrUp' \| 'signIn' \| 'signUp'` (default `signInOrUp`), `isDismissible?: boolean` (default true), `onDismiss?: () => void` |
+| `UserButton` | Avatar button that opens the native user profile | — |
+| `UserProfileView` | Profile/account management, inline | `isDismissible?`, `onDismiss?`, `style?` |
 
 These are the only public props. Do not invent event handlers (`onAuthEvent`, `onSignIn`, etc.) — react to auth state with `useAuth()` / `useUser()` instead. Verify props against `node_modules/@clerk/expo/dist/native/*.d.ts` for the installed version.
 

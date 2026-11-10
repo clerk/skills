@@ -44,14 +44,14 @@ If the user already asked for sign-in UI, such as a custom flow, continue here o
 
 ## Quick Start
 
-| Step | Action                                                                                                                                        |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Confirm the project is native Swift and not Expo/React Native                                                                                 |
-| 2    | If Clerk isn't set up, follow the iOS setup prompt first (see above)                                                                          |
-| 3    | Determine the flow type (`prebuilt` or `custom`); ask if it's undecided, then load the matching reference                                     |
-| 4    | Check the prerequisites the selected flow needs, such as a package product or capability, and make only the targeted changes that are missing |
-| 5    | Implement the flow by following the selected reference                                                                                        |
-| 6    | Build the target and report what remains unverified                                                                                           |
+| Step | Action |
+| --- | --- |
+| 1 | Confirm the project is native Swift and not Expo/React Native |
+| 2 | If Clerk isn't set up, follow the iOS setup prompt first (see above) |
+| 3 | Determine the flow type (`prebuilt` or `custom`); ask if it's undecided, then load the matching reference |
+| 4 | Check the prerequisites the selected flow needs, such as a package product or capability, and make only the targeted changes that are missing |
+| 5 | Implement the flow by following the selected reference |
+| 6 | Build the target and report what remains unverified |
 
 ## Decision Tree
 
@@ -106,11 +106,11 @@ Before UI implementation edits, the agent must have a flow choice: `prebuilt` or
 
 Use the installed `clerk-ios` package source as the reference for UI behavior, especially for custom flows.
 
-| Use Case                                                   | Source of Truth in Installed Package                                                                |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| SDK products, platform support, and dependency constraints | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI`                     |
-| Auth flow sequencing and gating                            | `ClerkKitUI` `AuthView` implementation and how it reads the injected Clerk instance's `environment` |
-| Native Sign in with Apple                                  | Apple sign-in behavior in the selected flow reference                                               |
+| Use Case | Source of Truth in Installed Package |
+| --- | --- |
+| SDK products, platform support, and dependency constraints | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI` |
+| Auth flow sequencing and gating | `ClerkKitUI` `AuthView` implementation and how it reads the injected Clerk instance's `environment` |
+| Native Sign in with Apple | Apple sign-in behavior in the selected flow reference |
 
 ## Workflow
 
@@ -124,17 +124,17 @@ Use the installed `clerk-ios` package source as the reference for UI behavior, e
 
 ## Common Pitfalls
 
-| Level    | Issue                                                                | Prevention                                                                                                               |
-| -------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| CRITICAL | Doing setup by hand when Clerk isn't set up                          | Follow the iOS setup prompt; it runs the Clerk CLI. Use the manual quickstart only when the CLI can't set up the project |
-| CRITICAL | Asking the user to paste a publishable key                           | The CLI provides it during setup; keep an existing app's own key loading                                                 |
-| CRITICAL | Replacing custom key loading or existing setup                       | Keep the existing `Clerk.configure`, packages, and capabilities; add only what's missing                                 |
-| CRITICAL | Starting UI implementation before the flow type is confirmed         | Confirm the flow first and load the matching reference                                                                   |
-| CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default                             |
-| CRITICAL | Collapsing custom auth into a single all-fields screen               | Follow `AuthView`-style multi-step progression and step-specific field collection                                        |
-| CRITICAL | Guessing custom sequencing or gating when uncertain                  | Reference installed `ClerkKitUI` behavior and mirror it                                                                  |
-| HIGH     | Hardcoding this instance's current settings into custom flow code    | Gate steps at runtime from the injected Clerk instance's `environment`, as `AuthView` does                               |
-| HIGH     | Using this skill for Expo/React Native                               | Detect and route away before implementation                                                                              |
+| Level | Issue | Prevention |
+| --- | --- | --- |
+| CRITICAL | Doing setup by hand when Clerk isn't set up | Follow the iOS setup prompt; it runs the Clerk CLI. Use the manual quickstart only when the CLI can't set up the project |
+| CRITICAL | Asking the user to paste a publishable key | The CLI provides it during setup; keep an existing app's own key loading |
+| CRITICAL | Replacing custom key loading or existing setup | Keep the existing `Clerk.configure`, packages, and capabilities; add only what's missing |
+| CRITICAL | Starting UI implementation before the flow type is confirmed | Confirm the flow first and load the matching reference |
+| CRITICAL | Custom flow layout diverges from `AuthView` without explicit request | Keep custom screens materially close to `AuthView` structure and step composition by default |
+| CRITICAL | Collapsing custom auth into a single all-fields screen | Follow `AuthView`-style multi-step progression and step-specific field collection |
+| CRITICAL | Guessing custom sequencing or gating when uncertain | Reference installed `ClerkKitUI` behavior and mirror it |
+| HIGH | Hardcoding this instance's current settings into custom flow code | Gate steps at runtime from the injected Clerk instance's `environment`, as `AuthView` does |
+| HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 
 ## See Also
 

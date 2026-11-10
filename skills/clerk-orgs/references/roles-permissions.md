@@ -4,9 +4,9 @@ Clerk Organizations use Role-Based Access Control (RBAC). Every member has one R
 
 ## Default Roles
 
-| Role         | Default meaning                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------- |
-| `org:admin`  | Full access — holds all System Permissions, can manage the Organization and its memberships  |
+| Role | Default meaning |
+| --- | --- |
+| `org:admin` | Full access — holds all System Permissions, can manage the Organization and its memberships |
 | `org:member` | Read-only members. By default has only `org:sys_memberships:read` and `org:sys_billing:read` |
 
 Both slugs are automatically created when Organizations are enabled. You cannot delete a default Role if it's set as the org's **Creator** or **Default** Role — reassign to another Role first.
@@ -108,7 +108,7 @@ has?.({ role: 'org:admin' })
 ```tsx
 // JSX conditional
 import { Show } from '@clerk/nextjs'
-<Show when={{ role: 'org:admin' }}>
+;<Show when={{ role: 'org:admin' }}>
   <AdminPanel />
 </Show>
 ```

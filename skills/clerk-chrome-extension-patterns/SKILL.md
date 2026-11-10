@@ -1,10 +1,6 @@
 ---
 name: clerk-chrome-extension-patterns
-description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel
-  setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers
-  and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, Plasmo
-  clerk, popup sign-in, syncHost, background service worker token, createClerkClient,
-  headless extension.'
+description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, Plasmo clerk, popup sign-in, syncHost, background service worker token, createClerkClient, headless extension.'
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY (Plasmo prefix for public env vars) and CLERK_FRONTEND_API.
@@ -12,10 +8,10 @@ metadata:
   author: clerk
   version: 2.0.0
   references:
-  - references/sync-host.md
-  - references/create-clerk-client.md
-  - references/content-scripts.md
-  - references/headless-extension.md
+    - references/sync-host.md
+    - references/create-clerk-client.md
+    - references/content-scripts.md
+    - references/headless-extension.md
 ---
 
 # Chrome Extension Patterns
@@ -66,7 +62,13 @@ CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
 `src/popup.tsx`:
 
 ```tsx
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/chrome-extension'
+import {
+  ClerkProvider,
+  Show,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/chrome-extension'
 
 const PUBLISHABLE_KEY = process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY
 const EXTENSION_URL = chrome.runtime.getURL('.')
@@ -144,10 +146,7 @@ const SYNC_HOST = process.env.PLASMO_PUBLIC_CLERK_SYNC_HOST
   "manifest": {
     "key": "$CRX_PUBLIC_KEY",
     "permissions": ["cookies", "storage"],
-    "host_permissions": [
-      "$PLASMO_PUBLIC_CLERK_SYNC_HOST/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
+    "host_permissions": ["$PLASMO_PUBLIC_CLERK_SYNC_HOST/*", "$CLERK_FRONTEND_API/*"]
   }
 }
 ```
@@ -219,15 +218,17 @@ const POPUP_URL = `${EXTENSION_URL}popup.html`
 
 const clerk = createClerkClient({ publishableKey })
 
-clerk.load({
-  afterSignOutUrl: POPUP_URL,
-  signInForceRedirectUrl: POPUP_URL,
-  signUpForceRedirectUrl: POPUP_URL,
-  allowedRedirectProtocols: ['chrome-extension:'],
-}).then(() => {
-  clerk.addListener(render)
-  render()
-})
+clerk
+  .load({
+    afterSignOutUrl: POPUP_URL,
+    signInForceRedirectUrl: POPUP_URL,
+    signUpForceRedirectUrl: POPUP_URL,
+    allowedRedirectProtocols: ['chrome-extension:'],
+  })
+  .then(() => {
+    clerk.addListener(render)
+    render()
+  })
 ```
 
 Full guide: `references/create-clerk-client.md`
@@ -314,10 +315,7 @@ CRX_PUBLIC_KEY="<PUBLIC KEY from Itero>"
   "manifest": {
     "key": "$CRX_PUBLIC_KEY",
     "permissions": ["cookies", "storage"],
-    "host_permissions": [
-      "http://localhost/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
+    "host_permissions": ["http://localhost/*", "$CLERK_FRONTEND_API/*"]
   }
 }
 ```
@@ -352,18 +350,18 @@ const tokenCache = {
 
 ## Common Pitfalls
 
-| Symptom                                       | Cause                                  | Fix                                                  |
-| --------------------------------------------- | -------------------------------------- | ---------------------------------------------------- |
-| Redirect loop on sign-in                      | Missing CRX URL in ClerkProvider props | Set `afterSignOutUrl`, `signInFallbackRedirectUrl`   |
-| OAuth button not working                      | OAuth not supported in popup           | Use `syncHost` to delegate to web app                |
-| Auth state stale after web app sign-in        | `syncHost` not configured              | Add `syncHost` prop + `host_permissions`             |
-| Side panel shows signed-out after web sign-in | Known limitation                       | User must close and reopen the side panel            |
-| Background can't get token after 60s          | Session expired, no background refresh | Use `createClerkClient({ background: true })`        |
-| Content script can't access Clerk             | Isolated world + origin restrictions   | Use message passing to background service worker     |
-| Auth breaks after rebuild                     | CRX ID rotated                         | Configure stable key via `.env.chrome`               |
-| `PLASMO_PUBLIC_` var undefined                | Wrong env file                         | Use `.env.development`, not `.env`                   |
-| Bot protection errors                         | Cloudflare not supported in extensions | Disable bot protection in Clerk Dashboard            |
-| Token cache not persisting                    | Using `localStorage` in popup          | Use `chrome.storage.local` or pass `tokenCache` prop |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Redirect loop on sign-in | Missing CRX URL in ClerkProvider props | Set `afterSignOutUrl`, `signInFallbackRedirectUrl` |
+| OAuth button not working | OAuth not supported in popup | Use `syncHost` to delegate to web app |
+| Auth state stale after web app sign-in | `syncHost` not configured | Add `syncHost` prop + `host_permissions` |
+| Side panel shows signed-out after web sign-in | Known limitation | User must close and reopen the side panel |
+| Background can't get token after 60s | Session expired, no background refresh | Use `createClerkClient({ background: true })` |
+| Content script can't access Clerk | Isolated world + origin restrictions | Use message passing to background service worker |
+| Auth breaks after rebuild | CRX ID rotated | Configure stable key via `.env.chrome` |
+| `PLASMO_PUBLIC_` var undefined | Wrong env file | Use `.env.development`, not `.env` |
+| Bot protection errors | Cloudflare not supported in extensions | Disable bot protection in Clerk Dashboard |
+| Token cache not persisting | Using `localStorage` in popup | Use `chrome.storage.local` or pass `tokenCache` prop |
 
 ## Plan Requirements
 
