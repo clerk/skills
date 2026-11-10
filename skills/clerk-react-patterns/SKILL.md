@@ -1,9 +1,6 @@
 ---
 name: clerk-react-patterns
-description: 'React SPA auth patterns with @clerk/react for Vite/CRA - ClerkProvider
-  setup, useAuth/useUser/useClerk hooks, React Router protected routes, custom sign-in
-  flows. Triggers on: Vite Clerk setup, React Router auth, useAuth hook, protected
-  route, custom sign-in form React.'
+description: 'React SPA auth patterns with @clerk/react for Vite/CRA - ClerkProvider setup, useAuth/useUser/useClerk hooks, React Router protected routes, custom sign-in flows. Triggers on: Vite Clerk setup, React Router auth, useAuth hook, protected route, custom sign-in form React.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -137,13 +134,13 @@ export function DataFetcher() {
 
 ## Common Pitfalls
 
-| Symptom                       | Cause                           | Fix                                                            |
-| ----------------------------- | ------------------------------- | -------------------------------------------------------------- |
-| `isSignedIn` is `undefined`   | `isLoaded` is still `false`     | Always check `isLoaded` first                                  |
-| `ClerkProvider` missing       | Provider not at root            | Wrap `<App>` in `main.tsx`                                     |
-| Env var undefined             | Wrong Vite prefix               | Use `VITE_CLERK_PUBLISHABLE_KEY`, access via `import.meta.env` |
-| Token is `null`               | User not signed in              | Null-check `getToken()` result                                 |
-| Sign-in component shows blank | No `publishableKey` on provider | Pass `publishableKey` explicitly                               |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `isSignedIn` is `undefined` | `isLoaded` is still `false` | Always check `isLoaded` first |
+| `ClerkProvider` missing | Provider not at root | Wrap `<App>` in `main.tsx` |
+| Env var undefined | Wrong Vite prefix | Use `VITE_CLERK_PUBLISHABLE_KEY`, access via `import.meta.env` |
+| Token is `null` | User not signed in | Null-check `getToken()` result |
+| Sign-in component shows blank | No `publishableKey` on provider | Pass `publishableKey` explicitly |
 
 ## See Also
 

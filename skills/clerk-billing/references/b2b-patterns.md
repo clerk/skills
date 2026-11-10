@@ -33,7 +33,7 @@ export default async function TeamDashboard() {
 ```tsx
 // app/team/loading.tsx
 export default function Loading() {
-	return <p>Loading...</p>
+  return <p>Loading...</p>
 }
 ```
 
@@ -62,11 +62,11 @@ import { OrganizationProfile } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
 export default function OrgAccountPage() {
-	return (
-		<Suspense>
-			<OrganizationProfile />
-		</Suspense>
-	)
+  return (
+    <Suspense>
+      <OrganizationProfile />
+    </Suspense>
+  )
 }
 ```
 
@@ -76,31 +76,31 @@ Organization Plans configured in Dashboard → Billing → Plans automatically a
 
 ```typescript
 if (evt.type === 'subscription.created') {
-	const { id, payer, items, status } = evt.data
-	if (payer.organization_id) {
-		const plan = items[0]?.plan?.slug
-		await db.orgSubscriptions.upsert({
-			where: { orgId: payer.organization_id },
-			create: {
-				orgId: payer.organization_id,
-				plan,
-				subscriptionId: id,
-				status,
-			},
-			update: { plan, subscriptionId: id, status },
-		})
-	}
+  const { id, payer, items, status } = evt.data
+  if (payer.organization_id) {
+    const plan = items[0]?.plan?.slug
+    await db.orgSubscriptions.upsert({
+      where: { orgId: payer.organization_id },
+      create: {
+        orgId: payer.organization_id,
+        plan,
+        subscriptionId: id,
+        status,
+      },
+      update: { plan, subscriptionId: id, status },
+    })
+  }
 }
 
 if (evt.type === 'subscription.updated') {
-	const { id, payer, items, status } = evt.data
-	if (payer.organization_id) {
-		const plan = items[0]?.plan?.slug
-		await db.orgSubscriptions.update({
-			where: { orgId: payer.organization_id },
-			data: { plan, status },
-		})
-	}
+  const { id, payer, items, status } = evt.data
+  if (payer.organization_id) {
+    const plan = items[0]?.plan?.slug
+    await db.orgSubscriptions.update({
+      where: { orgId: payer.organization_id },
+      data: { plan, status },
+    })
+  }
 }
 ```
 

@@ -1,9 +1,6 @@
 ---
 name: clerk-webhooks
-description: Clerk webhooks for real-time events and data syncing. Verify with verifyWebhook
-  from the framework-specific package. Handle user, session, organization, billing, and
-  payment events. Build event-driven features like database sync, notifications, and
-  integrations.
+description: Clerk webhooks for real-time events and data syncing. Verify with verifyWebhook from the framework-specific package. Handle user, session, organization, billing, and payment events. Build event-driven features like database sync, notifications, and integrations.
 allowed-tools: WebFetch
 license: MIT
 metadata:
@@ -231,8 +228,8 @@ For manual typing of nested payloads, import the JSON types from your framework'
 
 ```typescript
 const {
-  id,                  // Clerk user ID
-  email_addresses,     // array; [0].email_address is primary email
+  id, // Clerk user ID
+  email_addresses, // array; [0].email_address is primary email
   first_name,
   last_name,
   image_url,
@@ -244,8 +241,8 @@ const {
 
 ```typescript
 const {
-  id,    // org ID
-  name,  // org name
+  id, // org ID
+  name, // org name
   slug,
 } = evt.data
 ```
@@ -254,9 +251,9 @@ const {
 
 ```typescript
 const {
-  organization,        // { id, name, ... }
-  public_user_data,    // { user_id, first_name, last_name, ... }
-  role,                // e.g. 'org:admin', 'org:member'
+  organization, // { id, name, ... }
+  public_user_data, // { user_id, first_name, last_name, ... }
+  role, // e.g. 'org:admin', 'org:member'
 } = evt.data
 // Access: organization.id, public_user_data.user_id, role
 ```
@@ -297,15 +294,15 @@ const {
 
 ## Common Pitfalls
 
-| Symptom                      | Cause                                                                       | Fix                                                                    |
-| ---------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Verification fails (Next.js) | Wrong import or usage                                                       | Use `@clerk/nextjs/webhooks`, pass `req` directly                      |
-| Verification fails (Express) | Using `express.json()`                                                      | Use `express.raw({ type: 'application/json' })` for webhook route      |
-| Route not found (404)        | Wrong path                                                                  | Use `/api/webhooks` or preserve existing path                          |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Verification fails (Next.js) | Wrong import or usage | Use `@clerk/nextjs/webhooks`, pass `req` directly |
+| Verification fails (Express) | Using `express.json()` | Use `express.raw({ type: 'application/json' })` for webhook route |
+| Route not found (404) | Wrong path | Use `/api/webhooks` or preserve existing path |
 | 401 or 404 on every delivery | `auth.protect()` covers the webhook route (in middleware or in the handler) | Remove that check; `verifyWebhook()` is the only check the route needs |
-| No data in DB                | Async job pending                                                           | Wait/check logs                                                        |
-| Duplicate entries            | Only handling `user.created`                                                | Also handle `user.updated`                                             |
-| Timeouts                     | Handler too slow                                                            | Queue async work, return 200 first                                     |
+| No data in DB | Async job pending | Wait/check logs |
+| Duplicate entries | Only handling `user.created` | Also handle `user.updated` |
+| Timeouts | Handler too slow | Queue async work, return 200 first |
 
 ## Testing & Deployment
 
@@ -321,8 +318,8 @@ Add the printed relay URL (`https://webhooks.clerk.com/in/c_.../`) as a webhook 
 
 ## References
 
-| Reference                  | Description                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
+| Reference | Description |
+| --- | --- |
 | `references/frameworks.md` | Webhook handler examples for Express, Astro, Fastify, Nuxt, React Router, TanStack Start |
 
 ## See Also

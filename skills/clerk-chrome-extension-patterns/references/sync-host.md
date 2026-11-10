@@ -76,10 +76,7 @@ In `package.json`, configure `host_permissions` to grant the extension access to
   "manifest": {
     "key": "$CRX_PUBLIC_KEY",
     "permissions": ["cookies", "storage"],
-    "host_permissions": [
-      "$PLASMO_PUBLIC_CLERK_SYNC_HOST/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
+    "host_permissions": ["$PLASMO_PUBLIC_CLERK_SYNC_HOST/*", "$CLERK_FRONTEND_API/*"]
   }
 }
 ```

@@ -96,10 +96,7 @@ PLASMO_PUBLIC_CLERK_SYNC_HOST=https://clerk.your-domain.com
   "manifest": {
     "key": "$CRX_PUBLIC_KEY",
     "permissions": ["cookies", "storage", "tabs"],
-    "host_permissions": [
-      "$PLASMO_PUBLIC_CLERK_SYNC_HOST/*",
-      "$CLERK_FRONTEND_API/*"
-    ]
+    "host_permissions": ["$PLASMO_PUBLIC_CLERK_SYNC_HOST/*", "$CLERK_FRONTEND_API/*"]
   }
 }
 ```

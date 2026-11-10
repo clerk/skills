@@ -1,7 +1,6 @@
 ---
 name: clerk-nextjs-patterns
-description: Advanced Next.js patterns - middleware, Server Actions, caching with
-  Clerk.
+description: Advanced Next.js patterns - middleware, Server Actions, caching with Clerk.
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. For manual JWT verification (standalone API servers without Clerk middleware), additionally requires CLERK_JWT_KEY or CLERK_PEM_PUBLIC_KEY.
@@ -20,24 +19,24 @@ For basic setup, see `clerk-setup` skill.
 
 ## What Do You Need?
 
-| Task                                                              | Reference                             |
-| ----------------------------------------------------------------- | ------------------------------------- |
-| Server vs client auth (`auth()` vs hooks)                         | references/server-vs-client.md        |
-| Protect routes (check in each page, handler, and Server Function) | references/middleware-strategies.md   |
-| Protect Server Actions                                            | references/server-actions.md          |
-| API route auth (401 vs 403)                                       | references/api-routes.md              |
-| Cache auth data (user-scoped caching)                             | references/caching-auth.md            |
-| Fix `next build` errors under Cache Components                    | [Cache Components](#cache-components) |
+| Task | Reference |
+| --- | --- |
+| Server vs client auth (`auth()` vs hooks) | references/server-vs-client.md |
+| Protect routes (check in each page, handler, and Server Function) | references/middleware-strategies.md |
+| Protect Server Actions | references/server-actions.md |
+| API route auth (401 vs 403) | references/api-routes.md |
+| Cache auth data (user-scoped caching) | references/caching-auth.md |
+| Fix `next build` errors under Cache Components | [Cache Components](#cache-components) |
 
 ## References
 
-| Reference                             | Description                                                                                               |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `references/server-vs-client.md`      | `await auth()` vs hooks                                                                                   |
+| Reference | Description |
+| --- | --- |
+| `references/server-vs-client.md` | `await auth()` vs hooks |
 | `references/middleware-strategies.md` | `auth.protect()` in each resource, bare `clerkMiddleware()` in `proxy.ts` (Next.js <=15: `middleware.ts`) |
-| `references/server-actions.md`        | Protect mutations                                                                                         |
-| `references/api-routes.md`            | 401 vs 403                                                                                                |
-| `references/caching-auth.md`          | User-scoped caching with `'use cache'`                                                                    |
+| `references/server-actions.md` | Protect mutations |
+| `references/api-routes.md` | 401 vs 403 |
+| `references/caching-auth.md` | User-scoped caching with `'use cache'` |
 
 ## Mental Model
 
@@ -64,7 +63,7 @@ import { auth } from '@clerk/nextjs/server'
 import { Suspense } from 'react'
 
 async function Greeting() {
-  const { isAuthenticated, userId } = await auth()  // MUST await!
+  const { isAuthenticated, userId } = await auth() // MUST await!
   if (!isAuthenticated) return <p>Not signed in</p>
   return <p>Hello {userId}</p>
 }
@@ -92,11 +91,15 @@ export default function Page() {
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-<Suspense>
-  <Show when="signed-in" fallback={<p>Please sign in</p>}>
-    <Dashboard />
-  </Show>
-</Suspense>
+export function AuthenticatedDashboard() {
+  return (
+    <Suspense>
+      <Show when="signed-in" fallback={<p>Please sign in</p>}>
+        <Dashboard />
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 **Authorization checks (B2B)** (wrap in `<Suspense>` the same way when rendered in a Server Component):
@@ -148,15 +151,15 @@ Use `next build --debug-prerender` to list every failing route. A plain `next bu
 
 ## Common Pitfalls
 
-| Symptom                                                                | Cause                                                                      | Fix                                                                                         |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `undefined` userId in Server Component                                 | Missing `await`                                                            | `await auth()` not `auth()`                                                                 |
-| Auth not working on API routes                                         | Missing matcher                                                            | Add `'/(api\|trpc)(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`)                      |
-| `next build` fails with "uncached or runtime data during prerendering" | `auth()`, `currentUser()`, or server `<Show>` outside `<Suspense>`         | Wrap the auth-dependent UI in `<Suspense>` (see [Cache Components](#cache-components))      |
-| Cache returns wrong user's data                                        | `userId` not part of the cache key                                         | Pass `userId` into the `'use cache'` function as an argument                                |
-| Mutations bypass auth                                                  | Unprotected Server Action                                                  | Check `auth()` at start of action                                                           |
-| Protected page returns 200, not 307, while signed out                  | The redirect happened after streaming started (e.g. under a `loading.tsx`) | Confirm the body redirects to sign-in and has no protected data. Keep the check in the page |
-| Wrong HTTP error code                                                  | Confused 401/403                                                           | 401 = not signed in, 403 = no permission                                                    |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `undefined` userId in Server Component | Missing `await` | `await auth()` not `auth()` |
+| Auth not working on API routes | Missing matcher | Add `'/api(.*)'` and `'/trpc(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`) |
+| `next build` fails with "uncached or runtime data during prerendering" | `auth()`, `currentUser()`, or server `<Show>` outside `<Suspense>` | Wrap the auth-dependent UI in `<Suspense>` (see [Cache Components](#cache-components)) |
+| Cache returns wrong user's data | `userId` not part of the cache key | Pass `userId` into the `'use cache'` function as an argument |
+| Mutations bypass auth | Unprotected Server Action | Check `auth()` at start of action |
+| Protected page returns 200, not 307, while signed out | The redirect happened after streaming started (e.g. under a `loading.tsx`) | Confirm the body redirects to sign-in and has no protected data. Keep the check in the page |
+| Wrong HTTP error code | Confused 401/403 | 401 = not signed in, 403 = no permission |
 
 ## Session Tokens & Custom JWTs
 

@@ -134,9 +134,7 @@ After successful authentication, call `finalize()` to activate the session:
 ```typescript
 await signIn.finalize({
   navigate: async ({ session, decorateUrl }) => {
-    const destination = session.currentTask
-      ? `/sign-in/tasks/${session.currentTask.key}`
-      : '/'
+    const destination = session.currentTask ? `/sign-in/tasks/${session.currentTask.key}` : '/'
     const url = decorateUrl(destination)
     // decorateUrl may return an absolute URL for Safari ITP
     if (url.startsWith('http')) {
@@ -168,8 +166,8 @@ const { signIn, errors } = useSignIn()
 
 // Field-level errors
 errors?.fields?.identifier // { code, message, longMessage? }
-errors?.fields?.password   // { code, message, longMessage? }
-errors?.fields?.code       // { code, message, longMessage? }
+errors?.fields?.password // { code, message, longMessage? }
+errors?.fields?.code // { code, message, longMessage? }
 
 // Global errors (not tied to a field)
 errors?.global // ClerkGlobalHookError[] | null

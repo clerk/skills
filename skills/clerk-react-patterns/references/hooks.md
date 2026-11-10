@@ -47,7 +47,9 @@ export function Profile() {
   return (
     <div>
       <img src={user.imageUrl} alt={user.fullName ?? ''} />
-      <p>{user.firstName} {user.lastName}</p>
+      <p>
+        {user.firstName} {user.lastName}
+      </p>
       <p>{user.emailAddresses[0]?.emailAddress}</p>
     </div>
   )

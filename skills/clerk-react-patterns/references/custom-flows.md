@@ -39,13 +39,13 @@ export function CustomSignIn() {
       <input
         type="email"
         value={email}
-        onChange={e => setEmail(e.target.value)}
+        onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
       />
       <input
         type="password"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
       />
       {error && <p>{error}</p>}

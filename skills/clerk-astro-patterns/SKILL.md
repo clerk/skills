@@ -1,9 +1,6 @@
 ---
 name: clerk-astro-patterns
-description: 'Astro patterns with Clerk — middleware, SSR pages, island components,
-  API routes, static vs SSR rendering. Triggers on: astro clerk, clerk astro middleware,
-  astro protected page, clerk island component, astro API route auth, clerk astro
-  SSR.'
+description: 'Astro patterns with Clerk — middleware, SSR pages, island components, API routes, static vs SSR rendering. Triggers on: astro clerk, clerk astro middleware, astro protected page, clerk island component, astro API route auth, clerk astro SSR.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -17,13 +14,13 @@ SDK: `@clerk/astro` v4+. Requires Astro 5+.
 
 ## What Do You Need?
 
-| Task                                                             | Reference                       |
-| ---------------------------------------------------------------- | ------------------------------- |
-| Configure middleware (bare `clerkMiddleware()`, checks per page) | references/middleware.md        |
-| Protect SSR pages                                                | references/ssr-pages.md         |
-| Use Clerk in island components                                   | references/island-components.md |
-| Auth in API routes                                               | references/api-routes.md        |
-| Use Clerk with React in Astro                                    | references/astro-react.md       |
+| Task | Reference |
+| --- | --- |
+| Configure middleware (bare `clerkMiddleware()`, checks per page) | references/middleware.md |
+| Protect SSR pages | references/ssr-pages.md |
+| Use Clerk in island components | references/island-components.md |
+| Auth in API routes | references/api-routes.md |
+| Use Clerk with React in Astro | references/astro-react.md |
 
 ## Mental Model
 
@@ -90,12 +87,12 @@ export const GET: APIRoute = ({ locals }) => {
 
 ## Common Pitfalls
 
-| Symptom                              | Cause                             | Fix                                                    |
-| ------------------------------------ | --------------------------------- | ------------------------------------------------------ |
-| `Astro.locals.auth` is undefined     | Missing middleware                | Add `clerkMiddleware` to `src/middleware.ts`           |
-| Auth works in dev but not production | `output: 'static'` globally       | Set `output: 'server'` or `hybrid` for protected pages |
-| Static page has no auth              | Prerendered pages skip middleware | Use `export const prerender = false` or move to island |
-| Island not reactive to sign-in       | Missing `client:load` directive   | Add `client:load` to the island component              |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Astro.locals.auth` is undefined | Missing middleware | Add `clerkMiddleware` to `src/middleware.ts` |
+| Auth works in dev but not production | `output: 'static'` globally | Set `output: 'server'` or `hybrid` for protected pages |
+| Static page has no auth | Prerendered pages skip middleware | Use `export const prerender = false` or move to island |
+| Island not reactive to sign-in | Missing `client:load` directive | Add `client:load` to the island component |
 
 ## Import Map
 

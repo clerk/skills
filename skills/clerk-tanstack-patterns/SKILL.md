@@ -1,8 +1,6 @@
 ---
 name: clerk-tanstack-patterns
-description: 'TanStack React Start auth patterns with @clerk/tanstack-react-start
-  - createServerFn, beforeLoad guards, loaders, Vite plugin, server middleware. Triggers on: TanStack
-  auth, createServerFn clerk, beforeLoad protection, TanStack Start middleware.'
+description: 'TanStack React Start auth patterns with @clerk/tanstack-react-start - createServerFn, beforeLoad guards, loaders, Vite plugin, server middleware. Triggers on: TanStack auth, createServerFn clerk, beforeLoad protection, TanStack Start middleware.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -69,9 +67,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <ClerkProvider>
-          {children}
-        </ClerkProvider>
+        <ClerkProvider>{children}</ClerkProvider>
       </body>
     </html>
   )
@@ -109,13 +105,13 @@ export const Route = createFileRoute('/dashboard')({
 
 ## Common Pitfalls
 
-| Symptom                                              | Cause                                 | Fix                                                 |
-| ---------------------------------------------------- | ------------------------------------- | --------------------------------------------------- |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
 | `auth()` throws "without configuring the middleware" | Missing `clerkMiddleware` in start.ts | Add it after CSRF middleware in `requestMiddleware` |
-| `redirect` not thrown                                | Using `return` instead of `throw`     | `throw redirect(...)` in TanStack                   |
-| Wrong import for `auth`                              | Mixing client/server imports          | Server: `@clerk/tanstack-react-start/server`        |
-| Loader context missing userId                        | Not passing from beforeLoad           | Return from beforeLoad, access via `context`        |
-| `ClerkProvider` missing                              | Forgot root wrapping                  | Add to `__root.tsx` shell component                 |
+| `redirect` not thrown | Using `return` instead of `throw` | `throw redirect(...)` in TanStack |
+| Wrong import for `auth` | Mixing client/server imports | Server: `@clerk/tanstack-react-start/server` |
+| Loader context missing userId | Not passing from beforeLoad | Return from beforeLoad, access via `context` |
+| `ClerkProvider` missing | Forgot root wrapping | Add to `__root.tsx` shell component |
 
 ## See Also
 

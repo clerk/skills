@@ -1,4 +1,6 @@
 {
-  "proseWrap": "preserve",
-  "embeddedLanguageFormatting": "off"
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "proseWrap": "never"
 }

@@ -98,15 +98,17 @@ function render() {
   contentEl.textContent = email ?? 'Not signed in'
 }
 
-clerk.load({
-  afterSignOutUrl: POPUP_URL,
-  signInForceRedirectUrl: POPUP_URL,
-  signUpForceRedirectUrl: POPUP_URL,
-  allowedRedirectProtocols: ['chrome-extension:'],
-}).then(() => {
-  clerk.addListener(render)
-  render()
-})
+clerk
+  .load({
+    afterSignOutUrl: POPUP_URL,
+    signInForceRedirectUrl: POPUP_URL,
+    signUpForceRedirectUrl: POPUP_URL,
+    allowedRedirectProtocols: ['chrome-extension:'],
+  })
+  .then(() => {
+    clerk.addListener(render)
+    render()
+  })
 ```
 
 `allowedRedirectProtocols: ['chrome-extension:']` is required to allow redirects to `chrome-extension://` URLs.

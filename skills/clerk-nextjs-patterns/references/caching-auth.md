@@ -8,23 +8,23 @@
 
 ```tsx
 // app/profile/page.tsx
-import { auth } from '@clerk/nextjs/server';
-import { cacheLife, cacheTag } from 'next/cache';
-import { Suspense } from 'react';
+import { auth } from '@clerk/nextjs/server'
+import { cacheLife, cacheTag } from 'next/cache'
+import { Suspense } from 'react'
 
 async function getUserData(userId: string) {
-  'use cache';
-  cacheTag(`user-${userId}`);
-  cacheLife('minutes');
-  return db.users.findUnique({ where: { id: userId } });
+  'use cache'
+  cacheTag(`user-${userId}`)
+  cacheLife('minutes')
+  return db.users.findUnique({ where: { id: userId } })
 }
 
 async function Profile() {
-  const { userId } = await auth();
-  if (!userId) return <div>Not signed in</div>;
+  const { userId } = await auth()
+  if (!userId) return <div>Not signed in</div>
 
-  const userData = await getUserData(userId);
-  return <div>{userData?.name}</div>;
+  const userData = await getUserData(userId)
+  return <div>{userData?.name}</div>
 }
 
 export default function ProfilePage() {
@@ -32,7 +32,7 @@ export default function ProfilePage() {
     <Suspense>
       <Profile />
     </Suspense>
-  );
+  )
 }
 ```
 
@@ -41,19 +41,19 @@ export default function ProfilePage() {
 ## Revalidate After Updates
 
 ```typescript
-'use server';
-import { updateTag } from 'next/cache';
-import { auth } from '@clerk/nextjs/server';
+'use server'
+import { updateTag } from 'next/cache'
+import { auth } from '@clerk/nextjs/server'
 
 export async function updateProfile(formData: FormData) {
-  const { userId } = await auth();
-  if (!userId) throw new Error('Unauthorized');
+  const { userId } = await auth()
+  if (!userId) throw new Error('Unauthorized')
 
   await db.users.update({
     where: { id: userId },
     data: { name: formData.get('name') as string },
-  });
-  updateTag(`user-${userId}`);
+  })
+  updateTag(`user-${userId}`)
 }
 ```
 
@@ -61,17 +61,17 @@ export async function updateProfile(formData: FormData) {
 
 ```tsx
 async function getOrgData(orgId: string) {
-  'use cache';
-  cacheTag(`org-${orgId}`);
-  return db.orgData.findMany({ where: { organizationId: orgId } });
+  'use cache'
+  cacheTag(`org-${orgId}`)
+  return db.orgData.findMany({ where: { organizationId: orgId } })
 }
 
 async function OrgData() {
-  const { orgId } = await auth();
-  if (!orgId) return <div>Select an organization</div>;
+  const { orgId } = await auth()
+  if (!orgId) return <div>Select an organization</div>
 
-  const data = await getOrgData(orgId);
-  return <OrgTable data={data} />;
+  const data = await getOrgData(orgId)
+  return <OrgTable data={data} />
 }
 ```
 
@@ -82,21 +82,21 @@ Render `OrgData` inside `<Suspense>`, the same way as `Profile` above.
 `'use cache'` needs `cacheComponents: true` in `next.config`, the `create-next-app` default since Next.js 16.4. On apps without it, use `unstable_cache` and include the ID in the key and tags:
 
 ```tsx
-import { auth } from '@clerk/nextjs/server';
-import { unstable_cache } from 'next/cache';
+import { auth } from '@clerk/nextjs/server'
+import { unstable_cache } from 'next/cache'
 
 export default async function ProfilePage() {
-  const { userId } = await auth();
-  if (!userId) return <div>Not signed in</div>;
+  const { userId } = await auth()
+  if (!userId) return <div>Not signed in</div>
 
   const getCachedUserData = unstable_cache(
     () => db.users.findUnique({ where: { id: userId } }),
     [`user-${userId}`],
-    { revalidate: 60, tags: [`user-${userId}`] }
-  );
+    { revalidate: 60, tags: [`user-${userId}`] },
+  )
 
-  const userData = await getCachedUserData();
-  return <div>{userData?.name}</div>;
+  const userData = await getCachedUserData()
+  return <div>{userData?.name}</div>
 }
 ```
 

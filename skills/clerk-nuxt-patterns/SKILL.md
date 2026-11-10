@@ -1,8 +1,6 @@
 ---
 name: clerk-nuxt-patterns
-description: 'Nuxt 3 auth patterns with @clerk/nuxt - middleware, composables, server
-  API routes, SSR. Triggers on: Nuxt auth, useAuth composable, clerkMiddleware Nuxt,
-  server API Clerk, Nuxt route protection.'
+description: 'Nuxt 3 auth patterns with @clerk/nuxt - middleware, composables, server API routes, SSR. Triggers on: Nuxt auth, useAuth composable, clerkMiddleware Nuxt, server API Clerk, Nuxt route protection.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -81,13 +79,13 @@ const { userId } = useAuth()
 
 ## Common Pitfalls
 
-| Symptom                                  | Cause                               | Fix                                                         |
-| ---------------------------------------- | ----------------------------------- | ----------------------------------------------------------- |
-| Composables return `undefined` on server | useAuth is client-only              | Use `event.context.auth` in server routes                   |
-| Route not protected                      | Missing `middleware: 'auth'` meta   | Add `definePageMeta({ middleware: 'auth' })`                |
-| `clerkClient` not available              | Wrong import path                   | Import from `@clerk/nuxt/server`                            |
-| Hydration mismatch                       | Rendering auth state before mounted | Wrap in `<ClientOnly>` or check `isLoaded`                  |
-| Env vars not picked up                   | Wrong prefix                        | Nuxt requires `NUXT_PUBLIC_` for public, `NUXT_` for server |
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Composables return `undefined` on server | useAuth is client-only | Use `event.context.auth` in server routes |
+| Route not protected | Missing `middleware: 'auth'` meta | Add `definePageMeta({ middleware: 'auth' })` |
+| `clerkClient` not available | Wrong import path | Import from `@clerk/nuxt/server` |
+| Hydration mismatch | Rendering auth state before mounted | Wrap in `<ClientOnly>` or check `isLoaded` |
+| Env vars not picked up | Wrong prefix | Nuxt requires `NUXT_PUBLIC_` for public, `NUXT_` for server |
 
 ## Org-Aware Pattern
 

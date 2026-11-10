@@ -1,8 +1,6 @@
 ---
 name: clerk-android
-description: Implement Clerk authentication for native Android apps using Kotlin and
-  Jetpack Compose with clerk-android source-guided patterns. Use for prebuilt AuthView/UserButton
-  or custom API-driven auth flows. Do not use for Expo or React Native projects.
+description: Implement Clerk authentication for native Android apps using Kotlin and Jetpack Compose with clerk-android source-guided patterns. Use for prebuilt AuthView/UserButton or custom API-driven auth flows. Do not use for Expo or React Native projects.
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -38,15 +36,15 @@ If Expo/React Native signals are present, route to the general setup skill inste
 
 ## Quick Start
 
-| Step | Action                                                                                                          |
-| ---- | --------------------------------------------------------------------------------------------------------------- |
-| 1    | Confirm project type is native Android and not Expo/React Native                                                |
-| 2    | Determine flow type (`prebuilt` or `custom`) and load the matching reference file                               |
-| 3    | Ensure a real Clerk publishable key exists (or ask developer)                                                   |
-| 4    | Ensure correct Clerk artifacts are installed for the selected flow                                              |
-| 5    | Read official Android quickstart and verify required setup (Native API, min SDK/Java, manifest, initialization) |
-| 6    | Inspect `clerk-android` source/sample patterns relevant to selected flow                                        |
-| 7    | Implement flow by following only the selected reference checklist                                               |
+| Step | Action |
+| --- | --- |
+| 1 | Confirm project type is native Android and not Expo/React Native |
+| 2 | Determine flow type (`prebuilt` or `custom`) and load the matching reference file |
+| 3 | Ensure a real Clerk publishable key exists (or ask developer) |
+| 4 | Ensure correct Clerk artifacts are installed for the selected flow |
+| 5 | Read official Android quickstart and verify required setup (Native API, min SDK/Java, manifest, initialization) |
+| 6 | Inspect `clerk-android` source/sample patterns relevant to selected flow |
+| 7 | Implement flow by following only the selected reference checklist |
 
 ## Decision Tree
 
@@ -104,14 +102,14 @@ Only skip asking when the user has already explicitly provided the value in this
 
 Do not hardcode implementation examples in this skill. Inspect current `clerk-android` source/docs for the installed SDK version before implementing.
 
-| Use Case                                                                       | Source of Truth                                                                                                                                             |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SDK artifacts and dependency split (`clerk-android-api` vs `clerk-android-ui`) | `clerk-android` README and Android install docs                                                                                                             |
-| SDK initialization and publishable key wiring                                  | Android quickstart and `source/api/.../Clerk.kt`                                                                                                            |
-| Prebuilt auth and profile behavior                                             | `source/ui/.../AuthView.kt`, `source/ui/.../UserButton.kt`, and prebuilt sample                                                                             |
-| Custom auth sequencing and factor handling                                     | `source/ui/auth/*`, `source/api/auth/*`, and custom-flows sample                                                                                            |
-| Capability/feature gating from instance settings                               | `Clerk` public fields (for example `enabledFirstFactorAttributes`, `socialProviders`, `isGoogleOneTapEnabled`, `mfaIsEnabled`) and environment model source |
-| Required Android setup checklist                                               | Official Android quickstart (`/docs/android/getting-started/quickstart`)                                                                                    |
+| Use Case | Source of Truth |
+| --- | --- |
+| SDK artifacts and dependency split (`clerk-android-api` vs `clerk-android-ui`) | `clerk-android` README and Android install docs |
+| SDK initialization and publishable key wiring | Android quickstart and `source/api/.../Clerk.kt` |
+| Prebuilt auth and profile behavior | `source/ui/.../AuthView.kt`, `source/ui/.../UserButton.kt`, and prebuilt sample |
+| Custom auth sequencing and factor handling | `source/ui/auth/*`, `source/api/auth/*`, and custom-flows sample |
+| Capability/feature gating from instance settings | `Clerk` public fields (for example `enabledFirstFactorAttributes`, `socialProviders`, `isGoogleOneTapEnabled`, `mfaIsEnabled`) and environment model source |
+| Required Android setup checklist | Official Android quickstart (`/docs/android/getting-started/quickstart`) |
 
 ## Execution Gates (Do Not Skip)
 
@@ -176,17 +174,17 @@ Do not hardcode implementation examples in this skill. Inspect current `clerk-an
 
 ## Common Pitfalls
 
-| Level    | Issue                                                        | Prevention                                                       |
-| -------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
-| CRITICAL | Not asking for missing flow choice before implementation     | Ask for `prebuilt` vs `custom` and wait before edits             |
-| CRITICAL | Not asking for missing publishable key before implementation | Ask for key and wait before edits                                |
-| CRITICAL | Starting implementation before flow type is confirmed        | Confirm flow first and load matching reference                   |
-| CRITICAL | Skipping Android quickstart prerequisites                    | Verify and apply required setup from official Android quickstart |
-| CRITICAL | Missing app-level `Clerk.initialize(...)` call               | Initialize Clerk from `Application` startup path                 |
-| HIGH     | Wrong artifact for chosen flow                               | Prebuilt: `clerk-android-ui`; custom: `clerk-android-api`        |
-| HIGH     | Rendering auth UI before SDK initialization completes        | Gate UI with `Clerk.isInitialized` state                         |
-| HIGH     | Hardcoding auth factors/social providers                     | Drive behavior from Clerk runtime capability fields              |
-| HIGH     | Using this skill for Expo/React Native                       | Detect and route away before implementation                      |
+| Level | Issue | Prevention |
+| --- | --- | --- |
+| CRITICAL | Not asking for missing flow choice before implementation | Ask for `prebuilt` vs `custom` and wait before edits |
+| CRITICAL | Not asking for missing publishable key before implementation | Ask for key and wait before edits |
+| CRITICAL | Starting implementation before flow type is confirmed | Confirm flow first and load matching reference |
+| CRITICAL | Skipping Android quickstart prerequisites | Verify and apply required setup from official Android quickstart |
+| CRITICAL | Missing app-level `Clerk.initialize(...)` call | Initialize Clerk from `Application` startup path |
+| HIGH | Wrong artifact for chosen flow | Prebuilt: `clerk-android-ui`; custom: `clerk-android-api` |
+| HIGH | Rendering auth UI before SDK initialization completes | Gate UI with `Clerk.isInitialized` state |
+| HIGH | Hardcoding auth factors/social providers | Drive behavior from Clerk runtime capability fields |
+| HIGH | Using this skill for Expo/React Native | Detect and route away before implementation |
 
 ## See Also
 

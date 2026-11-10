@@ -35,24 +35,24 @@ Payment attempt events (2):
 
 Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks. The full comparison includes events without a Stripe equivalent:
 
-| Intent                             | Stripe event name               | Clerk event name                   |
-| ---------------------------------- | ------------------------------- | ---------------------------------- |
-| Subscription created               | `customer.subscription.created` | `subscription.created`             |
-| Subscription updated               | `customer.subscription.updated` | `subscription.updated`             |
-| Subscription active                | (none)                          | `subscription.active`              |
-| Subscription past due              | (none)                          | `subscription.pastDue`             |
-| Subscription item canceled         | `customer.subscription.deleted` | `subscriptionItem.canceled`        |
-| Subscription item past due         | `invoice.payment_failed`        | `subscriptionItem.pastDue`         |
-| Subscription item updated          | (none)                          | `subscriptionItem.updated`         |
-| Subscription item active           | (none)                          | `subscriptionItem.active`          |
-| Subscription item upcoming renewal | (none)                          | `subscriptionItem.upcoming`        |
-| Subscription item ended            | (none)                          | `subscriptionItem.ended`           |
-| Subscription item abandoned        | (none)                          | `subscriptionItem.abandoned`       |
-| Subscription item expired          | (none)                          | `subscriptionItem.expired`         |
-| Subscription item incomplete       | (none)                          | `subscriptionItem.incomplete`      |
-| Free trial ending soon             | (none)                          | `subscriptionItem.freeTrialEnding` |
-| Payment attempt created            | (none)                          | `paymentAttempt.created`           |
-| Payment attempt updated            | (none)                          | `paymentAttempt.updated`           |
+| Intent | Stripe event name | Clerk event name |
+| --- | --- | --- |
+| Subscription created | `customer.subscription.created` | `subscription.created` |
+| Subscription updated | `customer.subscription.updated` | `subscription.updated` |
+| Subscription active | (none) | `subscription.active` |
+| Subscription past due | (none) | `subscription.pastDue` |
+| Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
+| Subscription item past due | `invoice.payment_failed` | `subscriptionItem.pastDue` |
+| Subscription item updated | (none) | `subscriptionItem.updated` |
+| Subscription item active | (none) | `subscriptionItem.active` |
+| Subscription item upcoming renewal | (none) | `subscriptionItem.upcoming` |
+| Subscription item ended | (none) | `subscriptionItem.ended` |
+| Subscription item abandoned | (none) | `subscriptionItem.abandoned` |
+| Subscription item expired | (none) | `subscriptionItem.expired` |
+| Subscription item incomplete | (none) | `subscriptionItem.incomplete` |
+| Free trial ending soon | (none) | `subscriptionItem.freeTrialEnding` |
+| Payment attempt created | (none) | `paymentAttempt.created` |
+| Payment attempt updated | (none) | `paymentAttempt.updated` |
 
 ## Payload Shape (important)
 
@@ -73,65 +73,65 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
-	let evt
-	try {
-		evt = await verifyWebhook(req)
-	} catch {
-		return new Response('Verification failed', { status: 400 })
-	}
+  let evt
+  try {
+    evt = await verifyWebhook(req)
+  } catch {
+    return new Response('Verification failed', { status: 400 })
+  }
 
-	if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.upsert({
-			where: { subscriptionId: id },
-			create: { subscriptionId: id, entityId, plan, status },
-			update: { entityId, plan, status },
-		})
-	}
+  if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
+    const { id, payer, items, status } = evt.data
+    const entityId = payer.organization_id ?? payer.user_id
+    const plan = items[0]?.plan?.slug
+    await db.subscriptions.upsert({
+      where: { subscriptionId: id },
+      create: { subscriptionId: id, entityId, plan, status },
+      update: { entityId, plan, status },
+    })
+  }
 
-	if (evt.type === 'subscription.updated') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { entityId, plan, status },
-		})
-	}
+  if (evt.type === 'subscription.updated') {
+    const { id, payer, items, status } = evt.data
+    const entityId = payer.organization_id ?? payer.user_id
+    const plan = items[0]?.plan?.slug
+    await db.subscriptions.update({
+      where: { subscriptionId: id },
+      data: { entityId, plan, status },
+    })
+  }
 
-	if (evt.type === 'subscription.pastDue') {
-		const { id, status } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { status },
-		})
-	}
+  if (evt.type === 'subscription.pastDue') {
+    const { id, status } = evt.data
+    await db.subscriptions.update({
+      where: { subscriptionId: id },
+      data: { status },
+    })
+  }
 
-	if (evt.type === 'subscriptionItem.canceled') {
-		// Subscription item events carry only the item, not its parent subscription id.
-		// Identify the record by payer + plan slug.
-		const { payer, plan, canceled_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'canceled', canceledAt: canceled_at },
-		})
-		// Notify user/org admin of cancellation
-	}
+  if (evt.type === 'subscriptionItem.canceled') {
+    // Subscription item events carry only the item, not its parent subscription id.
+    // Identify the record by payer + plan slug.
+    const { payer, plan, canceled_at } = evt.data
+    const entityId = payer?.organization_id ?? payer?.user_id
+    await db.subscriptionItems.update({
+      where: { entityId, plan: plan?.slug },
+      data: { status: 'canceled', canceledAt: canceled_at },
+    })
+    // Notify user/org admin of cancellation
+  }
 
-	if (evt.type === 'subscriptionItem.pastDue') {
-		const { payer, plan, past_due_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'past_due', pastDueAt: past_due_at },
-		})
-		// Notify user/org admin of payment failure
-	}
+  if (evt.type === 'subscriptionItem.pastDue') {
+    const { payer, plan, past_due_at } = evt.data
+    const entityId = payer?.organization_id ?? payer?.user_id
+    await db.subscriptionItems.update({
+      where: { entityId, plan: plan?.slug },
+      data: { status: 'past_due', pastDueAt: past_due_at },
+    })
+    // Notify user/org admin of payment failure
+  }
 
-	return new Response('OK', { status: 200 })
+  return new Response('OK', { status: 200 })
 }
 ```
 
@@ -186,7 +186,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 }
 ```
 
-### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.\*
+### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.*
 
 The event data IS the item itself, not the parent subscription:
 

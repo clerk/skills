@@ -1,8 +1,6 @@
 ---
 name: clerk-custom-ui
-description: Custom authentication flows and component appearance - hooks (useSignIn,
-  useSignUp), themes, colors, fonts, CSS. Use for custom sign-in/sign-up flows, appearance
-  styling, visual customization, branding.
+description: Custom authentication flows and component appearance - hooks (useSignIn, useSignUp), themes, colors, fonts, CSS. Use for custom sign-in/sign-up flows, appearance styling, visual customization, branding.
 allowed-tools: WebFetch
 license: MIT
 metadata:
@@ -33,11 +31,11 @@ This skill covers two areas:
 
 ## Custom Flow References
 
-| Task                       | Core 2                                           | Current                    |
-| -------------------------- | ------------------------------------------------ | -------------------------- |
-| Custom sign-in (useSignIn) | `core-2/custom-sign-in.md`                       | `core-3/custom-sign-in.md` |
-| Custom sign-up (useSignUp) | `core-2/custom-sign-up.md`                       | `core-3/custom-sign-up.md` |
-| `<Show>` component         | _(use `<SignedIn>`, `<SignedOut>`, `<Protect>`)_ | `core-3/show-component.md` |
+| Task | Core 2 | Current |
+| --- | --- | --- |
+| Custom sign-in (useSignIn) | `core-2/custom-sign-in.md` | `core-3/custom-sign-in.md` |
+| Custom sign-up (useSignUp) | `core-2/custom-sign-up.md` | `core-3/custom-sign-up.md` |
+| `<Show>` component | _(use `<SignedIn>`, `<SignedOut>`, `<Protect>`)_ | `core-3/show-component.md` |
 
 ---
 
@@ -162,12 +160,12 @@ Also import shadcn CSS in your global styles:
 
 ## Common Pitfalls
 
-| Issue                        | Solution                                                                                      |
-| ---------------------------- | --------------------------------------------------------------------------------------------- |
-| Colors not applying          | Use `colorPrimary` not `primaryColor`                                                         |
-| Logo not showing             | Put `logoImageUrl` inside `options: {}` (or `layout: {}` in Core 2)                           |
-| Social buttons wrong         | Add `socialButtonsVariant: 'iconButton'` in `options` (or `layout` in Core 2)                 |
-| Styling not working          | Use appearance prop, not direct CSS (unless with bring-your-own-css)                          |
+| Issue | Solution |
+| --- | --- |
+| Colors not applying | Use `colorPrimary` not `primaryColor` |
+| Logo not showing | Put `logoImageUrl` inside `options: {}` (or `layout: {}` in Core 2) |
+| Social buttons wrong | Add `socialButtonsVariant: 'iconButton'` in `options` (or `layout` in Core 2) |
+| Styling not working | Use appearance prop, not direct CSS (unless with bring-your-own-css) |
 | Hook returns different shape | Check SDK version — Core 2 and current have completely different `useSignIn`/`useSignUp` APIs |
 
 ## See Also
