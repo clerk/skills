@@ -338,7 +338,7 @@ export async function GET() {
 
 ### 9. Handle Billing Webhooks
 
-> **Clerk event names differ from Stripe event names.** Use Clerk's dot-notation and camelCase names in `evt.type` checks. There is no `subscription.canceled` event; cancellation fires as `subscriptionItem.canceled`.
+> **Clerk event names differ from Stripe event names.** Use Clerk's dot-notation and camelCase names in `evt.type` checks. There's no `subscription.canceled` event; cancellation fires as `subscriptionItem.canceled`.
 
 Billing payloads are nested: the subscribing entity is `evt.data.payer`, and plan slugs are on subscription items. Read [billing webhooks](references/billing-webhooks.md) for the event catalog, Stripe-name comparison, payload shapes, verified handler, and public-route setup before implementing a handler.
 
