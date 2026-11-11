@@ -282,7 +282,7 @@ const {
 
 **Subscription**: `subscription.created` `subscription.updated` `subscription.active` `subscription.pastDue`
 
-**Subscription Item**: `subscriptionItem.created` `subscriptionItem.active` `subscriptionItem.updated` `subscriptionItem.canceled` `subscriptionItem.upcoming` `subscriptionItem.ended` `subscriptionItem.abandoned` `subscriptionItem.incomplete` `subscriptionItem.pastDue` `subscriptionItem.freeTrialEnding`
+**Subscription Item**: `subscriptionItem.updated` `subscriptionItem.active` `subscriptionItem.canceled` `subscriptionItem.upcoming` `subscriptionItem.ended` `subscriptionItem.expired` `subscriptionItem.abandoned` `subscriptionItem.incomplete` `subscriptionItem.pastDue` `subscriptionItem.freeTrialEnding`
 
 **Payment**: `paymentAttempt.created` `paymentAttempt.updated`
 
