@@ -4,11 +4,9 @@
 
 Billing webhooks use the same `verifyWebhook(req)` pattern as all Clerk webhooks. Register the endpoint in Clerk Dashboard → Webhooks.
 
-Subscribe to the billing events you care about. The table lists all 16 billing events.
+Subscribe to the billing events you care about. Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks.
 
-> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
-
-Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks.
+The table below lists all billing events.
 
 | Intent | Stripe event name | Clerk event name |
 | --- | --- | --- |
@@ -28,6 +26,8 @@ Clerk event names use dot-notation and camelCase, not Stripe's underscore format
 | Free trial ending soon | (none) | `subscriptionItem.freeTrialEnding` |
 | Payment attempt created | (none) | `paymentAttempt.created` |
 | Payment attempt updated | (none) | `paymentAttempt.updated` |
+
+> There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
 
 ## Payload Shape (important)
 
