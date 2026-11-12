@@ -20,7 +20,8 @@ Before you blame a protection for a failure, confirm its scope: which stage it c
 
 One sign-in or sign-up produces several decisions, one per checked step. `insights` counts decisions by default, so its counts overstate attempts.
 
-- When the user asks about sign-ups, sign-ins or accounts, pass `--unit flows` and name the unit in the answer.
+- When the user asks about sign-up or sign-in attempts, pass `--unit flows` and name the unit in the answer.
+- Flows are attempts, not accounts. One existing account makes many sign-in attempts, and an abandoned sign-up makes no account. When the user asks about accounts, ask whether they mean accounts created or distinct existing users, and count completed attempts (`flow_outcome`) or the identifiers involved accordingly.
 - `insights flow --decision-id ID --at TIME` shows every decision in one attempt.
 - A `COMPLETION` decision is the last check before the account or session is created. A deny there means no account was created or no session started.
 - For a rate-limit rule, set `--rate-limit-identity-key` to count each attempt once, for example `signup.signup_id` or `signin.signin_id`. A limit keyed on email or IP alone counts every checked request, so one sign-up can count several times.
@@ -43,7 +44,7 @@ A user saying "I was blocked" is not proof that Protect did it.
 - A "too many requests" (HTTP 429) error is Clerk's own rate limiting. It never appears in `insights`.
 - The Clerk Dashboard's bot protection and other edge rules act on their own and don't appear in `insights` either.
 
-If `insights search` shows no deny for that identifier or IP in the window, tell the user Protect didn't block it. Don't name a rule that didn't fire.
+Before concluding, confirm the instance, the time, and the identifier or IP, and use the blocked screen's reference with `insights trace-id` when there is one. Search with `--filter decision=DENY`; a search returns 100 rows by default, so raise `--limit` or follow the cursor until no rows remain. If that finds no deny, say "no Protect deny was found for that identifier or IP between <from> and <to>", not that Protect couldn't have blocked it. Don't name a rule that didn't fire.
 
 ## Rule order
 
@@ -52,7 +53,7 @@ Rulesets run in a fixed order: the `ALL` ruleset first, then the request's own (
 - Within one ruleset, a `challenge` can't shadow a `block`. A `challenge` in `ALL` still runs before a `block` in `SIGN_UP`.
 - `rules reorder` only changes stored position, which decides between rules with the same action and priority.
 - In `clerk-protect` v0.5.0 and earlier, `rules reorder --help` says the first matching block or challenge decides, and `rules list` calls its order evaluation order. Both describe stored order; the sort above still applies.
-- `rules reorder` only matters among rules of the same action. Moving a challenge above a block is accepted and changes nothing.
+- Moving a challenge above a block is accepted and changes nothing.
 
 ## Expressions
 
@@ -75,7 +76,7 @@ Read `clerk-protect replay get REPLAY_ID --json` before you suggest applying any
 - **`transitions`** are the outcomes that change, from the current rules to the candidate, by rule.
 - **`denied_completed_flows`** counts attempts that completed in reality and that the candidate would have denied, by sign-in and sign-up. It's the cost of shipping the change. Absent means nothing was denied or the attempts couldn't be resolved, which is not the same as zero.
 - **`warnings`**, **`notes`** and **`truncated`** say how far to trust the numbers. Relay them.
-- **`sample_percent`** is the share of traffic scored. Scale counts by it, and say you did.
+- **`sample_percent`** is the share of decisions scored. Report sampled counts as sampled; don't multiply them up. Sampling also under-feeds rate-limit counters, so a sampled replay understates what a rate-limit rule would catch (the report warns about it).
 - For each rule: `evaluated`, `matched`, `terminal` (the times it decided the outcome), `never_reached` (an earlier rule decided first), `rate_limited_not_exceeded` and `errors`. A rule with matches but no terminal outcomes changes nothing.
 - **`samples`** in each transition are example decision ids. They carry no timestamp, and `insights flow` needs one (`--at`), so find the decision with `insights search` over the replay's window before opening its flow.
 
@@ -87,4 +88,4 @@ What a replay can't tell you:
 
 ## Replay windows
 
-`--since 24h` is the maximum, not a safe default. A replay stops after 30 minutes, and a rate-limit rule widens the traffic it has to read by its own window, so on a busy instance a 24-hour replay with a daily limit doesn't finish. Start with one to six hours, and set `samplePercent` in the request on a busy instance.
+`--since 24h` is the maximum, not a safe default. A replay stops after 30 minutes, and a rate-limit rule widens the traffic it has to read by its own window, so on a busy instance a 24-hour replay with a daily limit doesn't finish. Start with one to six hours. To score a rate-limit rule, shorten the window rather than sample: a sampled replay undercounts it. `samplePercent` is for rules without a rate limit on a busy instance.

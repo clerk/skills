@@ -14,7 +14,7 @@ Exit `3` means sign in again: ask the user to run `clerk-protect login`. It need
 
 ## Custom rules
 
-Rules are boolean expressions over the fields of a sign-in, sign-up or other event, with an action (`block` or `challenge`). They live in rulesets. The `ALL` ruleset runs first, then the request's own. Within a ruleset every `block` rule runs before every `challenge` rule; among rules with the same action, position decides. See [Rule order](reading-results.md#rule-order).
+Rules are boolean expressions over the fields of a sign-in, sign-up or other event, with an action (`block` or `challenge`). They live in rulesets. The `ALL` ruleset runs first, then the request's own. Within a ruleset every `block` rule runs before every `challenge` rule; among rules with the same action, a lower `priority` runs first, and position decides only between rules with the same action and priority. See [Rule order](reading-results.md#rule-order).
 
 ```bash
 clerk-protect rulesets list                          # the rulesets you can write into
@@ -33,7 +33,7 @@ clerk-protect rules create --ruleset SIGN_UP \
 clerk-protect rules disable RULE_ID --ruleset SIGN_UP   # off, kept
 clerk-protect rules enable  RULE_ID --ruleset SIGN_UP
 clerk-protect rules update  RULE_ID --ruleset SIGN_UP --action block   # changes only what the flags name
-clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview, then without --dry-run (only changes order among rules with the same action)
+clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview, then without --dry-run (only changes order among rules with the same action and priority)
 clerk-protect rules delete  RULE_ID --ruleset SIGN_UP
 ```
 
@@ -41,7 +41,7 @@ Field names differ between versions and instances. Take them from `schema`, neve
 
 Two things `rules update` with flags does that are easy to miss:
 
-- The `--rate-limit-*` flags are one setting, and so are the `--challenge-*` flags. Giving any of them replaces the whole rate limit or challenge setting, so repeat every part you want to keep, such as `--rate-limit-identity-key`.
+- The `--rate-limit-*` flags are one setting, and so are the `--challenge-*` flags. Giving any of them replaces the whole rate limit or challenge setting, so repeat every part you want to keep, such as `--rate-limit-identity-key`. A stored rate limit can also have parts no flag sets (`limitExpression`, `thresholdExpression`, `complexity`); check `rules get --json`, and if it has any, update with a complete `--file` body instead.
 - In v0.5.0 and earlier, a flag update clears a stored `priority`. Before updating a rule, check `rules get RULE_ID --ruleset R --json`; if it has a priority, update it with `--file`: start from that JSON, change what you need, and keep `priority`. The file is the whole rule, so anything it leaves out is cleared.
 
 ## Protections
@@ -131,7 +131,6 @@ A minimal `change.json` that adds one rule:
 {
   "ruleset": "SIGN_UP",
   "since": "6h",
-  "samplePercent": 25,
   "addRules": [
     {
       "id": "disposable_email_challenge",
