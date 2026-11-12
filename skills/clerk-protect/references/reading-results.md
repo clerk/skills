@@ -47,10 +47,11 @@ If `insights search` shows no deny for that identifier or IP in the window, tell
 
 ## Rule order
 
-Rulesets run in a fixed order: the `ALL` ruleset first, then the request's own (`SIGN_IN`, `SIGN_UP`, …). Within one ruleset, custom and protection rules are sorted together by action, then priority, then position: every `block` rule runs before every `challenge` rule, whatever its position. The CLI can't set a priority, so position is the lever you have among rules of the same action. So:
+Rulesets run in a fixed order: the `ALL` ruleset first, then the request's own (`SIGN_IN`, `SIGN_UP`, …). Within one ruleset, custom and protection rules are sorted together by action, then priority, then position: every `block` rule runs before every `challenge` rule, whatever its position. Priority runs from 0 to 1000, lower first, and a rule that sets none counts as 100. The CLI has no `--priority` flag; set `priority` in a `--file` rule body, and read it with `rules get --json`. So:
 
 - Within one ruleset, a `challenge` can't shadow a `block`. A `challenge` in `ALL` still runs before a `block` in `SIGN_UP`.
-- `rules reorder --help` still says the first matching block or challenge decides. Within a ruleset, blocks come first regardless.
+- `rules reorder` only changes stored position, which decides between rules with the same action and priority.
+- In `clerk-protect` v0.5.0 and earlier, `rules reorder --help` says the first matching block or challenge decides, and `rules list` calls its order evaluation order. Both describe stored order; the sort above still applies.
 - `rules reorder` only matters among rules of the same action. Moving a challenge above a block is accepted and changes nothing.
 
 ## Expressions

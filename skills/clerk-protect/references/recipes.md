@@ -32,12 +32,17 @@ clerk-protect rules create --ruleset SIGN_UP \
 
 clerk-protect rules disable RULE_ID --ruleset SIGN_UP   # off, kept
 clerk-protect rules enable  RULE_ID --ruleset SIGN_UP
-clerk-protect rules update  RULE_ID --ruleset SIGN_UP --action block
+clerk-protect rules update  RULE_ID --ruleset SIGN_UP --action block   # changes only what the flags name
 clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview, then without --dry-run (only changes order among rules with the same action)
 clerk-protect rules delete  RULE_ID --ruleset SIGN_UP
 ```
 
 Field names differ between versions and instances. Take them from `schema`, never from memory. `rules create` also takes `--rate-limit-*`, `--challenge-*`, `--expires-in`/`--expires-at`, or `--file rule.json`. For a rate limit on sign-ups, set `--rate-limit-identity-key signup.signup_id` so each sign-up counts once. Read [Expressions](reading-results.md#expressions) before writing one.
+
+Two things `rules update` with flags does that are easy to miss:
+
+- The `--rate-limit-*` flags are one setting, and so are the `--challenge-*` flags. Giving any of them replaces the whole rate limit or challenge setting, so repeat every part you want to keep, such as `--rate-limit-identity-key`.
+- In v0.5.0 and earlier, a flag update clears a stored `priority`. Before updating a rule, check `rules get RULE_ID --ruleset R --json`; if it has a priority, update it with `--file`: start from that JSON, change what you need, and keep `priority`. The file is the whole rule, so anything it leaves out is cleared.
 
 ## Protections
 
