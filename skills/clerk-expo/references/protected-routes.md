@@ -2,7 +2,7 @@
 
 Gate screens on auth state with layout-level guards. Applies to both prebuilt and custom flows.
 
-> Canonical doc: https://clerk.com/docs/expo/guides/users/reading (protect content and read user data)
+> Canonical doc: [Read user data in Expo](https://clerk.com/docs/expo/guides/users/reading) (protect content and read user data)
 
 ## Recommended structure
 
@@ -50,6 +50,7 @@ export default function AuthRoutesLayout() {
 ```
 
 Rules:
+
 - **Always check `isLoaded` before `isSignedIn`** — Clerk needs a moment to restore the session from the token cache; skipping this flashes the sign-in screen at every cold start.
 - Return `null` (or a splash/spinner) while loading.
 - Use `<Redirect>` from expo-router, not `router.push` inside effects — avoids render-phase navigation warnings.

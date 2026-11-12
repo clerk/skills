@@ -1,14 +1,15 @@
 # Social auth: browser SSO and native Google/Apple
 
 > Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
-> - OAuth custom flow: https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections
-> - `useSSO`: https://clerk.com/docs/reference/expo/native-hooks/use-sso
-> - Native Google/Apple: https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-google and `use-sign-in-with-apple`
+>
+> - [OAuth custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
+> - [`useSSO`](https://clerk.com/docs/reference/expo/native-hooks/use-sso)
+> - [Native Google sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-google) and [native Apple sign-in](https://clerk.com/docs/reference/expo/native-hooks/use-sign-in-with-apple)
 
 Three ways to do social auth in Expo. Pick by platform and build type:
 
 | Approach | UX | Works in Expo Go | Platforms |
-|----------|-----|------------------|-----------|
+| --- | --- | --- | --- |
 | `AuthView` (prebuilt) | Native, renders all enabled providers | No (dev build) | iOS, Android |
 | `useSSO()` browser flow | Opens a browser session | Yes | iOS, Android, web |
 | `useSignInWithGoogle()` / `useSignInWithApple()` | Fully native sheet, no browser | No (dev build) | Google: iOS+Android; Apple: iOS only |
@@ -44,6 +45,7 @@ const onPress = async () => {
 ```
 
 Behavior that is handled for you — do not reimplement:
+
 - `redirectUrl` defaults to `AuthSession.makeRedirectUri({ path: 'sso-callback' })`; only override for a custom callback route.
 - `ClerkProvider` calls `WebBrowser.maybeCompleteAuthSession()` — never add it manually.
 - The transfer flow (account exists → sign-in, new account → sign-up with `transfer: true`) runs inside `startSSOFlow`.
@@ -58,6 +60,7 @@ Note: SSO is the one flow that still uses `setActive({ session: createdSessionId
 Fully native Google sheet (Credential Manager on Android). Dev build only.
 
 Setup:
+
 1. `npx expo install expo-crypto`
 2. Env vars in `.env` (values from the Google Cloud OAuth clients configured for the Clerk instance):
    - `EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID` (always required)
@@ -65,7 +68,7 @@ Setup:
    - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` (iOS — the config plugin writes it into the iOS URL types at prebuild; prebuild fails without it)
 3. `@clerk/expo` config plugin registered, then rebuild.
 
-Full provider-side setup lives at https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-google — fetch it if the Google Cloud side isn't already configured.
+Full provider-side setup lives in the [Google sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-google) — fetch it if the Google Cloud side isn't already configured.
 
 ```tsx
 import { useSignInWithGoogle } from '@clerk/expo/google'
@@ -96,7 +99,7 @@ Always wrap in try/catch and swallow the cancellation codes. On unsupported plat
 
 ## Native Apple sign-in — `useSignInWithApple()`
 
-iOS only; dev build only. Requires `npx expo install expo-apple-authentication` and the Sign in with Apple capability (the `expo-apple-authentication` plugin handles the entitlement — add it to `app.json` plugins). Full setup: https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-apple
+iOS only; dev build only. Requires `npx expo install expo-apple-authentication` and the Sign in with Apple capability (the `expo-apple-authentication` plugin handles the entitlement — add it to `app.json` plugins). Full setup: [Apple sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-apple)
 
 ```tsx
 import { useSignInWithApple } from '@clerk/expo/apple'

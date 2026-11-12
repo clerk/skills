@@ -6,12 +6,14 @@ allowed-tools: WebFetch
 compatibility: Requires Node.js 20.9.0 or later for current Clerk SDKs. The Clerk CLI can provision temporary development keys on supported frameworks without a Clerk account.
 metadata:
   author: clerk
-  version: 2.6.0
+  version: 2.6.1
 ---
 
 # Set up Clerk
 
 Use the [Clerk CLI](https://clerk.com/docs/cli) to add authentication. In agent environments, supported frameworks default to accountless setup: `npx -y clerk@latest init` provisions a claimable application and writes temporary development keys without requiring a Clerk account.
+
+The commands below use `npx -y clerk@latest`. In a project that uses pnpm, Bun, or Yarn 2+, run them with `pnpm dlx clerk@latest`, `bunx clerk@latest`, or `yarn dlx clerk@latest` instead. Do not install the CLI globally.
 
 ## Before you start
 
@@ -78,7 +80,7 @@ For missing development keys, pull them:
 npx -y clerk@latest env pull
 ```
 
-Only when the user needs production keys, use `npx -y clerk@latest env pull --instance prod` instead. Do not replace working keys or switch applications without the user's confirmation.
+Only when the user needs production keys, run `npx -y clerk@latest deploy status --mode agent` and follow its `nextAction`. Once production is complete, copy the keys to the host as described under "After setup". Never pull production keys without `--print`: a plain `env pull` writes them over the local development keys. Do not replace working keys or switch applications without the user's confirmation.
 
 ## Step 1a: Existing project without Clerk
 
@@ -96,7 +98,7 @@ npx -y clerk@latest init
 
 For a native iOS or macOS app, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead of the remaining steps. It covers creating the Xcode project.
 
-Ask which framework and package manager to use, defaulting to Next.js and npm:
+Ask which framework to use, defaulting to Next.js. If a lockfile remains in the directory, use its package manager instead of asking: `pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `bun.lock` or `bun.lockb` → `bun`, and `package-lock.json` → `npm`. If there's no lockfile, ask which package manager to use, defaulting to npm:
 
 ```bash
 npx -y clerk@latest init --framework <framework> --pm <package-manager>
@@ -196,6 +198,7 @@ Add to global CSS:
 
 - Use Node.js 20.9.0 or later for current Clerk SDKs.
 - Next.js 15+: `auth()` is async. Always `await auth()`.
+- For Next.js manual setup, name the middleware file from the installed `next` version: `proxy.ts` on Next.js 16+, `middleware.ts` on 15 and below. `init` creates the file when it handles setup.
 - Next.js: when `next.config` sets `cacheComponents: true` (the `create-next-app` default), `next build` fails on request data read outside `<Suspense>`. Wrap `<Show>` rendered in a Server Component, and any Server Component that calls `auth()` or `currentUser()`, in `<Suspense>`, as close to the auth-dependent UI as possible. Wrap catch-all `<SignIn />`, `<SignUp />`, `<UserProfile />`, and `<OrganizationProfile />` pages in `<Suspense>` too, including the sign-in and sign-up pages the Clerk CLI creates. See [Read auth data inside Suspense](https://clerk.com/docs/guides/development/rendering-modes.md#read-auth-data-inside-suspense) and [Prebuilt components on catch-all routes](https://clerk.com/docs/guides/development/rendering-modes.md#prebuilt-components-on-catch-all-routes).
 - For current Next.js SDKs, `ClerkProvider` goes inside `<body>`, not around `<html>`.
 - Never expose `CLERK_SECRET_KEY` in client code.
@@ -217,7 +220,15 @@ If both claim files exist, stop before `auth login`, `open`, or `link`: `open` p
 
 Once the app is claimed, review settings with `npx -y clerk@latest config pull` and change them with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md).
 
-Before production, claim the app as described above and run `npx -y clerk@latest deploy`. If `deploy` says the project isn't linked, follow its instructions. Unclaimed apps and temporary keys aren't production-ready.
+When the user is ready for production:
+
+1. Have them claim the app as described above, because unclaimed apps and temporary keys aren't production-ready. If `deploy` says the project isn't linked, follow its instructions.
+2. Ask which domain they own for production, one whose DNS they can change (not a hosting provider's URL such as `*.vercel.app`), and run `npx -y clerk@latest deploy --mode agent --domain <domain>`. It creates the production instance and prints a JSON report.
+3. Follow the report's `nextAction` at each step. If a command from the report or `nextAction` calls plain clerk, as all of them do on Windows (inside the `hostSetup` command too), and clerk isn't installed, replace that call with `npx -y clerk@latest` and keep the rest of the command, including in commands the user runs. `nextAction`'s OAuth steps need bash or zsh. In any other shell, have the user enter the OAuth credentials by running `npx -y clerk@latest deploy` in their own terminal, from the project directory. Pass on each `oauth.setup` entry's `note` to the user, such as Google's reminder to set the OAuth consent screen to "In production".
+4. Check progress with `npx -y clerk@latest deploy status --mode agent`, which exits 0 only when production is complete.
+5. On Vercel, if `vercel` isn't installed or you can't run bash or zsh, follow step 6. Otherwise, run `vercel whoami` yourself, which doesn't start a login just because you're logged out. If it prints "Logged out.", have the user run `vercel login` in their own terminal. Then, if the user confirms this directory is linked to the Vercel project that serves this app in production, copy the production keys by running the `command` of the report's `hostSetup` entry as given. If either command doesn't exit, Vercel is waiting for a browser login: stop it, have the user run the command that hung in their own terminal, from the project directory, and finish the login it opens, then rerun.
+6. On any other host, or if the user doesn't confirm the Vercel project, have the user run the `env pull --print` command from `nextAction` in a separate terminal in the project directory, not through your session, and add the printed lines to the host. Never write your own pipe into a host's CLI.
+7. Have the user add the other Clerk variables from their env file to the host too.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 

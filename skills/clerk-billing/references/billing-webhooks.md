@@ -4,29 +4,28 @@
 
 Billing webhooks use the same `verifyWebhook(req)` pattern as all Clerk webhooks. Register the endpoint in Clerk Dashboard → Webhooks.
 
-Subscribe to the billing events you care about. Full catalog:
+Subscribe to the billing events you care about. Clerk event names use dot-notation and camelCase, not Stripe's underscore format. Use Clerk names in `evt.type` checks.
 
-Subscription events (4):
-- `subscription.created`
-- `subscription.updated`
-- `subscription.active`
-- `subscription.pastDue`
+The table below lists all billing events.
 
-SubscriptionItem events (10):
-- `subscriptionItem.updated`
-- `subscriptionItem.active`
-- `subscriptionItem.canceled`
-- `subscriptionItem.upcoming`
-- `subscriptionItem.ended`
-- `subscriptionItem.expired`
-- `subscriptionItem.abandoned`
-- `subscriptionItem.incomplete`
-- `subscriptionItem.pastDue`
-- `subscriptionItem.freeTrialEnding`
-
-Payment attempt events (2):
-- `paymentAttempt.created`
-- `paymentAttempt.updated`
+| Intent | Stripe event name | Clerk event name |
+| --- | --- | --- |
+| Subscription created | `customer.subscription.created` | `subscription.created` |
+| Subscription updated | `customer.subscription.updated` | `subscription.updated` |
+| Subscription active | (none) | `subscription.active` |
+| Subscription past due | (none) | `subscription.pastDue` |
+| Subscription item canceled | `customer.subscription.deleted` | `subscriptionItem.canceled` |
+| Subscription item past due | `invoice.payment_failed` | `subscriptionItem.pastDue` |
+| Subscription item updated | (none) | `subscriptionItem.updated` |
+| Subscription item active | (none) | `subscriptionItem.active` |
+| Subscription item upcoming renewal | (none) | `subscriptionItem.upcoming` |
+| Subscription item ended | (none) | `subscriptionItem.ended` |
+| Subscription item abandoned | (none) | `subscriptionItem.abandoned` |
+| Subscription item expired | (none) | `subscriptionItem.expired` |
+| Subscription item incomplete | (none) | `subscriptionItem.incomplete` |
+| Free trial ending soon | (none) | `subscriptionItem.freeTrialEnding` |
+| Payment attempt created | (none) | `paymentAttempt.created` |
+| Payment attempt updated | (none) | `paymentAttempt.updated` |
 
 > There is no `subscription.canceled` event. Cancellation fires at the item level as `subscriptionItem.canceled`.
 
@@ -34,12 +33,12 @@ Payment attempt events (2):
 
 Clerk billing webhook payloads are nested. Common mistakes come from destructuring fields that live deeper than the top level. The canonical shape:
 
-- `evt.data.id`: the subscription or subscription item id (use this as the subscription id reference)
+- `evt.data.id`: the subscription id on subscription events, the subscription item id on subscriptionItem events
 - `evt.data.payer`: the subscribing entity, with `user_id?` and `organization_id?` (not `org_id`)
 - `evt.data.status`: server-side status string (snake_case, e.g. `past_due`, even though event names are camelCase)
 - `evt.data.items[]`: on subscription events only, the array of subscription items
 - `evt.data.items[i].plan.slug`: the plan slug for a given item (plan is a nested object)
-- On subscriptionItem events, the event data IS the item. There is no `subscription_id` back-reference, so match by `payer` + `plan.slug` or persist item ids independently.
+- `evt.data.subscription_id`: on subscriptionItem events, the parent subscription id. The event data IS the item, so key item rows on `evt.data.id` and store `subscription_id` to link each one to its subscription. `@clerk/backend`'s type doesn't declare the field yet, so widen the type to read it.
 
 ## Complete Billing Webhook Handler
 
@@ -49,65 +48,65 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
-	let evt
-	try {
-		evt = await verifyWebhook(req)
-	} catch {
-		return new Response('Verification failed', { status: 400 })
-	}
+  let evt
+  try {
+    evt = await verifyWebhook(req)
+  } catch {
+    return new Response('Verification failed', { status: 400 })
+  }
 
-	if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.upsert({
-			where: { subscriptionId: id },
-			create: { subscriptionId: id, entityId, plan, status },
-			update: { entityId, plan, status },
-		})
-	}
+  if (evt.type === 'subscription.created' || evt.type === 'subscription.active') {
+    const { id, payer, items, status } = evt.data
+    const entityId = payer.organization_id ?? payer.user_id
+    const plan = items[0]?.plan?.slug
+    await db.subscriptions.upsert({
+      where: { subscriptionId: id },
+      create: { subscriptionId: id, entityId, plan, status },
+      update: { entityId, plan, status },
+    })
+  }
 
-	if (evt.type === 'subscription.updated') {
-		const { id, payer, items, status } = evt.data
-		const entityId = payer.organization_id ?? payer.user_id
-		const plan = items[0]?.plan?.slug
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { entityId, plan, status },
-		})
-	}
+  if (evt.type === 'subscription.updated') {
+    const { id, payer, items, status } = evt.data
+    const entityId = payer.organization_id ?? payer.user_id
+    const plan = items[0]?.plan?.slug
+    await db.subscriptions.update({
+      where: { subscriptionId: id },
+      data: { entityId, plan, status },
+    })
+  }
 
-	if (evt.type === 'subscription.pastDue') {
-		const { id, status } = evt.data
-		await db.subscriptions.update({
-			where: { subscriptionId: id },
-			data: { status },
-		})
-	}
+  if (evt.type === 'subscription.pastDue') {
+    const { id, status } = evt.data
+    await db.subscriptions.update({
+      where: { subscriptionId: id },
+      data: { status },
+    })
+  }
 
-	if (evt.type === 'subscriptionItem.canceled') {
-		// Subscription item events carry only the item, not its parent subscription id.
-		// Identify the record by payer + plan slug.
-		const { payer, plan, canceled_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'canceled', canceledAt: canceled_at },
-		})
-		// Notify user/org admin of cancellation
-	}
+  if (evt.type === 'subscriptionItem.canceled' || evt.type === 'subscriptionItem.pastDue') {
+    // The payload carries subscription_id and updated_at, but @clerk/backend's type doesn't declare them yet
+    const item = evt.data as typeof evt.data & { subscription_id?: string; updated_at: number }
+    const change =
+      evt.type === 'subscriptionItem.canceled'
+        ? { status: 'canceled', canceledAt: item.updated_at }
+        : { status: 'past_due', pastDueAt: item.updated_at }
+    // A subscription can hold several items on the same plan over time, so key rows on the item id
+    await db.subscriptionItems.upsert({
+      where: { itemId: item.id },
+      create: {
+        itemId: item.id,
+        subscriptionId: item.subscription_id,
+        entityId: item.payer?.organization_id ?? item.payer?.user_id,
+        plan: item.plan?.slug,
+        ...change,
+      },
+      update: change,
+    })
+    // Notify user/org admin of the cancellation or payment failure
+  }
 
-	if (evt.type === 'subscriptionItem.pastDue') {
-		const { payer, plan, past_due_at } = evt.data
-		const entityId = payer?.organization_id ?? payer?.user_id
-		await db.subscriptionItems.update({
-			where: { entityId, plan: plan?.slug },
-			data: { status: 'past_due', pastDueAt: past_due_at },
-		})
-		// Notify user/org admin of payment failure
-	}
-
-	return new Response('OK', { status: 200 })
+  return new Response('OK', { status: 200 })
 }
 ```
 
@@ -164,7 +163,7 @@ Types come from `BillingSubscriptionWebhookEventJSON` and `BillingSubscriptionIt
 
 ### subscriptionItem.canceled / subscriptionItem.pastDue / subscriptionItem.*
 
-The event data IS the item itself, not the parent subscription:
+The event data IS the item itself, not the parent subscription. This is the payload Clerk sends:
 
 ```typescript
 {
@@ -172,19 +171,24 @@ The event data IS the item itself, not the parent subscription:
 	data: {
 		object: 'commerce_subscription_item',
 		id: string,                    // subscription item id
+		subscription_id?: string,      // parent subscription id
 		status: string,
+		is_free_trial: boolean,
+		created_at: number,
+		updated_at: number,
 		period_start: number,
 		period_end: number | null,
-		canceled_at?: number,
-		past_due_at?: number,
-		plan?: { id, slug, name, amount, period, ... },
-		plan_id?: string | null,
+		interval: string,
+		plan_id: string,
+		plan: { id, slug, name, amount, currency, is_recurring, ... },
 		payer?: { user_id?, organization_id?, email, ... },
-		amount: { amount, amount_formatted, currency, currency_symbol },
+		seats?: { quantity: number | null },
 		// ...
 	}
 }
 ```
+
+`@clerk/backend`'s `BillingSubscriptionItemWebhookEventJSON` doesn't declare `subscription_id` or `updated_at`, and it declares `canceled_at`, `past_due_at`, and `amount`, which this payload doesn't carry.
 
 ### paymentAttempt.created / paymentAttempt.updated
 
@@ -209,7 +213,7 @@ The event data IS the item itself, not the parent subscription:
 ## Key Rules
 
 - The subscribing entity lives at `evt.data.payer`, with `user_id?` (B2C) or `organization_id?` (B2B)
-- The subscription id is `evt.data.id` on subscription events, not a separate `subscription_id` field
+- The subscription id is `evt.data.id` on subscription events and `evt.data.subscription_id` on subscriptionItem events
 - Plan slug is nested: `evt.data.items[i].plan?.slug` on subscription events, `evt.data.plan?.slug` on item events
 - Status values use snake_case (`past_due`, `active`, `canceled`), even though event names use camelCase (`subscription.pastDue`)
 - Always return `200` quickly. Handle async work in a queue or background job.
@@ -218,13 +222,13 @@ The event data IS the item itself, not the parent subscription:
 
 ## Subscription Status Values
 
-| Status | Meaning |
-|--------|---------|
-| `active` | Subscription is active and paid |
-| `past_due` | Payment failed, grace period |
-| `canceled` | Subscription ended |
-| `ended` | Subscription reached the end of its term |
-| `abandoned` | Checkout started but user never completed payment |
-| `incomplete` | Checkout in progress |
-| `expired` | Subscription expired without renewal |
-| `upcoming` | Scheduled subscription not yet active |
+| Status       | Meaning                                           |
+| ------------ | ------------------------------------------------- |
+| `active`     | Subscription is active and paid                   |
+| `past_due`   | Payment failed, grace period                      |
+| `canceled`   | Subscription ended                                |
+| `ended`      | Subscription reached the end of its term          |
+| `abandoned`  | Checkout started but user never completed payment |
+| `incomplete` | Checkout in progress                              |
+| `expired`    | Subscription expired without renewal              |
+| `upcoming`   | Scheduled subscription not yet active             |

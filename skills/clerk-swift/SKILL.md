@@ -16,10 +16,12 @@ This skill builds Clerk authentication UI in native Swift projects: prebuilt Cle
 ## Activation Rules
 
 Activate this skill when either condition is true:
+
 - The user explicitly asks for Swift, SwiftUI, UIKit, or native iOS or macOS Clerk implementation.
 - The project appears to be native Swift (for example `.xcodeproj`, `.xcworkspace`, `Package.swift`, Swift targets).
 
 Do not activate this skill when either condition is true:
+
 - The project is Expo.
 - The project is React Native.
 
@@ -35,15 +37,15 @@ If the user already asked for sign-in UI, such as a custom flow, continue here o
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Prebuilt AuthView / UserButton (fastest) | references/prebuilt.md |
-| Custom API-driven auth flows (full control) | references/custom.md |
+| Task                                        | Reference              |
+| ------------------------------------------- | ---------------------- |
+| Prebuilt AuthView / UserButton (fastest)    | references/prebuilt.md |
+| Custom API-driven auth flows (full control) | references/custom.md   |
 
 ## Quick Start
 
 | Step | Action |
-|------|--------|
+| --- | --- |
 | 1 | Confirm the project is native Swift and not Expo/React Native |
 | 2 | If Clerk isn't set up, follow the iOS setup prompt first (see above) |
 | 3 | Determine the flow type (`prebuilt` or `custom`); ask if it's undecided, then load the matching reference |
@@ -84,6 +86,7 @@ User asks for Clerk in Swift
 ## Flow References
 
 After flow type is known, load exactly one:
+
 - Prebuilt flow: [references/prebuilt.md](references/prebuilt.md)
 - Custom flow: [references/custom.md](references/custom.md)
 
@@ -104,7 +107,7 @@ Before UI implementation edits, the agent must have a flow choice: `prebuilt` or
 Use the installed `clerk-ios` package source as the reference for UI behavior, especially for custom flows.
 
 | Use Case | Source of Truth in Installed Package |
-|----------|--------------------------------------|
+| --- | --- |
 | SDK products, platform support, and dependency constraints | Package manifest and target product definitions for `ClerkKit` and `ClerkKitUI` |
 | Auth flow sequencing and gating | `ClerkKitUI` `AuthView` implementation and how it reads the injected Clerk instance's `environment` |
 | Native Sign in with Apple | Apple sign-in behavior in the selected flow reference |
@@ -122,7 +125,7 @@ Use the installed `clerk-ios` package source as the reference for UI behavior, e
 ## Common Pitfalls
 
 | Level | Issue | Prevention |
-|-------|-------|------------|
+| --- | --- | --- |
 | CRITICAL | Doing setup by hand when Clerk isn't set up | Follow the iOS setup prompt; it runs the Clerk CLI. Use the manual quickstart only when the CLI can't set up the project |
 | CRITICAL | Asking the user to paste a publishable key | The CLI provides it during setup; keep an existing app's own key loading |
 | CRITICAL | Replacing custom key loading or existing setup | Keep the existing `Clerk.configure`, packages, and capabilities; add only what's missing |

@@ -1,6 +1,6 @@
 ---
 name: clerk-backend-api
-description: "Clerk Backend REST API explorer and executor. Browse tags, inspect endpoint schemas, and execute authenticated requests. Use when listing users, managing organizations, or calling any Clerk API endpoint."
+description: 'Clerk Backend REST API explorer and executor. Browse tags, inspect endpoint schemas, and execute authenticated requests. Use when listing users, managing organizations, or calling any Clerk API endpoint.'
 allowed-tools: Bash, Read, Grep, Skill, WebFetch
 license: MIT
 compatibility: Requires CLERK_SECRET_KEY (sk_*) for Backend API calls.
@@ -15,16 +15,20 @@ User Prompt: $ARGUMENTS
 Before ANY POST / PATCH / PUT / DELETE, you MUST do ALL of the following in your response:
 
 1. **Check CLERK_SECRET_KEY** — verify it is set:
+
    ```bash
    echo $CLERK_SECRET_KEY | head -c 10
    ```
+
    If empty, stop and ask the user. Do not proceed without a valid key.
 
 2. **Check CLERK_BAPI_SCOPES** — run:
+
    ```bash
    echo $CLERK_BAPI_SCOPES
    ```
-   Inspect the output. If scopes are missing or do not include the required write permission, tell the user: *"This is a write operation and your current scopes may not allow it. Rerun with --admin to bypass?"* Do NOT attempt the request and fail — ask first.
+
+   Inspect the output. If scopes are missing or do not include the required write permission, tell the user: _"This is a write operation and your current scopes may not allow it. Rerun with --admin to bypass?"_ Do NOT attempt the request and fail — ask first.
 
 3. **For DELETE requests:** warn explicitly that the action is **IRREVERSIBLE** and list exactly what data will be permanently destroyed (user record, all sessions, all memberships, all associated data). Require explicit confirmation before proceeding. This warning is MANDATORY — never skip it.
 
@@ -70,14 +74,14 @@ import { clerkClient } from '@clerk/nextjs/server'
 // Step 1: Create organization
 const org = await clerkClient.organizations.createOrganization({
   name: 'Acme Corp',
-  createdBy: userId,  // required — the ID of the user creating the org
+  createdBy: userId, // required — the ID of the user creating the org
 })
 
 // Step 2: Invite member to the org
 const invitation = await clerkClient.organizations.createOrganizationInvitation({
   organizationId: org.id,
   emailAddress: 'user@example.com',
-  role: 'org:admin',  // or 'org:member'
+  role: 'org:admin', // or 'org:member'
 })
 ```
 
@@ -86,7 +90,7 @@ const invitation = await clerkClient.organizations.createOrganizationInvitation(
 **Always explain the three metadata types before asking which to use:**
 
 | Type | Field | Readable by | Writable by | Use for |
-|------|-------|-------------|-------------|---------|
+| --- | --- | --- | --- | --- |
 | Public | `public_metadata` | Client + Server | **Server only** | Plan tier, roles, feature flags the frontend reads |
 | Private | `private_metadata` | **Server only** | **Server only** | Stripe IDs, compliance flags, internal identifiers |
 | Unsafe | `unsafe_metadata` | Client + Server | Client + Server | Ephemeral UI state, onboarding steps (client-writable — avoid sensitive data) |
@@ -108,7 +112,7 @@ import { clerkClient } from '@clerk/nextjs/server'
 // OR: import { createClerkClient } from '@clerk/backend'
 
 await clerkClient.users.updateUser(userId, {
-  publicMetadata: { plan: 'pro', onboarded: true },   // readable by client, writable server-only
+  publicMetadata: { plan: 'pro', onboarded: true }, // readable by client, writable server-only
   // privateMetadata: { stripeId: 'cus_xxx' },         // server-only read AND write
   // unsafeMetadata: { step: 'welcome' },              // client-writable, avoid sensitive data
 })
@@ -146,12 +150,12 @@ curl -s -X DELETE "https://api.clerk.com/v1/users/${USER_ID}" \
 
 ## Clerk Backend API — Full Endpoint Reference
 
-Base URL: `https://api.clerk.com/v1`
-Auth: `Authorization: Bearer $CLERK_SECRET_KEY` on every request.
+Base URL: `https://api.clerk.com/v1` Auth: `Authorization: Bearer $CLERK_SECRET_KEY` on every request.
 
 ### Users
 
 **List users**
+
 ```
 GET /v1/users
 Query params: limit (max 500, default 10), offset, order_by (+/-created_at, +/-updated_at, +/-email_address, +/-web3wallet, +/-first_name, +/-last_name, +/-phone_number, +/-username, +/-last_active_at, +/-last_sign_in_at), email_address[], phone_number[], username[], web3wallet[], user_id[], query, created_at (ISO 8601 range: gt:TIMESTAMP or lt:TIMESTAMP in Unix ms)
@@ -159,28 +163,33 @@ Returns: array of User objects
 ```
 
 **Get user**
+
 ```
 GET /v1/users/{user_id}
 Returns: User object
 ```
 
 **Update user**
+
 ```
 PATCH /v1/users/{user_id}
 Body (JSON, snake_case): { public_metadata, private_metadata, unsafe_metadata, first_name, last_name, username, ... }
 ```
 
 **Delete user — IRREVERSIBLE**
+
 ```
 DELETE /v1/users/{user_id}
 Destroys: user record, all sessions, all memberships, all associated data
 Returns: { id, object, deleted: true }
 ```
+
 Always warn the user this is permanent and confirm before proceeding.
 
 ### Organizations
 
 **Create organization**
+
 ```
 POST /v1/organizations
 Body: { name: string, created_by: string (user_id), public_metadata?, private_metadata?, max_allowed_memberships? }
@@ -188,12 +197,14 @@ Returns: Organization object with { id, name, slug, ... }
 ```
 
 **List organizations**
+
 ```
 GET /v1/organizations
 Query params: limit, offset, query, order_by
 ```
 
 **Invite member**
+
 ```
 POST /v1/organizations/{organization_id}/invitations
 Body: { email_address: string, role: string ("org:admin" or "org:member"), public_metadata?, private_metadata? }
@@ -207,12 +218,14 @@ Returns: OrganizationInvitation object
 **ALWAYS execute requests with direct `curl` commands.** Use the spec-extraction scripts (`api-specs-context.sh`, `extract-tags.js`, `extract-endpoint-detail.sh`) to discover endpoints, but make actual API calls with `curl`.
 
 Template for GET requests:
+
 ```bash
 curl -s "https://api.clerk.com/v1${PATH}${QUERY_STRING}" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY"
 ```
 
 Template for POST/PATCH requests:
+
 ```bash
 curl -s -X ${METHOD} "https://api.clerk.com/v1${PATH}" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY" \
@@ -221,6 +234,7 @@ curl -s -X ${METHOD} "https://api.clerk.com/v1${PATH}" \
 ```
 
 Template for DELETE requests:
+
 ```bash
 curl -s -X DELETE "https://api.clerk.com/v1${PATH}" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY"
@@ -233,6 +247,7 @@ curl -s -X DELETE "https://api.clerk.com/v1${PATH}" \
 ## API specs context
 
 Before doing anything outside the FAST PATH, fetch the available spec versions and tags by running:
+
 ```bash
 bash scripts/api-specs-context.sh
 ```
@@ -260,16 +275,16 @@ Use the output to determine the latest version and available tags.
 
 ### Rate Limits
 
-| Environment | Limit |
-|-------------|-------|
-| Production | 1,000 requests / 10 seconds |
-| Development | 100 requests / 10 seconds |
-| Single invitations | 100 / hour |
-| Bulk invitations | 25 / hour |
-| Org invitations | 250 / hour |
-| Frontend API sign-in creation | 5 / 10 seconds |
-| Frontend API sign-in attempts | 3 / 10 seconds |
-| List users max per page | 500 |
+| Environment                   | Limit                       |
+| ----------------------------- | --------------------------- |
+| Production                    | 1,000 requests / 10 seconds |
+| Development                   | 100 requests / 10 seconds   |
+| Single invitations            | 100 / hour                  |
+| Bulk invitations              | 25 / hour                   |
+| Org invitations               | 250 / hour                  |
+| Frontend API sign-in creation | 5 / 10 seconds              |
+| Frontend API sign-in attempts | 3 / 10 seconds              |
+| List users max per page       | 500                         |
 
 `currentUser()` makes a real API call that counts against rate limits. Use `auth()` for just the session claims — it reads from the token without an API call.
 
@@ -278,12 +293,15 @@ Use the output to determine the latest version and available tags.
 `updateUser({ publicMetadata: { role: 'admin' } })` REPLACES all public metadata, not merges. To add a field without losing existing data: read first, spread, then write.
 
 Wrong:
+
 ```typescript
 await clerkClient.users.updateUser(userId, { publicMetadata: { newField: 'value' } })
 ```
+
 This DELETES all other `publicMetadata` fields.
 
 Right:
+
 ```typescript
 const user = await clerkClient.users.getUser(userId)
 await clerkClient.users.updateUser(userId, {
@@ -298,7 +316,7 @@ await clerkClient.users.updateUser(userId, {
 Determine the active mode based on the user prompt in [Options context](#options-context):
 
 | Mode | Trigger | Behavior |
-|------|---------|----------|
+| --- | --- | --- |
 | `help` | Prompt is empty, or contains only `help` / `-h` / `--help` | Print usage examples (step 0) |
 | `browse` | Prompt is `tags`, or a tag name (e.g. `Users`) | List all tags or endpoints for a tag |
 | `execute` | Specific endpoint (e.g. `GET /users`) or natural language action (e.g. "get user john_doe") | Look up endpoint, execute request |
@@ -350,9 +368,11 @@ Stop here.
 **Modes:** `browse` (when prompt is `tags` or no tag specified) — **Skip** for `help`, `execute`, and `detail`.
 
 If using a non-latest version, fetch tags for that version:
+
 ```bash
 curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | node scripts/extract-tags.js
 ```
+
 Otherwise, use the **TAGS** already in [API specs context](#api-specs-context).
 
 Share tags in a table and prompt the user to select a query.
@@ -364,6 +384,7 @@ Share tags in a table and prompt the user to select a query.
 **Modes:** `browse` (when a tag name is provided) — **Skip** for `help`, `execute`, and `detail`.
 
 Fetch all endpoints for the identified tag:
+
 ```bash
 curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash scripts/extract-tag-endpoints.sh "${tag_name}"
 ```
@@ -381,9 +402,11 @@ For natural language prompts in `execute` mode, first check if the operation mat
 For other endpoints, identify the matching endpoint by searching the tags in context. Fetch tag endpoints if needed to resolve the exact path and method.
 
 Extract the full endpoint definition:
+
 ```bash
 curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${version_name} | bash scripts/extract-endpoint-detail.sh "${path}" "${method}"
 ```
+
 - `${path}` — e.g. `/users/{user_id}`
 - `${method}` — lowercase, e.g. `get`
 
@@ -404,6 +427,7 @@ curl -s https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/${versio
 5. Parse the JSON response and display it clearly. Extract and summarize key fields for the user.
 
 **Example — list users and parse response:**
+
 ```bash
 RESPONSE=$(curl -s "https://api.clerk.com/v1/users?limit=10" \
   -H "Authorization: Bearer $CLERK_SECRET_KEY")

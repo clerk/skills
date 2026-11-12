@@ -33,7 +33,7 @@ export default async function TeamDashboard() {
 ```tsx
 // app/team/loading.tsx
 export default function Loading() {
-	return <p>Loading...</p>
+  return <p>Loading...</p>
 }
 ```
 
@@ -44,6 +44,7 @@ export default function Loading() {
 Clerk Billing's B2B model is **seat-limit plans**: each organization plan has a fixed price and an optional membership cap; Clerk enforces the cap at invite/join time. To charge larger orgs more, create tiered plans (e.g. `starter` capped at 5, `team` at 10, `enterprise` unlimited) with increasing fixed prices.
 
 Key invariants:
+
 - **Fixed price per plan**, not auto-scaling per member. Adding members does not increment the org's billing amount on the active plan.
 - **One `active` SubscriptionItem per payer per Plan.** Do not derive seat count from `items.length`.
 - **Seat limit is a Plan property.** Set it when creating the plan (Dashboard → Billing → Plans → Organization Plans tab, or `clerk config patch`); it cannot be changed later.
@@ -61,11 +62,11 @@ import { OrganizationProfile } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
 export default function OrgAccountPage() {
-	return (
-		<Suspense>
-			<OrganizationProfile />
-		</Suspense>
-	)
+  return (
+    <Suspense>
+      <OrganizationProfile />
+    </Suspense>
+  )
 }
 ```
 
@@ -75,31 +76,31 @@ Organization Plans configured in Dashboard → Billing → Plans automatically a
 
 ```typescript
 if (evt.type === 'subscription.created') {
-	const { id, payer, items, status } = evt.data
-	if (payer.organization_id) {
-		const plan = items[0]?.plan?.slug
-		await db.orgSubscriptions.upsert({
-			where: { orgId: payer.organization_id },
-			create: {
-				orgId: payer.organization_id,
-				plan,
-				subscriptionId: id,
-				status,
-			},
-			update: { plan, subscriptionId: id, status },
-		})
-	}
+  const { id, payer, items, status } = evt.data
+  if (payer.organization_id) {
+    const plan = items[0]?.plan?.slug
+    await db.orgSubscriptions.upsert({
+      where: { orgId: payer.organization_id },
+      create: {
+        orgId: payer.organization_id,
+        plan,
+        subscriptionId: id,
+        status,
+      },
+      update: { plan, subscriptionId: id, status },
+    })
+  }
 }
 
 if (evt.type === 'subscription.updated') {
-	const { id, payer, items, status } = evt.data
-	if (payer.organization_id) {
-		const plan = items[0]?.plan?.slug
-		await db.orgSubscriptions.update({
-			where: { orgId: payer.organization_id },
-			data: { plan, status },
-		})
-	}
+  const { id, payer, items, status } = evt.data
+  if (payer.organization_id) {
+    const plan = items[0]?.plan?.slug
+    await db.orgSubscriptions.update({
+      where: { orgId: payer.organization_id },
+      data: { plan, status },
+    })
+  }
 }
 ```
 
@@ -109,11 +110,11 @@ Use `payer.organization_id` (nested under `payer`, not a top-level `org_id`) whe
 
 Tier plans by seat cap so bigger orgs pay more:
 
-| Plan | Slug | Seat cap |
-|------|------|-------|
-| Startup | `org:starter` | 5 |
-| Team | `org:team` | 10 |
-| Business | `org:business` | 25 |
+| Plan       | Slug             | Seat cap                                       |
+| ---------- | ---------------- | ---------------------------------------------- |
+| Startup    | `org:starter`    | 5                                              |
+| Team       | `org:team`       | 10                                             |
+| Business   | `org:business`   | 25                                             |
 | Enterprise | `org:enterprise` | unlimited (requires B2B Authentication add-on) |
 
 Define these via Dashboard → Billing → Plans → **Organization Plans** tab with **Seat-based** toggled on, or via `clerk config patch` with `billing.plans`. Use the `org:` prefix in slugs to disambiguate org plans from user plans in code (`has({ plan: 'org:team' })` vs `has({ plan: 'team' })`). Seat caps above 20 and "unlimited" require the B2B Authentication add-on.

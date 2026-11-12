@@ -1,8 +1,6 @@
 ---
 name: clerk-tanstack-patterns
-description: 'TanStack React Start auth patterns with @clerk/tanstack-react-start
-  - createServerFn, beforeLoad guards, loaders, Vite plugin, server middleware. Triggers on: TanStack
-  auth, createServerFn clerk, beforeLoad protection, TanStack Start middleware.'
+description: 'TanStack React Start auth patterns with @clerk/tanstack-react-start - createServerFn, beforeLoad guards, loaders, Vite plugin, server middleware. Triggers on: TanStack auth, createServerFn clerk, beforeLoad protection, TanStack Start middleware.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -14,21 +12,21 @@ metadata:
 
 ## What Do You Need?
 
-| Task | Reference |
-|------|-----------|
-| Protect routes with beforeLoad | references/router-guards.md |
-| Auth in createServerFn | references/server-functions.md |
-| Pass auth to loaders | references/loaders.md |
-| Configure Vite + Clerk middleware | references/server-setup.md |
+| Task                              | Reference                      |
+| --------------------------------- | ------------------------------ |
+| Protect routes with beforeLoad    | references/router-guards.md    |
+| Auth in createServerFn            | references/server-functions.md |
+| Pass auth to loaders              | references/loaders.md          |
+| Configure Vite + Clerk middleware | references/server-setup.md     |
 
 ## References
 
-| Reference | Description |
-|-----------|-------------|
-| `references/router-guards.md` | beforeLoad auth redirect |
-| `references/server-functions.md` | createServerFn with auth() |
-| `references/loaders.md` | Auth context in loaders |
-| `references/server-setup.md` | Vite and request middleware setup |
+| Reference                        | Description                       |
+| -------------------------------- | --------------------------------- |
+| `references/router-guards.md`    | beforeLoad auth redirect          |
+| `references/server-functions.md` | createServerFn with auth()        |
+| `references/loaders.md`          | Auth context in loaders           |
+| `references/server-setup.md`     | Vite and request middleware setup |
 
 ## Setup
 
@@ -37,12 +35,14 @@ npm install @clerk/tanstack-react-start
 ```
 
 `.env`:
+
 ```
 VITE_CLERK_PUBLISHABLE_KEY=pk_...
 CLERK_SECRET_KEY=sk_...
 ```
 
 `src/start.ts` (request middleware):
+
 ```typescript
 import { clerkMiddleware } from '@clerk/tanstack-react-start/server'
 import { createCsrfMiddleware, createStart } from '@tanstack/react-start'
@@ -59,6 +59,7 @@ export const startInstance = createStart(() => {
 ```
 
 `src/routes/__root.tsx` — wrap with `<ClerkProvider>`:
+
 ```tsx
 import { ClerkProvider } from '@clerk/tanstack-react-start'
 
@@ -66,9 +67,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <ClerkProvider>
-          {children}
-        </ClerkProvider>
+        <ClerkProvider>{children}</ClerkProvider>
       </body>
     </html>
   )
@@ -107,7 +106,7 @@ export const Route = createFileRoute('/dashboard')({
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --- | --- | --- |
 | `auth()` throws "without configuring the middleware" | Missing `clerkMiddleware` in start.ts | Add it after CSRF middleware in `requestMiddleware` |
 | `redirect` not thrown | Using `return` instead of `throw` | `throw redirect(...)` in TanStack |
 | Wrong import for `auth` | Mixing client/server imports | Server: `@clerk/tanstack-react-start/server` |

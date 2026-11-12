@@ -1,7 +1,6 @@
 ---
 name: clerk-nextjs-patterns
-description: Advanced Next.js patterns - middleware, Server Actions, caching with
-  Clerk.
+description: Advanced Next.js patterns - middleware, Server Actions, caching with Clerk.
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY. For manual JWT verification (standalone API servers without Clerk middleware), additionally requires CLERK_JWT_KEY or CLERK_PEM_PUBLIC_KEY.
@@ -21,7 +20,7 @@ For basic setup, see `clerk-setup` skill.
 ## What Do You Need?
 
 | Task | Reference |
-|------|-----------|
+| --- | --- |
 | Server vs client auth (`auth()` vs hooks) | references/server-vs-client.md |
 | Protect routes (check in each page, handler, and Server Function) | references/middleware-strategies.md |
 | Protect Server Actions | references/server-actions.md |
@@ -32,7 +31,7 @@ For basic setup, see `clerk-setup` skill.
 ## References
 
 | Reference | Description |
-|-----------|-------------|
+| --- | --- |
 | `references/server-vs-client.md` | `await auth()` vs hooks |
 | `references/middleware-strategies.md` | `auth.protect()` in each resource, bare `clerkMiddleware()` in `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | `references/server-actions.md` | Protect mutations |
@@ -42,12 +41,14 @@ For basic setup, see `clerk-setup` skill.
 ## Mental Model
 
 Server vs Client = different auth APIs:
+
 - **Server**: `await auth()` from `@clerk/nextjs/server` (async!)
 - **Client**: `useAuth()` hook from `@clerk/nextjs` (sync)
 
 Never mix them. Server Components use server imports, Client Components use hooks.
 
 Key properties from `auth()`:
+
 - `isAuthenticated` — boolean, replaces the `!!userId` pattern
 - `sessionStatus` — `'active'` | `'pending'`, for detecting incomplete session tasks
 - `userId`, `orgId`, `orgSlug`, `has()`, `protect()` — unchanged
@@ -62,7 +63,7 @@ import { auth } from '@clerk/nextjs/server'
 import { Suspense } from 'react'
 
 async function Greeting() {
-  const { isAuthenticated, userId } = await auth()  // MUST await!
+  const { isAuthenticated, userId } = await auth() // MUST await!
   if (!isAuthenticated) return <p>Not signed in</p>
   return <p>Hello {userId}</p>
 }
@@ -90,11 +91,15 @@ export default function Page() {
 import { Show } from '@clerk/nextjs'
 import { Suspense } from 'react'
 
-<Suspense>
-  <Show when="signed-in" fallback={<p>Please sign in</p>}>
-    <Dashboard />
-  </Show>
-</Suspense>
+export function AuthenticatedDashboard() {
+  return (
+    <Suspense>
+      <Show when="signed-in" fallback={<p>Please sign in</p>}>
+        <Dashboard />
+      </Show>
+    </Suspense>
+  )
+}
 ```
 
 **Authorization checks (B2B)** (wrap in `<Suspense>` the same way when rendered in a Server Component):
@@ -147,9 +152,9 @@ Use `next build --debug-prerender` to list every failing route. A plain `next bu
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --- | --- | --- |
 | `undefined` userId in Server Component | Missing `await` | `await auth()` not `auth()` |
-| Auth not working on API routes | Missing matcher | Add `'/(api|trpc)(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`) |
+| Auth not working on API routes | Missing matcher | Add `'/api(.*)'` and `'/trpc(.*)'` to `proxy.ts` (Next.js <=15: `middleware.ts`) |
 | `next build` fails with "uncached or runtime data during prerendering" | `auth()`, `currentUser()`, or server `<Show>` outside `<Suspense>` | Wrap the auth-dependent UI in `<Suspense>` (see [Cache Components](#cache-components)) |
 | Cache returns wrong user's data | `userId` not part of the cache key | Pass `userId` into the `'use cache'` function as an argument |
 | Mutations bypass auth | Unprotected Server Action | Check `auth()` at start of action |
@@ -268,6 +273,7 @@ try {
 ```
 
 Token sources:
+
 - **Same-origin requests**: `__session` cookie (Clerk sets this automatically)
 - **Cross-origin / mobile / API-to-API**: `Authorization: Bearer <token>` header
 
