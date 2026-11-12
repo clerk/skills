@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "clerk": {
+      "serverUrl": "https://mcp.clerk.com/mcp",
+      "headers": {
+        "X-Clerk-MCP-Consumer": "plugin"
+      }
+    }
+  }
+}

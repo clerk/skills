@@ -14,6 +14,8 @@ mcp.json                           # Agent Plugins MCP config ("type": "streamab
 .claude-plugin/plugin.json
 .cursor-plugin/plugin.json
 .codex-plugin/plugin.json          # also carries the OpenAI listing metadata
+.antigravity-plugin/plugin.json    # Antigravity manifest; takes precedence over plugin.json there
+mcp_config.json                    # Antigravity MCP config ("serverUrl", no "type")
 ```
 
 `skills/` is flat because plugin loaders only look one level down. A category folder hides every skill inside it.

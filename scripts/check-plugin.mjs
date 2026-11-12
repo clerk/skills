@@ -41,6 +41,25 @@ const CURSOR_MANIFEST_FIELDS = new Set([
   "variables",
   "mcpServers",
 ]);
+// antigravity.google/schemas/v1/plugin.json sets additionalProperties: false.
+const ANTIGRAVITY_SCHEMA = "https://antigravity.google/schemas/v1/plugin.json";
+const ANTIGRAVITY_MANIFEST_FIELDS = new Set([
+  "$schema",
+  "name",
+  "displayName",
+  "description",
+  "version",
+  "logo",
+  "author",
+  "suggestedPrompts",
+  "homepage",
+  "license",
+  "keywords",
+  "repository",
+  "skills",
+  "disabled",
+  "extensions",
+]);
 const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const MANIFEST_PATHS = [
@@ -48,6 +67,7 @@ const MANIFEST_PATHS = [
   ".claude-plugin/plugin.json",
   ".cursor-plugin/plugin.json",
   ".codex-plugin/plugin.json",
+  ".antigravity-plugin/plugin.json",
 ];
 const MARKETPLACE_PATHS = [
   ".claude-plugin/marketplace.json",
@@ -58,6 +78,7 @@ const JSON_PATHS = [
   ...MANIFEST_PATHS,
   "mcp.json",
   ".mcp.json",
+  "mcp_config.json",
   ...MARKETPLACE_PATHS,
 ];
 
@@ -80,6 +101,7 @@ function copiedValues(files) {
     ]);
   const codex = files[".codex-plugin/plugin.json"];
   const cursor = files[".cursor-plugin/plugin.json"];
+  const antigravity = files[".antigravity-plugin/plugin.json"];
   const entry = (filePath) =>
     files[filePath].plugins?.find(({ name }) => name === "clerk") ?? {};
   // Cursor writes the logo path without the leading ./ that Codex uses.
@@ -91,8 +113,12 @@ function copiedValues(files) {
     version: manifests("version").filter(
       ([filePath]) => filePath !== ".claude-plugin/plugin.json",
     ),
+    // Antigravity recommends 120 to 160 characters, so its description is
+    // shorter and checked on its own in checkManifests.
     description: [
-      ...manifests("description"),
+      ...manifests("description").filter(
+        ([filePath]) => filePath !== ".antigravity-plugin/plugin.json",
+      ),
       [
         ".codex-plugin/plugin.json",
         "interface.longDescription",
@@ -142,6 +168,11 @@ function copiedValues(files) {
         ".codex-plugin/plugin.json",
         "interface.displayName",
         codex.interface?.displayName,
+      ],
+      [
+        ".antigravity-plugin/plugin.json",
+        "displayName",
+        antigravity.displayName,
       ],
     ],
     logo: [
@@ -194,6 +225,7 @@ function checkManifests(files, check) {
   const spec = files["plugin.json"];
   const claude = files[".claude-plugin/plugin.json"];
   const cursor = files[".cursor-plugin/plugin.json"];
+  const antigravity = files[".antigravity-plugin/plugin.json"];
 
   // Claude Code keeps users on their cached copy while `version` is unchanged;
   // without it, every commit is an update.
@@ -229,6 +261,33 @@ function checkManifests(files, check) {
   check(
     extra === "[]",
     `.cursor-plugin/plugin.json: author allows only name and email, found ${extra}`,
+  );
+
+  check(
+    antigravity.$schema === ANTIGRAVITY_SCHEMA,
+    ".antigravity-plugin/plugin.json: wrong or missing $schema",
+  );
+  extra = extraFields(antigravity, ANTIGRAVITY_MANIFEST_FIELDS);
+  check(
+    extra === "[]",
+    `.antigravity-plugin/plugin.json: fields Antigravity's schema rejects: ${extra}`,
+  );
+  // Antigravity uses its own padded logo, since its marketplace wants about 10%
+  // transparent padding and a mark that reads on light and dark themes.
+  check(
+    typeof antigravity.logo === "string" && antigravity.logo.length > 0,
+    ".antigravity-plugin/plugin.json: logo is required",
+  );
+  const { length } = antigravity.description ?? "";
+  check(
+    length >= 120 && length <= 160,
+    `.antigravity-plugin/plugin.json: description is ${length} characters; Antigravity recommends 120 to 160`,
+  );
+  // The Antigravity marketplace shows at most three starter prompts.
+  const prompts = antigravity.suggestedPrompts;
+  check(
+    Array.isArray(prompts) && prompts.length >= 1 && prompts.length <= 3,
+    ".antigravity-plugin/plugin.json: suggestedPrompts needs 1 to 3 prompts",
   );
 
   // Cursor and Codex both take Claude Code's `"type": "http"` MCP format, not
@@ -270,10 +329,21 @@ function checkMcp(files, check) {
 
   const specServers = spec.mcpServers ?? {};
   const nativeServers = native.mcpServers ?? {};
+  const antigravity = files["mcp_config.json"];
+  const antigravityServers = antigravity.mcpServers ?? {};
   check(
     JSON.stringify(Object.keys(specServers).sort()) ===
       JSON.stringify(Object.keys(nativeServers).sort()),
     "mcp.json and .mcp.json list different servers",
+  );
+  check(
+    sameKeys(antigravity, ["mcpServers"]),
+    "mcp_config.json: expected only mcpServers",
+  );
+  check(
+    JSON.stringify(Object.keys(specServers).sort()) ===
+      JSON.stringify(Object.keys(antigravityServers).sort()),
+    "mcp.json and mcp_config.json list different servers",
   );
 
   for (const [name, server] of Object.entries(specServers)) {
@@ -281,7 +351,7 @@ function checkMcp(files, check) {
       server.type === "streamable-http",
       `mcp.json: ${name} must use type streamable-http`,
     );
-    const extra = extraFields(server, new Set(["type", "url", "headers"]));
+    let extra = extraFields(server, new Set(["type", "url", "headers"]));
     check(
       extra === "[]",
       `mcp.json: ${name} has fields the spec rejects: ${extra}`,
@@ -296,8 +366,23 @@ function checkMcp(files, check) {
       JSON.stringify(other.headers) === JSON.stringify(server.headers),
       `${name}: headers differ between mcp.json and .mcp.json`,
     );
+    // Antigravity names the remote URL serverUrl and takes no type.
+    const remote = antigravityServers[name] ?? {};
+    extra = extraFields(remote, new Set(["serverUrl", "headers"]));
+    check(
+      extra === "[]",
+      `mcp_config.json: ${name} has fields other than serverUrl and headers: ${extra}`,
+    );
+    check(
+      remote.serverUrl === server.url,
+      `${name}: url differs between mcp.json and mcp_config.json`,
+    );
+    check(
+      JSON.stringify(remote.headers) === JSON.stringify(server.headers),
+      `${name}: headers differ between mcp.json and mcp_config.json`,
+    );
     // The server leaves skills out for this value, since plugins bundle them.
-    // .mcp.json must match this one, so checking it covers both.
+    // .mcp.json and mcp_config.json must match this one, so checking it covers all three.
     check(
       server.headers?.["X-Clerk-MCP-Consumer"] === "plugin",
       `mcp.json: ${name} must send X-Clerk-MCP-Consumer: plugin`,
