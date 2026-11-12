@@ -47,16 +47,17 @@ If `insights search` shows no deny for that identifier or IP in the window, tell
 
 ## Rule order
 
-Within a ruleset, every `block` rule runs before every `challenge` rule, whatever its position. Among rules with the same action, position decides, and custom and protection rules are ordered together. So:
+Rulesets run in a fixed order: the `ALL` ruleset first, then the request's own (`SIGN_IN`, `SIGN_UP`, …). Within one ruleset, custom and protection rules are sorted together by action, then priority, then position: every `block` rule runs before every `challenge` rule, whatever its position. The CLI can't set a priority, so position is the lever you have among rules of the same action. So:
 
-- A `challenge` can't shadow a `block`.
+- Within one ruleset, a `challenge` can't shadow a `block`. A `challenge` in `ALL` still runs before a `block` in `SIGN_UP`.
+- `rules reorder --help` still says the first matching block or challenge decides. Within a ruleset, blocks come first regardless.
 - `rules reorder` only matters among rules of the same action. Moving a challenge above a block is accepted and changes nothing.
 
 ## Expressions
 
 - Take field names from `clerk-protect schema`, never from memory.
 - There is no `[a, b]` list literal. Use a set, `{"a", "b"}`, or a lookup table.
-- `x != "value"` and negations are true when `x` is missing. A rule meant to exclude Gmail written as `email.domain != "gmail.com"` matches every phone-only sign-up too. Guard it: `email.domain != null && email.domain != "gmail.com"`. Positive tests (`==`, `in`, `startsWith`) don't match a missing value.
+- `x != "value"` and negations are true when `x` is missing. A rule meant to exclude Gmail written as `email.domain != "gmail.com"` matches every phone-only sign-up too. Guard it: `email.domain != null && email.domain != "gmail.com"`. Positive tests (`==`, `in`, and methods such as `x.startsWith(…)`) don't match a missing value. The standalone function form, `startsWith(x, …)`, treats a missing value as an empty string, so prefer the method form.
 - For disposable email domains, match `email.domain.apex`. Providers rotate subdomains.
 
 ## Lookup tables
@@ -72,11 +73,10 @@ Read `clerk-protect replay get REPLAY_ID --json` before you suggest applying any
 - **`fidelity`** compares the replayed current rules against what was actually recorded. When few decisions match, the rules changed during the window and every other number is less reliable. Say so.
 - **`transitions`** are the outcomes that change, from the current rules to the candidate, by rule.
 - **`denied_completed_flows`** counts attempts that completed in reality and that the candidate would have denied, by sign-in and sign-up. It's the cost of shipping the change. Absent means nothing was denied or the attempts couldn't be resolved, which is not the same as zero.
-- **`flows_lower_bound`** means a flow count is a lower bound because it hit the cap. Narrow the window.
 - **`warnings`**, **`notes`** and **`truncated`** say how far to trust the numbers. Relay them.
 - **`sample_percent`** is the share of traffic scored. Scale counts by it, and say you did.
 - For each rule: `evaluated`, `matched`, `terminal` (the times it decided the outcome), `never_reached` (an earlier rule decided first), `rate_limited_not_exceeded` and `errors`. A rule with matches but no terminal outcomes changes nothing.
-- **`samples`** hold decision ids. Open one with `insights flow` to show the user a real example.
+- **`samples`** in each transition are example decision ids. They carry no timestamp, and `insights flow` needs one (`--at`), so find the decision with `insights search` over the replay's window before opening its flow.
 
 What a replay can't tell you:
 

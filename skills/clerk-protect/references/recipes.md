@@ -14,7 +14,7 @@ Exit `3` means sign in again: ask the user to run `clerk-protect login`. It need
 
 ## Custom rules
 
-Rules are boolean expressions over the fields of a sign-in, sign-up or other event, with an action (`block` or `challenge`). They live in rulesets. Within a ruleset every `block` rule runs before every `challenge` rule; among rules with the same action, position decides.
+Rules are boolean expressions over the fields of a sign-in, sign-up or other event, with an action (`block` or `challenge`). They live in rulesets. The `ALL` ruleset runs first, then the request's own. Within a ruleset every `block` rule runs before every `challenge` rule; among rules with the same action, position decides. See [Rule order](reading-results.md#rule-order).
 
 ```bash
 clerk-protect rulesets list                          # the rulesets you can write into
@@ -33,7 +33,7 @@ clerk-protect rules create --ruleset SIGN_UP \
 clerk-protect rules disable RULE_ID --ruleset SIGN_UP   # off, kept
 clerk-protect rules enable  RULE_ID --ruleset SIGN_UP
 clerk-protect rules update  RULE_ID --ruleset SIGN_UP --action block
-clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview, then without --dry-run (same-action rules only)
+clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview, then without --dry-run (only changes order among rules with the same action)
 clerk-protect rules delete  RULE_ID --ruleset SIGN_UP
 ```
 
@@ -90,15 +90,15 @@ clerk-protect investigate --no-interactive --format json \
 ```bash
 clerk-protect insights dimensions                                   # what you can filter and group on
 clerk-protect insights facets --since 24h --filter decision=DENY     # top values of each dimension
-clerk-protect insights facets --since 24h --unit flows --filter request_type=SIGN_UP   # attempts, not decisions
-clerk-protect insights timeseries --since 7d --group-by decision      # decisions over time
+clerk-protect insights facets --since 24h --unit flows --filter flow_kind=SIGN_UP   # attempts, not decisions
+clerk-protect insights timeseries --since 168h --group-by decision      # decisions over time
 clerk-protect insights search --since 1h --filter source_ip=203.0.113.7   # the decisions themselves, newest first
 clerk-protect insights entity --dimension source_ip --value 203.0.113.7   # everything about one value
 clerk-protect insights flow --decision-id ID --at 2026-10-27T12:00:00Z   # every decision in one flow
-clerk-protect insights trace-id 7Q8ikxgt                             # the decision behind a blocked screen's reference
+clerk-protect insights trace-id 7Q8ikxgt                             # the decision behind a blocked screen's reference (v0.5.0+)
 ```
 
-Dimension names and values come from `insights dimensions`. Windows default to the last 24 hours and reach back 14 days at most. Counts are decisions unless you pass `--unit flows`; see [Decisions are not sign-ups](reading-results.md#decisions-are-not-sign-ups).
+Dimension names and values come from `insights dimensions`. Windows default to the last 24 hours and reach back 14 days at most. Counts are decisions unless you pass `--unit flows`; see [Decisions are not sign-ups](reading-results.md#decisions-are-not-sign-ups). `insights --since` takes hours (`168h`, up to `336h`); `matches` also accepts days (`7d`), and replay windows are hours (`6h`, up to `24h`). The flows unit has its own dimensions: run `insights dimensions --unit flows`.
 
 ### Live
 
