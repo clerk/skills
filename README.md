@@ -98,6 +98,8 @@ For product analytics, the MCP server sends Clerk an event for each tool call. I
 
 - "Which Clerk applications do I have?"
 - "List the five most recent sign-ups"
+- "Show the admins of the Example Team Organization in my production instance"
+- "Add `onboarding_complete: true` to the public metadata for `alex@example.com` in development"
 - "Check which DNS records I need for production"
 - "Show me how to set up B2B SaaS with Clerk Organizations"
 
