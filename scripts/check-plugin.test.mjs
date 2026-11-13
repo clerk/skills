@@ -63,6 +63,17 @@ function validRepo() {
           logo: "./assets/clerk-logo.svg",
         },
       },
+      ".antigravity-plugin/plugin.json": {
+        $schema: "https://antigravity.google/schemas/v1/plugin.json",
+        ...shared,
+        keywords: [...keywords],
+        description: "x".repeat(140),
+        displayName: "Clerk",
+        version: "1.0.0",
+        author: { ...author },
+        logo: "assets/antigravity-logo.svg",
+        suggestedPrompts: ["Add Clerk auth to my Next.js app"],
+      },
       "mcp.json": {
         $schema: `${SPEC}/mcp.schema.json`,
         mcpServers: {
@@ -71,6 +82,9 @@ function validRepo() {
       },
       ".mcp.json": {
         mcpServers: { clerk: { type: "http", url, headers: { ...headers } } },
+      },
+      "mcp_config.json": {
+        mcpServers: { clerk: { serverUrl: url, headers: { ...headers } } },
       },
       ".claude-plugin/marketplace.json": {
         owner: { name: author.name, email: author.email },
@@ -212,8 +226,9 @@ test("rejects a copied value that every file leaves out", () => {
   const repo = validRepo();
   delete repo.files[".cursor-plugin/plugin.json"].displayName;
   delete repo.files[".codex-plugin/plugin.json"].interface.displayName;
+  delete repo.files[".antigravity-plugin/plugin.json"].displayName;
   assert.deepEqual(checkPlugin(repo), [
-    'manifests disagree on display name: {".cursor-plugin/plugin.json displayName":null,".codex-plugin/plugin.json interface.displayName":null}',
+    'manifests disagree on display name: {".cursor-plugin/plugin.json displayName":null,".codex-plugin/plugin.json interface.displayName":null,".antigravity-plugin/plugin.json displayName":null}',
   ]);
 });
 
@@ -224,6 +239,7 @@ test("rejects keywords out of alphabetical order", () => {
     ".claude-plugin/plugin.json",
     ".cursor-plugin/plugin.json",
     ".codex-plugin/plugin.json",
+    ".antigravity-plugin/plugin.json",
   ]) {
     repo.files[filePath].keywords = ["clerk", "auth", "nextjs"];
   }
@@ -239,6 +255,7 @@ test("rejects duplicate keywords", () => {
     ".claude-plugin/plugin.json",
     ".cursor-plugin/plugin.json",
     ".codex-plugin/plugin.json",
+    ".antigravity-plugin/plugin.json",
   ]) {
     repo.files[filePath].keywords = ["auth", "auth", "clerk"];
   }
@@ -276,10 +293,11 @@ for (const [label, edit] of [
   ["missing", (server) => delete server.headers],
   ["wrong", (server) => (server.headers["X-Clerk-MCP-Consumer"] = "plugins")],
 ]) {
-  test(`rejects a ${label} MCP consumer header in both configs`, () => {
+  test(`rejects a ${label} MCP consumer header in every config`, () => {
     const repo = validRepo();
     edit(repo.files["mcp.json"].mcpServers.clerk);
     edit(repo.files[".mcp.json"].mcpServers.clerk);
+    edit(repo.files["mcp_config.json"].mcpServers.clerk);
     assert.deepEqual(checkPlugin(repo), [
       "mcp.json: clerk must send X-Clerk-MCP-Consumer: plugin",
     ]);
@@ -330,6 +348,37 @@ test("rejects a marketplace that lists anything but clerk at the root", () => {
   assert.deepEqual(checkPlugin(repo), [
     ".cursor-plugin/marketplace.json: expected one plugin clerk at ./",
     ".agents/plugins/marketplace.json: expected one plugin clerk at ./",
+  ]);
+});
+
+test("rejects fields outside Antigravity's closed schema", () => {
+  const repo = validRepo();
+  const manifest = repo.files[".antigravity-plugin/plugin.json"];
+  manifest.interface = {};
+  manifest.$schema = "https://example.com/plugin.json";
+  manifest.suggestedPrompts = ["one", "two", "three", "four"];
+  manifest.description = "x".repeat(161);
+  delete manifest.logo;
+  assert.deepEqual(checkPlugin(repo), [
+    ".antigravity-plugin/plugin.json: wrong or missing $schema",
+    `.antigravity-plugin/plugin.json: fields Antigravity's schema rejects: ["interface"]`,
+    ".antigravity-plugin/plugin.json: logo is required",
+    ".antigravity-plugin/plugin.json: description is 161 characters; Antigravity recommends 120 to 160",
+    ".antigravity-plugin/plugin.json: suggestedPrompts needs 1 to 3 prompts",
+  ]);
+});
+
+test("rejects an Antigravity MCP config that drifts from mcp.json", () => {
+  const repo = validRepo();
+  repo.files["mcp_config.json"].mcpServers.clerk = {
+    type: "http",
+    url,
+    headers: {},
+  };
+  assert.deepEqual(checkPlugin(repo), [
+    'mcp_config.json: clerk has fields other than serverUrl and headers: ["type","url"]',
+    "clerk: url differs between mcp.json and mcp_config.json",
+    "clerk: headers differ between mcp.json and mcp_config.json",
   ]);
 });
 

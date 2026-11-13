@@ -66,6 +66,14 @@ cursor-agent plugin marketplace add https://github.com/clerk/skills
 
 Then install `clerk` from `/plugin`, or from **Customize** in the editor.
 
+### Antigravity
+
+```bash
+agy plugin install https://github.com/clerk/skills
+```
+
+To sign in to the Clerk MCP server, open `/plugin`, expand `clerk` under **Installed**, and choose **Sign in**.
+
 ### GitHub Copilot CLI
 
 ```bash
@@ -167,6 +175,8 @@ clerk-skills/                           # the repo root is the plugin root
 ├── .claude-plugin/                     # plugin.json + marketplace.json
 ├── .cursor-plugin/                     # plugin.json + marketplace.json
 ├── .codex-plugin/plugin.json
+├── .antigravity-plugin/plugin.json     # Antigravity manifest
+├── mcp_config.json                     # Antigravity MCP config
 ├── .agents/plugins/marketplace.json    # Codex marketplace
 ├── scripts/                            # CI checkers, run with pnpm run check
 └── README.md
