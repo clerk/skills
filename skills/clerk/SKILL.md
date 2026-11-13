@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, testing, impersonating a user, or testing webhooks locally. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, testing, impersonating a user, testing webhooks locally, or Clerk Protect fraud rules, protections and investigating blocked sign-ins or sign-ups. Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
   version: 2.0.0
@@ -43,6 +43,12 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Feature toggles (`clerk enable orgs`, `clerk enable billing`)
 - Backend, Platform, and Frontend API calls through `clerk api`
 - Deploy handoff and deploy status verification
+
+**Clerk Protect (fraud and abuse protection)** → Use `clerk-protect`
+- The `clerk-protect` CLI: sign in through Protect Labs, pick an instance
+- Custom rules, protections, lookup tables
+- Investigating decisions: plain-language questions, insights, live trace, match counts
+- Replaying a change against recent traffic before applying it
 
 **Custom sign-in/sign-up UI** → Use `clerk-custom-ui`
 
@@ -159,6 +165,7 @@ If you know your task, you can directly access:
 
 - `/clerk-setup` - Framework setup
 - `/clerk-cli` - CLI operations and Clerk resource management
+- `/clerk-protect` - Clerk Protect CLI: rules, protections, investigations, replays
 - `/clerk-custom-ui` - Custom flows & appearance
 - `/clerk-nextjs-patterns` - Next.js patterns
 - `/clerk-react-patterns` - React patterns
