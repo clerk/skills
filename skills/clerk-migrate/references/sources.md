@@ -109,7 +109,7 @@ Better Auth normalizes a password to NFKC before hashing it, and Clerk hashes it
 
 ## Writing a source
 
-Do this when the file matches no signature in SKILL.md's Step 1 table. Ask first: a custom source is a file the user keeps in their project.
+Do this when the file matches no signature in [Identifying a file's source](#identifying-a-files-source). Ask first: a custom source is a file the user keeps in their project.
 
 ### Ask these six questions before writing anything
 
