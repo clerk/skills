@@ -5,7 +5,7 @@ description: >-
 allowed-tools: Bash, Read, Write, Grep, Glob
 license: MIT
 compatibility: >-
-  Requires the `clerk` CLI binary (npm package `clerk`, or `bunx clerk@latest`) with the `clerk migrate` command family. Needs a Clerk session from `clerk auth login`, or a Backend API secret key passed with `--secret-key`. No other dependency: do not install an SDK or a database driver.
+  Requires the `clerk` CLI binary 4.2.0 or later (npm package `clerk`, or `bunx clerk@latest`), the first release with the `clerk migrate` command family. Needs a Clerk session from `clerk auth login`, or a Backend API secret key passed with `--secret-key`. No other dependency: do not install an SDK or a database driver.
 metadata:
   author: clerk
   version: 1.0.0
@@ -63,7 +63,7 @@ Check the binary once per session:
 command -v clerk >/dev/null 2>&1 && clerk migrate sources --json >/dev/null && echo ok
 ```
 
-If that prints `ok`, use bare `clerk`. Otherwise fall back to a package runner matching the project's lockfile: `bunx clerk@latest`, `npx -y clerk@latest`, `pnpm dlx clerk@latest`, or `yarn dlx clerk@latest`. The published package is **`clerk`**, not `@clerk/cli`.
+`clerk migrate` ships in `clerk` 4.2.0, so an older binary fails this check. If that prints `ok`, use bare `clerk`. Otherwise fall back to a package runner matching the project's lockfile: `bunx clerk@latest`, `npx -y clerk@latest`, `pnpm dlx clerk@latest`, or `yarn dlx clerk@latest`. The published package is **`clerk`**, not `@clerk/cli`.
 
 ## Keys and targeting
 
