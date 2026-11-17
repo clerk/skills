@@ -11,6 +11,26 @@ clerk migrate sources --json
 
 `--source` takes a built-in key, or a path: a value starting with `./`, `../` or `/`, or ending in `.ts`, `.js` or `.mjs`, loads as a custom source. An unknown key exits `2` with the valid keys. A file `clerk migrate export` wrote names its own source and needs no `--source`.
 
+## Identifying a file's source
+
+A file `clerk migrate export` did not write needs `--source`. Read the first user object or the CSV header row and match it:
+
+| Source | Signature fields |
+| --- | --- |
+| `supabase` | `encrypted_password`, `email_confirmed_at`, `raw_user_meta_data`, `instance_id`, `aud`, `is_sso_user` |
+| `auth0` | `user_id` in `provider\|id` form, `email_verified` (boolean), `phone_number`, `phone_verified`, `user_metadata`, `app_metadata`, `given_name`, `family_name` |
+| `firebase` | `localId`, `passwordHash`, `salt` (JSON) or `passwordSalt` (CSV), `displayName`, `phoneNumber`, `disabled` |
+| `clerk` | `primary_email_address`, `verified_email_addresses`, `password_digest`, `password_hasher`, `primary_phone_number` |
+| `workos` | `id` starting `user_`, `email`, `email_verified` (boolean), `first_name`, `last_name`, `metadata`, sometimes `identities`; no password, phone, or username |
+| `betterauth` | `user_id` (UUID), `email_verified` (boolean), `password_hash`, `phone_number`, `phone_number_verified`, `display_username` |
+| `authjs` | `email_verified`, `name`, `id`, `email`; minimal, and similar to some custom exports |
+
+Three traps:
+
+- **A Firebase CSV export has no header row.** A CSV that opens with `user123,a@b.com,true,…` is Firebase. The source supplies the headers.
+- **Auth0 and Better Auth both use `user_id`.** Auth0's contains a `|` (`auth0|abc123`). Better Auth's is a bare UUID.
+- **WorkOS and Clerk both use `user_…` IDs.** A Clerk export carries `primary_email_address` and `password_digest`. A WorkOS export has a flat `email` and nothing password-shaped.
+
 ## What the built-ins carry
 
 | Source       | Passwords | MFA     | Metadata |
@@ -33,15 +53,15 @@ Every source maps a field to `userId`, which becomes the Clerk user's `external_
 
 The mapping that matters most is **how each platform records verification**. Clerk creates primary identifiers already verified, so an unconfirmed address sent there is silently promoted. Sources route unverified values to `unverifiedEmailAddresses` / `unverifiedPhoneNumbers` instead. With `--reserve-unverified` (and the user's yes), the import creates those as reserved instead: usable for sign-in, and locked to the user.
 
-| Source       | `userId` from | Verification signal                           | Style     | Password                                         |
-| ------------ | ------------- | --------------------------------------------- | --------- | ------------------------------------------------ |
-| `clerk`      | `id`          | Already split into verified/unverified arrays | n/a       | `password_digest` + `password_hasher` (Dashboard export only) |
-| `auth0`      | `user_id`     | `email_verified`, `phone_verified`            | boolean   | `passwordHash`, bcrypt (support request only)    |
-| `supabase`   | `id`          | `email_confirmed_at`, `phone_confirmed_at`    | timestamp | `encrypted_password`, bcrypt or argon2           |
-| `authjs`     | `id`          | `email_verified` (`0`, `"0"`, the epoch and non-date text are unverified) | timestamp | none                                             |
-| `betterauth` | `user_id`     | `email_verified`, `phone_number_verified`     | boolean   | `password_hash`, detected per user               |
-| `firebase`   | `localId`     | `emailVerified`. Phones import verified, so `--reserve-unverified` doesn't apply to them: Firebase has no phone flag, since a user confirms a number by SMS and an admin vouches for one they set | boolean   | `passwordHash` + `salt` (`passwordSalt` in CSV), `scrypt_firebase` |
-| `workos`     | `id`          | `email_verified`                              | boolean   | none                                             |
+| Source | `userId` from | Verification signal | Style | Password |
+| --- | --- | --- | --- | --- |
+| `clerk` | `id` | Already split into verified/unverified arrays | n/a | `password_digest` + `password_hasher` (Dashboard export only) |
+| `auth0` | `user_id` | `email_verified`, `phone_verified` | boolean | `passwordHash`, bcrypt (support request only) |
+| `supabase` | `id` | `email_confirmed_at`, `phone_confirmed_at` | timestamp | `encrypted_password`, bcrypt or argon2 |
+| `authjs` | `id` | `email_verified` (`0`, `"0"`, the epoch and non-date text are unverified) | timestamp | none |
+| `betterauth` | `user_id` | `email_verified`, `phone_number_verified` | boolean | `password_hash`, detected per user |
+| `firebase` | `localId` | `emailVerified`. Phones import verified, so `--reserve-unverified` doesn't apply to them: Firebase has no phone flag, since a user confirms a number by SMS and an admin vouches for one they set | boolean | `passwordHash` + `salt` (`passwordSalt` in CSV), `scrypt_firebase` |
+| `workos` | `id` | `email_verified` | boolean | none |
 
 - **Boolean style** treats `true`, `1`, and the strings `true`, `1`, `yes`, `y` and `t` in any case as verified. `false` and its string forms (what a CSV export or `psql` produces) are not.
 - **Timestamp style** treats any number, and any string other than `""`, `null`, `nil`, `undefined` or `\N` (in any case), as verified. For `authjs`, `0` (the epoch) and a value that isn't a date are unverified too.
@@ -63,12 +83,12 @@ Every import also writes `private_metadata.clerkMigrateRun`, the run ID, onto ea
 
 Better Auth hashes with its own scrypt by default and lets an app swap in bcrypt or argon2, so the source detects the hasher per user:
 
-| Stored value                | Sent as                                           |
-| --------------------------- | ------------------------------------------------- |
-| `<32 hex>:<128 hex>`        | `scrypt_werkzeug` (N, r and p written inline)     |
-| `$2a$`, `$2b$` or `$2y$`    | `bcrypt`                                          |
-| `$argon2id$` or `$argon2i$` | `argon2id` or `argon2i`                           |
-| anything else               | dropped                                           |
+| Stored value                | Sent as                                       |
+| --------------------------- | --------------------------------------------- |
+| `<32 hex>:<128 hex>`        | `scrypt_werkzeug` (N, r and p written inline) |
+| `$2a$`, `$2b$` or `$2y$`    | `bcrypt`                                      |
+| `$argon2id$` or `$argon2i$` | `argon2id` or `argon2i`                       |
+| anything else               | dropped                                       |
 
 Only a well-formed digest counts: a bcrypt cost outside 4 to 15, or an argon2 digest outside the limits Clerk verifies, is dropped too.
 
@@ -200,36 +220,36 @@ The CLI imports it at runtime. It is plain data with a default export. Its field
 
 ```ts
 export default {
-  key: "myplatform",
-  label: "My Platform",
+  key: 'myplatform',
+  label: 'My Platform',
   description: "Exports from My Platform's admin console.",
   transformer: {
-    account_ref: "userId", // required: becomes the Clerk user's external_id
-    contact_email: "email",
-    email_ok: "emailVerified", // a scratch field, read by postTransform below
-    given: "firstName",
-    family: "lastName",
-    pw_bcrypt: "password",
-    profile: "publicMetadata", // shown in the app, edited only by the server
+    account_ref: 'userId', // required: becomes the Clerk user's external_id
+    contact_email: 'email',
+    email_ok: 'emailVerified', // a scratch field, read by postTransform below
+    given: 'firstName',
+    family: 'lastName',
+    pw_bcrypt: 'password',
+    profile: 'publicMetadata', // shown in the app, edited only by the server
   },
   carries: {
-    passwords: { level: "yes", note: "bcrypt hashes from the pw_bcrypt column." },
-    mfa: { level: "no", note: "Not exported." },
-    metadata: { level: "yes", note: "profile → public metadata." },
+    passwords: { level: 'yes', note: 'bcrypt hashes from the pw_bcrypt column.' },
+    mfa: { level: 'no', note: 'Not exported.' },
+    metadata: { level: 'yes', note: 'profile → public metadata.' },
   },
-  defaults: { passwordHasher: "bcrypt" },
+  defaults: { passwordHasher: 'bcrypt' },
   postTransform: (user) => {
     // Runs before the CLI normalizes values, so a CSV's "true" is still a
     // string here. Route unverified emails away from the primary field, then
     // drop the scratch field, or the dry run lists it as "Clerk won't store".
-    const verified = [true, 1, "true", "1"].includes(user.emailVerified);
+    const verified = [true, 1, 'true', '1'].includes(user.emailVerified)
     if (!verified && user.email) {
-      user.unverifiedEmailAddresses = user.email;
-      delete user.email;
+      user.unverifiedEmailAddresses = user.email
+      delete user.email
     }
-    delete user.emailVerified;
+    delete user.emailVerified
   },
-};
+}
 ```
 
 A `transformer` target that isn't a Clerk field, like `email_ok: "emailVerified"` above, is only a rename. `clerk migrate sources ./my-platform.ts` marks it "not a Clerk field: Clerk won't store it unless postTransform moves it". That's expected for a scratch field that `postTransform` reads and deletes.
@@ -276,10 +296,10 @@ Return `{ filePath }` to leave the file alone, `{ filePath, data }` to supply th
 
 ### Hook signatures
 
-| Hook            | Signature                                     | Notes                                                         |
-| --------------- | --------------------------------------------- | ------------------------------------------------------------- |
-| `preTransform`  | `(filePath, fileType) => { filePath, data?, csvHeaders? }` | May be `async`. Runs before field mapping.       |
-| `postTransform` | `(user, context) => void`                     | Mutates one mapped user in place, before values are normalized; the return value is ignored. **Must be synchronous**: an `async` hook, or one that returns a promise, stops the import. Columns the `transformer` doesn't name arrive under their own names. `context.firebaseHashConfig` is set only for an envelope from `export firebase` or `--source firebase`. |
+| Hook | Signature | Notes |
+| --- | --- | --- |
+| `preTransform` | `(filePath, fileType) => { filePath, data?, csvHeaders? }` | May be `async`. Runs before field mapping. |
+| `postTransform` | `(user, context) => void` | Mutates one mapped user in place, before values are normalized; the return value is ignored. **Must be synchronous**: an `async` hook, or one that returns a promise, stops the import. Columns the `transformer` doesn't name arrive under their own names. `context.firebaseHashConfig` is set only for an envelope from `export firebase` or `--source firebase`. |
 
 `description` is optional and defaults to `Custom source`.
 
@@ -287,31 +307,31 @@ Return `{ filePath }` to leave the file alone, `{ filePath, data }` to supply th
 
 The CLI validates the file before using it and names the problem. A validation error reads `<file> is not a valid source: <problem>`. Each message below is the part to look for:
 
-| Message                                          | What to fix                                                  |
-| ------------------------------------------------ | ------------------------------------------------------------ |
-| `No source file at …`                            | Wrong path; it resolves against the current directory.       |
-| `… is a directory, not a source file`            | Point at the file itself.                                    |
-| `has no default export. Found named export …`    | Use `export default`, not a named export.                    |
-| `the default export is …, not an object`         | Export the source object itself.                             |
-| `Could not load …`                               | A syntax error, or an import that fails to resolve.          |
-| `` `key` must be a non-empty string `` (or `label`) | Set both.                                                 |
-| `` `transformer` must be an object… ``           | The field map is missing or not an object.                   |
-| `` `transformer.<field>` must map to a Clerk field name `` | Each value must be a Clerk field name string.      |
-| `` no source field maps to `userId` ``           | Add the mapping.                                             |
-| `` `carries` must say what the source brings across `` | Add `carries` with all three keys.                     |
-| `` `carries.<kind>` must be { level: … } ``     | Give each of `passwords`, `mfa` and `metadata` a `level` (`yes`, `no` or `partial`) and a `note`. |
-| `` `key` is "clerk", which is already a built-in source `` | Pick a different `key`.                                      |
-| `` `postTransform` must be a function when present `` | A hook was set to something that is not a function.    |
-| `` `defaults` must be an object when present ``  | Make `defaults` an object.                                   |
-| `` `caveats` must be an array of strings… ``     | Make `caveats` an array of strings.                          |
-| `` `description` must be a string when present `` | Make `description` a string.                                |
+| Message | What to fix |
+| --- | --- |
+| `No source file at …` | Wrong path; it resolves against the current directory. |
+| `… is a directory, not a source file` | Point at the file itself. |
+| `has no default export. Found named export …` | Use `export default`, not a named export. |
+| `the default export is …, not an object` | Export the source object itself. |
+| `Could not load …` | A syntax error, or an import that fails to resolve. |
+| `` `key` must be a non-empty string `` (or `label`) | Set both. |
+| `` `transformer` must be an object… `` | The field map is missing or not an object. |
+| `` `transformer.<field>` must map to a Clerk field name `` | Each value must be a Clerk field name string. |
+| `` no source field maps to `userId` `` | Add the mapping. |
+| `` `carries` must say what the source brings across `` | Add `carries` with all three keys. |
+| `` `carries.<kind>` must be { level: … } `` | Give each of `passwords`, `mfa` and `metadata` a `level` (`yes`, `no` or `partial`) and a `note`. |
+| `` `key` is "clerk", which is already a built-in source `` | Pick a different `key`. |
+| `` `postTransform` must be a function when present `` | A hook was set to something that is not a function. |
+| `` `defaults` must be an object when present `` | Make `defaults` an object. |
+| `` `caveats` must be an array of strings… `` | Make `caveats` an array of strings. |
+| `` `description` must be a string when present `` | Make `description` a string. |
 
 These stop the import while it maps users:
 
 | Message | What to fix |
 | --- | --- |
-| `` The "<key>" source's postTransform returned a promise. It must be synchronous… `` | Drop `async` and any `await` from `postTransform`. Move the async work into `preTransform`. |
-| `` The "<key>" source's postTransform failed on row N: … `` | The hook threw on that row. Run that row through the hook by hand (see step 2 of [After writing one](#after-writing-one)) and fix the case it misses. |
+| `The "<key>" source's postTransform returned a promise. It must be synchronous…` | Drop `async` and any `await` from `postTransform`. Move the async work into `preTransform`. |
+| `The "<key>" source's postTransform failed on row N: …` | The hook threw on that row. Run that row through the hook by hand (see step 2 of [After writing one](#after-writing-one)) and fix the case it misses. |
 
 Both exit `2` and link the CLI's Custom sources docs. A `CliError` the hook throws itself passes through with its own message and code.
 
@@ -319,20 +339,20 @@ Both exit `2` and link the CLI's Custom sources docs. A `CliError` the hook thro
 
 Validation drops anything not in this schema, and the dry run lists it as `Clerk won't store: …`, so target these names exactly.
 
-| Field                                                    | Notes                                                        |
-| -------------------------------------------------------- | ------------------------------------------------------------ |
-| `userId`                                                 | **Required.** Becomes `external_id`.                         |
-| `email`, `emailAddresses`, `unverifiedEmailAddresses`    | String or array. Primary, additional, unverified.            |
-| `phone`, `phoneNumbers`, `unverifiedPhoneNumbers`        | Same shape, for phone numbers.                               |
-| `username`, `firstName`, `lastName`                      | Strings.                                                     |
-| `password`, `passwordHasher`                             | The hasher is required whenever a password is present.       |
-| `totpSecret`, `backupCodes`                              | Two-factor state. `backupCodesEnabled` is accepted but not sent. |
-| `unsafeMetadata`, `publicMetadata`, `privateMetadata`    | Objects. `unsafe` is client-**writable**; never trust it.    |
-| `createdAt`, `legalAcceptedAt`                           | Date strings. `createdAt` preserves original signup dates.   |
+| Field | Notes |
+| --- | --- |
+| `userId` | **Required.** Becomes `external_id`. |
+| `email`, `emailAddresses`, `unverifiedEmailAddresses` | String or array. Primary, additional, unverified. |
+| `phone`, `phoneNumbers`, `unverifiedPhoneNumbers` | Same shape, for phone numbers. |
+| `username`, `firstName`, `lastName` | Strings. |
+| `password`, `passwordHasher` | The hasher is required whenever a password is present. |
+| `totpSecret`, `backupCodes` | Two-factor state. `backupCodesEnabled` is accepted but not sent. |
+| `unsafeMetadata`, `publicMetadata`, `privateMetadata` | Objects. `unsafe` is client-**writable**; never trust it. |
+| `createdAt`, `legalAcceptedAt` | Date strings. `createdAt` preserves original signup dates. |
 | `banned`, `banEndsAt`, `createOrganizationEnabled`, `createOrganizationsLimit`, `deleteSelfEnabled`, `bypassClientTrust`, `skipLegalChecks`, `skipPasswordChecks` | Account state, passed through to the API. `banEndsAt` is not sent: Clerk bans don't expire. |
-| `skipReason`                                             | Leave this user out, with why. The checks report it; never sent to Clerk. |
-| `socialProviders`                                        | Array of the social providers the user signs in with. Accepted, but never sent to Clerk. |
-| `passwordDropped`                                        | Set with no `password` when a digest has no supported hasher. |
+| `skipReason` | Leave this user out, with why. The checks report it; never sent to Clerk. |
+| `socialProviders` | Array of the social providers the user signs in with. Accepted, but never sent to Clerk. |
+| `passwordDropped` | Set with no `password` when a digest has no supported hasher. |
 
 The check in [After writing one](#after-writing-one) lists these names. Change both together.
 
@@ -346,22 +366,62 @@ Every user needs at least one identifier: email, phone, or username. The import'
 2. Check the output. Take one row of each kind (email-only, phone-only, banned, deleted, each hash format), run it through your mapping and `postTransform` (a few lines of `bun -e`, or `npx tsx -e` without Bun, that import the file), and read every field: identifiers and their verification, names, password and hasher, metadata, `banned`, `skipReason`. Then run every row through the check below. It must print nothing. Build each user as the CLI does: rename the keys your `transformer` names, keep every other column under its own name, drop `""` and `null`, then call `postTransform`. A key Clerk doesn't know (`phoneNumber`, `firstname`, `emailAddress`) is dropped with its value, and the import doesn't stop for it: the dry run only lists it under `Clerk won't store`. Rename it to the Clerk field, or move it in `postTransform`. An email without `@` or a phone that isn't E.164 means a column holds more than one kind of identifier, or a phone still needs its country code (see [Common export shapes](#common-export-shapes)). Do this even when step 1 ran: it's the only check when the CLI isn't available.
 
    ```js
-   const FIELDS = new Set(["userId", "email", "emailAddresses", "unverifiedEmailAddresses", "phone", "phoneNumbers",
-     "unverifiedPhoneNumbers", "username", "firstName", "lastName", "password", "passwordHasher", "totpSecret",
-     "backupCodes", "backupCodesEnabled", "unsafeMetadata", "publicMetadata", "privateMetadata", "createdAt",
-     "legalAcceptedAt", "banned", "banEndsAt", "createOrganizationEnabled", "createOrganizationsLimit",
-     "deleteSelfEnabled", "bypassClientTrust", "skipLegalChecks", "skipPasswordChecks", "skipReason", "passwordDropped",
-     "socialProviders"]);
-   const list = (v) => (v == null ? [] : [v].flat());
-   for (const u of users) { // users: every row after your mapping and postTransform
-     for (const k of Object.keys(u)) if (!FIELDS.has(k)) console.log(u.userId, "unknown key", k);
+   const FIELDS = new Set([
+     'userId',
+     'email',
+     'emailAddresses',
+     'unverifiedEmailAddresses',
+     'phone',
+     'phoneNumbers',
+     'unverifiedPhoneNumbers',
+     'username',
+     'firstName',
+     'lastName',
+     'password',
+     'passwordHasher',
+     'totpSecret',
+     'backupCodes',
+     'backupCodesEnabled',
+     'unsafeMetadata',
+     'publicMetadata',
+     'privateMetadata',
+     'createdAt',
+     'legalAcceptedAt',
+     'banned',
+     'banEndsAt',
+     'createOrganizationEnabled',
+     'createOrganizationsLimit',
+     'deleteSelfEnabled',
+     'bypassClientTrust',
+     'skipLegalChecks',
+     'skipPasswordChecks',
+     'skipReason',
+     'passwordDropped',
+     'socialProviders',
+   ])
+   const list = (v) => (v == null ? [] : [v].flat())
+   for (const u of users) {
+     // users: every row after your mapping and postTransform
+     for (const k of Object.keys(u)) if (!FIELDS.has(k)) console.log(u.userId, 'unknown key', k)
      for (const e of [u.email, u.emailAddresses, u.unverifiedEmailAddresses].flatMap(list))
-       if (!String(e).includes("@")) console.log(u.userId, "email without @", e);
+       if (!String(e).includes('@')) console.log(u.userId, 'email without @', e)
      for (const p of [u.phone, u.phoneNumbers, u.unverifiedPhoneNumbers].flatMap(list))
-       if (!/^\+\d{7,15}$/.test(p)) console.log(u.userId, "phone not E.164", p);
-     if (!u.skipReason && ![u.email, u.emailAddresses, u.unverifiedEmailAddresses, u.phone, u.phoneNumbers,
-       u.unverifiedPhoneNumbers, u.username].flatMap(list).length) console.log(u.userId, "no identifier");
+       if (!/^\+\d{7,15}$/.test(p)) console.log(u.userId, 'phone not E.164', p)
+     if (
+       !u.skipReason &&
+       ![
+         u.email,
+         u.emailAddresses,
+         u.unverifiedEmailAddresses,
+         u.phone,
+         u.phoneNumbers,
+         u.unverifiedPhoneNumbers,
+         u.username,
+       ].flatMap(list).length
+     )
+       console.log(u.userId, 'no identifier')
    }
    ```
+
 3. Summarize the mapping for the user, verification rules included.
 4. Follow [the import flow](../SKILL.md#step-3-dry-run) from the dry run: relay the checks, get a yes, then import with `--yes`.

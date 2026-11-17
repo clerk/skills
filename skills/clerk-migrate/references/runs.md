@@ -6,13 +6,13 @@ Every export, import and undo is a run: a folder holding what it did, user by us
 
 Running the same import again continues it. The CLI matches on the file's sha256, the source (a custom source by its file hash), and the instance ID:
 
-| Latest matching run | Re-running does                                                          |
-| ------------------- | ------------------------------------------------------------------------ |
-| none                | starts a new run                                                         |
-| interrupted         | continues the same run, skipping the users it created                    |
-| `partial`           | continues the same run, retrying the users that failed or were rejected. Users the source skipped stay skipped. |
-| `complete`          | nothing; prints "Already imported in run …" and exits `0`                |
-| `undone`            | starts a new run                                                         |
+| Latest matching run | Re-running does |
+| --- | --- |
+| none | starts a new run |
+| interrupted | continues the same run, skipping the users it created |
+| `partial` | continues the same run, retrying the users that failed or were rejected. Users the source skipped stay skipped. |
+| `complete` | nothing; prints "Already imported in run …" and exits `0` |
+| `undone` | starts a new run |
 
 `--new-run` skips the lookup and forces a fresh run.
 
@@ -39,14 +39,14 @@ clerk migrate runs --json
 
 Each run folder holds `run.json` (kind, status, target, source, file and its sha256, counts, flags) and `users.ndjson`, one line per user outcome. A line carries `sourceId`, `clerkId` and `status`, plus `reason`, `error`, `code`, `passwordDropped`, `reserved` or `pending` when they apply. The last line for each `sourceId` wins.
 
-| `status`   | Means                                                                          |
-| ---------- | ------------------------------------------------------------------------------ |
-| `created`  | Clerk created the user. `pending` lists identifiers still to attach.           |
-| `creating` | sent, with no confirmed answer. `runs` shows it as "not confirmed".            |
-| `failed`   | Clerk refused the create. `error` and `code` say why.                          |
-| `skipped`  | left out: by the source (`code: "source_skip"`), by a reject under `--allow-partial`, or by `--require-password`. `reason` says why. |
-| `deleted`  | removed by an undo                                                             |
-| `exported` | written by an export run                                                       |
+| `status` | Means |
+| --- | --- |
+| `created` | Clerk created the user. `pending` lists identifiers still to attach. |
+| `creating` | sent, with no confirmed answer. `runs` shows it as "not confirmed". |
+| `failed` | Clerk refused the create. `error` and `code` say why. |
+| `skipped` | left out: by the source (`code: "source_skip"`), by a reject under `--allow-partial`, or by `--require-password`. `reason` says why. |
+| `deleted` | removed by an undo |
+| `exported` | written by an export run |
 
 Grep it directly:
 

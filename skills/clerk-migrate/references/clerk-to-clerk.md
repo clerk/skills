@@ -45,10 +45,10 @@ The export's field coverage report shows the size of that gap. A Clerk Dashboard
 
 The destination's key sets the pace, because the writes go there.
 
-| Destination | Requests per second | User limit                                   |
-| ----------- | ------------------- | -------------------------------------------- |
-| Production  | 100                 | none                                         |
-| Development | 10                  | **100 by default**, enforced by the checks   |
+| Destination | Requests per second | User limit                                 |
+| ----------- | ------------------- | ------------------------------------------ |
+| Production  | 100                 | none                                       |
+| Development | 10                  | **100 by default**, enforced by the checks |
 
 Production → development hits the limit. The import's checks read the destination's user count and reject users past the headroom, which stops the import unless `--allow-partial` is passed. Clerk can raise a development instance's limit on request, and the checks use the limit Clerk reports. For a realistic copy of production in a dev instance, a subset of the file is usually the answer.
 

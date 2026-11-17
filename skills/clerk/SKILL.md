@@ -1,9 +1,9 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, testing, impersonating a user, or testing webhooks locally. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, testing, impersonating a user, or testing webhooks locally. Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
-  version: 2.0.0
+  version: 2.0.1
 ---
 
 # Clerk Skills Router
@@ -36,6 +36,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Native iOS and macOS apps in Xcode, through the iOS setup prompt
 
 **Migrating users into Clerk** → Use `clerk-migrate`
+
 - Exporting users from Auth0, Supabase, Firebase, Auth.js, Better Auth, WorkOS, or Clerk
 - Checking and importing them with `clerk migrate import`, and undoing a run with `clerk migrate undo`
 - Writing a source for a platform with no built-in

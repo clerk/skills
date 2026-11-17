@@ -80,10 +80,10 @@ The checks read the user limit Clerk reports for the instance (`max_allowed_user
 
 ## Exit codes
 
-| Command                 | `0`                              | `1`                  | `2`                                                      |
-| ----------------------- | -------------------------------- | -------------------- | -------------------------------------------------------- |
-| `import --dry-run`      | the real run would go ahead      | a runtime, API or auth error | the real run would be refused                            |
-| `import`                | no user failed                   | some users failed, or a runtime, API or auth error | usage error, reject without `--allow-partial`, no consent, or a refused re-run |
-| `undo`                  | every user deleted               | some deletes failed, or a runtime error | usage error, a refusal, or no consent             |
+| Command | `0` | `1` | `2` |
+| --- | --- | --- | --- |
+| `import --dry-run` | the real run would go ahead | a runtime, API or auth error | the real run would be refused |
+| `import` | no user failed | some users failed, or a runtime, API or auth error | usage error, reject without `--allow-partial`, no consent, or a refused re-run |
+| `undo` | every user deleted | some deletes failed, or a runtime error | usage error, a refusal, or no consent |
 
 A `0` from `import` is not always every user: skips under `--allow-partial`, users the run did not send, identifiers left to attach, "Already imported", and "No users left to import" all exit `0`. Read the counts from `--json` (`result.failed`, `result.skipped`, `result.notSent`, `result.pending`) before reporting success. `130` means the run was interrupted; re-run it to continue.

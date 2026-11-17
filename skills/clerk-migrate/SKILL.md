@@ -1,23 +1,11 @@
 ---
 name: clerk-migrate
 description: >-
-  Migrate users into Clerk from another auth provider, or between Clerk
-  instances, using the `clerk migrate` command family. Use when the user says
-  "migrate my users to Clerk", "import users from Auth0 / Supabase / Firebase /
-  Auth.js / Better Auth / WorkOS", "export my users", "move users from
-  development to production", "undo the import", or hands over a user export
-  file (JSON or CSV) and asks what to do with it. Covers exporting from the
-  auth platform, choosing a source, writing one for a platform with no
-  built-in, checking and running the import, inspecting runs, and undoing one.
-  Don't use for adding Clerk to an app (use clerk-setup) or for general CLI
-  tasks (use clerk-cli).
+  Migrate users into Clerk from another auth provider, or between Clerk instances, using the `clerk migrate` command family. Use when the user says "migrate my users to Clerk", "import users from Auth0 / Supabase / Firebase / Auth.js / Better Auth / WorkOS", "export my users", "move users from development to production", "undo the import", or hands over a user export file (JSON or CSV) and asks what to do with it. Covers exporting from the auth platform, choosing a source, writing one for a platform with no built-in, checking and running the import, inspecting runs, and undoing one. Don't use for adding Clerk to an app (use clerk-setup) or for general CLI tasks (use clerk-cli).
 allowed-tools: Bash, Read, Write, Grep, Glob
 license: MIT
 compatibility: >-
-  Requires the `clerk` CLI binary (npm package `clerk`, or `bunx clerk@latest`)
-  with the `clerk migrate` command family. Needs a Clerk session from
-  `clerk auth login`, or a Backend API secret key passed with `--secret-key`.
-  No other dependency: do not install an SDK or a database driver.
+  Requires the `clerk` CLI binary (npm package `clerk`, or `bunx clerk@latest`) with the `clerk migrate` command family. Needs a Clerk session from `clerk auth login`, or a Backend API secret key passed with `--secret-key`. No other dependency: do not install an SDK or a database driver.
 metadata:
   author: clerk
   version: 1.0.0
@@ -45,15 +33,15 @@ Install nothing and clone nothing.
 
 ## Routing
 
-| The user wants to…                                                                       | Go to                                                          |
-| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| The user wants to… | Go to |
+| --- | --- |
 | Get their users out of Auth0, Supabase, Firebase, Auth.js, Better Auth, WorkOS, or Clerk | [references/export.md](references/export.md), then the import flow |
-| Import a file they already have                                                          | [The import flow](#the-import-flow)                            |
-| Know which platform a file came from                                                     | [Step 1: identify the source](#step-1-identify-the-source)     |
-| Migrate from a platform with no built-in source                                          | [references/sources.md](references/sources.md#writing-a-source) |
-| Move users from one Clerk instance to another (dev → prod)                               | [references/clerk-to-clerk.md](references/clerk-to-clerk.md)   |
-| See what a run did, or why users failed                                                  | [references/runs.md](references/runs.md)                       |
-| Undo an import                                                                           | [Re-running, runs, and undo](#re-running-runs-and-undo)        |
+| Import a file they already have | [The import flow](#the-import-flow) |
+| Know which platform a file came from | [Step 1: identify the source](#step-1-identify-the-source) |
+| Migrate from a platform with no built-in source | [references/sources.md](references/sources.md#writing-a-source) |
+| Move users from one Clerk instance to another (dev → prod) | [references/clerk-to-clerk.md](references/clerk-to-clerk.md) |
+| See what a run did, or why users failed | [references/runs.md](references/runs.md) |
+| Undo an import | [Re-running, runs, and undo](#re-running-runs-and-undo) |
 
 ## The rules
 
@@ -104,23 +92,7 @@ Follow these steps in order.
 
 A file `clerk migrate export` wrote is an envelope, `{ "clerkMigrate": 1, "source": …, "users": [...] }`. It names its own source: pass the export run ID (or the file) and skip to Step 2.
 
-Any other file (a bare JSON array, a CSV, Firebase's own `{ "users": [...] }`) needs `--source`. Read the first user object or the CSV header row and match it:
-
-| Source         | Signature fields                                                                                                                       |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `supabase`     | `encrypted_password`, `email_confirmed_at`, `raw_user_meta_data`, `instance_id`, `aud`, `is_sso_user`                                   |
-| `auth0`        | `user_id` in `provider\|id` form, `email_verified` (boolean), `phone_number`, `phone_verified`, `user_metadata`, `app_metadata`, `given_name`, `family_name` |
-| `firebase`     | `localId`, `passwordHash`, `salt` (JSON) or `passwordSalt` (CSV), `displayName`, `phoneNumber`, `disabled`                              |
-| `clerk`        | `primary_email_address`, `verified_email_addresses`, `password_digest`, `password_hasher`, `primary_phone_number`                       |
-| `workos`       | `id` starting `user_`, `email`, `email_verified` (boolean), `first_name`, `last_name`, `metadata`, sometimes `identities`; no password, phone, or username |
-| `betterauth`   | `user_id` (UUID), `email_verified` (boolean), `password_hash`, `phone_number`, `phone_number_verified`, `display_username`              |
-| `authjs`       | `email_verified`, `name`, `id`, `email`; minimal, and similar to some custom exports                                                   |
-
-Three traps:
-
-- **A Firebase CSV export has no header row.** A CSV that opens with `user123,a@b.com,true,…` is Firebase. The source supplies the headers.
-- **Auth0 and Better Auth both use `user_id`.** Auth0's contains a `|` (`auth0|abc123`). Better Auth's is a bare UUID.
-- **WorkOS and Clerk both use `user_…` IDs.** A Clerk export carries `primary_email_address` and `password_digest`. A WorkOS export has a flat `email` and nothing password-shaped.
+Any other file (a bare JSON array, a CSV, Firebase's own `{ "users": [...] }`) needs `--source`. Read the first user object or the CSV header row and match it against the signature fields in [references/sources.md](references/sources.md#identifying-a-files-source).
 
 If nothing matches, the user needs a custom source: [references/sources.md](references/sources.md#writing-a-source).
 
@@ -148,6 +120,7 @@ Tell the user:
    - **`--skip-legal-checks`.** When the instance requires legal consent, users with no `legal_accepted_at` are rejected. The flag imports them without it.
 
    An agent run never asks, so it imports unverified and rejects users without legal acceptance unless you pass the flag.
+
 6. What the import adds: every created user gets `private_metadata.clerkMigrateRun`, set to the run ID. It replaces any value the export carried under that key, and it stays on the user.
 
 ### Step 3: dry run
@@ -228,7 +201,7 @@ Matching, refusals, run files and every undo case: [references/runs.md](referenc
 
 1. **Dry-run first, then get a yes.** Relay the checks and the target before any write.
 2. **Check the target.** The first lines of output name the instance. Pass `--instance prod` explicitly for production.
-3. **Name the source instance when exporting from Clerk.** The linked project is usually the *destination*, so without a prompt (agent mode, `--json` or `-y`) `clerk migrate export clerk` refuses with exit `2` until `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY` names the source instance.
+3. **Name the source instance when exporting from Clerk.** The linked project is usually the _destination_, so without a prompt (agent mode, `--json` or `-y`) `clerk migrate export clerk` refuses with exit `2` until `--secret-key`, `--app`, `--instance` or `CLERK_SECRET_KEY` names the source instance.
 4. **Never ask for the destination's Clerk secret key, and never write a Clerk key to a file.** Use `clerk auth login` or the linked project, or let the user set `CLERK_SECRET_KEY` themselves. Every other credential the user gives you is for the platform you export from: a Firebase service-account key, a database URL, an API key or token, or the key of a different Clerk application you export from. Use it as the export command expects. Don't refuse it because it came through chat, and don't ask the user to revoke it and send it again. Keep it out of your output and summary.
 5. **Report failures honestly.** A partial import is normal and recoverable. Re-run the same command to continue it.
 6. **Never pass a consent flag on your own.** `--yes`, `--include-signed-in`, `--reserve-unverified`, `--skip-legal-checks`, `--allow-partial` and `--trust-oauth-emails` each need the user's yes. An answer counts as a yes only when it answers that flag's question: "import", "go ahead", or text about something else is not a yes to `--reserve-unverified` or `--skip-legal-checks`. Ask again, naming the flag and what it does.

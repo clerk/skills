@@ -41,15 +41,15 @@ The default `.clerk/` folder is gitignored automatically; a `-o`, `--runs-dir` o
 
 ## What each platform needs
 
-| Platform     | Credentials                                                     | Environment variables                                    | Passwords                        |
-| ------------ | --------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------- |
-| `clerk`      | Resolved by the CLI, or `--secret-key` / `--app` / `--instance`  | `CLERK_SECRET_KEY`                                       | **Not exportable**               |
-| `auth0`      | `--domain`, `--client-id`, `--client-secret`                    | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET` | **Not exportable**               |
-| `workos`     | `--api-key` (the `sk_…` secret key)                             | `WORKOS_API_KEY`                                         | **Not exportable**               |
-| `supabase`   | `--db-url` (Postgres only)                                      | `SUPABASE_DB_URL`                                        | bcrypt or argon2, per user       |
-| `authjs`     | `--db-url`                                                      | `AUTHJS_DB_URL`                                          | none — Auth.js stores none       |
-| `betterauth` | `--db-url`                                                      | `BETTERAUTH_DB_URL`                                      | scrypt, bcrypt or argon2, per user |
-| `firebase`   | `--service-account <path>`                                      | none                                                     | scrypt digests + four parameters |
+| Platform | Credentials | Environment variables | Passwords |
+| --- | --- | --- | --- |
+| `clerk` | Resolved by the CLI, or `--secret-key` / `--app` / `--instance` | `CLERK_SECRET_KEY` | **Not exportable** |
+| `auth0` | `--domain`, `--client-id`, `--client-secret` | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET` | **Not exportable** |
+| `workos` | `--api-key` (the `sk_…` secret key) | `WORKOS_API_KEY` | **Not exportable** |
+| `supabase` | `--db-url` (Postgres only) | `SUPABASE_DB_URL` | bcrypt or argon2, per user |
+| `authjs` | `--db-url` | `AUTHJS_DB_URL` | none — Auth.js stores none |
+| `betterauth` | `--db-url` | `BETTERAUTH_DB_URL` | scrypt, bcrypt or argon2, per user |
+| `firebase` | `--service-account <path>` | none | scrypt digests + four parameters |
 
 Resolution is flag → environment variable → a prompt, masked for secrets. Firebase has no environment variable, and `clerk` uses a picker (see [Clerk](#clerk)). The CLI does not read `.env` files for these platform credentials. In agent mode there is no prompt, so pass the flags; a missing credential exits naming every missing one at once. Ask the user for a credential; never guess one, and never write it into a `.env` file on their behalf.
 
@@ -70,7 +70,7 @@ Field coverage
 
 Three platforms never export passwords, **Clerk, Auth0 and WorkOS**, and each shows it differently:
 
-- **Clerk** counts the users who *have* a password (`password_enabled`), labelled "not exportable", and warns when any user has one.
+- **Clerk** counts the users who _have_ a password (`password_enabled`), labelled "not exportable", and warns when any user has one.
 - **Auth0** has no password row. It warns on every export that found users.
 - **WorkOS** always shows `✗ 0/N have a password (WorkOS returns none)`, and warns on every export that found users.
 
@@ -181,7 +181,7 @@ Connection strings are redacted in every message the CLI prints (`postgres://***
 clerk migrate export firebase --service-account ./service-account.json
 ```
 
-Needs a service account key with the Firebase Authentication Admin role (or Viewer plus the `firebaseauth.configs.getHashConfig` permission): Firebase console → Project settings → Service accounts → Generate new private key. `--service-account` takes the key file's path. Without it, a human is prompted — the answer can be a path **or the key's JSON pasted whole**, so a key kept in a password manager never has to touch disk. Agent mode names the flag instead. When the user pastes the key's JSON, run `mktemp` to create an empty file outside the project that only the user can read. Write the JSON into that file with your file-write tool, pass its path, and `rm` the file after the export, whether or not it succeeded. Don't put the key in any shell command: `--service-account '<json>'`, `printf`, `echo` and a heredoc all place it on a command line that shows up in `ps`. Write into the file `mktemp` made, not a new one, so it stays owner-only. Never save the key inside the project. The key is validated before any network call, so a web app config downloaded by mistake fails at once, naming the field it lacks (`"project_id" is missing`).
+Needs a service account key with the Firebase Authentication Admin role (or Viewer plus the `firebaseauth.configs.getHashConfig` permission): Firebase console → Project settings → Service accounts → Generate new private key. `--service-account` takes the key file's path. Without it, a human is prompted — the answer can be a path **or the key's JSON pasted whole**, so a key kept in a password manager never has to touch disk. Agent mode names the flag instead. When the user pastes the key's JSON, run `mktemp` to create an empty file outside the project that only the user can read. Write the JSON into that file with your file-write tool, run `chmod 600 <file>`, pass its path, and `rm` the file after the export, whether or not it succeeded. Don't put the key in any shell command: `--service-account '<json>'`, `printf`, `echo` and a heredoc all place it on a command line that shows up in `ps`. Write into the file `mktemp` made, not a new one. The `chmod` restores owner-only access if your tool replaced the file instead of writing into it. Never save the key inside the project. The key is validated before any network call, so a web app config downloaded by mistake fails at once, naming the field it lacks (`"project_id" is missing`).
 
 **Firebase's scrypt is a modified variant.** A digest is worthless without the project's four hash parameters. The export reads them from the project and saves them in the envelope, so the import needs no `--firebase-*` flags:
 
@@ -207,15 +207,15 @@ The export also warns about users whose hashes Firebase redacted (only a re-expo
 
 ## Troubleshooting
 
-| Symptom                                       | Cause and fix                                                                                          |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| "Connection closed" on a database export      | Unreachable host or a closed port. On Supabase, switch to the Session pooler string or enable the IPv4 add-on. |
-| Credentials rejected                          | Check the user and password. The CLI encodes `@`, `#` or `/` only when the string wouldn't parse otherwise; if it still fails, URL-encode the password. |
-| Table does not exist                          | Supabase: enable Auth and connect as `postgres`. Better Auth: run `npx @better-auth/cli migrate`. Auth.js: run the ORM's migrations. |
-| Auth0 `401` / `403`                           | Wrong domain, client ID or secret, or the M2M application lacks the `read:users` scope.                |
-| WorkOS key rejected                           | Use the secret API key starting `sk_`, from the right WorkOS environment.                              |
-| Firebase "Google rejected the service account" | Wrong or stale service account key. Download a fresh one for the right project.                       |
-| Export succeeded but almost every field is empty | Wrong table or wrong platform. Check the coverage report before importing, not after.                |
+| Symptom | Cause and fix |
+| --- | --- |
+| "Connection closed" on a database export | Unreachable host or a closed port. On Supabase, switch to the Session pooler string or enable the IPv4 add-on. |
+| Credentials rejected | Check the user and password. The CLI encodes `@`, `#` or `/` only when the string wouldn't parse otherwise; if it still fails, URL-encode the password. |
+| Table does not exist | Supabase: enable Auth and connect as `postgres`. Better Auth: run `npx @better-auth/cli migrate`. Auth.js: run the ORM's migrations. |
+| Auth0 `401` / `403` | Wrong domain, client ID or secret, or the M2M application lacks the `read:users` scope. |
+| WorkOS key rejected | Use the secret API key starting `sk_`, from the right WorkOS environment. |
+| Firebase "Google rejected the service account" | Wrong or stale service account key. Download a fresh one for the right project. |
+| Export succeeded but almost every field is empty | Wrong table or wrong platform. Check the coverage report before importing, not after. |
 
 ## Next step
 
