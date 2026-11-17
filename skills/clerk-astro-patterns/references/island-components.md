@@ -40,12 +40,12 @@ import { UserNav } from '../components/UserNav'
 
 ## Client Directives
 
-| Directive | When to Use |
-|-----------|-------------|
-| `client:load` | Hydrate immediately on page load |
-| `client:idle` | Hydrate when browser is idle |
-| `client:visible` | Hydrate when component scrolls into view |
-| `client:only="react"` | No SSR, render only on client |
+| Directive             | When to Use                              |
+| --------------------- | ---------------------------------------- |
+| `client:load`         | Hydrate immediately on page load         |
+| `client:idle`         | Hydrate when browser is idle             |
+| `client:visible`      | Hydrate when component scrolls into view |
+| `client:only="react"` | No SSR, render only on client            |
 
 ## Prebuilt UI Components
 

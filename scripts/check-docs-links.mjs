@@ -87,7 +87,7 @@ export function matchesPatterns(filePath, patterns) {
   return matches;
 }
 
-async function listFiles(directory, relativeDirectory = "") {
+export async function listFiles(directory, relativeDirectory = "") {
   const entries = await readdir(path.join(directory, relativeDirectory), {
     withFileTypes: true,
   });

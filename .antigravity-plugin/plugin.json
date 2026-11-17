@@ -1,0 +1,45 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "clerk",
+  "displayName": "Clerk",
+  "version": "1.0.0",
+  "description": "Add authentication and user management with Clerk. Skills for setup, frameworks, organizations, billing, webhooks, and testing, plus the Clerk MCP server.",
+  "logo": "assets/antigravity-logo.svg",
+  "suggestedPrompts": [
+    "Add Clerk auth to my Next.js app",
+    "Set up organizations for my B2B app",
+    "Sync users to Postgres via Clerk webhooks"
+  ],
+  "author": {
+    "name": "Clerk",
+    "email": "ai@clerk.dev",
+    "url": "https://clerk.com"
+  },
+  "homepage": "https://clerk.com/docs",
+  "repository": "https://github.com/clerk/skills",
+  "license": "MIT",
+  "keywords": [
+    "android",
+    "astro",
+    "auth",
+    "authentication",
+    "billing",
+    "chrome-extension",
+    "clerk",
+    "expo",
+    "ios",
+    "kotlin",
+    "mcp",
+    "nextjs",
+    "nuxt",
+    "organizations",
+    "react",
+    "react-native",
+    "react-router",
+    "swift",
+    "tanstack-start",
+    "user-management",
+    "vue",
+    "webhooks"
+  ]
+}

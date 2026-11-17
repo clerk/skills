@@ -1,9 +1,6 @@
 ---
 name: clerk-astro-patterns
-description: 'Astro patterns with Clerk — middleware, SSR pages, island components,
-  API routes, static vs SSR rendering. Triggers on: astro clerk, clerk astro middleware,
-  astro protected page, clerk island component, astro API route auth, clerk astro
-  SSR.'
+description: 'Astro patterns with Clerk — middleware, SSR pages, island components, API routes, static vs SSR rendering. Triggers on: astro clerk, clerk astro middleware, astro protected page, clerk island component, astro API route auth, clerk astro SSR.'
 license: MIT
 allowed-tools: WebFetch
 metadata:
@@ -18,7 +15,7 @@ SDK: `@clerk/astro` v4+. Requires Astro 5+.
 ## What Do You Need?
 
 | Task | Reference |
-|------|-----------|
+| --- | --- |
 | Configure middleware (bare `clerkMiddleware()`, checks per page) | references/middleware.md |
 | Protect SSR pages | references/ssr-pages.md |
 | Use Clerk in island components | references/island-components.md |
@@ -91,7 +88,7 @@ export const GET: APIRoute = ({ locals }) => {
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --- | --- | --- |
 | `Astro.locals.auth` is undefined | Missing middleware | Add `clerkMiddleware` to `src/middleware.ts` |
 | Auth works in dev but not production | `output: 'static'` globally | Set `output: 'server'` or `hybrid` for protected pages |
 | Static page has no auth | Prerendered pages skip middleware | Use `export const prerender = false` or move to island |
@@ -99,12 +96,12 @@ export const GET: APIRoute = ({ locals }) => {
 
 ## Import Map
 
-| What | Import From |
-|------|-------------|
-| `clerkMiddleware`, `clerkClient` | `@clerk/astro/server` |
-| `useAuth`, `UserButton` (no `useUser`) | `@clerk/astro/react` |
-| `$userStore`, `$authStore` | `@clerk/astro/client` |
-| Astro components (`<SignIn>`, etc.) | `@clerk/astro/components` |
+| What                                   | Import From               |
+| -------------------------------------- | ------------------------- |
+| `clerkMiddleware`, `clerkClient`       | `@clerk/astro/server`     |
+| `useAuth`, `UserButton` (no `useUser`) | `@clerk/astro/react`      |
+| `$userStore`, `$authStore`             | `@clerk/astro/client`     |
+| Astro components (`<SignIn>`, etc.)    | `@clerk/astro/components` |
 
 ## Env Variables
 

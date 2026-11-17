@@ -39,6 +39,7 @@ Configure where users land after sign-in/sign-up:
 ```
 
 Or via environment variables:
+
 ```
 VITE_CLERK_SIGN_IN_URL=/sign-in
 VITE_CLERK_SIGN_UP_URL=/sign-up
@@ -61,6 +62,7 @@ export function SignInPage() {
 ```
 
 Register the route:
+
 ```tsx
 <Route path="/sign-in/*" element={<SignInPage />} />
 <Route path="/sign-up/*" element={<SignUpPage />} />
@@ -78,11 +80,7 @@ export function SignOutButton() {
   const { signOut } = useClerk()
   const navigate = useNavigate()
 
-  return (
-    <button onClick={() => signOut(() => navigate('/'))}>
-      Sign out
-    </button>
-  )
+  return <button onClick={() => signOut(() => navigate('/'))}>Sign out</button>
 }
 ```
 

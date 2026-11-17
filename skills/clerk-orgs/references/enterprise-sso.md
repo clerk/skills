@@ -38,17 +38,18 @@ const ssoAccount = user?.enterpriseAccounts?.[0]
 
 if (ssoAccount) {
   // Directly on EnterpriseAccount:
-  ssoAccount.emailAddress           // the email used for SSO
-  ssoAccount.active                 // boolean — is the account active
-  ssoAccount.firstName, ssoAccount.lastName
-  ssoAccount.lastAuthenticatedAt    // Date | null
+  ssoAccount.emailAddress // the email used for SSO
+  ssoAccount.active // boolean — is the account active
+  ssoAccount.firstName
+  ssoAccount.lastName
+  ssoAccount.lastAuthenticatedAt // Date | null
 
   // Provider metadata lives on the nested EnterpriseAccountConnection:
   const conn = ssoAccount.enterpriseConnection
-  conn?.provider    // 'saml_okta' | 'saml_google' | 'saml_microsoft' | 'saml_custom' | 'oauth_<provider>'
-  conn?.protocol    // 'saml' | 'oauth'
-  conn?.domain      // the verified domain
-  conn?.name        // display name of the connection
+  conn?.provider // 'saml_okta' | 'saml_google' | 'saml_microsoft' | 'saml_custom' | 'oauth_<provider>'
+  conn?.protocol // 'saml' | 'oauth'
+  conn?.domain // the verified domain
+  conn?.name // display name of the connection
   conn?.active
 }
 ```
@@ -91,8 +92,8 @@ const { signIn } = useSignIn()
 const { error } = await signIn.sso({
   strategy: 'enterprise_sso',
   identifier: emailAddress,
-  redirectUrl: '/dashboard',                 // where to land on successful sign-in
-  redirectCallbackUrl: '/sign-in/callback',  // where to land when additional requirements are needed
+  redirectUrl: '/dashboard', // where to land on successful sign-in
+  redirectCallbackUrl: '/sign-in/callback', // where to land when additional requirements are needed
 })
 ```
 

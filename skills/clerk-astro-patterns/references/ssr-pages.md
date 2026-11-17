@@ -60,13 +60,13 @@ const data = await fetchFromSupabase(token)
 
 ## Auth Object Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `userId` | `string \| null` | Current user ID |
-| `orgId` | `string \| null` | Active org ID |
-| `orgRole` | `string \| null` | User's role in active org |
-| `sessionId` | `string \| null` | Current session ID |
-| `has()` | `function` | Check permissions |
+| Field        | Type             | Description               |
+| ------------ | ---------------- | ------------------------- |
+| `userId`     | `string \| null` | Current user ID           |
+| `orgId`      | `string \| null` | Active org ID             |
+| `orgRole`    | `string \| null` | User's role in active org |
+| `sessionId`  | `string \| null` | Current session ID        |
+| `has()`      | `function`       | Check permissions         |
 | `getToken()` | `async function` | Get JWT for external APIs |
 
 ## CRITICAL

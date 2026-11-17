@@ -21,16 +21,16 @@ export function Page() {
 
 Returns auth primitives:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `isLoaded` | `boolean` | `false` while Clerk initializes |
+| Property     | Type                   | Description                          |
+| ------------ | ---------------------- | ------------------------------------ |
+| `isLoaded`   | `boolean`              | `false` while Clerk initializes      |
 | `isSignedIn` | `boolean \| undefined` | `undefined` until `isLoaded` is true |
-| `userId` | `string \| null` | Current user ID |
-| `sessionId` | `string \| null` | Current session ID |
-| `orgId` | `string \| null` | Active organization ID |
-| `orgRole` | `string \| null` | Active org role |
-| `getToken` | `Function` | Fetches session JWT |
-| `signOut` | `Function` | Signs the user out |
+| `userId`     | `string \| null`       | Current user ID                      |
+| `sessionId`  | `string \| null`       | Current session ID                   |
+| `orgId`      | `string \| null`       | Active organization ID               |
+| `orgRole`    | `string \| null`       | Active org role                      |
+| `getToken`   | `Function`             | Fetches session JWT                  |
+| `signOut`    | `Function`             | Signs the user out                   |
 
 ## useUser()
 
@@ -47,7 +47,9 @@ export function Profile() {
   return (
     <div>
       <img src={user.imageUrl} alt={user.fullName ?? ''} />
-      <p>{user.firstName} {user.lastName}</p>
+      <p>
+        {user.firstName} {user.lastName}
+      </p>
       <p>{user.emailAddresses[0]?.emailAddress}</p>
     </div>
   )

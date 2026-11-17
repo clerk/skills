@@ -83,10 +83,7 @@ export async function createProject(name: string) {
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ slug: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { orgSlug, orgId, has } = await auth()
   const { slug } = await params
 

@@ -163,7 +163,7 @@ clerk imp user_abc123 --yes --expires-in 900
 clerk imp revoke act_abc123
 ```
 
-To mint a one-time **sign-in token** instead - for building custom token sign-in flows, signing in *as* the user with no actor audit trail - use the raw API:
+To mint a one-time **sign-in token** instead - for building custom token sign-in flows, signing in _as_ the user with no actor audit trail - use the raw API:
 
 ```sh
 clerk api /sign_in_tokens -d '{"user_id":"user_abc123"}'
