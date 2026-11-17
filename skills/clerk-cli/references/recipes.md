@@ -212,6 +212,105 @@ clerk webhooks verify --secret whsec_... --delivery @event.json
 
 Pin the token (`--token`) whenever you want the inbox URL to survive across machines and restarts - otherwise the relay URL can change and the Dashboard endpoint needs re-pointing.
 
+## Application Logs
+
+`clerk logs` reads the instance's [Application Logs](https://clerk.com/docs/guides/dashboard/logs/application-logs): sign-ins, sign-ups, user and session changes, and the other events Clerk records. Reach for it before guessing from code when a user can't sign in, a sign-up stalls, or something changed and nobody knows why. Any instance secret key can read its logs; target another app or production with `--app <id> --instance prod`.
+
+Logs go back only as far as the plan's log retention. When a search reaches that limit, `cursor.retention_limit_reached` is `true` and `cursor.retention_days` says how far back results go, so an empty result there doesn't prove the event never happened.
+
+### Discover event types and payload fields
+
+Event type names and payload paths vary by instance (`sms.*` and `email.*` types appear only once enabled). Don't guess them; read them once and save the result:
+
+```sh
+# Every event type with its payload fields, in one call
+clerk logs schema --json > /tmp/log-types.json
+jq -r '.data[] | "\(.event_type)\t\(.description)"' /tmp/log-types.json
+
+# The payload fields of one type, a wildcard, or a family
+clerk logs schema sign_in.completed --json
+clerk logs schema 'sign_in.*' --json      # only the fields every sign_in type shares
+```
+
+Each `fields[]` entry has a `path`, a `type`, `optional`, and an `enum` list for enum-backed fields. Those paths are what `--payload-filter` and `--fields` take.
+
+### Why did a user's sign-in fail?
+
+```sh
+# 1. Find the user's recent sign-in flows. --identifier is an exact email, phone,
+#    username, or web3 wallet; use --user user_... instead when you have the ID.
+clerk logs --grouped --group-type sign_in --identifier alice@example.com --since 7d --json > /tmp/sign-ins.json
+jq '.data[] | select(.object == "log_group") | {group_id, status, started_at, event_count, has_more_events}' /tmp/sign-ins.json
+
+# 2. Read every event of the flow that went wrong, oldest first
+clerk logs get sia_abc123 --json > /tmp/sign-in.json
+jq '.data[] | {type, event_time, actor, subject, payload}' /tmp/sign-in.json
+```
+
+The event types in step 2 tell the story of the attempt; look up the fields of any type you don't recognize with `clerk logs schema <type>`. For a sign-up, use `--group-type sign_up` and the `sua_...` ID. Without `--grouped`, `clerk logs --identifier alice@example.com --since 7d` lists the same events flat, newest first, including those outside any flow. If nothing comes back, widen `--since`, check that you're on the right instance (`--instance prod`), and check `cursor.retention_limit_reached`.
+
+### Find failed or unfinished flows
+
+```sh
+# Flows that concluded as failed in the last hour
+clerk logs --grouped --status failed --since 1h --json > /tmp/failed.json
+jq '.data[] | {group_id, group_type, status, subject}' /tmp/failed.json
+
+# All recent flows, including ones that never concluded
+clerk logs --grouped --since 1h --json > /tmp/flows.json
+jq '.data[] | select(.object == "log_group" and .status == null) | {group_id, group_type, subject, event_count}' /tmp/flows.json
+```
+
+`--status` only matches a flow that concluded. A user who gave up midway leaves a flow with `status: null`, which neither `--status completed` nor `--status failed` returns, so when `--status failed` finds nothing, list the flows without `--status` and look at the ones with no status. `--group-type` and `--status` are repeatable, and both drop the logs that belong to no flow. With `--grouped`, `--limit` counts flows (up to 100), and the time range picks flows by when they started.
+
+### Filter on a payload field
+
+```sh
+# 1. Find the payload path
+clerk logs schema user.created --json | jq -r '.fields[].path'
+
+# 2. Filter on it. --payload-filter is repeatable and needs --type.
+clerk logs --type user.created --payload-filter user_id=user_abc123 --since 1h --json
+clerk logs --type sms.failed --payload-filter phone_number=+15555550100 --since 1d --json
+
+# Return only some payload fields per log (also needs --type)
+clerk logs --type user.created --fields email_address,username --since 1d --json
+```
+
+The API checks that the path exists for the type; a path it rejects fails with an error that lists the allowed paths. By default a log must match every filter; `--match any` keeps logs that match at least one of the string and payload filters.
+
+### Read the rest of a flow
+
+A `--grouped` item carries only a flow's first events. When it has `has_more_events: true`, continue from its `events_cursor`, passing the same event filters you used for the list, since the cursor doesn't carry them:
+
+```sh
+jq -r '.data[] | select(.has_more_events) | "\(.group_id) \(.events_cursor)"' /tmp/flows.json
+clerk logs get sia_abc123 --cursor <events_cursor> --json
+```
+
+`clerk logs get` pages forward with `cursor.next` the same way, until it is `null`.
+
+### Page through a long search
+
+```sh
+clerk logs --type 'sign_in.*' --since 7d --limit 500 --json > /tmp/logs-0.json
+jq -r '.cursor.next' /tmp/logs-0.json                 # null when there are no more
+clerk logs --type 'sign_in.*' --since 7d --limit 500 --cursor <cursor.next> --json > /tmp/logs-1.json
+```
+
+Pass the same filters and time range with each `--cursor`. A grouped cursor and a flat cursor aren't interchangeable.
+
+### Watch new logs as they happen
+
+```sh
+# Long-running: start it in the background, reproduce the problem, then read the file.
+# Output is NDJSON, one log object per line, with no { data, cursor } envelope.
+clerk logs --follow --type 'sign_in.*' --json > /tmp/live.ndjson
+jq -c '{type, event_time, subject}' /tmp/live.ndjson
+```
+
+`--follow` first prints the newest `--limit` logs (honoring `--since`/`--from` and every filter), then polls every `--interval` (default `2s`) and prints new logs oldest first. It's for live debugging, not export: a log that reaches the API late (more than 5 minutes, per `--help`) may be missed, so use [log drains](https://clerk.com/docs/guides/dashboard/logs/application-logs#export-logs) to export or sync logs. Stop it with Ctrl-C, which exits `130`. It can't be combined with `--to`, `--cursor`, or `--grouped`.
+
 ## Instance configuration
 
 Prefer the dedicated `config` commands over raw `api` calls - they handle confirmation, dry-run, and formatting.

@@ -118,7 +118,7 @@ For product analytics, the MCP server sends Clerk an event for each tool call. I
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
-| `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, deploy checks |
+| `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, logs, deploy checks |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
 | `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
@@ -171,6 +171,7 @@ for how temporary keys and later account claiming work.
 | You Say | Skill Used |
 |---------|------------|
 | "List Clerk users" | `clerk-cli` |
+| "Why did this user's sign-in fail?" | `clerk-cli` |
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
