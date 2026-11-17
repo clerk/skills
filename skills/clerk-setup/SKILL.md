@@ -6,7 +6,7 @@ allowed-tools: WebFetch
 compatibility: Requires Node.js 20.9.0 or later for current Clerk SDKs. The Clerk CLI can provision temporary development keys on supported frameworks without a Clerk account.
 metadata:
   author: clerk
-  version: 2.6.1
+  version: 2.6.2
 ---
 
 # Set up Clerk
