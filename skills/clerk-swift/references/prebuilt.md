@@ -12,7 +12,7 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 
 1. Package products
 
-- The app target needs `ClerkKitUI` in addition to `ClerkKit`. If only `ClerkKit` is linked, run `npx -y clerk@latest init --apple-sdk ui --json` from the project directory. It links `ClerkKitUI` from the existing `clerk-ios` package without changing its version requirement. It also matches the Sign in with Apple entitlement to the Clerk instance's Apple setting. If the CLI isn't available, add the product in Xcode.
+- The app target needs `ClerkKitUI` in addition to `ClerkKit`. If only `ClerkKit` is linked, run `npx -y clerk@latest init --apple-sdk ui --json` from the project directory. It runs the CLI's full native setup, not only the package change: it links `ClerkKitUI` from the existing `clerk-ios` package without changing its version requirement, registers the app's native identity with Clerk if it isn't registered yet, and matches the Sign in with Apple entitlement to the Clerk instance's Apple setting. If the CLI isn't available, add the product in Xcode.
 
 2. Sign in with Apple
 
@@ -20,6 +20,8 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 - To enable it, run `npx -y clerk@latest init --sign-in-with-apple --json` from the project directory. It configures Clerk and adds the entitlement. If the CLI isn't available, add the capability in Xcode.
 
 These `init` commands need a linked project. With `--json`, an unlinked project returns `status: "application-required"`: rerun with `--app <application_id>` for the application whose `publishable_key` matches the app's existing key, from `npx -y clerk@latest apps list --json`.
+
+With `--json`, they can also return `status: "input-required"` before changing anything. When the response has an `identity` object, its `issues` say whether the Bundle ID or the App ID Prefix is missing. Ask the user for only that value, then rerun the same command with `--bundle-id` or `--app-id-prefix`. The App ID Prefix comes from Apple Developer and is usually the Team ID shown in Xcode › Settings › Accounts, but it can differ. Setup reads it from the target's signing team or an existing Clerk registration, so it's only asked for when the target has neither.
 
 Keep the existing `Clerk.configure` call, its key loading, and existing capabilities.
 
