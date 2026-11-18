@@ -21,7 +21,7 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 
 These `init` commands need a linked project. With `--json`, an unlinked project returns `status: "application-required"`: rerun with `--app <application_id>` for the application whose `publishable_key` matches the app's existing key, from `npx -y clerk@latest apps list --json`.
 
-With `--json`, they can also return `status: "input-required"` before changing anything. When the response has an `identity` object, its `issues` say whether the Bundle ID or the App ID Prefix is missing. Ask the user for only that value, then rerun the same command with `--bundle-id` or `--app-id-prefix`. The App ID Prefix comes from Apple Developer and is usually the Team ID shown in Xcode › Settings › Accounts, but it can differ. Setup reads it from the target's signing team or an existing Clerk registration, so it's only asked for when the target has neither.
+With `--json`, they can also return `status: "input-required"` before changing the project. When the response has an `identity` object, read its `issues`. If one asks for the Bundle ID or the App ID Prefix, ask the user for only that value, then rerun the same command with `--bundle-id` or `--app-id-prefix`. If one says registrations conflict or a registration's prefix is invalid, tell the user to fix it in the Clerk Dashboard, then rerun. The App ID Prefix comes from Apple Developer and is usually the Team ID shown in Xcode › Settings › Accounts, but it can differ. Setup reads it from the target's signing team or an existing Clerk registration, so it's only asked for when the target has no single signing team and no matching registration.
 
 Keep the existing `Clerk.configure` call, its key loading, and existing capabilities.
 
