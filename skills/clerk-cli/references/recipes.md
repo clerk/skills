@@ -305,11 +305,15 @@ Pass the same filters and time range with each `--cursor`. A grouped cursor and 
 ```sh
 # Long-running: start it in the background, reproduce the problem, then read the file.
 # Output is NDJSON, one log object per line, with no { data, cursor } envelope.
-clerk logs --follow --type 'sign_in.*' --json > /tmp/live.ndjson
+# stderr keeps the retry warnings, so you can tell whether the follow is still healthy.
+clerk logs --follow --type 'sign_in.*' --json > /tmp/live.ndjson 2> /tmp/live.err &
+FOLLOW_PID=$!
+# ...reproduce the problem, then:
 jq -c '{type, event_time, subject}' /tmp/live.ndjson
+kill $FOLLOW_PID
 ```
 
-`--follow` first prints the newest `--limit` logs (honoring `--since`/`--from` and every filter), then polls every `--interval` (default `2s`) and prints new logs oldest first. It's for live debugging, not export: a log that reaches the API late (more than 5 minutes, per `--help`) may be missed, so use [log drains](https://clerk.com/docs/guides/dashboard/logs/application-logs#export-logs) to export or sync logs. Stop it with Ctrl-C, which exits `130`. It can't be combined with `--to`, `--cursor`, or `--grouped`.
+`--follow` first prints the newest `--limit` logs (honoring `--since`/`--from` and every filter), then polls every `--interval` (default `2s`) and prints new logs oldest first. It's for live debugging, not export: a log that reaches the API more than 10 seconds after a newer one was printed may be missed (after a quiet stretch, more than 5 minutes late), so an event missing from the stream doesn't prove it never happened; re-check with a `clerk logs` search over the same range, and use [log drains](https://clerk.com/docs/guides/dashboard/logs/application-logs#export-logs) to export or sync logs. Stop a background follow with `kill`; in a terminal, Ctrl-C exits `130`. It can't be combined with `--to`, `--cursor`, or `--grouped`.
 
 ## Instance configuration
 

@@ -350,7 +350,7 @@ clerk logs --cursor <cursor.next> --json                       # the next page
 - **More events in a group.** A `log_group` item with `has_more_events: true` has an `events_cursor`. `clerk logs get <group_id> --cursor <events_cursor>` continues after the last event the list showed; pass the list's event filters again, since the cursor doesn't carry them.
 - **Retention.** Logs go back only as far as the plan's log retention. `cursor.retention_limit_reached: true` (with `cursor.retention_days`) means a `list` search reached it and nothing older can be listed. `get` doesn't report retention.
 - **Partial results.** If a request fails after some pages were fetched, `list` still prints them, with `cursor.next` set to the page that failed, and exits with the error. Retry from that cursor.
-- **`--follow` is long-running.** Run it in the background. It writes NDJSON, one log per line as each arrives, with no envelope, and retries transient failures (network, `5xx`, `429`) with warnings on stderr, giving up after 5 minutes without a successful request. Ctrl-C exits `130`.
+- **`--follow` is long-running.** Run it in the background with `&`, redirecting stdout and stderr to files, and `kill` its PID when you're done ([example](recipes.md#watch-new-logs-as-they-happen)). It writes NDJSON, one log per line as each arrives, with no envelope, and retries transient failures (network, `5xx`, `429`) with warnings on stderr, giving up after 5 minutes without a successful request. A log that arrives more than 10 seconds behind the newest one printed may be missed, so confirm a missing event with a `clerk logs` search. Ctrl-C exits `130`.
 
 Errors are the usual JSON object on stderr. The codes to expect from `clerk logs`:
 
