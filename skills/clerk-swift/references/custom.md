@@ -18,19 +18,19 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 2. Sign in with Apple
 
 - If native Sign in with Apple is enabled for this app, the target needs the Sign in with Apple capability. `npx -y clerk@latest doctor` reports the Apple connection and whether each configuration has the entitlement.
-- To enable it, run `npx -y clerk@latest init --mode agent --sign-in-with-apple --json` from the project directory. It configures the Clerk application's development instance and adds the entitlement, and it also registers the app's native identity with that instance if it isn't registered yet, turns on its Native API if it's off, and adds its Associated Domain for passkeys and password AutoFill unless the signing team can't use it (the result's handoff says what was left out). If the CLI isn't available, add the capability in Xcode.
+- To enable it, run `npx -y clerk@latest init --mode agent --sign-in-with-apple --json` from the project directory. It turns on Apple in the Clerk application's development instance and adds the entitlement, along with the rest of the native setup (the app's registration, the Native API, and the Associated Domain). If the CLI isn't available, add the capability in Xcode.
 
 These `init` commands need a linked project. With `--json`, an unlinked project returns `status: "application-required"`: rerun with `--app <application_id>` for the application whose `publishable_key` matches the app's existing key, from `npx -y clerk@latest apps list --json`.
 
-With `--json`, they can also return `status: "input-required"` before linking Clerk products, editing entitlements, or changing the Clerk instance (the CLI may already have saved the project's link to the application). When the response has an `identity` object, read its `issues` and handle them in this order:
+With `--json`, they can also return `status: "input-required"` before setting up the project. When the response has an `identity` object, handle its `issues` in this order:
 
-1. If one says registrations conflict and the run included `--app-id-prefix`, confirm that prefix with the user, and rerun without it if they aren't sure of it. If they confirm it, or the run didn't include it, tell the user to review the matching registrations in the Clerk Dashboard, then rerun; for a conflict without `--app-id-prefix`, don't ask for the App ID Prefix. If one says a registration's prefix is invalid, tell the user to fix it in the Clerk Dashboard, then rerun.
-2. Otherwise, if one asks for the Bundle ID, ask the user for only the Bundle ID and rerun the same command with `--bundle-id <bundle_id>`, even when the App ID Prefix is reported too.
-3. If the App ID Prefix is still reported, ask the user for it and rerun with the same flags plus `--app-id-prefix <app_id_prefix>`.
+1. Registrations conflict: if the run included `--app-id-prefix`, confirm that prefix with the user and rerun without it if they aren't sure. If they confirm it, the run didn't include one, or the conflict remains, have the user review the matching registrations in the Clerk Dashboard, then rerun; don't ask for the App ID Prefix. Do the same when a registration's prefix is invalid.
+2. The Bundle ID is missing: ask the user for only the Bundle ID and rerun with `--bundle-id <bundle_id>`, even if the App ID Prefix is reported too.
+3. The App ID Prefix is still missing: ask the user for it and rerun with the same flags plus `--app-id-prefix <app_id_prefix>`.
 
-The App ID Prefix comes from Apple Developer and is usually the Team ID shown in Xcode › Settings › Accounts, but it can differ. Once setup knows the Bundle ID, it reads the prefix from a matching Clerk registration or the target's signing team, so the prefix is only reported missing when more than one registration matches, or when none matches and the target has no single signing team. If the user has given an App ID Prefix, pass it with `--app-id-prefix <app_id_prefix>` on every run, the first included, unless step 1 dropped it, because setup otherwise uses a matching registration's prefix, or else the signing team's, without asking.
+The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless step 1 dropped it.
 
-If setup stops with `selection-required`, `setup-interrupted`, or an `input-required` that has no `identity` object, follow its handling in the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). Read the JSON result even when the command exits with an error; if it prints no JSON, report the error it printed. When it has a `handoff`, finish any step in `handoff.remaining` that this flow needs, such as linking a missing product in Xcode, before continuing with this flow.
+If setup stops with `selection-required`, `setup-interrupted`, or an `input-required` without `identity`, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). Otherwise, read the JSON result, even on a nonzero exit (report the printed error when there's none), and finish any step in `handoff.remaining` this flow needs before continuing.
 
 Keep the existing `Clerk.configure` call, its key loading, and existing capabilities.
 
