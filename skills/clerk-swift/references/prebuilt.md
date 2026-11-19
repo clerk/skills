@@ -12,7 +12,9 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 
 1. Package products
 
-- The app target needs `ClerkKitUI` in addition to `ClerkKit`. If only `ClerkKit` is linked, run `npx -y clerk@latest init --mode agent --apple-sdk ui --json` from the project directory. It runs the CLI's full native setup on the Clerk application's development instance, not only the package change: it links `ClerkKitUI` (keeping the `clerk-ios` version requirement), registers the app's native identity, turns on the Native API, and adds the Associated Domain and, when Apple is enabled in Clerk, the Sign in with Apple entitlement, unless the signing team can't use them. The result's handoff says what was left out. If the CLI isn't available, add the product in Xcode.
+- The app target needs `ClerkKitUI` in addition to `ClerkKit`. If only `ClerkKit` is linked, run `npx -y clerk@latest init --mode agent --apple-sdk ui --json` from the project directory. If the CLI isn't available, add the product in Xcode.
+
+  This command runs the CLI's full native setup on the Clerk application's development instance, not only the package change. It links `ClerkKitUI` while keeping the `clerk-ios` version requirement. It registers the app's native identity and turns on the Native API. It also adds the Associated Domain and, when Apple is enabled in Clerk, the Sign in with Apple entitlement, unless the signing team can't use them. The result's handoff says what was left out.
 
 2. Sign in with Apple
 
@@ -27,7 +29,7 @@ With `--json`, they can also return `status: "input-required"` before setting up
 2. The Bundle ID is missing: ask the user for only the Bundle ID and rerun with `--bundle-id <bundle_id>`, even if the App ID Prefix is reported too.
 3. The App ID Prefix is still missing: ask the user for it and rerun with the same flags plus `--app-id-prefix <app_id_prefix>`.
 
-The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless step 1 dropped it.
+The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless you removed it while resolving a registration conflict.
 
 If setup stops with `selection-required`, `setup-interrupted`, or an `input-required` without `identity`, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). Otherwise, read the JSON result, even on a nonzero exit (report the printed error when there's none), and finish any step in `handoff.remaining` this flow needs before continuing.
 

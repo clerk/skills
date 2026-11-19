@@ -28,7 +28,7 @@ With `--json`, they can also return `status: "input-required"` before setting up
 2. The Bundle ID is missing: ask the user for only the Bundle ID and rerun with `--bundle-id <bundle_id>`, even if the App ID Prefix is reported too.
 3. The App ID Prefix is still missing: ask the user for it and rerun with the same flags plus `--app-id-prefix <app_id_prefix>`.
 
-The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless step 1 dropped it.
+The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless you removed it while resolving a registration conflict.
 
 If setup stops with `selection-required`, `setup-interrupted`, or an `input-required` without `identity`, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). Otherwise, read the JSON result, even on a nonzero exit (report the printed error when there's none), and finish any step in `handoff.remaining` this flow needs before continuing.
 
