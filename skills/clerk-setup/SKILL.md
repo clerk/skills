@@ -102,7 +102,7 @@ npx -y clerk@latest init
 
 For a native iOS or macOS app, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) instead of the remaining steps. It covers creating the Xcode project.
 
-For a native Android app, follow the [Android setup prompt](https://clerk.com/docs/android/getting-started/quickstart.md) instead of the remaining steps. It covers creating the Gradle project. Keep an application the user already chose, such as one selected in the Clerk Dashboard, and pass it to `init` with `--app`.
+For a native Android app, follow the [Android setup prompt](https://clerk.com/docs/android/getting-started/quickstart.md) instead of the remaining steps. It creates the Gradle project with `init --starter --framework android`; without `--starter`, `init` treats the directory as an existing Android project. Keep an application the user already chose, such as one selected in the Clerk Dashboard, and pass it to `init` with `--app`.
 
 Ask which framework to use, defaulting to Next.js. If a lockfile remains in the directory, use its package manager instead of asking: `pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `bun.lock` or `bun.lockb` → `bun`, and `package-lock.json` → `npm`. If there's no lockfile, ask which package manager to use, defaulting to npm:
 
