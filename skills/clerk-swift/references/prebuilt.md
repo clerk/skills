@@ -12,14 +12,26 @@ Clerk must already be set up through the [iOS setup prompt](https://clerk.com/do
 
 1. Package products
 
-- The app target needs `ClerkKitUI` in addition to `ClerkKit`. If only `ClerkKit` is linked, run `npx -y clerk@latest init --apple-sdk ui --json` from the project directory. It links `ClerkKitUI` from the existing `clerk-ios` package without changing its version requirement. It also matches the Sign in with Apple entitlement to the Clerk instance's Apple setting. If the CLI isn't available, add the product in Xcode.
+- The app target needs `ClerkKitUI` in addition to `ClerkKit`. If only `ClerkKit` is linked, run `npx -y clerk@latest init --mode agent --apple-sdk ui --json` from the project directory. If the CLI isn't available, add the product in Xcode.
+
+  This command runs the CLI's full native setup on the Clerk application's development instance, not only the package change. It links `ClerkKitUI` while keeping the `clerk-ios` version requirement. It registers the app's native identity and turns on the Native API. It also adds the Associated Domain and, when Apple is enabled in Clerk, the Sign in with Apple entitlement, unless the signing team can't use them. The result's handoff says what was left out.
 
 2. Sign in with Apple
 
 - If native Sign in with Apple is enabled for this app, the target needs the Sign in with Apple capability. `npx -y clerk@latest doctor` reports the Apple connection and whether each configuration has the entitlement.
-- To enable it, run `npx -y clerk@latest init --sign-in-with-apple --json` from the project directory. It configures Clerk and adds the entitlement. If the CLI isn't available, add the capability in Xcode.
+- To enable it, run `npx -y clerk@latest init --mode agent --sign-in-with-apple --json` from the project directory. It turns on Apple in the Clerk application's development instance and adds the entitlement, along with the rest of the native setup (the app's registration, the Native API, and the Associated Domain). If the CLI isn't available, add the capability in Xcode.
 
 These `init` commands need a linked project. With `--json`, an unlinked project returns `status: "application-required"`: rerun with `--app <application_id>` for the application whose `publishable_key` matches the app's existing key, from `npx -y clerk@latest apps list --json`.
+
+With `--json`, they can also return `status: "input-required"` before setting up the project. When the response has an `identity` object, handle its `issues` in this order:
+
+1. Registrations conflict: if the run included `--app-id-prefix`, confirm that prefix with the user and rerun without it if they aren't sure. If they confirm it, the run didn't include one, or the conflict remains, have the user review the matching registrations in the Clerk Dashboard, then rerun; don't ask for the App ID Prefix. Do the same when a registration's prefix is invalid.
+2. The Bundle ID is missing: ask the user for only the Bundle ID and rerun with `--bundle-id <bundle_id>`, even if the App ID Prefix is reported too.
+3. The App ID Prefix is still missing: ask the user for it and rerun with the same flags plus `--app-id-prefix <app_id_prefix>`.
+
+The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless you removed it while resolving a registration conflict.
+
+If setup stops with `selection-required`, `setup-interrupted`, or an `input-required` without `identity`, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). Otherwise, read the JSON result, even on a nonzero exit (report the printed error when there's none), and finish any step in `handoff.remaining` this flow needs before continuing.
 
 Keep the existing `Clerk.configure` call, its key loading, and existing capabilities.
 
