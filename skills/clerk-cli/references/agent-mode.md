@@ -63,6 +63,7 @@ Force human mode with `--mode human` or `CLERK_MODE=human`. Typical AI-agent inv
 | `clerk auth login` when already authenticated | Prompt to re-auth (newer CLIs, with an init token: ask whether to claim it into the account or workspace it names) | Skips the browser, but tries to claim the app behind `.clerk/keyless.json` in this folder |
 | `clerk auth login` when **not** authenticated | Opens a browser, binds a localhost callback | Identical - it still opens a browser and binds a localhost callback. There is no guidance-only branch, so it stalls in a sandbox. Use `CLERK_PLATFORM_API_KEY` for headless flows |
 | `clerk init` | Full interactive scaffold flow | Runs non-interactively. Explicit `--app` or a linked profile uses the real-app auth/link/env flow, but `--app` that would replace an existing application link stops with a usage error unless `--relink` is passed. With `--json`, it also emits an `input-required` status. Inside a Git repository, the link is shared by every project in it. On a framework with accountless support, an authenticated agent creates a real app and links it. Without `--app` or an existing link, an unauthenticated agent on a framework with accountless support mints an unclaimed app with temporary dev keys — no login, no flag, no browser. On those frameworks, `--accountless` forces the temporary-keys path over both a session and an existing link — the escape hatch when a stale link would otherwise trigger a browser login; `--login` forces the authenticated flow (usage error while signed out in agent mode). Non-native frameworks without temporary-key support print manual setup guidance when no app is selected. iOS and macOS apps (`--starter` included) require a real Clerk application and reject `--accountless`; with `--json`, they report setup as JSON statuses. Follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). |
+| `clerk logs` / `logs list` / `logs get` / `logs schema` | Tables (`--follow`: one line per log on stderr) | JSON on stdout without `--json`: `{ data, cursor }` for `list` and `get`, NDJSON for `list --follow`, the API's schema objects for `schema`. See [Read Application Logs](#read-application-logs) |
 | Color / spinners | Enabled | Disabled |
 
 In addition, sandboxed agent-mode invocations may emit the warning above once per CLI invocation when a host-sensitive operation is blocked.
@@ -107,6 +108,8 @@ Errors use the standard agent-mode format: bad JSON → `invalid_json`, missing 
 
 `clerk doctor` exits `1` when any check fails (warnings alone still exit `0`).
 
+An interrupted long-running command, such as `clerk logs --follow` stopped with Ctrl-C, exits `130` (SIGINT), so `clerk logs --follow && next-step` doesn't run `next-step`.
+
 ## Error output format
 
 **Human mode:**
@@ -146,6 +149,10 @@ Errors use the standard agent-mode format: bad JSON → `invalid_json`, missing 
 | `clerk open --print` | Plain dashboard URL on stdout |
 | `clerk deploy` (agent mode) | The deploy report: `complete`, `state`, domain status, OAuth status, and `nextAction` |
 | `clerk deploy status` (agent mode) | The same report, plus exit `0` complete or `1` incomplete |
+| `clerk logs [list]` (agent mode or `--json`) | `{data, cursor}`: `data` holds `log` objects as the Backend API returns them (with `--grouped`, `log_group` and `log` items; tell them apart by `object`); `cursor` is `{next, retention_limit_reached, retention_days, searched_from, searched_to}` |
+| `clerk logs --follow` (agent mode or `--json`) | NDJSON on stdout: one `log` object per line, no envelope |
+| `clerk logs get <id>` (agent mode or `--json`) | `{data, cursor}` with `log` objects oldest first; `cursor` has only `next` |
+| `clerk logs schema` / `clerk logs schema <type>` | `{object: "list", data: [log_schema...], total_count}` / one `log_schema` object (`event_type`, `fields[]` with `path`, `type`, `optional`, `enum?`) |
 | Any command (agent mode) | On error: `{"error":{"code","message","docsUrl?","errors?","examples?"}}` on stderr |
 
 For commands without an explicit `--json` flag, `clerk api` is your escape hatch: hit the underlying endpoint directly.
@@ -328,6 +335,34 @@ Then, on every host:
 
 1. The report's commands copy only the publishable and secret keys. Have the user also add the other Clerk variables their app needs from their env file, such as `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, to the host's production environment. Don't open the env file yourself, because it also holds the development secret key, and don't ask the user to share the values.
 2. Once the keys and the other Clerk variables are on the host (on Vercel, once the `hostSetup` command exits 0), have the user redeploy, then sign up on the domain to confirm.
+
+### Read Application Logs
+
+Start from discovery, then narrow. Recipes for common investigations are in [recipes.md](recipes.md#application-logs).
+
+```sh
+clerk logs schema --json                                       # every event type and its payload fields
+clerk logs --grouped --status failed --since 1h --json         # failed sign-in and sign-up flows
+clerk logs get sia_abc123 --json                               # every event of one flow
+clerk logs --cursor <cursor.next> --json                       # the next page
+```
+
+- **Paging.** `list` and `get` print `{ data, cursor }`. Pass `cursor.next` to `--cursor` for the next page, with the same filters; it is `null` when there are no more. A `list` page can come back short, or even empty, while older logs remain, so keep paging until `cursor.next` is `null` rather than stopping at a short page.
+- **More events in a group.** A `log_group` item with `has_more_events: true` has an `events_cursor`. `clerk logs get <group_id> --cursor <events_cursor>` continues after the last event the list showed; pass the list's event filters again, since the cursor doesn't carry them.
+- **Retention.** Logs go back only as far as the plan's log retention. `cursor.retention_limit_reached: true` (with `cursor.retention_days`) means a `list` search reached it and nothing older can be listed. `get` doesn't report retention.
+- **Partial results.** If a request fails after some pages were fetched, `list` still prints them, with `cursor.next` set to the page that failed, and exits with the error. Retry from that cursor.
+- **`--follow` is long-running.** Run it in the background with `&`, redirecting stdout and stderr to files, and `kill` its PID when you're done ([example](recipes.md#watch-new-logs-as-they-happen)). It writes NDJSON, one log per line as each arrives, with no envelope, and retries transient failures (network, `5xx`, `429`) with warnings on stderr, giving up after 5 minutes without a successful request. A log that arrives more than 10 seconds behind the newest one printed may be missed, so confirm a missing event with a `clerk logs` search. Ctrl-C exits `130`.
+
+Errors are the usual JSON object on stderr. The codes to expect from `clerk logs`:
+
+| Code | Exit | Meaning |
+| --- | --- | --- |
+| `usage_error` | `2` | A bad flag value or combination, raised before any request, with the flag named in the message. Examples: `--payload-filter` or `--fields` without `--type`, `--user` with `--identifier`, `--status` without `--grouped`, `--follow` with `--to`, a `get` ID that isn't `sia_...` or `sua_...`. Some carry `examples` to run next, such as `clerk logs schema` |
+| `log_group_not_found` | `1` | `clerk logs get` found no such group in the targeted instance: an unknown ID, another instance's group (check `--instance`), one past retention, or one that started a few seconds ago and isn't stored yet. The message names the instance searched |
+| `bapi_unexpected_response` | `1` | The Backend API returned a response the CLI can't use |
+| `log_types_unavailable` | `1` | `clerk logs schema` with no argument reached a Backend API without `GET /v1/logs/types`. Pass an event type instead |
+
+Other API errors keep the API's own `code`, with its error list under `errors`. A `--payload-filter` path the API rejects fails that way, and the error lists the type's allowed paths.
 
 ### Use the catalog, not hard-coded paths
 

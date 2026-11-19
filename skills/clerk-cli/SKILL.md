@@ -1,7 +1,7 @@
 ---
 name: clerk-cli
 description: >-
-  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
+  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, Application Logs, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", "clerk logs", "check the logs", "application logs", "why did this sign-in fail", "debug a sign-up", "what happened to this user", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
 license: MIT
 ---
 
@@ -95,6 +95,7 @@ Which commands need an account, and the full rules: [auth.md](references/auth.md
 | **Backend API (default)** | Runtime data: users, orgs, sessions, invitations, JWT templates, webhooks | `clerk api <path>` |
 | **Platform API (`--platform`)** | Account-level: applications, instances, billing | `clerk api --platform <path>` |
 | **Frontend API (`--fapi`)** | The instance's public client-facing API (what clerk-js calls) | `clerk api --fapi <path>` |
+| **Application Logs** | What happened on the instance: sign-ins, sign-ups, user and session changes | `logs`, `logs get`, `logs schema` |
 
 A project is "linked" to an application via `clerk link`. Once linked, most commands auto-resolve the target app and dev instance from the repo's git remote. To target something else, pass `--app <id>` and/or `--instance dev|prod|<instance_id>`. See [references/auth.md](references/auth.md) for the full resolution order.
 
@@ -189,6 +190,8 @@ node -e 'const d=require("/tmp/users.json"); console.log(d.data.length, d.hasMor
 ## Commands
 
 Read the [command catalog](references/commands.md) when choosing a subcommand or flag. Confirm unfamiliar syntax with `clerk <command> --help`.
+
+To find out why a sign-in or sign-up failed or what happened to a user, read the instance's logs before guessing from code: see [Application Logs](references/recipes.md#application-logs).
 
 ## Agent-mode behavior (important)
 
