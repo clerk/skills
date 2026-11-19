@@ -46,7 +46,7 @@ If you have no such tool, or it rejects the ID, run the fallback after the user 
 npx -y plugins add clerk/skills --yes
 ```
 
-The command installs the plugin, skills, and [Clerk MCP server](https://mcp.clerk.com/mcp) into every detected coding agent. A displayed card is not proof of installation; wait for the user to complete it. The MCP server may need a restart or sign-in. Continue setup with the CLI until it is connected.
+The command installs the plugin, skills, and [Clerk MCP server](https://mcp.clerk.com/mcp) into every detected coding agent. Wait for the user to finish the install card. The agent may need a reload or restart to load MCP. Sign-in may follow in a browser or MCP settings. Continue with the CLI until MCP tools are available.
 
 For an agent the command doesn't support, the user can add that URL as a remote MCP server.
 
