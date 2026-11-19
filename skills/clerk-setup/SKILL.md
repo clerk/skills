@@ -11,7 +11,7 @@ metadata:
 
 # Set up Clerk
 
-Start by installing the Clerk plugin: Clerk's skills and the [Clerk MCP server](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server), whose tools work in the user's Clerk account on applications, instance settings, users, and production setup.
+Check for the Clerk plugin first. It bundles skills and the [Clerk MCP server](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server) for account work.
 
 The MCP server can't write files in this project and never returns secret keys, so the [Clerk CLI](https://clerk.com/docs/cli) still sets up the project. On supported frameworks, `npx -y clerk@latest init` needs no Clerk account: it provisions a claimable application and writes temporary development keys.
 
@@ -24,7 +24,7 @@ Show the user this checklist and wait for a yes:
 ```
 Here's what I'll do to get you set up with Clerk.
 
-1. Install the Clerk plugin, if it isn't installed yet. It adds Clerk's agent skills and the Clerk MCP server.
+1. Install the Clerk plugin for the coding agents on this machine, if it isn't installed yet. It adds Clerk's agent skills and the Clerk MCP server.
 2. Set up Clerk in this project, or scaffold a new app if this directory is empty.
 3. Start your app with Clerk installed.
 
@@ -33,20 +33,20 @@ Shall I proceed?
 
 ## Install the Clerk plugin
 
-Skip this section if the user declined the plugin, or if Clerk MCP server tools, such as `whoami` and `list_applications`, are already available to you.
+Check this agent's installed plugins, or ask the user to check. Loading this skill from the plugin proves installation; a URL or generated copy does not. MCP tools are not proof: a separate server may provide them, and sign-out can hide plugin tools. If the Clerk plugin is installed in this agent, skip installation. If its MCP needs sign-in, guide authentication in the agent's MCP settings (Claude Code: `/mcp` → **Authenticate**) and continue with the CLI.
 
-If you have a tool that suggests plugins or connectors from your app's own marketplace, use it to show the user Clerk's install card. Pass Clerk's ID directly, because a search by name can miss it:
+Only if the plugin is absent and the user agreed to install it, show Clerk's native install card when your app has a plugin or connector suggestion tool. Pass Clerk's ID directly; a name search can miss it:
 
 - **ChatGPT and Codex:** `plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac`
 - **Claude:** connector `48a3eb31-a881-4d52-b179-1af31624356a`
 
-If you have no such tool, or it rejects the ID, run:
+If you have no such tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
 
 ```bash
 npx -y plugins add clerk/skills --yes
 ```
 
-The command installs the same `clerk` plugin, Clerk's skills and the Clerk MCP server (`https://mcp.clerk.com/mcp`), into each coding agent it detects on this machine. Agents load a new MCP server after a restart or reload. The user then signs in to Clerk in the browser, when their agent connects or from its MCP settings (in Claude Code, `/mcp`, then **Authenticate**). Don't wait for that. Continue below, and use the CLI for any step whose MCP tools aren't connected yet.
+The command installs the plugin, skills, and [Clerk MCP server](https://mcp.clerk.com/mcp) into every detected coding agent. A displayed card is not proof of installation; wait for the user to complete it. The MCP server may need a restart or sign-in. Continue setup with the CLI until it is connected.
 
 For an agent the command doesn't support, the user can add that URL as a remote MCP server.
 
@@ -115,7 +115,7 @@ For a project that does not already use Clerk, run from the project root:
 npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the provider, middleware, auth routes, and environment. It also installs Clerk's agent skills globally. Add `--no-skills` if the plugin is installed, the user declined it, or Clerk's skills are already available to you, such as when you loaded this as the `clerk-setup` skill. Don't pass `--framework` or `--pm` unless asked. Add `--app <application_id>` only when the user selected an application in the optional branch above.
+`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install Skills. Add `--no-skills` only if the plugin is installed or the user declined agent Skills. A URL or generated copy of this skill does not prove installation. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an app above.
 
 ## Step 1b: Empty directory
 
