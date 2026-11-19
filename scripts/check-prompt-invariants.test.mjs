@@ -60,6 +60,68 @@ function codeFence(content, info = "bash") {
   return ["```" + info, content, "```"].join("\n");
 }
 
+const pluginPrompt = [
+  "## Before you start",
+  "Install the Clerk plugin for the coding agents on this machine.",
+  "## Install the Clerk plugin",
+  "If the Clerk plugin is installed in this agent, skip installation.",
+  codeFence("npx -y plugins add clerk/skills --yes"),
+  "## Set up the project",
+  codeFence("npx -y clerk@latest init"),
+].join("\n");
+
+function assertPluginViolation(content, expected) {
+  assert.throws(
+    () => validatePromptInvariants({ ...options(content), requirePluginStep: true }),
+    (error) => error.message.includes(expected),
+  );
+}
+
+test("accepts the conditional plugin step and noninteractive fallback", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants({ ...options(pluginPrompt), requirePluginStep: true }),
+  );
+});
+
+test("requires plugin-install consent wording", () => {
+  assertPluginViolation(
+    pluginPrompt.replace(" for the coding agents on this machine", ""),
+    "tell the user the plugin installs",
+  );
+});
+
+test("requires the installed-plugin skip condition", () => {
+  assertPluginViolation(
+    pluginPrompt.replace(
+      "If the Clerk plugin is installed in this agent, skip installation.",
+      "Skip if Clerk MCP tools are available.",
+    ),
+    "skip plugin installation when the plugin is installed",
+  );
+});
+
+for (const command of [
+  "npx plugins add clerk/skills",
+  "npx -y plugins add clerk/skills --target codex",
+]) {
+  test(`rejects a different plugin fallback: ${command}`, () => {
+    assertPluginViolation(
+      pluginPrompt.replace("npx -y plugins add clerk/skills --yes", command),
+      "use `npx -y plugins add clerk/skills --yes`",
+    );
+  });
+}
+
+test("requires plugin installation before Clerk init", () => {
+  assertPluginViolation(
+    pluginPrompt.replace(
+      `${codeFence("npx -y plugins add clerk/skills --yes")}\n## Set up the project\n${codeFence("npx -y clerk@latest init")}`,
+      `${codeFence("npx -y clerk@latest init")}\n${codeFence("npx -y plugins add clerk/skills --yes")}`,
+    ),
+    "install the Clerk plugin before initializing Clerk",
+  );
+});
+
 function assertViolation(
   content,
   expected,
@@ -478,7 +540,10 @@ test("accepts absolute links", () => {
 test("the canonical setup skill passes the invariant checker", async () => {
   const content = await readFile(PROMPT_PATH, "utf8");
   assert.doesNotThrow(() =>
-    validatePromptInvariants(options(content, canonicalManifest, false)),
+    validatePromptInvariants({
+      ...options(content, canonicalManifest, false),
+      requirePluginStep: true,
+    }),
   );
 });
 

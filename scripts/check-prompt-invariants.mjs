@@ -14,6 +14,9 @@ import {
 } from "./check-docs-links.mjs";
 
 export const PROMPT_PATH = "skills/clerk-setup/SKILL.md";
+const pluginInstallCommand = "npx -y plugins add clerk/skills --yes";
+const installedPluginCondition =
+  "If the Clerk plugin is installed in this agent, skip installation.";
 
 const frameworkQuickstartUrl =
   /https:\/\/clerk\.com\/docs\/[^\s`|)>]+\/getting-started\/quickstart[^\s`|)>]*/g;
@@ -166,6 +169,7 @@ function valueStartLine(content, node) {
 function markdownDetails(content) {
   const tree = remark().use(remarkFrontmatter).use(remarkGfm).parse(content);
   const commands = [];
+  const pluginInstalls = [];
   const globalInstalls = [];
   const quickstartUrls = [];
   const relativeLinks = [];
@@ -209,6 +213,20 @@ function markdownDetails(content) {
 
         for (const segment of commandSegments(line)) {
           if (isGlobalCliInstall(segment)) globalInstalls.push(lineNumber);
+          const unwrapped = unwrapCommand(segment);
+          const pluginsIndex = unwrapped.indexOf("plugins");
+          if (
+            pluginsIndex !== -1 &&
+            unwrapped[pluginsIndex + 1] === "add" &&
+            unwrapped[pluginsIndex + 2] === "clerk/skills"
+          ) {
+            pluginInstalls.push({
+              command: segment.join(" "),
+              headings: headings.map(({ text }) => text),
+              line: lineNumber,
+              type: node.type,
+            });
+          }
           const invocation = clerkInvocation(segment);
           if (!invocation) continue;
           commands.push({
@@ -254,14 +272,45 @@ function markdownDetails(content) {
     },
   );
 
-  return { commands, globalInstalls, quickstartUrls, relativeLinks };
+  return { commands, globalInstalls, pluginInstalls, quickstartUrls, relativeLinks };
 }
 
-export function checkPromptInvariants({ content, filePath, manifest }) {
+function sectionContent(content, heading) {
+  const start = content.indexOf(`## ${heading}\n`);
+  if (start === -1) return "";
+  const afterHeading = content.slice(start + heading.length + 4);
+  const nextHeading = afterHeading.indexOf("\n## ");
+  return nextHeading === -1 ? afterHeading : afterHeading.slice(0, nextHeading);
+}
+
+export function checkPromptInvariants({ content, filePath, manifest, requirePluginStep = false }) {
   const errors = [];
   const report = (message, line) => errors.push({ filePath, line, message });
-  const { commands, globalInstalls, quickstartUrls, relativeLinks } =
+  const { commands, globalInstalls, pluginInstalls, quickstartUrls, relativeLinks } =
     markdownDetails(content);
+
+  if (requirePluginStep) {
+    const checklist = sectionContent(content, "Before you start").replace(/\s+/g, " ");
+    const installSection = sectionContent(content, "Install the Clerk plugin").replace(/\s+/g, " ");
+    if (!checklist.includes("for the coding agents on this machine")) {
+      report("tell the user the plugin installs for the coding agents on this machine");
+    }
+    if (!installSection.includes(installedPluginCondition)) {
+      report("skip plugin installation when the plugin is installed in this agent");
+    }
+    if (pluginInstalls.length !== 1) {
+      report("include exactly one Clerk plugin install command in the setup skill");
+    }
+    for (const { command, headings, line, type } of pluginInstalls) {
+      if (
+        command !== pluginInstallCommand ||
+        type !== "code" ||
+        headings.at(-1) !== "Install the Clerk plugin"
+      ) {
+        report(`use \`${pluginInstallCommand}\` in the plugin install section`, line);
+      }
+    }
+  }
 
   for (const line of globalInstalls) {
     report("do not install the Clerk CLI globally", line);
@@ -282,6 +331,13 @@ export function checkPromptInvariants({ content, filePath, manifest }) {
     ({ name, runner, args, type }) =>
       type === "code" && runner && name === "clerk@latest" && args[0] === "init",
   );
+  if (
+    requirePluginStep &&
+    firstInitIndex !== -1 &&
+    pluginInstalls[0]?.line >= commands[firstInitIndex].line
+  ) {
+    report("install the Clerk plugin before initializing Clerk", pluginInstalls[0].line);
+  }
   if (firstInitIndex === -1) {
     report("include Clerk initialization in setup guidance");
   } else {
@@ -360,6 +416,7 @@ export async function run({ cwd }) {
     content,
     filePath: PROMPT_PATH,
     manifest,
+    requirePluginStep: true,
   });
 
   for (const { filePath, line, message } of errors) {
