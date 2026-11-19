@@ -37,10 +37,11 @@ If the user already asked for sign-in UI, such as a custom flow, continue here o
 
 ## What Do You Need?
 
-| Task                                        | Reference              |
-| ------------------------------------------- | ---------------------- |
-| Prebuilt AuthView / UserButton (fastest)    | references/prebuilt.md |
-| Custom API-driven auth flows (full control) | references/custom.md   |
+| Task | Reference |
+| --- | --- |
+| Prebuilt AuthView / UserButton (fastest) | references/prebuilt.md |
+| Custom API-driven auth flows (full control) | references/custom.md |
+| Native Sign in with Apple setup, before a flow is chosen | "Sign in with Apple" under Prerequisites in references/prebuilt.md (references/custom.md has the same steps) |
 
 ## Quick Start
 

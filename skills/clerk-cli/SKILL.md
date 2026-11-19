@@ -1,7 +1,7 @@
 ---
 name: clerk-cli
 description: >-
-  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
+  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, Application Logs, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", "clerk logs", "check the logs", "application logs", "why did this sign-in fail", "debug a sign-up", "what happened to this user", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
 license: MIT
 ---
 
@@ -95,6 +95,7 @@ Which commands need an account, and the full rules: [auth.md](references/auth.md
 | **Backend API (default)** | Runtime data: users, orgs, sessions, invitations, JWT templates, webhooks | `clerk api <path>` |
 | **Platform API (`--platform`)** | Account-level: applications, instances, billing | `clerk api --platform <path>` |
 | **Frontend API (`--fapi`)** | The instance's public client-facing API (what clerk-js calls) | `clerk api --fapi <path>` |
+| **Application Logs** | What happened on the instance: sign-ins, sign-ups, user and session changes | `logs`, `logs get`, `logs schema` |
 
 A project is "linked" to an application via `clerk link`. Once linked, most commands auto-resolve the target app and dev instance from the repo's git remote. To target something else, pass `--app <id>` and/or `--instance dev|prod|<instance_id>`. See [references/auth.md](references/auth.md) for the full resolution order.
 
@@ -190,6 +191,8 @@ node -e 'const d=require("/tmp/users.json"); console.log(d.data.length, d.hasMor
 
 Read the [command catalog](references/commands.md) when choosing a subcommand or flag. Confirm unfamiliar syntax with `clerk <command> --help`.
 
+To find out why a sign-in or sign-up failed or what happened to a user, read the instance's logs before guessing from code: see [Application Logs](references/recipes.md#application-logs).
+
 ## Agent-mode behavior (important)
 
 The CLI auto-detects agent mode when stdout is not a TTY, or when `--mode agent` / `CLERK_MODE=agent` is set. In agent mode:
@@ -201,7 +204,7 @@ The CLI auto-detects agent mode when stdout is not a TTY, or when `--mode agent`
 - **If a Clerk CLI command returns an error with code `not_linked`, follow [When the folder isn't linked](references/auth.md#when-the-folder-isnt-linked).** It covers sandbox checks, unclaimed apps, competing claim files, and older CLIs. Do not assume `clerk link` is the next step.
 - **For `init`, follow `clerk-setup`.** It owns framework-support, accountless, app-linking, migration, and login-order guidance so setup instructions have one source of truth.
 - **`--fresh` is destructive.** It replaces the temporary app and overwrites the env keys and `.clerk/keyless.json` breadcrumb with no prompt, orphaning the previous app and its users. Never pass it just to re-run `init`.
-- **A few commands require `--yes` in agent mode.** `unlink`, `security fix` (unless `--dry-run`), and `disable orgs` while organization billing is on exit with a usage error without it. `update` without `--yes` prints a hint and exits `0` without updating.
+- **A few commands require `--yes` in agent mode.** `unlink`, `security fix` (unless `--dry-run`), and `disable orgs` while organization billing is on exit with a usage error without it. `migrate import` and `migrate undo` print a preview and exit `2` with the exact command to run. `update` without `--yes` prints a hint and exits `0` without updating.
 - **Every other confirmation is skipped in agent mode.** `config patch` / `put`, `api` mutations, `users create`, and `enable` / `disable` execute with no prompt and no error. Passing `--yes` is harmless but changes nothing. Do not treat it as a safety gate - `--dry-run` is the real one.
 - **Before `security fix`, tell the user what changes.** Several fixes add a CAPTCHA, verification, second-factor, or passkey step, or force a password reset; findings with a `customFlows` note break custom sign-in flows until they are updated. `mfa` and `passwordless-auth` are product decisions: ask which `--factors` / `--strategy` rather than picking. See [Audit and harden security](references/agent-mode.md#audit-and-harden-security).
 - **`impersonate` requires the `[user]` positional in agent mode.** If a search term matches multiple users, it exits `2` listing candidate user IDs — retry with a specific `user_...` ID. Output is a JSON object (`{url, id, userId, actor, ...}`); surface `url` to the user and capture `id` — it is the only chance to record the revoke handle.
