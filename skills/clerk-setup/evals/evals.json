@@ -82,6 +82,19 @@
         "Does NOT create a .env file or install a JavaScript Clerk package",
         "Configures Clerk in Swift (Clerk.configure) rather than through environment variables"
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "i have a jetpack compose android app (gradle, app module) and want to add clerk sign in. can you set it up?",
+      "expected_output": "Follows the Android setup prompt instead of the web steps: chooses a Clerk application, runs clerk init on the Gradle project, and finishes the Kotlin integration without accountless keys or an env file",
+      "files": [],
+      "expectations": [
+        "Follows the Android setup prompt at https://clerk.com/docs/android/getting-started/quickstart.md instead of the web setup steps",
+        "Chooses or creates a Clerk application and passes it to npx -y clerk@latest init with --app",
+        "Does NOT rely on accountless setup or temporary development keys",
+        "Does NOT create a .env file or install a JavaScript Clerk package",
+        "Initializes Clerk in Kotlin (Clerk.initialize) rather than through environment variables"
+      ]
     }
   ]
 }
