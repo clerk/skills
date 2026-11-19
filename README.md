@@ -188,7 +188,7 @@ for how temporary keys and later account claiming work.
 | "Gate features by plan" | `clerk-billing` |
 | "Add Clerk auth to my iOS app" | `clerk-setup` |
 | "Add a custom sign-in screen to my SwiftUI app" | `clerk-swift` |
-| "Add Clerk auth to my Android app" | `clerk-android` |
+| "Add Clerk auth to my Android app" | `clerk-setup` |
 
 ## Repository Structure
 

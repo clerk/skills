@@ -34,6 +34,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Environment setup, API keys, temporary dev keys via `clerk init`
 - Planning a switch from another auth provider
 - Native iOS and macOS apps in Xcode, through the iOS setup prompt
+- Native Android apps with Gradle, through the Android setup prompt
 
 **Migrating users into Clerk** → Use `clerk-migrate`
 
@@ -152,6 +153,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Native Android Kotlin and Jetpack Compose projects
 - `clerk-android-api` and `clerk-android-ui` implementation guidance
 - Source-driven patterns from `clerk-android`
+- If Clerk isn't set up yet, set it up first through `clerk-setup`
 - Do not use for Expo or React Native projects
 
 **Backend REST API** → Use `clerk-backend-api`
