@@ -6,7 +6,7 @@ Common tasks with `clerk-protect`. Every command takes `--json`. Every change as
 
 ```bash
 clerk-protect --version
-clerk-protect whoami                 # signed in? which instance? what may I do?
+clerk-protect whoami                 # sign-in, instance, and permissions
 clerk-protect profile show           # which instance commands act on, and why
 ```
 
@@ -14,7 +14,7 @@ Exit `3` means sign in again: ask the user to run `clerk-protect login`. It need
 
 ## Custom rules
 
-Rules are boolean expressions over the fields of a sign-in, sign-up or other event, with an action (`block` or `challenge`). They live in rulesets. The `ALL` ruleset runs first, then the request's own. Within a ruleset every `block` rule runs before every `challenge` rule; among rules with the same action, a lower `priority` runs first, and position decides only between rules with the same action and priority. See [Rule order](reading-results.md#rule-order).
+Rules are boolean expressions over the fields of a sign-in, sign-up, or other event, with an action (`block` or `challenge`). They live in rulesets. The `ALL` ruleset runs first, then the request's own. Within a ruleset every `block` rule runs before every `challenge` rule; among rules with the same action, a lower `priority` runs first, and position decides only between rules with the same action and priority. See [Rule order](reading-results.md#rule-order).
 
 ```bash
 clerk-protect rulesets list                          # the rulesets you can write into
@@ -22,7 +22,7 @@ clerk-protect schema                                 # every field a rule can us
 clerk-protect schema SIGN_UP                         # the fields for one event type
 clerk-protect rules list --ruleset SIGN_UP           # current rules
 
-# Check an expression before using it (exit 1 when it is not valid)
+# Check an expression before using it (exit 1 when it isn't valid)
 clerk-protect rules validate --ruleset SIGN_UP 'email.domain.apex == "mailinator.com"'
 
 # Create — asks first. Prefer challenge while you learn what a rule catches.
@@ -33,20 +33,20 @@ clerk-protect rules create --ruleset SIGN_UP \
 clerk-protect rules disable RULE_ID --ruleset SIGN_UP   # off, kept
 clerk-protect rules enable  RULE_ID --ruleset SIGN_UP
 clerk-protect rules update  RULE_ID --ruleset SIGN_UP --action block   # changes only what the flags name
-clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview, then without --dry-run (only changes order among rules with the same action and priority)
+clerk-protect rules reorder --ruleset SIGN_UP --move RULE_ID --top --dry-run   # preview; drop --dry-run to apply
 clerk-protect rules delete  RULE_ID --ruleset SIGN_UP
 ```
 
 Field names differ between versions and instances. Take them from `schema`, never from memory. `rules create` also takes `--rate-limit-*`, `--challenge-*`, `--expires-in`/`--expires-at`, or `--file rule.json`. For a rate limit on sign-ups, set `--rate-limit-identity-key signup.signup_id` so each sign-up counts once. Read [Expressions](reading-results.md#expressions) before writing one.
 
-Two things `rules update` with flags does that are easy to miss:
+`rules update` with flags has two traps:
 
 - The `--rate-limit-*` flags are one setting, and so are the `--challenge-*` flags. Giving any of them replaces the whole rate limit or challenge setting, so repeat every part you want to keep, such as `--rate-limit-identity-key`. A stored rate limit can also have parts no flag sets (`limitExpression`, `thresholdExpression`, `complexity`); check `rules get --json`, and if it has any, update with a complete `--file` body instead.
 - In v0.5.0 and earlier, a flag update clears a stored `priority`. Before updating a rule, check `rules get RULE_ID --ruleset R --json`; if it has a priority, update it with `--file`: start from that JSON, change what you need, and keep `priority`. The file is the whole rule, so anything it leaves out is cleared.
 
 ## Protections
 
-Protections are ready-made defences you turn on and tune with settings ("bindings").
+Protections are ready-made defenses you turn on and tune with settings ("bindings").
 
 ```bash
 clerk-protect protections list
@@ -80,15 +80,15 @@ Create a column that rules look up as `matchable`, or `in_table` is quietly fals
 clerk-protect investigate schema                  # tables and columns you can ask about
 clerk-protect investigate --no-interactive --format json \
   --purpose "<the user's words: why they want to know>" \
-  --shape "one row per ASN with blocked count and distinct IPs, top 20" \
+  --shape "one row per network (ASN) with blocked count and distinct IPs, top 20" \
   "Which networks produced the most blocked sign-ins in the last 24 hours?"
 ```
 
-- Rows go to stdout (`--format table|csv|json`). The query, the checks and a short summary go to stderr. `--json` prints every event of the stream as a JSON line instead.
+- Rows go to stdout (`--format table|csv|json`). The query, the checks, and a short summary go to stderr. `--json` prints every event of the stream as a JSON line instead.
 - Exit `5`: Protect needs more information. Show the user the questions, then resend the same question with `--prior-request <id>` and `--context "Q: <question> A: <their answer>"` for each answer.
 - Exit `4`: declined. The reason is on stderr; usually the question isn't about this instance's decisions.
 - If it says it isn't available for this instance yet, use `insights` below.
-- What you pass in `--purpose`, `--justification` and `--investigating` is recorded as the user's reason. Ask them for it.
+- The CLI records `--purpose`, `--justification`, and `--investigating` as the user's reason. Ask them for it.
 
 ### With filters
 
@@ -103,7 +103,7 @@ clerk-protect insights flow --decision-id ID --at 2026-10-27T12:00:00Z   # every
 clerk-protect insights trace-id 7Q8ikxgt                             # the decision behind a blocked screen's reference (v0.5.0+)
 ```
 
-Dimension names and values come from `insights dimensions`. Windows default to the last 24 hours and reach back 14 days at most. Counts are decisions unless you pass `--unit flows`; see [Decisions are not sign-ups](reading-results.md#decisions-are-not-sign-ups). `insights --since` takes hours (`168h`, up to `336h`); `matches` also accepts days (`7d`), and replay windows are hours (`6h`, up to `24h`). The flows unit has its own dimensions: run `insights dimensions --unit flows`.
+Dimension names and values come from `insights dimensions`. Windows default to the last 24 hours. `insights --since` takes hours, up to 14 days (`336h`); `matches` also accepts days (`7d`). Counts are decisions unless you pass `--unit flows`; see [Decisions aren't sign-ups](reading-results.md#decisions-arent-sign-ups). The flows unit has its own dimensions: run `insights dimensions --unit flows`.
 
 ### Live
 
@@ -112,9 +112,9 @@ clerk-protect trace --no-tui --filter decision=DENY         # one line per decis
 clerk-protect trace --json                                 # one JSON object per decision
 ```
 
-In a terminal, `trace` opens an interactive view (`?` for the keys). Pass `--no-tui` or `--json` when you are reading its output.
+In a terminal, `trace` opens an interactive view (`?` for the keys). Pass `--no-tui` or `--json` when you're reading its output.
 
-### How often things match
+### Match counts
 
 ```bash
 clerk-protect matches --since 7d                           # each protection, as sparklines
@@ -149,19 +149,18 @@ clerk-protect replay get REPLAY_ID --json                # the report, and the r
 clerk-protect replay apply REPLAY_ID                     # asks first: changes live rules
 ```
 
-Give each added rule an `id`, so the report can attribute outcomes to it. Start with one to six hours; 24 hours is the maximum and often too slow on a busy instance. Besides `addRules`, a request can carry `disableRules`, `replaceRules`, `reorderRules`, `enableProtection`, `completedFlowsOnly` and `limit`. The Protect Labs replay page builds the same request (`clerk-protect console open --path /replay`), and `replay get … --json` shows an earlier replay's `request` to start from.
+Give each added rule an `id`, so the report can attribute outcomes to it. Start with one to six hours; 24 hours is the maximum and often too slow on a busy instance. Besides `addRules`, a request can carry `disableRules`, `replaceRules`, `reorderRules`, `enableProtection`, `completedFlowsOnly`, and `limit`. The Protect Labs replay page builds the same request (`clerk-protect console open --path /replay`), and `replay get … --json` shows an earlier replay's `request` to start from.
 
-Before applying, read the report: see [Reading a replay](reading-results.md#reading-a-replay).
+Before applying, read the report: see [Replay reports](reading-results.md#replay-reports).
 
 ## Open the web console
 
 ```bash
-clerk-protect console open                  # Protect Labs, signed in as this computer's sign-in
+clerk-protect console open                  # Protect Labs, already signed in
 clerk-protect console open --path /rules
 ```
 
 ## Scripts
 
-- `--json` on every command. `--yes` to confirm a change non-interactively, only with the user's approval.
 - `CLERK_PROTECT_PROFILE` selects a profile. `CLERK_PROTECT_CONFIG_DIR` moves everything the CLI stores.
-- Signing in always needs a person at a browser, so it does not suit unattended CI longer than one sign-in (up to eight hours; `whoami` shows when it ends).
+- Signing in always needs a person at a browser, so it doesn't suit unattended CI longer than one sign-in (up to eight hours; `whoami` shows when it ends).
