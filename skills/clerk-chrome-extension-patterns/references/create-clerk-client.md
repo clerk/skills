@@ -119,11 +119,11 @@ clerk
 
 ## createClerkClient() Options
 
-| Option           | Type      | Description                                                 |
-| ---------------- | --------- | ----------------------------------------------------------- |
-| `publishableKey` | `string`  | Required. Your Clerk publishable key.                       |
-| `background`     | `boolean` | Set `true` in service workers to keep sessions fresh.       |
-| `syncHost`       | `string`  | The web app domain to sync auth from (headless extensions). |
+| Option | Type | Description |
+| --- | --- | --- |
+| `publishableKey` | `string` | Required. Your Clerk publishable key. |
+| `background` | `boolean` | Set `true` in service workers to keep sessions fresh. |
+| `syncHost` | `string` | The Frontend API host to sync auth from. Pass it in the background worker whenever the extension uses syncHost, with or without a popup. `undefined` turns sync off. |
 
 ## Making Authenticated API Calls from Background
 

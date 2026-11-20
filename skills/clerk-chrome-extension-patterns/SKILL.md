@@ -25,7 +25,7 @@ metadata:
 5. Extension URLs use `chrome-extension://` not `http://` -- build redirect URLs with `browser.runtime.getURL('/popup.html')`
 6. Without a stable CRX ID, every rebuild breaks auth -- configure `key` in the manifest BEFORE deploying
 7. Content scripts cannot use Clerk directly due to origin restrictions -- Clerk enforces strict allowed origins
-8. Bot protection must be DISABLED in Clerk Dashboard -- Cloudflare bot detection is not supported in extension environments
+8. Bot protection must be turned OFF in the Clerk Dashboard -- its CAPTCHA loads from a remote source, Chrome Extensions can't load remotely hosted code, and the SDK leaves it out
 9. WXT imports background, content, and unlisted scripts in Node.js at build time -- all runtime code (listeners, env checks, DOM access) goes inside `defineBackground()` / `defineContentScript({ main })` / `defineUnlistedScript()`
 10. Use the function form `manifest: () => ({ ... })` in `wxt.config.ts` whenever the manifest reads `import.meta.env` -- WXT loads `.env` files after evaluating the config
 
@@ -62,6 +62,8 @@ rm entrypoints/content.ts entrypoints/popup/App.css assets/react.svg public/wxt.
 - pnpm 11 stops the install with `ERR_PNPM_IGNORED_BUILDS` for `browser-tabs-lock` and `core-js`. Neither needs its build script: `pnpm approve-builds '!browser-tabs-lock' '!core-js'`.
 
 Enable **Native API** in Clerk Dashboard under Native applications. Required for all extension integrations.
+
+Turn off **Challenge suspicious sign-ups** (or legacy **Bot sign-up protection**) on the Dashboard's **Protections** page, in every instance the extension uses (see rule 8).
 
 `.env.development` (WXT loads it for `npm run dev`; `.env.production` for `npm run build` / `npm run zip`):
 
@@ -404,18 +406,19 @@ Don't store auth in `localStorage`. The background service worker can't read it.
 | Build fails with a `browser`/`window`/`document` error | Runtime code outside `defineBackground()` / `defineContentScript({ main })` | Move it inside |
 | `wxt init` says "directory is not empty" | `wxt init .` needs an empty directory | Run it in a new, empty directory |
 | Extension asks for access to Google sites | Template `entrypoints/content.ts` still present | Delete it |
-| Bot protection errors | Cloudflare not supported in extensions | Disable bot protection in Clerk Dashboard |
+| Sign-up fails or is blocked as a bot | Bot protection's CAPTCHA is remote code, which extensions can't load | Turn off **Challenge suspicious sign-ups** / **Bot sign-up protection** on the Protections page, in dev and production |
 
 ## Plan Requirements
 
-| Feature                                | Plan                                   |
-| -------------------------------------- | -------------------------------------- |
-| Basic popup auth (email/password, OTP) | Free                                   |
-| Passkeys                               | Free                                   |
-| syncHost                               | Requires Pro (custom domain)           |
-| OAuth through syncHost                 | Pro + OAuth configured on web app      |
-| SAML through syncHost                  | Enterprise                             |
-| Bot protection                         | N/A -- must be disabled for extensions |
+| Feature | Plan (per clerk.com/pricing) |
+| --- | --- |
+| Email + password, username + password, email codes | Free |
+| SMS codes | Pro (per-SMS fees) |
+| Passkeys | Pro |
+| syncHost | Free (custom domains are on all plans) |
+| OAuth through syncHost | Free (up to 3 social connections), Pro for unlimited |
+| SAML through syncHost | Pro (1 SSO connection per app included, then volume pricing) |
+| Bot protection | N/A -- must be turned off for extensions |
 
 ## See Also
 
