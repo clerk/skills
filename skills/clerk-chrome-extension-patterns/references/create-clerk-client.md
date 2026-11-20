@@ -3,6 +3,7 @@
 ## When to Use
 
 Use `createClerkClient()` when:
+
 - Your extension doesn't use React
 - You need Clerk in a background service worker
 - You need Clerk in a content script context (via message passing from background)
@@ -15,6 +16,7 @@ Import from `@clerk/chrome-extension/client`, NOT from `@clerk/chrome-extension`
 The key option is `background: true`. This tells Clerk to refresh the session token continuously, even when no popup or side panel is open. Without it, tokens expire after 60 seconds of the UI being closed.
 
 `entrypoints/background.ts` (WXT):
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -81,6 +83,7 @@ async function makeAuthenticatedRequest() {
 For popups or side panels that use plain TypeScript instead of React. This example matches the framework-free [JavaScript quickstart](https://clerk.com/docs/getting-started/quickstart/chrome-extension-js), which bundles with esbuild and injects `process.env.CLERK_PUBLISHABLE_KEY` at build time. In a WXT project, use `import.meta.env.WXT_CLERK_PUBLISHABLE_KEY` and `browser.runtime.getURL('/popup.html')` instead.
 
 `src/popup.ts`:
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -96,26 +99,28 @@ function render() {
   contentEl.textContent = email ?? 'Not signed in'
 }
 
-clerk.load({
-  afterSignOutUrl: POPUP_URL,
-  signInForceRedirectUrl: POPUP_URL,
-  signUpForceRedirectUrl: POPUP_URL,
-  allowedRedirectProtocols: ['chrome-extension:'],
-}).then(() => {
-  clerk.addListener(render)
-  render()
-})
+clerk
+  .load({
+    afterSignOutUrl: POPUP_URL,
+    signInForceRedirectUrl: POPUP_URL,
+    signUpForceRedirectUrl: POPUP_URL,
+    allowedRedirectProtocols: ['chrome-extension:'],
+  })
+  .then(() => {
+    clerk.addListener(render)
+    render()
+  })
 ```
 
 `allowedRedirectProtocols: ['chrome-extension:']` is required to allow redirects to `chrome-extension://` URLs.
 
 ## createClerkClient() Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `publishableKey` | `string` | Required. Your Clerk publishable key. |
-| `background` | `boolean` | Set `true` in service workers to keep sessions fresh. |
-| `syncHost` | `string` | The web app domain to sync auth from (headless extensions). |
+| Option           | Type      | Description                                                 |
+| ---------------- | --------- | ----------------------------------------------------------- |
+| `publishableKey` | `string`  | Required. Your Clerk publishable key.                       |
+| `background`     | `boolean` | Set `true` in service workers to keep sessions fresh.       |
+| `syncHost`       | `string`  | The web app domain to sync auth from (headless extensions). |
 
 ## Making Authenticated API Calls from Background
 

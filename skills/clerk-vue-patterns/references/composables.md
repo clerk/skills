@@ -10,14 +10,14 @@ import { useAuth } from '@clerk/vue'
 const { isSignedIn, isLoaded, userId, sessionId, signOut, getToken } = useAuth()
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `isSignedIn` | `Ref<boolean>` | True when user is authenticated |
-| `isLoaded` | `Ref<boolean>` | True when Clerk has initialized |
-| `userId` | `Ref<string \| null>` | Current user ID |
-| `sessionId` | `Ref<string \| null>` | Current session ID |
-| `signOut()` | `function` | Sign out and clear session |
-| `getToken()` | `async function` | Get JWT for external APIs |
+| Property     | Type                  | Description                     |
+| ------------ | --------------------- | ------------------------------- |
+| `isSignedIn` | `Ref<boolean>`        | True when user is authenticated |
+| `isLoaded`   | `Ref<boolean>`        | True when Clerk has initialized |
+| `userId`     | `Ref<string \| null>` | Current user ID                 |
+| `sessionId`  | `Ref<string \| null>` | Current session ID              |
+| `signOut()`  | `function`            | Sign out and clear session      |
+| `getToken()` | `async function`      | Get JWT for external APIs       |
 
 ## useUser
 

@@ -1,10 +1,6 @@
 ---
 name: clerk-chrome-extension-patterns
-description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel
-  setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers
-  and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, WXT
-  clerk, Plasmo clerk migration, popup sign-in, syncHost, background service worker
-  token, createClerkClient, headless extension.'
+description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, WXT clerk, Plasmo clerk migration, popup sign-in, syncHost, background service worker token, createClerkClient, headless extension.'
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires WXT_CLERK_PUBLISHABLE_KEY and WXT_CLERK_FRONTEND_API (WXT exposes only WXT_- or VITE_-prefixed env vars to extension code).
@@ -12,10 +8,10 @@ metadata:
   author: clerk
   version: 3.0.0
   references:
-  - references/sync-host.md
-  - references/create-clerk-client.md
-  - references/content-scripts.md
-  - references/headless-extension.md
+    - references/sync-host.md
+    - references/create-clerk-client.md
+    - references/content-scripts.md
+    - references/headless-extension.md
 ---
 
 # Chrome Extension Patterns
@@ -35,18 +31,18 @@ metadata:
 
 ## Authentication Options
 
-| Method | Popup | Side Panel | syncHost (with web app) |
-|--------|-------|------------|------------------------|
-| Email + OTP | Yes | Yes | Yes |
-| Email + Link | No | No | Yes |
-| Email + Password | Yes | Yes | Yes |
-| Username + Password | Yes | Yes | Yes |
-| SMS + OTP | Yes | Yes | Yes |
-| OAuth (Google, GitHub, etc.) | **NO** | **NO** | **YES** |
-| SAML | **NO** | **NO** | **YES** |
-| Passkeys | Yes | Yes | Yes |
-| Google One Tap | No | No | Yes |
-| Web3 | No | No | Yes |
+| Method                       | Popup  | Side Panel | syncHost (with web app) |
+| ---------------------------- | ------ | ---------- | ----------------------- |
+| Email + OTP                  | Yes    | Yes        | Yes                     |
+| Email + Link                 | No     | No         | Yes                     |
+| Email + Password             | Yes    | Yes        | Yes                     |
+| Username + Password          | Yes    | Yes        | Yes                     |
+| SMS + OTP                    | Yes    | Yes        | Yes                     |
+| OAuth (Google, GitHub, etc.) | **NO** | **NO**     | **YES**                 |
+| SAML                         | **NO** | **NO**     | **YES**                 |
+| Passkeys                     | Yes    | Yes        | Yes                     |
+| Google One Tap               | No     | No         | Yes                     |
+| Web3                         | No     | No         | Yes                     |
 
 ## Quick Start (WXT)
 
@@ -68,14 +64,22 @@ rm entrypoints/content.ts entrypoints/popup/App.css assets/react.svg public/wxt.
 Enable **Native API** in Clerk Dashboard under Native applications. Required for all extension integrations.
 
 `.env.development` (WXT loads it for `npm run dev`; `.env.production` for `npm run build` / `npm run zip`):
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_test_...
 WXT_CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
 ```
 
 `entrypoints/popup/App.tsx` (the template's `main.tsx` already mounts it):
+
 ```tsx
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/chrome-extension'
+import {
+  ClerkProvider,
+  Show,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/chrome-extension'
 
 const PUBLISHABLE_KEY = import.meta.env.WXT_CLERK_PUBLISHABLE_KEY
 const POPUP_URL = browser.runtime.getURL('/popup.html')
@@ -105,6 +109,7 @@ export default function App() {
 ```
 
 `wxt.config.ts`:
+
 ```ts
 import { defineConfig } from 'wxt'
 
@@ -132,6 +137,7 @@ Use this when you need OAuth, SAML, or want the extension to reflect sign-in fro
 **Step 1 -- Environment variables:**
 
 `.env.development`:
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_test_...
 WXT_CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
@@ -139,6 +145,7 @@ WXT_CLERK_SYNC_HOST=http://localhost
 ```
 
 `.env.production`:
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_live_...
 WXT_CLERK_FRONTEND_API=https://clerk.your-domain.com
@@ -243,15 +250,17 @@ const POPUP_URL = `${EXTENSION_URL}popup.html`
 
 const clerk = createClerkClient({ publishableKey })
 
-clerk.load({
-  afterSignOutUrl: POPUP_URL,
-  signInForceRedirectUrl: POPUP_URL,
-  signUpForceRedirectUrl: POPUP_URL,
-  allowedRedirectProtocols: ['chrome-extension:'],
-}).then(() => {
-  clerk.addListener(render)
-  render()
-})
+clerk
+  .load({
+    afterSignOutUrl: POPUP_URL,
+    signInForceRedirectUrl: POPUP_URL,
+    signUpForceRedirectUrl: POPUP_URL,
+    allowedRedirectProtocols: ['chrome-extension:'],
+  })
+  .then(() => {
+    clerk.addListener(render)
+    render()
+  })
 ```
 
 Full guide: `references/create-clerk-client.md`
@@ -325,11 +334,13 @@ openssl rsa -in key.pem -pubout -outform DER | shasum -a 256 | head -c32 | tr 0-
 For an extension already in the Chrome Web Store, use its public key from Developer Dashboard > Package > **View public key** (one line, without the BEGIN/END markers).
 
 **`.env.chrome`** (WXT loads it for every Chrome build, dev and production):
+
 ```
 WXT_CRX_PUBLIC_KEY=<public key>
 ```
 
 **`wxt.config.ts`:**
+
 ```ts
 manifest: () => ({
   key: import.meta.env.WXT_CRX_PUBLIC_KEY,
@@ -349,7 +360,7 @@ Don't store auth in `localStorage` -- it's scoped to the popup page.
 ## Migrating from Plasmo
 
 | Plasmo | WXT |
-|--------|-----|
+| --- | --- |
 | `PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY` via `process.env` | `WXT_CLERK_PUBLISHABLE_KEY` via `import.meta.env` |
 | `package.json` `"manifest"` with `$VAR` | `wxt.config.ts` `manifest: () => ({ ... })` with `` `${import.meta.env.WXT_…}` `` |
 | `src/popup.tsx`, `src/background/index.ts`, `src/tabs/*` | `entrypoints/popup/`, `entrypoints/background.ts` (`defineBackground`), `entrypoints/<name>/index.html` |
@@ -359,7 +370,7 @@ Don't store auth in `localStorage` -- it's scoped to the popup page.
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --- | --- | --- |
 | Redirect loop on sign-in | Missing CRX URL in ClerkProvider props | Set `afterSignOutUrl`, `signInFallbackRedirectUrl` |
 | OAuth button not working | OAuth not supported in popup | Use `syncHost` to delegate to web app |
 | Auth state stale after web app sign-in | `syncHost` not configured | Add `syncHost` prop + `host_permissions` |
@@ -377,14 +388,14 @@ Don't store auth in `localStorage` -- it's scoped to the popup page.
 
 ## Plan Requirements
 
-| Feature | Plan |
-|---------|------|
-| Basic popup auth (email/password, OTP) | Free |
-| Passkeys | Free |
-| syncHost | Requires Pro (custom domain) |
-| OAuth through syncHost | Pro + OAuth configured on web app |
-| SAML through syncHost | Enterprise |
-| Bot protection | N/A -- must be disabled for extensions |
+| Feature                                | Plan                                   |
+| -------------------------------------- | -------------------------------------- |
+| Basic popup auth (email/password, OTP) | Free                                   |
+| Passkeys                               | Free                                   |
+| syncHost                               | Requires Pro (custom domain)           |
+| OAuth through syncHost                 | Pro + OAuth configured on web app      |
+| SAML through syncHost                  | Enterprise                             |
+| Bot protection                         | N/A -- must be disabled for extensions |
 
 ## See Also
 

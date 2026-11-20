@@ -4,11 +4,11 @@
 
 `@clerk/nuxt` composables (`useAuth`, `useUser`) are client-reactive but the initial state is SSR-safe.
 
-| Context | How to get auth |
-|---------|----------------|
-| Vue component (`<script setup>`) | `useAuth()`, `useUser()` composables |
-| Nitro server route | `event.context.auth` |
-| Nuxt plugin (server) | `event.context.auth` via `useNitroApp` |
+| Context                          | How to get auth                        |
+| -------------------------------- | -------------------------------------- |
+| Vue component (`<script setup>`) | `useAuth()`, `useUser()` composables   |
+| Nitro server route               | `event.context.auth`                   |
+| Nuxt plugin (server)             | `event.context.auth` via `useNitroApp` |
 
 ## SSR-Safe Page Pattern
 

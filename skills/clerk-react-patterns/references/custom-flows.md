@@ -39,13 +39,13 @@ export function CustomSignIn() {
       <input
         type="email"
         value={email}
-        onChange={e => setEmail(e.target.value)}
+        onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
       />
       <input
         type="password"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
       />
       {error && <p>{error}</p>}
@@ -93,12 +93,12 @@ async function verifyEmail(code: string) {
 
 ## signIn.status Values
 
-| Status | Meaning |
-|--------|---------|
-| `'complete'` | Auth successful, call `setActive` |
-| `'needs_first_factor'` | First factor required (e.g., password) |
-| `'needs_second_factor'` | MFA required |
-| `'needs_new_password'` | Password reset required |
+| Status                  | Meaning                                |
+| ----------------------- | -------------------------------------- |
+| `'complete'`            | Auth successful, call `setActive`      |
+| `'needs_first_factor'`  | First factor required (e.g., password) |
+| `'needs_second_factor'` | MFA required                           |
+| `'needs_new_password'`  | Password reset required                |
 
 Always check `result.status === 'complete'` before calling `setActive`.
 

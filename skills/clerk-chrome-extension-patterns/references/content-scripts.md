@@ -3,6 +3,7 @@
 ## Constraint
 
 Content scripts run in an isolated JavaScript world injected into web pages. They cannot:
+
 - Use Clerk React hooks
 - Call Clerk APIs directly (Clerk enforces strict origin restrictions -- content scripts could run on any domain)
 - Access the extension's React context
@@ -12,6 +13,7 @@ Use message passing to request auth state from the background service worker.
 ## Pattern: Request Token from Background
 
 `entrypoints/content.ts` (WXT):
+
 ```typescript
 export default defineContentScript({
   matches: ['https://specific-site.com/*'],
@@ -36,6 +38,7 @@ async function getToken(): Promise<string | null> {
 ```
 
 `entrypoints/background.ts`:
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -94,6 +97,7 @@ WXT's React template ships an example `entrypoints/content.ts` that matches `*:/
 ## Manifest Permissions
 
 `wxt.config.ts`:
+
 ```ts
 import { defineConfig } from 'wxt'
 

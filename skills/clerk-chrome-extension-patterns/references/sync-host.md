@@ -3,6 +3,7 @@
 ## When to Use
 
 Use `syncHost` when you need:
+
 - OAuth (Google, GitHub, etc.)
 - SAML
 - Email magic links
@@ -19,6 +20,7 @@ The extension reads Clerk's session cookie from your web app's domain using `hos
 Use separate files for dev vs prod. WXT loads `.env.development` for `wxt` (dev) and `.env.production` for `wxt build` / `wxt zip`. Only variables prefixed with `WXT_` (or `VITE_`) reach extension code.
 
 `.env.development`:
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_test_...
 WXT_CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
@@ -26,6 +28,7 @@ WXT_CLERK_SYNC_HOST=http://localhost
 ```
 
 `.env.production`:
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_live_...
 WXT_CLERK_FRONTEND_API=https://clerk.your-domain.com

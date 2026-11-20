@@ -32,7 +32,7 @@ Skills follow the [Agent Skills](https://agentskills.io/) format.
 
 ## Install
 
-The `clerk` plugin bundles every skill plus the [Clerk MCP server](https://mcp.clerk.com/mcp). `npx skills` installs the skills alone, into any agent.
+The `clerk` plugin bundles every skill plus the [Clerk MCP server](#clerk-mcp-server). `npx skills` installs the skills alone, into any agent.
 
 ### Agent Skills
 
@@ -66,6 +66,14 @@ cursor-agent plugin marketplace add https://github.com/clerk/skills
 
 Then install `clerk` from `/plugin`, or from **Customize** in the editor.
 
+### Antigravity
+
+```bash
+agy plugin install https://github.com/clerk/skills
+```
+
+To sign in to the Clerk MCP server, open `/plugin`, expand `clerk` under **Installed**, and choose **Sign in**.
+
 ### GitHub Copilot CLI
 
 ```bash
@@ -75,6 +83,34 @@ copilot plugin install clerk@clerk-skills
 
 `clerk` replaces the earlier `core`, `frameworks`, `features`, and `mobile` plugins. Copilot moves those installs to `clerk@clerk-skills` but leaves it disabled, so run `copilot plugin enable clerk@clerk-skills` once.
 
+## Clerk MCP Server
+
+The Clerk MCP server lets AI agents work with your Clerk account. Clerk hosts it, so there's no server to run.
+
+- **Account tools:** create and configure applications, list, create, and update users, list organizations and their members, check domains and DNS records, and set up production instances.
+- **SDK snippet tools:** get ready-to-use code for Clerk features, or bundles such as `b2b-saas` and `organizations`.
+
+### Connect
+
+Add `https://mcp.clerk.com/mcp` to your agent as a streamable HTTP server, then sign in with your Clerk Dashboard account when prompted. The `clerk` plugin above does this for you.
+
+See the [Clerk MCP server docs](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server) for setup steps in popular agents.
+
+### Permissions
+
+The server acts as you, so it can only do what your workspace role allows. It never returns secret keys, and tools that make changes are flagged so your agent can ask before running them.
+
+For product analytics, the MCP server sends Clerk an event for each tool call. It records the tool name, whether the call succeeded, your Clerk user ID, your AI client, and, when the tool takes them, the application ID and whether the call was a dry run. It doesn't include the tool's other inputs or its results. [See what data Clerk receives about tool calls](https://clerk.com/docs/guides/ai/mcp/clerk-mcp-server#what-does-the-mcp-server-send-to-clerk-about-tool-calls).
+
+### Example prompts
+
+- "Which Clerk applications do I have?"
+- "List the five most recent sign-ups"
+- "Show the admins of the Example Team Organization in my production instance"
+- "Add `onboarding_complete: true` to the public metadata for `alex@example.com` in development"
+- "Check which DNS records I need for production"
+- "Show me how to set up B2B SaaS with Clerk Organizations"
+
 ## Skills
 
 ### Core
@@ -82,8 +118,9 @@ copilot plugin install clerk@clerk-skills
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
-| `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, deploy checks |
+| `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, logs, deploy checks |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
+| `clerk-migrate` | Migrate users into Clerk | Importing users from another auth provider, dev → prod |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
 | `clerk-backend-api` | Backend REST API explorer | Browsing or calling API endpoints |
 
@@ -135,7 +172,9 @@ for how temporary keys and later account claiming work.
 | You Say | Skill Used |
 |---------|------------|
 | "List Clerk users" | `clerk-cli` |
+| "Why did this user's sign-in fail?" | `clerk-cli` |
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
+| "Migrate my users from Auth0 to Clerk" | `clerk-migrate` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
 | "Add Clerk to my Vue app" | `clerk-vue-patterns` |
 | "Add Clerk to my Nuxt app" | `clerk-nuxt-patterns` |
@@ -150,7 +189,7 @@ for how temporary keys and later account claiming work.
 | "Gate features by plan" | `clerk-billing` |
 | "Add Clerk auth to my iOS app" | `clerk-setup` |
 | "Add a custom sign-in screen to my SwiftUI app" | `clerk-swift` |
-| "Add Clerk auth to my Android app" | `clerk-android` |
+| "Add Clerk auth to my Android app" | `clerk-setup` |
 
 ## Repository Structure
 
@@ -167,6 +206,8 @@ clerk-skills/                           # the repo root is the plugin root
 ├── .claude-plugin/                     # plugin.json + marketplace.json
 ├── .cursor-plugin/                     # plugin.json + marketplace.json
 ├── .codex-plugin/plugin.json
+├── .antigravity-plugin/plugin.json     # Antigravity manifest
+├── mcp_config.json                     # Antigravity MCP config
 ├── .agents/plugins/marketplace.json    # Codex marketplace
 ├── scripts/                            # CI checkers, run with pnpm run check
 └── README.md

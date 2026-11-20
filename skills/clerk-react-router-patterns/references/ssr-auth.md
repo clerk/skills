@@ -27,11 +27,11 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
 
 ## useAuth vs getAuth
 
-| | `useAuth` (client) | `getAuth` (server) |
-|--|--|--|
-| Where | Components, hooks | Loaders, actions |
-| Returns | Sync reactive state | Async auth object |
-| Import | `@clerk/react-router` | `@clerk/react-router/server` |
+|         | `useAuth` (client)    | `getAuth` (server)           |
+| ------- | --------------------- | ---------------------------- |
+| Where   | Components, hooks     | Loaders, actions             |
+| Returns | Sync reactive state   | Async auth object            |
+| Import  | `@clerk/react-router` | `@clerk/react-router/server` |
 
 ## getToken for External APIs
 

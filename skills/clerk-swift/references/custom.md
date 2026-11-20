@@ -11,28 +11,45 @@ Implement native iOS auth with ClerkKit primitives while keeping flow and layout
 Clerk must already be set up through the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md) (or the [manual iOS quickstart](https://clerk.com/docs/ios/getting-started/quickstart.md?manual=1) when the CLI can't set up the project). Then check only what this flow adds, and make targeted changes for anything missing:
 
 1. Package products
+
 - The app target needs `ClerkKit`. Leave an already linked `ClerkKitUI` in place, and don't add it unless the developer asks for mixed prebuilt and custom composition.
 - Don't change the existing `clerk-ios` version requirement.
 
 2. Sign in with Apple
-- If native Sign in with Apple is enabled for this app, the target needs the Sign in with Apple capability. `npx -y clerk@latest doctor` reports the Apple connection and whether each configuration has the entitlement.
-- To enable it, run `npx -y clerk@latest init --sign-in-with-apple --json` from the project directory. It configures Clerk and adds the entitlement. If the CLI isn't available, add the capability in Xcode.
+
+- If native Sign in with Apple is enabled for this app, the target needs the Sign in with Apple capability, which needs a paid Apple Developer Program team. `npx -y clerk@latest doctor` reports the Apple connection and the entitlement for Debug and Release; for another configuration, pass `--xcode-configuration <name>` to both `doctor` and `init`.
+- To enable it, run `npx -y clerk@latest init --mode agent --sign-in-with-apple --json` from the project directory. It turns on Apple in the Clerk application's development instance and adds the entitlement, along with the rest of the native setup (the app's registration, the Native API, and the Associated Domain). If the CLI isn't available, add the capability in Xcode. The capability alone doesn't turn on Apple sign-in in Clerk. Unless the user says Apple sign-in is already set up in Clerk, have them follow the manual steps in [Sign in with Apple](https://clerk.com/docs/ios/guides/configure/auth-strategies/sign-in-with-apple.md) for the Clerk instance whose key the app uses. For a production key, use the guide's production section:
+  - On [**Native applications**](https://dashboard.clerk.com/~/native-applications), turn on the Native API and add the app's App ID Prefix and Bundle ID if they aren't there.
+  - On [**SSO connections**](https://dashboard.clerk.com/~/user-authentication/sso-connections), enable Apple.
 
 These `init` commands need a linked project. With `--json`, an unlinked project returns `status: "application-required"`: rerun with `--app <application_id>` for the application whose `publishable_key` matches the app's existing key, from `npx -y clerk@latest apps list --json`.
+
+With `--json`, they can also return `status: "input-required"` before setting up the project. When the response has an `identity` object, handle its `issues` in this order:
+
+1. Registrations conflict: if the run included `--app-id-prefix`, confirm that prefix with the user and rerun without it if they aren't sure. If they confirm it, the run didn't include one, or the conflict remains, have the user review the matching registrations in the Clerk Dashboard, then rerun; don't ask for the App ID Prefix. Do the same when a registration's prefix is invalid.
+2. The Bundle ID is missing: ask the user for only the Bundle ID and rerun with `--bundle-id <bundle_id>`, even if the App ID Prefix is reported too.
+3. The App ID Prefix is still missing: ask the user for it and rerun with the same flags plus `--app-id-prefix <app_id_prefix>`.
+
+The App ID Prefix is usually the Team ID in Xcode › Settings › Accounts, and setup takes it from a matching Clerk registration or else the signing team. If the user gives one, pass it with `--app-id-prefix` on every run unless you removed it while resolving a registration conflict.
+
+If setup stops with `selection-required`, `setup-interrupted`, or an `input-required` without `identity`, follow the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md). Otherwise, read the JSON result, even on a nonzero exit (report the printed error when there's none), and finish any step in `handoff.remaining` this flow needs before continuing.
 
 Keep the existing `Clerk.configure` call, its key loading, and existing capabilities.
 
 ## Source-Driven Requirements
 
 When flow details are unclear, read the installed package source from Xcode DerivedData:
+
 - `~/Library/Developer/Xcode/DerivedData/.../SourcePackages/checkouts/clerk-ios`
 
 Source priority rules for custom flow:
+
 - Primary source: installed `ClerkKitUI` source for auth UI behavior and gating parity.
 - Secondary source: installed `ClerkKit` source for core auth/network/config behavior.
 - Fallback only: example apps (local or GitHub) when behavior is unclear from library source.
 
 For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
+
 - step progression/sequencing
 - field visibility and hidden-state rules per step
 - branching between factors/strategies
@@ -42,15 +59,18 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 ## Required Patterns
 
 1. Runtime environment gating
+
 - Read the instance's settings at runtime from the injected Clerk instance's `environment`, as `AuthView` does: `@Environment(Clerk.self) private var clerk`, then `clerk.environment` (for example `clerk.environment?.userSettings`).
 - Gate identifiers, factors, social and Apple sign-in, and required sign-up fields on those values, using the same fields and semantics as `ClerkKitUI`.
 - Don't hardcode the instance's current settings into the flow, and don't call `/v1/environment` directly. Settings can change in the Clerk Dashboard without an app update.
 
 2. Combined-entry default
+
 - Keep a combined sign-in-or-sign-up entry by default.
 - Do not add a local sign-in/sign-up mode switcher unless explicitly requested.
 
 3. AuthView progression parity
+
 - Follow `ClerkKitUI` `AuthView` progression logic for advancing/regressing steps.
 - Show/hide inputs exactly according to the active step requirements instead of static form layouts.
 - Keep factor/strategy branching aligned with how `AuthView` gates transitions.
@@ -60,19 +80,23 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - If proposed custom layout materially deviates from `AuthView`, stop and ask for explicit developer approval before implementing.
 
 4. Multi-file organization and separation of concerns
+
 - Break custom auth flow into focused files/modules instead of one large screen file.
 - Separate UI step views, flow/state orchestration, and Clerk/network integration responsibilities.
 - Keep per-file responsibilities narrow and composable so new factors/steps can be added without rewriting a monolithic view.
 
 5. Required-field coverage
+
 - Collect every sign-up field the environment marks as required, at the step where `AuthView` collects it.
 - Handle missing requirements the sign-up reports after each step instead of assuming a fixed field list.
 
 6. Apple sign-in policy
+
 - Implement Apple via native Clerk Apple path.
 - Do not implement Apple through generic social-provider OAuth handling.
 
 7. Source parity
+
 - Follow installed `ClerkKitUI` and `ClerkKit` source patterns for sequencing, factor handling, and verification steps.
 - When unsure about custom-flow implementation details, sequencing, gating, or `Environment` usage/semantics, stop guessing and reference installed `ClerkKitUI` implementation behavior.
 - Resolve ambiguity by mirroring `ClerkKitUI` behavior unless the developer explicitly asks for a different approach.
@@ -80,18 +104,22 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 ## Verification Checklist
 
 1. Prerequisites are in place
+
 - `ClerkKit` is linked to the app target.
 - If native Sign in with Apple is enabled, the target has the Sign in with Apple capability.
 - Existing setup and custom key loading are unchanged.
 
 2. No unrequested mode switcher
+
 - No local toggle/segmented control/tabs for sign-in vs sign-up unless explicitly requested.
 
 3. Runtime gating
+
 - Available identifiers, factors, and providers come from the injected Clerk instance's `environment` at runtime, not hardcoded values.
 - Environment fields used for gating and requirements match the set and semantics used by installed `ClerkKitUI`.
 
 4. AuthView flow parity
+
 - Step transitions follow `AuthView` progression rules.
 - Inputs shown at each step match `AuthView` step-level visibility behavior.
 - Step layouts and component grouping are materially close to `AuthView`; do not introduce major layout redesign unless explicitly requested.
@@ -100,14 +128,18 @@ For custom flows, treat `ClerkKitUI` `AuthView` as a strict parity target for:
 - When implementation ambiguity appears, final behavior matches installed `ClerkKitUI` rather than an inferred/custom interpretation.
 
 5. Flow organization quality
+
 - Custom flow code is split into multiple focused files/modules (not a single monolithic auth view file).
 - UI, state/flow orchestration, and integration logic are separated with clear boundaries.
 
 6. Required fields covered
+
 - Every sign-up field the environment marks as required is collected.
 
 7. Apple path correctness
+
 - Apple flow uses native path, not generic provider OAuth path.
 
 8. No unrequested prebuilt dependency
+
 - `ClerkKitUI` is not added unless explicitly needed.

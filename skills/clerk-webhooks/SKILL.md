@@ -1,9 +1,6 @@
 ---
 name: clerk-webhooks
-description: Clerk webhooks for real-time events and data syncing. Verify with verifyWebhook
-  from the framework-specific package. Handle user, session, organization, billing, and
-  payment events. Build event-driven features like database sync, notifications, and
-  integrations.
+description: Clerk webhooks for real-time events and data syncing. Verify with verifyWebhook from the framework-specific package. Handle user, session, organization, billing, and payment events. Build event-driven features like database sync, notifications, and integrations.
 allowed-tools: WebFetch
 license: MIT
 metadata:
@@ -24,7 +21,7 @@ Webhooks are **asynchronous and eventually consistent**. Delivery is fast but no
 - Notifications (welcome emails, Slack pings, internal alerts)
 - Integrations triggered by lifecycle events
 
-Do NOT rely on webhook delivery as part of a synchronous flow such as onboarding ("user signs up, then we read X from our DB"). For data the user just created, read it from the [Clerk session token](https://clerk.com/docs/guides/sessions/session-tokens) or call the Backend API directly. Webhooks fill the gap when you need data about *other* users or events the session token doesn't carry.
+Do NOT rely on webhook delivery as part of a synchronous flow such as onboarding ("user signs up, then we read X from our DB"). For data the user just created, read it from the [Clerk session token](https://clerk.com/docs/guides/sessions/session-tokens) or call the Backend API directly. Webhooks fill the gap when you need data about _other_ users or events the session token doesn't carry.
 
 ## Verify Every Webhook
 
@@ -228,10 +225,11 @@ For manual typing of nested payloads, import the JSON types from your framework'
 ## Payload Field Reference
 
 ### User events (`user.created`, `user.updated`, `user.deleted`)
+
 ```typescript
 const {
-  id,                  // Clerk user ID
-  email_addresses,     // array; [0].email_address is primary email
+  id, // Clerk user ID
+  email_addresses, // array; [0].email_address is primary email
   first_name,
   last_name,
   image_url,
@@ -240,20 +238,22 @@ const {
 ```
 
 ### Organization events (`organization.created`, `organization.updated`, `organization.deleted`)
+
 ```typescript
 const {
-  id,    // org ID
-  name,  // org name
+  id, // org ID
+  name, // org name
   slug,
 } = evt.data
 ```
 
 ### Organization Membership events (`organizationMembership.created`, `organizationMembership.updated`, `organizationMembership.deleted`)
+
 ```typescript
 const {
-  organization,        // { id, name, ... }
-  public_user_data,    // { user_id, first_name, last_name, ... }
-  role,                // e.g. 'org:admin', 'org:member'
+  organization, // { id, name, ... }
+  public_user_data, // { user_id, first_name, last_name, ... }
+  role, // e.g. 'org:admin', 'org:member'
 } = evt.data
 // Access: organization.id, public_user_data.user_id, role
 ```
@@ -282,7 +282,7 @@ const {
 
 **Subscription**: `subscription.created` `subscription.updated` `subscription.active` `subscription.pastDue`
 
-**Subscription Item**: `subscriptionItem.created` `subscriptionItem.active` `subscriptionItem.updated` `subscriptionItem.canceled` `subscriptionItem.upcoming` `subscriptionItem.ended` `subscriptionItem.abandoned` `subscriptionItem.incomplete` `subscriptionItem.pastDue` `subscriptionItem.freeTrialEnding`
+**Subscription Item**: `subscriptionItem.updated` `subscriptionItem.active` `subscriptionItem.canceled` `subscriptionItem.upcoming` `subscriptionItem.ended` `subscriptionItem.expired` `subscriptionItem.abandoned` `subscriptionItem.incomplete` `subscriptionItem.pastDue` `subscriptionItem.freeTrialEnding`
 
 **Payment**: `paymentAttempt.created` `paymentAttempt.updated`
 
@@ -295,7 +295,7 @@ const {
 ## Common Pitfalls
 
 | Symptom | Cause | Fix |
-|---------|-------|-----|
+| --- | --- | --- |
 | Verification fails (Next.js) | Wrong import or usage | Use `@clerk/nextjs/webhooks`, pass `req` directly |
 | Verification fails (Express) | Using `express.json()` | Use `express.raw({ type: 'application/json' })` for webhook route |
 | Route not found (404) | Wrong path | Use `/api/webhooks` or preserve existing path |
@@ -319,7 +319,7 @@ Add the printed relay URL (`https://webhooks.clerk.com/in/c_.../`) as a webhook 
 ## References
 
 | Reference | Description |
-|-----------|-------------|
+| --- | --- |
 | `references/frameworks.md` | Webhook handler examples for Express, Astro, Fastify, Nuxt, React Router, TanStack Start |
 
 ## See Also

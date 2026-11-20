@@ -5,6 +5,7 @@
 An extension that runs entirely in the background -- no UI, no popup, no side panel. It syncs auth state from a companion web app and acts on behalf of the signed-in user automatically.
 
 Examples:
+
 - Auto-fill tools that activate when the user visits certain pages
 - Extensions that sync data in the background when the user is signed in on the web app
 - Developer tools that call your API without user interaction
@@ -18,6 +19,7 @@ Examples:
 ## Background Service Worker
 
 `entrypoints/background.ts` (WXT):
+
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
@@ -74,6 +76,7 @@ All runtime code (env checks, listeners) goes inside `defineBackground()`, becau
 ## Environment Variables
 
 `.env.development`:
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_test_...
 WXT_CLERK_FRONTEND_API=https://your-app.clerk.accounts.dev
@@ -81,6 +84,7 @@ WXT_CLERK_SYNC_HOST=http://localhost
 ```
 
 `.env.production`:
+
 ```
 WXT_CLERK_PUBLISHABLE_KEY=pk_live_...
 WXT_CLERK_FRONTEND_API=https://clerk.your-domain.com
@@ -90,6 +94,7 @@ WXT_CLERK_SYNC_HOST=https://clerk.your-domain.com
 ## Manifest Configuration
 
 `wxt.config.ts`:
+
 ```ts
 import { defineConfig } from 'wxt'
 
@@ -135,6 +140,7 @@ console.log('Session:', clerk.session?.id ?? 'No session')
 ```
 
 If `user` is null despite being signed in on the web app, check:
+
 1. `host_permissions` includes the sync host domain
 2. The extension ID is in Clerk's allowed origins
 3. The `syncHost` value matches the Clerk Frontend API URL (not the web app's main domain)
