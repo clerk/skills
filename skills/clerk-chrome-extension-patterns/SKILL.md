@@ -1,6 +1,6 @@
 ---
 name: clerk-chrome-extension-patterns
-description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers and headless extensions, stable CRX ID. Triggers on: Chrome extension auth, WXT clerk, Plasmo clerk migration, popup sign-in, syncHost, background service worker token, createClerkClient, headless extension.'
+description: 'Chrome Extension auth with @clerk/chrome-extension -- popup/sidepanel setup, syncHost for OAuth/SAML via web app, createClerkClient for service workers and headless extensions, stable CRX ID. Covers WXT + React, plus plain TypeScript, Plasmo, plain Vite, and Vue/Svelte/Solid popups. Triggers on: Chrome extension auth, WXT clerk, Plasmo clerk, Plasmo clerk migration, vanilla JS or plain TypeScript extension, esbuild extension, Vite extension, Vue/Svelte/Solid extension, popup sign-in, syncHost, background service worker token, createClerkClient, headless extension.'
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires WXT_CLERK_PUBLISHABLE_KEY and WXT_CLERK_FRONTEND_API (WXT exposes only WXT_- or VITE_-prefixed env vars to extension code).
@@ -12,6 +12,7 @@ metadata:
     - references/create-clerk-client.md
     - references/content-scripts.md
     - references/headless-extension.md
+    - references/other-setups.md
 ---
 
 # Chrome Extension Patterns
@@ -146,6 +147,15 @@ export default defineConfig({
 - Give the popup room for Clerk's modal (e.g., `body { width: 800px; height: 600px; }` in `entrypoints/popup/style.css`).
 - The popup's `<title>` in `entrypoints/popup/index.html` becomes the toolbar tooltip (`action.default_title`).
 - WXT auto-imports `browser`, `defineBackground`, and `defineContentScript`. In Chrome, `browser` is the `chrome` object.
+
+## Not Using WXT + React?
+
+The SDK works with any bundler. Every CRITICAL RULE above still applies. Only the env var names, the manifest location, and (without React) the entry point change:
+
+- **No React** (plain TypeScript, Vue, Svelte, Solid): use `createClerkClient()` from `@clerk/chrome-extension/client` and mount components with `clerk.mountSignIn(el)` / `clerk.openSignIn()`. `<ClerkProvider>` needs React.
+- **Plasmo, plain Vite, esbuild**: same SDK, different env prefixes and manifest files.
+
+Full guide, with a per-tool table and links to the docs and example repos: `references/other-setups.md`
 
 ## syncHost -- Sync Auth with Web App
 
