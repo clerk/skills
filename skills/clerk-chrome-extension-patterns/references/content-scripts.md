@@ -102,9 +102,12 @@ WXT's React template ships an example `entrypoints/content.ts` that matches `*:/
 import { defineConfig } from 'wxt'
 
 export default defineConfig({
-  manifest: {
-    permissions: ['storage'],
-  },
+  modules: ['@wxt-dev/module-react'],
+  manifest: () => ({
+    key: import.meta.env.WXT_CRX_PUBLIC_KEY,
+    permissions: ['cookies', 'storage'],
+    host_permissions: ['http://localhost/*', `${import.meta.env.WXT_CLERK_FRONTEND_API}/*`],
+  }),
 })
 ```
 

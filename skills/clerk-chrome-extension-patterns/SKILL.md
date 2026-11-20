@@ -26,7 +26,7 @@ metadata:
 6. Without a stable CRX ID, every rebuild breaks auth -- configure `key` in the manifest BEFORE deploying
 7. Content scripts cannot use Clerk directly due to origin restrictions -- Clerk enforces strict allowed origins
 8. Bot protection must be DISABLED in Clerk Dashboard -- Cloudflare bot detection is not supported in extension environments
-9. WXT imports background, content, and unlisted scripts in Node.js at build time -- all runtime code (listeners, env checks, DOM access) goes inside `defineBackground()` / `defineContentScript({ main })`
+9. WXT imports background, content, and unlisted scripts in Node.js at build time -- all runtime code (listeners, env checks, DOM access) goes inside `defineBackground()` / `defineContentScript({ main })` / `defineUnlistedScript()`
 10. Use the function form `manifest: () => ({ ... })` in `wxt.config.ts` whenever the manifest reads `import.meta.env` -- WXT loads `.env` files after evaluating the config
 
 ## Authentication Options
@@ -95,6 +95,12 @@ export default function App() {
       afterSignOutUrl={POPUP_URL}
       signInFallbackRedirectUrl={POPUP_URL}
       signUpFallbackRedirectUrl={POPUP_URL}
+      appearance={{
+        elements: {
+          socialButtonsRoot: { display: 'none' },
+          dividerRow: { display: 'none' },
+        },
+      }}
     >
       <Show when="signed-out">
         <SignInButton mode="modal" />
@@ -120,13 +126,24 @@ export default defineConfig({
     permissions: ['cookies', 'storage'],
     host_permissions: ['http://localhost/*', `${import.meta.env.WXT_CLERK_FRONTEND_API}/*`],
   }),
+  hooks: {
+    'build:before': (wxt) => {
+      if (!import.meta.env.WXT_CLERK_PUBLISHABLE_KEY || !import.meta.env.WXT_CLERK_FRONTEND_API) {
+        throw new Error(
+          `Add WXT_CLERK_PUBLISHABLE_KEY and WXT_CLERK_FRONTEND_API to your .env.${wxt.config.mode} file`,
+        )
+      }
+    },
+  },
 })
 ```
 
+- The `appearance` prop hides the social buttons, which can't finish in a popup. OAuth and SAML go through `syncHost`.
+- The `build:before` hook stops `wxt build` / `wxt zip` when the env file is missing, instead of shipping `undefined/*` in `host_permissions`. Keep it out of the `manifest` function: `wxt prepare` calls that in production mode on install.
 - Use `mode="modal"` for `SignInButton` -- navigating to a separate page breaks the popup flow.
 - Give the popup room for Clerk's modal (e.g., `body { width: 800px; height: 600px; }` in `entrypoints/popup/style.css`).
 - The popup's `<title>` in `entrypoints/popup/index.html` becomes the toolbar tooltip (`action.default_title`).
-- `browser` and `defineBackground`/`defineContentScript` are auto-imported by WXT. In Chrome, `browser` is the `chrome` object.
+- WXT auto-imports `browser`, `defineBackground`, and `defineContentScript`. In Chrome, `browser` is the `chrome` object.
 
 ## syncHost -- Sync Auth with Web App
 
@@ -154,6 +171,8 @@ WXT_CLERK_SYNC_HOST=https://clerk.your-domain.com
 
 **Step 2 -- Add `syncHost` prop:**
 
+This snippet assumes the popup uses React Router ([Add React Router](https://clerk.com/docs/guides/development/add-react-router)); `navigate` comes from `useNavigate()`. See `references/sync-host.md` for the full layout.
+
 ```tsx
 const SYNC_HOST = import.meta.env.WXT_CLERK_SYNC_HOST
 
@@ -161,10 +180,16 @@ const SYNC_HOST = import.meta.env.WXT_CLERK_SYNC_HOST
   publishableKey={PUBLISHABLE_KEY}
   syncHost={SYNC_HOST}
   afterSignOutUrl="/"
+  signInUrl="/sign-in"
+  signUpUrl="/sign-up"
   routerPush={(to) => navigate(to)}
   routerReplace={(to) => navigate(to, { replace: true })}
 >
 ```
+
+`signInUrl` and `signUpUrl` keep the "Sign in" / "Sign up" footer links inside the popup's routes instead of the Account Portal.
+
+Pass `syncHost` to `createClerkClient({ background: true })` in the background worker too. Without it, the worker only reads the token the popup stored, so a web app sign-in doesn't reach it until the popup opens.
 
 **Step 3 -- Configure `host_permissions` in `wxt.config.ts`:**
 
@@ -188,18 +213,7 @@ curl -X PATCH https://api.clerk.com/v1/instance \
   -d '{"allowed_origins": ["chrome-extension://YOUR_EXTENSION_ID"]}'
 ```
 
-**Hide unsupported auth methods in popup when using syncHost:**
-
-```tsx
-<SignIn
-  appearance={{
-    elements: {
-      socialButtonsRoot: { display: 'none' },
-      dividerRow: { display: 'none' },
-    },
-  }}
-/>
-```
+Keep the Quick Start's `appearance` prop on `<ClerkProvider>` so the popup hides the social buttons; users finish OAuth on the web app.
 
 **In development, open the web app before signing in to the extension.** The extension uses the dev browser cookie Clerk sets on `localhost` when the web app loads. See the "Unable to authenticate this browser" row in Common Pitfalls.
 
@@ -227,10 +241,11 @@ export default defineBackground(() => {
   }
 
   browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type !== 'GET_TOKEN') return
     getToken()
       .then((token) => sendResponse({ token }))
       .catch((error) => {
-        console.error('[Background] Error:', JSON.stringify(error))
+        console.error('[Background] Error:', error)
         sendResponse({ token: null })
       })
     return true
@@ -240,7 +255,7 @@ export default defineBackground(() => {
 
 The `background: true` flag keeps sessions fresh even when popup/sidepanel is closed. Without it, tokens expire after 60 seconds.
 
-**Popup with vanilla JS, no framework** (`src/popup.ts`, bundled with esbuild as in the [JavaScript quickstart](https://clerk.com/docs/getting-started/quickstart/chrome-extension-js)):
+**Popup with vanilla JS, no framework** (`src/popup.ts`, bundled with esbuild as in the [JavaScript quickstart](https://clerk.com/docs/getting-started/quickstart/chrome-extension-js)). In a WXT project, use `import.meta.env.WXT_CLERK_PUBLISHABLE_KEY` and `browser.runtime.getURL('/popup.html')` instead:
 
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
@@ -353,15 +368,20 @@ Add `chrome-extension://YOUR_STABLE_CRX_ID` to Clerk Dashboard > Allowed Origins
 
 ## Session Persistence
 
-The SDK persists the Clerk client token in `chrome.storage.local` by default, so sessions survive popup closes with no setup. To use a different store, pass `storageCache` to `<ClerkProvider>` (or to `createClerkClient({ background: true })` -- without `background: true`, `createClerkClient()` ignores it): an object with `createKey(...keys)`, `get(key)`, `set(key, value)`, and `remove(key)`.
+`<ClerkProvider>` and `createClerkClient({ background: true })` persist the Clerk client token in `chrome.storage.local` by default, so sessions survive popup closes with no setup. To use a different store, pass `storageCache`, an object with `createKey(...keys)`, `get(key)`, `set(key, value)`, and `remove(key)`. Without `background: true`, `createClerkClient()` ignores it.
 
-Don't store auth in `localStorage` -- it's scoped to the popup page.
+Don't store auth in `localStorage`. The background service worker can't read it.
 
 ## Migrating from Plasmo
 
 | Plasmo | WXT |
 | --- | --- |
 | `PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY` via `process.env` | `WXT_CLERK_PUBLISHABLE_KEY` via `import.meta.env` |
+| `CLERK_FRONTEND_API` | `WXT_CLERK_FRONTEND_API` |
+| `PLASMO_PUBLIC_CLERK_SYNC_HOST` | `WXT_CLERK_SYNC_HOST` |
+| `tokenCache` prop on `<ClerkProvider>` | Remove it -- the SDK keeps the session in `chrome.storage.local` |
+| `plasmo dev` / `plasmo build`, `plasmo` dependency | `wxt` / `wxt build`, `wxt` dependency, `"postinstall": "wxt prepare"`, `tsconfig.json` extending `./.wxt/tsconfig.json` |
+| `.env.development` only | Also `.env.production` for `wxt build` / `wxt zip` |
 | `package.json` `"manifest"` with `$VAR` | `wxt.config.ts` `manifest: () => ({ ... })` with `` `${import.meta.env.WXT_…}` `` |
 | `src/popup.tsx`, `src/background/index.ts`, `src/tabs/*` | `entrypoints/popup/`, `entrypoints/background.ts` (`defineBackground`), `entrypoints/<name>/index.html` |
 | `chrome.*` | `browser.*` |

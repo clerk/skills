@@ -58,6 +58,8 @@ export function RootLayout() {
       publishableKey={PUBLISHABLE_KEY}
       syncHost={SYNC_HOST}
       afterSignOutUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
       routerPush={(to) => navigate(to)}
       routerReplace={(to) => navigate(to, { replace: true })}
     >
@@ -87,7 +89,7 @@ export default defineConfig({
 })
 ```
 
-Use the function form `manifest: () => ({ ... })`. WXT loads `.env` files after it evaluates the config file, so the object form reads `undefined`. In dev this resolves to `http://localhost/*`.
+Use the function form `manifest: () => ({ ... })`. WXT loads `.env` files after it evaluates the config file, so the object form reads `undefined`. In dev, the sync host entry resolves to `http://localhost/*`.
 
 ## Step 4 -- Register Extension ID in Clerk
 

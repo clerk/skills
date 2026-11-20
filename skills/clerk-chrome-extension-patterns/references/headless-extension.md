@@ -110,7 +110,7 @@ export default defineConfig({
 })
 ```
 
-Use the function form `manifest: () => ({ ... })` so WXT reads the `.env` files before building the manifest. A headless extension has no popup, so leave out `entrypoints/popup/` (and delete the template's popup and `content.ts` if you started from `wxt init`).
+Use the function form `manifest: () => ({ ... })` so WXT reads the `.env` files before building the manifest. A headless extension has no popup. If you started from `wxt init`, delete `entrypoints/popup/` and `entrypoints/content.ts`.
 
 `host_permissions` for the sync host domain is what allows the extension to read the Clerk session cookie from the web app.
 
@@ -144,4 +144,4 @@ If `user` is null despite being signed in on the web app, check:
 1. `host_permissions` includes the sync host domain
 2. The extension ID is in Clerk's allowed origins
 3. The `syncHost` value matches the Clerk Frontend API URL (not the web app's main domain)
-4. In development, the web app has been opened at least once in the same browser. Until it loads, the `__clerk_db_jwt` cookie doesn't exist, and signing in fails with "Unable to authenticate this browser for your development instance". See the troubleshooting section in `sync-host.md`.
+4. In development, the web app has loaded at least once in the same browser. Until it loads, the `__clerk_db_jwt` cookie doesn't exist, and the extension fails with "Unable to authenticate this browser for your development instance". See the troubleshooting section in `sync-host.md`.

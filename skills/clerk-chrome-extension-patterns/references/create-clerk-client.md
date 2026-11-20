@@ -39,10 +39,11 @@ export default defineBackground(() => {
   }
 
   browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type !== 'GET_TOKEN') return
     getToken()
       .then((token) => sendResponse({ token }))
       .catch((error) => {
-        console.error('[Background service worker] Error:', JSON.stringify(error))
+        console.error('[Background service worker] Error:', error)
         sendResponse({ token: null })
       })
     return true
@@ -50,7 +51,9 @@ export default defineBackground(() => {
 })
 ```
 
-WXT imports `entrypoints/background.ts` in Node.js at build time, so all runtime code (the env check, listeners) must be inside the `defineBackground()` callback. Imports at the top of the file are fine. `defineBackground` and `browser` are auto-imported by WXT.
+WXT imports `entrypoints/background.ts` in Node.js at build time, so all runtime code (the env check, listeners) must be inside the `defineBackground()` callback. Imports at the top of the file are fine. WXT auto-imports `defineBackground` and `browser`.
+
+`getToken()` creates a new client on every call on purpose. The SDK skips its singleton for background clients because a cached one goes out of sync, so don't cache the client or its promise.
 
 The listener MUST `return true` to keep the message channel open for the async `sendResponse` call.
 
@@ -80,7 +83,7 @@ async function makeAuthenticatedRequest() {
 
 ## Vanilla JS Popup (no React)
 
-For popups or side panels that use plain TypeScript instead of React. This example matches the framework-free [JavaScript quickstart](https://clerk.com/docs/getting-started/quickstart/chrome-extension-js), which bundles with esbuild and injects `process.env.CLERK_PUBLISHABLE_KEY` at build time. In a WXT project, use `import.meta.env.WXT_CLERK_PUBLISHABLE_KEY` and `browser.runtime.getURL('/popup.html')` instead.
+Use this for popups or side panels that use plain TypeScript instead of React. This example matches the framework-free [JavaScript quickstart](https://clerk.com/docs/getting-started/quickstart/chrome-extension-js), which bundles with esbuild and injects `process.env.CLERK_PUBLISHABLE_KEY` at build time. In a WXT project, use `import.meta.env.WXT_CLERK_PUBLISHABLE_KEY` and `browser.runtime.getURL('/popup.html')` instead.
 
 `src/popup.ts`:
 

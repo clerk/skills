@@ -1,5 +1,6 @@
 {
   "name": "clerk-chrome-extension",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,15 +11,15 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@clerk/chrome-extension": "latest",
+    "@clerk/chrome-extension": "^3.1.105",
     "react": "latest",
     "react-dom": "latest"
   },
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@wxt-dev/module-react": "latest",
+    "@wxt-dev/module-react": "^1.2.2",
     "typescript": "latest",
-    "wxt": "latest"
+    "wxt": "^0.21.5"
   }
 }

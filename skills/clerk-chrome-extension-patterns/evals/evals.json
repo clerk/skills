@@ -9,6 +9,7 @@
       "expectations": [
         "Imports ClerkProvider from @clerk/chrome-extension (not @clerk/react or @clerk/nextjs)",
         "Passes publishableKey prop to ClerkProvider",
+        "Reads the publishable key from import.meta.env.WXT_CLERK_PUBLISHABLE_KEY (not process.env.PLASMO_PUBLIC_*)",
         "Uses browser.runtime.getURL (WXT) or chrome.runtime.getURL for redirect URL props (afterSignOutUrl, signInFallbackRedirectUrl, or similar)",
         "Uses SignInButton or SignUpButton for unauthenticated state",
         "Uses UserButton or user profile component for authenticated state"
@@ -104,6 +105,19 @@
         "Tells the user to open the web app (e.g. http://localhost:5173) in the same browser, then retry",
         "Explains that cookies are shared across localhost ports, so another Clerk app can overwrite the cookie",
         "Tells the user to delete __clerk/__client cookies for http://localhost in DevTools and reload the web app if the error persists"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "should i add a token cache to my clerk chrome extension so the session survives the popup closing?",
+      "expected_output": "No. The SDK already persists the client token in chrome.storage.local for ClerkProvider and createClerkClient({ background: true }); tokenCache is a Plasmo/Expo-era prop to remove",
+      "scaffold": "chrome-ext-basic-auth",
+      "expectations": [
+        "Says no token cache is needed",
+        "Explains that ClerkProvider and createClerkClient({ background: true }) persist the client token in chrome.storage.local by default",
+        "Tells the user to remove a tokenCache prop if present (Plasmo/Expo-era, not used by @clerk/chrome-extension)",
+        "Does not recommend storing auth in localStorage",
+        "Mentions storageCache only as an optional override for a different store"
       ]
     }
   ]
