@@ -15,51 +15,55 @@ Import from `@clerk/chrome-extension/client`, NOT from `@clerk/chrome-extension`
 
 The key option is `background: true`. This tells Clerk to refresh the session token continuously, even when no popup or side panel is open. Without it, tokens expire after 60 seconds of the UI being closed.
 
-`src/background/index.ts`:
+`entrypoints/background.ts` (WXT):
 
 ```typescript
 import { createClerkClient } from '@clerk/chrome-extension/client'
 
-const publishableKey = process.env.PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY
+export default defineBackground(() => {
+  const publishableKey = import.meta.env.WXT_CLERK_PUBLISHABLE_KEY
 
-if (!publishableKey) {
-  throw new Error('Missing PLASMO_PUBLIC_CLERK_PUBLISHABLE_KEY')
-}
+  if (!publishableKey) {
+    throw new Error('Missing WXT_CLERK_PUBLISHABLE_KEY')
+  }
 
-async function getToken(): Promise<string | null> {
-  const clerk = await createClerkClient({
-    publishableKey,
-    background: true,
-  })
-
-  if (!clerk.session) return null
-
-  return await clerk.session.getToken()
-}
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  getToken()
-    .then((token) => sendResponse({ token }))
-    .catch((error) => {
-      console.error('[Background service worker] Error:', JSON.stringify(error))
-      sendResponse({ token: null })
+  async function getToken(): Promise<string | null> {
+    const clerk = await createClerkClient({
+      publishableKey,
+      background: true,
     })
-  return true
+
+    if (!clerk.session) return null
+
+    return await clerk.session.getToken()
+  }
+
+  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type !== 'GET_TOKEN') return
+    getToken()
+      .then((token) => sendResponse({ token }))
+      .catch((error) => {
+        console.error('[Background service worker] Error:', error)
+        sendResponse({ token: null })
+      })
+    return true
+  })
 })
 ```
+
+WXT imports `entrypoints/background.ts` in Node.js at build time, so all runtime code (the env check, listeners) must be inside the `defineBackground()` callback. Imports at the top of the file are fine. WXT auto-imports `defineBackground` and `browser`.
+
+`getToken()` creates a new client on every call on purpose. The SDK skips its singleton for background clients because a cached one goes out of sync, so don't cache the client or its promise.
 
 The listener MUST `return true` to keep the message channel open for the async `sendResponse` call.
 
 ## Requesting the Token from a Tab or Content Script
 
 ```typescript
-// tabs/my-tab.tsx or a content script
+// entrypoints/<name>/main.tsx (an unlisted page) or a content script
 async function getTokenFromBackground(): Promise<string | null> {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ type: 'GET_TOKEN' }, (response) => {
-      resolve(response?.token ?? null)
-    })
-  })
+  const response = await browser.runtime.sendMessage({ type: 'GET_TOKEN' })
+  return response?.token ?? null
 }
 
 async function makeAuthenticatedRequest() {
@@ -79,7 +83,7 @@ async function makeAuthenticatedRequest() {
 
 ## Vanilla JS Popup (no React)
 
-For popups or side panels that use plain TypeScript instead of React:
+Use this for popups or side panels that use plain TypeScript instead of React. This example matches the framework-free [JavaScript quickstart](https://clerk.com/docs/getting-started/quickstart/chrome-extension-js), which bundles with esbuild and injects `process.env.CLERK_PUBLISHABLE_KEY` at build time. In a WXT project, use `import.meta.env.WXT_CLERK_PUBLISHABLE_KEY` and `browser.runtime.getURL('/popup.html')` instead.
 
 `src/popup.ts`:
 
@@ -115,13 +119,15 @@ clerk
 
 ## createClerkClient() Options
 
-| Option           | Type      | Description                                                 |
-| ---------------- | --------- | ----------------------------------------------------------- |
-| `publishableKey` | `string`  | Required. Your Clerk publishable key.                       |
-| `background`     | `boolean` | Set `true` in service workers to keep sessions fresh.       |
-| `syncHost`       | `string`  | The web app domain to sync auth from (headless extensions). |
+| Option | Type | Description |
+| --- | --- | --- |
+| `publishableKey` | `string` | Required. Your Clerk publishable key. |
+| `background` | `boolean` | Set `true` in service workers to keep sessions fresh. |
+| `syncHost` | `string` | The Frontend API host to sync auth from. Pass it in the background worker whenever the extension uses syncHost, with or without a popup. `undefined` turns sync off. |
 
 ## Making Authenticated API Calls from Background
+
+Call this from inside `defineBackground()`:
 
 ```typescript
 async function callMyAPI() {
