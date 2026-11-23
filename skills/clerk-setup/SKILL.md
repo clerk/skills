@@ -1,6 +1,6 @@
 ---
 name: clerk-setup
-description: Set up Clerk authentication in any project with the Clerk MCP server and official framework quickstarts. Use when adding Clerk, initializing Clerk, scaffolding a new app with Clerk, or migrating an existing authentication system to Clerk.
+description: Set up Clerk authentication in any project with the Clerk plugin, the Clerk MCP server, and official framework quickstarts. Use when adding Clerk, initializing Clerk, scaffolding a new app with Clerk, or migrating an existing authentication system to Clerk.
 license: MIT
 allowed-tools: WebFetch
 compatibility: Requires Node.js 20.9.0 or later for current Clerk SDKs. The Clerk MCP server requires a Clerk account.
@@ -11,7 +11,40 @@ metadata:
 
 # Set up Clerk
 
-Use the [Clerk MCP server](https://mcp.clerk.com/mcp) for anything in the user's Clerk account, such as creating an application, getting its keys, changing settings, or going to production. If it isn't connected, have the user add it.
+Check for the Clerk plugin first. It bundles Clerk's skills and the [Clerk MCP server](https://mcp.clerk.com/mcp). Use the MCP server for anything in the user's Clerk account, such as creating an application, getting its keys, changing settings, or going to production.
+
+## Before you start
+
+Show the user this checklist and wait for a yes:
+
+```
+Here's what I'll do to get you set up with Clerk.
+
+1. Add Clerk's agent skills and MCP server for the coding agents on this machine, through the Clerk plugin where possible, if they aren't installed yet.
+2. Set up Clerk in this project, or scaffold a new app if this directory is empty.
+3. Start your app with Clerk installed.
+
+Shall I proceed?
+```
+
+## Install the Clerk plugin
+
+Check this agent's installed plugins, or ask the user to check. Loading this skill from the plugin proves installation; a URL or generated copy does not. MCP tools are not proof: a separate server may provide them, and sign-out can hide plugin tools. If the Clerk plugin is installed in this agent, skip installation. If the MCP server needs sign-in, guide authentication in the agent's MCP settings (Claude Code: `/mcp` → **Authenticate**).
+
+Only if the plugin is absent and the user agreed to install it, show Clerk's native plugin or connector card when this agent has a suggestion tool. Pass Clerk's ID directly; a name search can miss it:
+
+- **ChatGPT and Codex:** `plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac`
+- **Claude:** connector `48a3eb31-a881-4d52-b179-1af31624356a` (MCP server only; no plugin or skills)
+
+Wait for the user to finish the card and verify what it installed. The Claude connector adds only the MCP server, so do not treat it as a full plugin. If you have no card tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
+
+```bash
+npx -y plugins add clerk/skills --yes
+```
+
+The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. The agent may need a reload or restart to load the MCP server. Sign-in may follow in a browser or the agent's MCP settings.
+
+For an agent the command doesn't support, the user can add the [Clerk MCP server](https://mcp.clerk.com/mcp) as a remote MCP server.
 
 ## Existing projects
 
