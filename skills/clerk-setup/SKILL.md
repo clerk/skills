@@ -33,9 +33,9 @@ Shall I proceed?
 
 ## Install the Clerk plugin
 
-Check this agent's installed plugins, or ask the user to check. Loading this skill from the plugin proves installation; a URL or generated copy does not. MCP tools are not proof: a separate server may provide them, and sign-out can hide plugin tools. If the Clerk plugin is installed in this agent, skip installation. If its MCP needs sign-in, guide authentication in the agent's MCP settings (Claude Code: `/mcp` → **Authenticate**) and continue with the CLI.
+Check this agent's installed plugins, or ask the user to check. Loading this skill from the plugin proves installation; a URL or generated copy does not. MCP tools are not proof: a separate server may provide them, and sign-out can hide plugin tools. If the Clerk plugin is installed in this agent, skip installation. If the MCP server needs sign-in, guide authentication in the agent's MCP settings (Claude Code: `/mcp` → **Authenticate**) and continue with the CLI.
 
-Only if the plugin is absent and the user agreed to install it, show Clerk's native install card when your app has a plugin or connector suggestion tool. Pass Clerk's ID directly; a name search can miss it:
+Only if the plugin is absent and the user agreed to install it, show Clerk's native install card when this agent has a plugin or connector suggestion tool. Pass Clerk's ID directly; a name search can miss it:
 
 - **ChatGPT and Codex:** `plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac`
 - **Claude:** connector `48a3eb31-a881-4d52-b179-1af31624356a`
@@ -46,7 +46,7 @@ If you have no such tool, or it rejects the ID, run the fallback after the user 
 npx -y plugins add clerk/skills --yes
 ```
 
-The command installs the plugin, skills, and [Clerk MCP server](https://mcp.clerk.com/mcp) into every detected coding agent. Wait for the user to finish the install card. The agent may need a reload or restart to load MCP. Sign-in may follow in a browser or MCP settings. Continue with the CLI until MCP tools are available.
+The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. Wait for the user to finish the install card. The agent may need a reload or restart to load the MCP server. Sign-in may follow in a browser or the agent's MCP settings. Continue with the CLI until the MCP tools are available.
 
 For an agent the command doesn't support, the user can add that URL as a remote MCP server.
 
@@ -115,7 +115,7 @@ For a project that does not already use Clerk, run from the project root:
 npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install Skills. Add `--no-skills` only if the plugin is installed or the user declined agent Skills. A URL or generated copy of this skill does not prove installation. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an app above.
+`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install skills. Add `--no-skills` only if the plugin is installed or the user declined agent skills. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an application above.
 
 ## Step 1b: Empty directory
 

@@ -8,7 +8,7 @@ metadata:
 
 # Clerk Skills Router
 
-The Clerk plugin bundles these skills and the Clerk MCP server. For a new Clerk setup, use `clerk-setup` to check whether the plugin is already installed and offer its install step when needed before setting up the project.
+The Clerk plugin bundles these skills and the Clerk MCP server. For a new Clerk setup, use `clerk-setup`, which checks for the plugin and offers to install it before setting up the project.
 
 ## Version Detection
 

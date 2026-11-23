@@ -91,7 +91,7 @@
       "expectations": [
         "Treats the installed-plugin view as evidence that Clerk is installed",
         "Does NOT show an install card or run npx plugins add clerk/skills again",
-        "Adds --no-skills when running clerk init because the plugin already supplies Skills",
+        "Adds --no-skills when running clerk init because the plugin already supplies skills",
         "Continues with the Clerk CLI for local project setup"
       ]
     },
@@ -105,7 +105,7 @@
         "Does NOT show an install card or rerun npx plugins add clerk/skills",
         "Guides the user to authenticate the Clerk MCP server in Claude Code",
         "Continues with the Clerk CLI where MCP authentication is not needed",
-        "Adds --no-skills when running clerk init because the plugin already supplies Skills"
+        "Adds --no-skills when running clerk init because the plugin already supplies skills"
       ]
     },
     {
@@ -117,7 +117,7 @@
         "Uses npx -y plugins add clerk/skills --yes as the fallback after user agreement",
         "Does NOT add --target to the plugin install command",
         "Does NOT use MCP tool availability to decide whether the plugin is installed",
-        "Does not claim installation succeeded before the agent or user confirms it"
+        "Does NOT claim installation succeeded before the agent or user confirms it"
       ]
     },
     {
@@ -128,7 +128,7 @@
       "expectations": [
         "Uses the native plugin or connector suggestion tool with Clerk's ID rather than searching by name",
         "Does NOT run npx plugins add clerk/skills while the native install card is available",
-        "Does not treat displaying the card as proof that the plugin is installed",
+        "Does NOT treat displaying the card as proof that the plugin is installed",
         "Uses npx -y plugins add clerk/skills --yes only if the native card tool is unavailable or rejects the ID"
       ]
     }
