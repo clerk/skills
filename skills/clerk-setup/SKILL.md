@@ -11,7 +11,7 @@ metadata:
 
 # Set up Clerk
 
-Check for the Clerk plugin first. It bundles Clerk's skills and the [Clerk MCP server](https://mcp.clerk.com/mcp). Use the MCP server for anything in the user's Clerk account, such as creating an application, getting its keys, changing settings, or going to production.
+Check for the Clerk plugin first. It bundles Clerk's skills and the [Clerk MCP server](https://mcp.clerk.com/mcp). Use the MCP server for anything in the user's Clerk account, such as creating an application, getting its keys, changing settings, or going to production. It returns secret keys only for applications it creates, so for an existing application, have the user copy the secret key from the [API keys page](https://dashboard.clerk.com/~/api-keys) into the project's environment file.
 
 ## Before you start
 
@@ -33,8 +33,10 @@ Check this agent's installed plugins, or ask the user to check. Loading this ski
 
 Only if the plugin is absent and the user agreed to install it, show Clerk's native plugin or connector card when this agent has a suggestion tool. Pass Clerk's ID directly; a name search can miss it:
 
-- **ChatGPT and Codex:** `plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac`
-- **Claude:** connector `48a3eb31-a881-4d52-b179-1af31624356a` (MCP server only; no plugin or skills)
+```text
+ChatGPT and Codex plugin: plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac
+Claude connector: 48a3eb31-a881-4d52-b179-1af31624356a
+```
 
 Wait for the user to finish the card and verify what it installed. The Claude connector adds only the MCP server, so do not treat it as a full plugin. If you have no card tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
 
@@ -43,6 +45,8 @@ npx -y plugins add clerk/skills --yes
 ```
 
 The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. The agent may need a reload or restart to load the MCP server. Sign-in may follow in a browser or the agent's MCP settings.
+
+If the MCP server needs a restart to load, finish the code changes first, then ask the user to restart and sign in. Until then, on supported frameworks (Next.js, React Router, Astro, Nuxt, and TanStack Start), accountless setup writes temporary development keys so the app runs. Unsupported frameworks need real API keys. After the restart, create the application and its keys with the MCP server.
 
 For an agent the command doesn't support, the user can add the [Clerk MCP server](https://mcp.clerk.com/mcp) as a remote MCP server.
 
