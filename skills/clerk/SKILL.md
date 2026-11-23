@@ -1,9 +1,9 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, testing, impersonating a user, or testing webhooks locally. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, testing, impersonating a user, testing webhooks locally, or reading Application Logs to debug a sign-in or sign-up. Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
-  version: 2.0.1
+  version: 2.0.2
 ---
 
 # Clerk Skills Router
@@ -36,6 +36,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Environment setup, API keys, temporary dev keys via `clerk init`
 - Planning a switch from another auth provider
 - Native iOS and macOS apps in Xcode, through the iOS setup prompt
+- Native Android apps with Gradle, through the Android setup prompt
 
 **Migrating users into Clerk** → Use `clerk-migrate`
 
@@ -52,6 +53,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Feature toggles (`clerk enable orgs`, `clerk enable billing`)
 - Backend, Platform, and Frontend API calls through `clerk api`
 - Deploy handoff and deploy status verification
+- Reading Application Logs (`clerk logs`) to debug sign-ins, sign-ups, and user changes
 
 **Custom sign-in/sign-up UI** → Use `clerk-custom-ui`
 
@@ -154,6 +156,7 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Native Android Kotlin and Jetpack Compose projects
 - `clerk-android-api` and `clerk-android-ui` implementation guidance
 - Source-driven patterns from `clerk-android`
+- If Clerk isn't set up yet, set it up first through `clerk-setup`
 - Do not use for Expo or React Native projects
 
 **Backend REST API** → Use `clerk-backend-api`

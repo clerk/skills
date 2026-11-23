@@ -85,6 +85,19 @@
     },
     {
       "id": 7,
+      "prompt": "i have a jetpack compose android app (gradle, app module) and want to add clerk sign in. can you set it up?",
+      "expected_output": "Follows the Android setup prompt instead of the web steps: chooses a Clerk application, runs clerk init on the Gradle project, and finishes the Kotlin integration without accountless keys or an env file",
+      "files": [],
+      "expectations": [
+        "Follows the Android setup prompt at https://clerk.com/docs/android/getting-started/quickstart.md instead of the web setup steps",
+        "Chooses or creates a Clerk application and passes it to npx -y clerk@latest init with --app",
+        "Does NOT rely on accountless setup or temporary development keys",
+        "Does NOT create a .env file or install a JavaScript Clerk package",
+        "Initializes Clerk in Kotlin (Clerk.initialize) rather than through environment variables"
+      ]
+    },
+    {
+      "id": 8,
       "prompt": "I'm in a new Next.js app. My coding agent's installed-plugins view shows the Clerk plugin enabled, and its Clerk MCP tools are connected. Please set up Clerk here; I approve the setup steps.",
       "expected_output": "Uses the installed Clerk plugin without offering another installation and adds Clerk to the project with the CLI, passing --no-skills to init",
       "files": [],
@@ -96,7 +109,7 @@
       ]
     },
     {
-      "id": 8,
+      "id": 9,
       "prompt": "Claude Code lists clerk@clerk-skills as enabled, but its Clerk MCP server says needs authentication and no Clerk MCP tools are visible. Please add Clerk to my new Next.js app; I approve the setup steps.",
       "expected_output": "Recognizes the plugin as installed, explains how to authenticate the MCP server, and continues with the Clerk CLI without reinstalling the plugin",
       "files": [],
@@ -109,7 +122,7 @@
       ]
     },
     {
-      "id": 9,
+      "id": 10,
       "prompt": "This coding agent has no Clerk plugin in its installed-plugins list, but it has Clerk MCP tools from a separately configured server. There is no native plugin install-card tool. I agree to install the Clerk plugin for the coding agents on this machine and set up my new Next.js app. Please continue.",
       "expected_output": "Uses the approved noninteractive npx fallback to install the Clerk plugin before project setup, without targeting only one agent",
       "files": [],
@@ -121,7 +134,7 @@
       ]
     },
     {
-      "id": 10,
+      "id": 11,
       "prompt": "The Clerk plugin is absent from this agent's installed-plugins view, and this agent has a native marketplace tool that can show plugin install cards. I approve installing Clerk for the coding agents on this machine and setting up my app.",
       "expected_output": "Offers Clerk's native plugin install card before any terminal fallback and waits for installation confirmation",
       "files": [],
