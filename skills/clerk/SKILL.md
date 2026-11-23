@@ -8,6 +8,8 @@ metadata:
 
 # Clerk Skills Router
 
+The Clerk plugin bundles these skills and the Clerk MCP server. For a new Clerk setup, use `clerk-setup`, which checks for the plugin and offers to install it before setting up the project.
+
 ## Version Detection
 
 Check `package.json` to determine the Clerk SDK version. This determines which patterns to use:
