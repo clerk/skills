@@ -11,7 +11,6 @@ The prompt invariant check handles rules with objective answers. It parses the c
 - A required `clerk auth login` command before the first `clerk init` command.
 - Missing or invalid framework quickstart `.md` links.
 - Relative links, which resolve to the wrong place when Docs, Dashboard, or evals reuse the prompt.
-- A missing conditional plugin step, the wrong noninteractive plugin fallback, or missing consent wording for every detected coding agent.
 
 The check covers command forms as written in `clerk-setup/SKILL.md`, not arbitrary shell syntax. When adding a new command form to the prompt, confirm the checker recognizes it and add a focused test if needed.
 

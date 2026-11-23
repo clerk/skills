@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "hey i just created a new next.js app with create-next-app and i want to add auth. i heard clerk is good, can you set it up? im using the app router btw and tailwind. project is at ./my-saas-app",
-      "expected_output": "Installs @clerk/nextjs, wraps layout with ClerkProvider inside <body>, creates middleware.ts with clerkMiddleware, sets up .env.local with publishable and secret keys, detects shadcn if present",
+      "expected_output": "Installs @clerk/nextjs, wraps layout with ClerkProvider inside <body>, creates middleware.ts with clerkMiddleware, sets up .env.local with publishable and secret keys",
       "files": [],
       "expectations": [
         "Installs @clerk/nextjs via npm/pnpm/bun",
@@ -12,7 +12,7 @@
         "Creates middleware.ts (or proxy.ts for Next.js 16+) with clerkMiddleware export",
         "Creates or updates .env.local with NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY",
         "Does NOT install @clerk/clerk-react or any non-Next.js Clerk package",
-        "Mentions getting API keys from dashboard.clerk.com or via `clerk init` temporary development keys"
+        "Uses the Clerk MCP server to create the application and get its keys, or asks the user to add the server if it is not connected"
       ]
     },
     {
@@ -73,12 +73,11 @@
     {
       "id": 6,
       "prompt": "i have a swiftui app in xcode (MyApp.xcodeproj) and want to add clerk sign in. can you set it up?",
-      "expected_output": "Follows the iOS setup prompt instead of the web steps: chooses a Clerk application, runs clerk init on the Xcode project, and finishes the Swift integration without accountless keys or an env file",
+      "expected_output": "Follows the iOS quickstart, chooses or creates the Clerk application with the Clerk MCP server, and finishes the Swift integration without an env file",
       "files": [],
       "expectations": [
-        "Follows the iOS setup prompt at https://clerk.com/docs/ios/getting-started/quickstart.md instead of the web setup steps",
-        "Chooses or creates a Clerk application and passes it to npx -y clerk@latest init with --app",
-        "Does NOT rely on accountless setup or temporary development keys",
+        "Follows the iOS quickstart at https://clerk.com/docs/ios/getting-started/quickstart.md?manual=1",
+        "Chooses or creates the Clerk application with the Clerk MCP server",
         "Does NOT create a .env file or install a JavaScript Clerk package",
         "Configures Clerk in Swift (Clerk.configure) rather than through environment variables"
       ]
@@ -86,98 +85,13 @@
     {
       "id": 7,
       "prompt": "i have a jetpack compose android app (gradle, app module) and want to add clerk sign in. can you set it up?",
-      "expected_output": "Follows the Android setup prompt instead of the web steps: chooses a Clerk application, runs clerk init on the Gradle project, and finishes the Kotlin integration without accountless keys or an env file",
+      "expected_output": "Follows the Android quickstart, chooses or creates the Clerk application with the Clerk MCP server, and finishes the Kotlin integration without an env file",
       "files": [],
       "expectations": [
-        "Follows the Android setup prompt at https://clerk.com/docs/android/getting-started/quickstart.md instead of the web setup steps",
-        "Chooses or creates a Clerk application and passes it to npx -y clerk@latest init with --app",
-        "Does NOT rely on accountless setup or temporary development keys",
+        "Follows the Android quickstart at https://clerk.com/docs/android/getting-started/quickstart.md?manual=1",
+        "Chooses or creates the Clerk application with the Clerk MCP server",
         "Does NOT create a .env file or install a JavaScript Clerk package",
         "Initializes Clerk in Kotlin (Clerk.initialize) rather than through environment variables"
-      ]
-    },
-    {
-      "id": 8,
-      "prompt": "I'm in a new Next.js app. My coding agent's installed-plugins view shows the Clerk plugin enabled, and its Clerk MCP tools are connected. Please set up Clerk here; I approve the setup steps.",
-      "expected_output": "Uses the installed Clerk plugin without offering another installation and adds Clerk to the project with the CLI, passing --no-skills to init",
-      "files": [],
-      "expectations": [
-        "Treats the installed-plugin view as evidence that Clerk is installed",
-        "Does NOT show an install card or run npx plugins add clerk/skills again",
-        "Adds --no-skills when running clerk init because the plugin already supplies skills",
-        "Continues with the Clerk CLI for local project setup"
-      ]
-    },
-    {
-      "id": 9,
-      "prompt": "Claude Code lists clerk@clerk-skills as enabled, but its Clerk MCP server says needs authentication and no Clerk MCP tools are visible. Please add Clerk to my new Next.js app; I approve the setup steps.",
-      "expected_output": "Recognizes the plugin as installed, explains how to authenticate the MCP server, and continues with the Clerk CLI without reinstalling the plugin",
-      "files": [],
-      "expectations": [
-        "Does NOT treat missing MCP tools as proof that the plugin is absent",
-        "Does NOT show an install card or rerun npx plugins add clerk/skills",
-        "Guides the user to authenticate the Clerk MCP server in Claude Code",
-        "Continues with the Clerk CLI where MCP authentication is not needed",
-        "Adds --no-skills when running clerk init because the plugin already supplies skills"
-      ]
-    },
-    {
-      "id": 10,
-      "prompt": "This coding agent has no Clerk plugin in its installed-plugins list, but it has Clerk MCP tools from a separately configured server. There is no native plugin install-card tool. I agree to install the Clerk plugin for the coding agents on this machine and set up my new Next.js app. Please continue.",
-      "expected_output": "Uses the approved noninteractive npx fallback to install the Clerk plugin before project setup, without targeting only one agent",
-      "files": [],
-      "expectations": [
-        "Uses npx -y plugins add clerk/skills --yes as the fallback after user agreement",
-        "Does NOT add --target to the plugin install command",
-        "Does NOT use MCP tool availability to decide whether the plugin is installed",
-        "Does NOT claim installation succeeded before the agent or user confirms it"
-      ]
-    },
-    {
-      "id": 11,
-      "prompt": "The Clerk plugin is absent from this agent's installed-plugins view, and this agent has a native marketplace tool that can show plugin install cards. I approve installing Clerk for the coding agents on this machine and setting up my app.",
-      "expected_output": "Offers Clerk's native plugin install card before any terminal fallback and waits for installation confirmation",
-      "files": [],
-      "expectations": [
-        "Uses the native plugin or connector suggestion tool with Clerk's ID rather than searching by name",
-        "Does NOT run npx plugins add clerk/skills while the native install card is available",
-        "Does NOT treat displaying the card as proof that the plugin is installed",
-        "Uses npx -y plugins add clerk/skills --yes only if the native card tool is unavailable or rejects the ID"
-      ]
-    },
-    {
-      "id": 12,
-      "prompt": "I approved enabling Organizations for this project. `npx -y clerk@latest whoami --json` says this project is linked to app_project and has a production instance. The connected Clerk MCP server's `list_applications` returns only app_other from another workspace. Please continue without changing the wrong app.",
-      "expected_output": "Does not mutate through the mismatched MCP account; previews and enables Organizations through the CLI for the project-linked app only, including production because it exists",
-      "files": [],
-      "expectations": [
-        "Recognizes that MCP list_applications does NOT include the CLI-linked app_project",
-        "Does NOT call patch_instance_config for app_other or any MCP-visible application",
-        "Targets app_project with npx -y clerk@latest enable orgs --app, using --dry-run before --yes",
-        "Targets production only because linked.instances.production exists"
-      ]
-    },
-    {
-      "id": 13,
-      "prompt": "I'm using Claude and accepted Clerk's connector card. The Clerk MCP server is connected, but my agent has no Clerk plugin or Clerk skills installed. Please add Clerk to my new Next.js app; I approve setup.",
-      "expected_output": "Treats the Claude connector as MCP-only and lets Clerk init install skills instead of incorrectly skipping them",
-      "files": [],
-      "expectations": [
-        "Does NOT treat the Claude MCP connector as the full Clerk plugin",
-        "Uses the Clerk CLI for local project setup",
-        "Does NOT add --no-skills to init solely because the MCP connector is connected",
-        "Does NOT claim that showing or accepting the connector card installed Clerk skills"
-      ]
-    },
-    {
-      "id": 14,
-      "prompt": "My coding agent already has Clerk skills from an earlier clerk init, but no full Clerk plugin. I approve setting up this new Next.js project, but I do not want another agent installation. Please continue with project setup.",
-      "expected_output": "Skips plugin installation as declined and avoids reinstalling Clerk skills already present in this agent",
-      "files": [],
-      "expectations": [
-        "Does NOT install the plugin after the user declined agent installation",
-        "Runs Clerk init with --no-skills because Clerk skills are already installed in this agent",
-        "Does NOT infer that the plugin is installed merely because skills are available"
       ]
     }
   ]

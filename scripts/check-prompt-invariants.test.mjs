@@ -60,79 +60,6 @@ function codeFence(content, info = "bash") {
   return ["```" + info, content, "```"].join("\n");
 }
 
-const pluginPrompt = [
-  "## Before you start",
-  codeFence("Install the Clerk plugin for the coding agents on this machine.\nShall I proceed?", ""),
-  "## Install the Clerk plugin",
-  "If the Clerk plugin is installed in this agent, skip installation.",
-  codeFence("npx -y plugins add clerk/skills --yes"),
-  "## Set up the project",
-  codeFence("npx -y clerk@latest init"),
-].join("\n");
-
-function assertPluginViolation(content, expected) {
-  assert.throws(
-    () => validatePromptInvariants({ ...options(content), requirePluginStep: true }),
-    (error) => error.message.includes(expected),
-  );
-}
-
-test("accepts the conditional plugin step and noninteractive fallback", () => {
-  assert.doesNotThrow(() =>
-    validatePromptInvariants({ ...options(pluginPrompt), requirePluginStep: true }),
-  );
-});
-
-test("requires plugin-install consent wording", () => {
-  assertPluginViolation(
-    pluginPrompt.replace(" for the coding agents on this machine", ""),
-    "tell the user the plugin installs",
-  );
-});
-
-test("requires a consent question in the user-facing checklist", () => {
-  assertPluginViolation(
-    pluginPrompt.replace("Shall I proceed?", ""),
-    "ask the user for consent in the setup checklist",
-  );
-  assertPluginViolation(
-    pluginPrompt.replace("Shall I proceed?", "") + "\nShall I proceed?",
-    "ask the user for consent in the setup checklist",
-  );
-});
-
-test("requires the installed-plugin skip condition", () => {
-  assertPluginViolation(
-    pluginPrompt.replace(
-      "If the Clerk plugin is installed in this agent, skip installation.",
-      "Skip if Clerk MCP tools are available.",
-    ),
-    "skip plugin installation when the plugin is installed",
-  );
-});
-
-for (const command of [
-  "npx plugins add clerk/skills",
-  "npx -y plugins add clerk/skills --target codex",
-]) {
-  test(`rejects a different plugin fallback: ${command}`, () => {
-    assertPluginViolation(
-      pluginPrompt.replace("npx -y plugins add clerk/skills --yes", command),
-      "use `npx -y plugins add clerk/skills --yes`",
-    );
-  });
-}
-
-test("requires plugin installation before Clerk init", () => {
-  assertPluginViolation(
-    pluginPrompt.replace(
-      `${codeFence("npx -y plugins add clerk/skills --yes")}\n## Set up the project\n${codeFence("npx -y clerk@latest init")}`,
-      `${codeFence("npx -y clerk@latest init")}\n${codeFence("npx -y plugins add clerk/skills --yes")}`,
-    ),
-    "install the Clerk plugin before initializing Clerk",
-  );
-});
-
 function assertViolation(
   content,
   expected,
@@ -420,10 +347,11 @@ for (const separator of shellCommandSeparators) {
   });
 }
 
-test("requires setup guidance to include an initialization fence", () => {
-  assertViolation(
-    "Run `npx clerk@latest init` to set up Clerk.",
-    "include Clerk initialization",
+test("accepts setup guidance without Clerk CLI commands", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants(
+      options("Use the [Clerk MCP server](https://mcp.clerk.com/mcp)."),
+    ),
   );
 });
 
@@ -445,9 +373,16 @@ for (const fallback of [
 
 for (const subcommand of ["initialize", "init-extra"]) {
   test(`does not treat ${subcommand} as init`, () => {
-    assertViolation(
-      codeFence(`npx clerk@latest ${subcommand}`),
-      "include Clerk initialization",
+    assert.doesNotThrow(() =>
+      validatePromptInvariants(
+        options(
+          [
+            "## Authenticate",
+            codeFence("npx clerk@latest auth login"),
+            codeFence(`npx clerk@latest ${subcommand}`),
+          ].join("\n"),
+        ),
+      ),
     );
   });
 }
@@ -551,21 +486,6 @@ test("accepts absolute links", () => {
 test("the canonical setup skill passes the invariant checker", async () => {
   const content = await readFile(PROMPT_PATH, "utf8");
   assert.doesNotThrow(() =>
-    validatePromptInvariants({
-      ...options(content, canonicalManifest, false),
-      requirePluginStep: true,
-    }),
+    validatePromptInvariants(options(content, canonicalManifest, false)),
   );
-});
-
-// Docs and the Dashboard paste this prompt into agents that have no Clerk
-// skills, so the commands as written must let `init` install them. The prose
-// tells agents that already have the skills when to add `--no-skills`.
-test("the canonical init commands install skills for pasted prompts", async () => {
-  const content = await readFile(PROMPT_PATH, "utf8");
-  const initCommands = content.match(/^npx -y clerk@latest init[^\n]*$/gm) ?? [];
-  assert.equal(initCommands.length, 2);
-  for (const command of initCommands) {
-    assert.doesNotMatch(command, /(?:^|\s)--no-skills(?:\s|$)/);
-  }
 });
