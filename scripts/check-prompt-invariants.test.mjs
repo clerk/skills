@@ -62,7 +62,7 @@ function codeFence(content, info = "bash") {
 
 const pluginPrompt = [
   "## Before you start",
-  "Install the Clerk plugin for the coding agents on this machine.",
+  codeFence("Install the Clerk plugin for the coding agents on this machine.\nShall I proceed?", ""),
   "## Install the Clerk plugin",
   "If the Clerk plugin is installed in this agent, skip installation.",
   codeFence("npx -y plugins add clerk/skills --yes"),
@@ -87,6 +87,17 @@ test("requires plugin-install consent wording", () => {
   assertPluginViolation(
     pluginPrompt.replace(" for the coding agents on this machine", ""),
     "tell the user the plugin installs",
+  );
+});
+
+test("requires a consent question in the user-facing checklist", () => {
+  assertPluginViolation(
+    pluginPrompt.replace("Shall I proceed?", ""),
+    "ask the user for consent in the setup checklist",
+  );
+  assertPluginViolation(
+    pluginPrompt.replace("Shall I proceed?", "") + "\nShall I proceed?",
+    "ask the user for consent in the setup checklist",
   );
 });
 

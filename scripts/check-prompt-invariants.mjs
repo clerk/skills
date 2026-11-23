@@ -290,10 +290,13 @@ export function checkPromptInvariants({ content, filePath, manifest, requirePlug
     markdownDetails(content);
 
   if (requirePluginStep) {
-    const checklist = sectionContent(content, "Before you start").replace(/\s+/g, " ");
+    const checklist = (sectionContent(content, "Before you start").split("```")[1] ?? "").replace(/\s+/g, " ");
     const installSection = sectionContent(content, "Install the Clerk plugin").replace(/\s+/g, " ");
     if (!checklist.includes("for the coding agents on this machine")) {
       report("tell the user the plugin installs for the coding agents on this machine");
+    }
+    if (!checklist.includes("Shall I proceed?")) {
+      report("ask the user for consent in the setup checklist");
     }
     if (!installSection.includes(installedPluginCondition)) {
       report("skip plugin installation when the plugin is installed in this agent");

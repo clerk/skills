@@ -40,15 +40,15 @@ Only if the plugin is absent and the user agreed to install it, show Clerk's nat
 - **ChatGPT and Codex:** `plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac`
 - **Claude:** connector `48a3eb31-a881-4d52-b179-1af31624356a` (MCP server only; no plugin or skills)
 
-The Claude connector does not install Clerk skills. If the user accepts that card, do not treat it as a full plugin install; let `npx -y clerk@latest init` install skills. If you have no card tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
+Wait for the user to finish the card and verify what it installed. The Claude connector adds only MCP, so do not treat it as a full plugin; let `npx -y clerk@latest init` install skills. If you have no card tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
 
 ```bash
 npx -y plugins add clerk/skills --yes
 ```
 
-The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. Wait for the user to finish the install card. The agent may need a reload or restart to load the MCP server. Sign-in may follow in a browser or the agent's MCP settings. Continue with the CLI until the MCP tools are available.
+The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. The agent may need a reload or restart to load the MCP server. Sign-in may follow in a browser or the agent's MCP settings. Continue with the CLI until the MCP tools are available.
 
-For an agent the command doesn't support, the user can add that URL as a remote MCP server.
+For an agent the command doesn't support, the user can add the [Clerk MCP server](https://mcp.clerk.com/mcp) as a remote MCP server.
 
 ## Existing authentication
 
@@ -119,7 +119,7 @@ For a project that does not already use Clerk, run from the project root:
 npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install skills. Add `--no-skills` only if the full plugin is installed or the user declined agent skills; the Claude MCP-only connector does not count. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an application above.
+`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install skills. Add `--no-skills` only if the full plugin is installed, Clerk skills were already installed in this agent (including by an earlier `init`), or the user declined agent skills. A URL-served prompt or Claude MCP-only connector alone does not count. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an application above.
 
 ## Step 1b: Empty directory
 
@@ -148,8 +148,6 @@ Frameworks without accountless support need real API keys. There, `init` applies
 If `init` reports the framework is unsupported or undetected, follow the quickstart instead. If it finishes but prints remaining steps, follow those, and use the matching quickstart for anything they don't cover.
 
 For an existing Clerk project with missing integration files, use that quickstart to add only the missing pieces without running `init`.
-
-`init` configures Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, and Fastify projects, existing iOS and macOS Xcode projects (see the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md)), and Android Gradle projects (see the [Android setup prompt](https://clerk.com/docs/android/getting-started/quickstart.md)).
 
 Use the matching direct quickstart:
 
@@ -249,21 +247,13 @@ If both claim files exist, stop before `auth login`, `open`, or `link`: `open` p
 
 Once the app is claimed, use the Clerk MCP server for it when the server is connected and its `list_applications` includes `linked.appId` from `npx -y clerk@latest whoami --json`. Read settings with `get_instance_config` and `instance: "development"`, and preview each `patch_instance_config` change with `dry_run` before applying it. Otherwise, review settings with `npx -y clerk@latest config pull` and change them with `npx -y clerk@latest config patch` (supports `--dry-run`), or use the Clerk Dashboard. See [sign-up and sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options.md).
 
-When the user is ready for production:
-
-1. Have them claim the app as described above, because unclaimed apps and temporary keys aren't production-ready. If `deploy` says the project isn't linked, follow its instructions.
-2. Ask which domain they own for production, one whose DNS they can change (not a hosting provider's URL such as `*.vercel.app`), and run `npx -y clerk@latest deploy --mode agent --domain <domain>`. It creates the production instance and prints a JSON report.
-3. Follow the report's `nextAction` at each step. If a command from the report or `nextAction` calls plain clerk, as all of them do on Windows (inside the `hostSetup` command too), and clerk isn't installed, replace that call with `npx -y clerk@latest` and keep the rest of the command, including in commands the user runs. `nextAction`'s OAuth steps need bash or zsh. In any other shell, have the user enter the OAuth credentials by running `npx -y clerk@latest deploy` in their own terminal, from the project directory. Pass on each `oauth.setup` entry's `note` to the user, such as Google's reminder to set the OAuth consent screen to "In production".
-4. Check progress with `npx -y clerk@latest deploy status --mode agent`, which exits 0 only when production is complete.
-5. On Vercel, if `vercel` isn't installed or you can't run bash or zsh, follow step 6. Otherwise, run `vercel whoami` yourself, which doesn't start a login just because you're logged out. If it prints "Logged out.", have the user run `vercel login` in their own terminal. Then, if the user confirms this directory is linked to the Vercel project that serves this app in production, copy the production keys by running the `command` of the report's `hostSetup` entry as given. If either command doesn't exit, Vercel is waiting for a browser login: stop it, have the user run the command that hung in their own terminal, from the project directory, and finish the login it opens, then rerun.
-6. On any other host, or if the user doesn't confirm the Vercel project, have the user run the `env pull --print` command from `nextAction` in a separate terminal in the project directory, not through your session, and add the printed lines to the host. Never write your own pipe into a host's CLI.
-7. Have the user add the other Clerk variables from their env file to the host too.
+When the user is ready for production, have them claim and link the app, ask for a domain they own and can configure, then run `npx -y clerk@latest deploy --mode agent --domain <domain>`. Follow every `nextAction` and verify with `npx -y clerk@latest deploy status --mode agent`. Copy production keys only to a host the user confirms serves this app; otherwise have the user run the report's `env pull --print` command in their own terminal. Follow the [production deployment details](https://clerk.com/.well-known/skills/clerk-setup/references/production-deploy.md) for shell and host handoff.
 
 Then offer Organizations — multi-tenancy, team invitations, roles and permissions, and enterprise SSO.
 
 If yes:
 
-1. Run `npx -y clerk@latest whoami --json` to get `linked.appId` and `linked.instances.production`. Use the MCP server only if it is connected and `list_applications` includes `linked.appId`. Pass that ID as `application_id` to `patch_instance_config` with `{"organization_settings": {"enabled": true}}` on the development instance, previewing with `dry_run` before applying; repeat for production only if `linked.instances.production` exists. Otherwise, run `npx -y clerk@latest enable orgs --app <linked.appId>` (also with `--instance prod` if production exists). For an unclaimed app, omit `--app`; if the app ID is missing for any other app, ask the user to link or select it before changing settings.
+1. Run `npx -y clerk@latest whoami --json` to get `linked.appId` and `linked.instances.production`. Use the MCP server only if it is connected and `list_applications` includes `linked.appId`. Pass that ID as `application_id` to `patch_instance_config` with `{"organization_settings": {"enabled": true}}` on the development instance, previewing with `dry_run` before applying; repeat for production only if `linked.instances.production` exists. Otherwise, preview `npx -y clerk@latest enable orgs --app <linked.appId> --dry-run`, then apply it with `--yes` (also with `--instance prod` if production exists). For an unclaimed app, omit `--app`; if the app ID is missing for any other app, ask the user to link or select it before changing settings.
 2. Add `<OrganizationSwitcher />` next to the existing `<UserButton />`, or the framework equivalent.
 3. Have them create an organization from the switcher and invite a teammate.
 

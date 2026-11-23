@@ -144,6 +144,41 @@
         "Does NOT treat displaying the card as proof that the plugin is installed",
         "Uses npx -y plugins add clerk/skills --yes only if the native card tool is unavailable or rejects the ID"
       ]
+    },
+    {
+      "id": 12,
+      "prompt": "I approved enabling Organizations for this project. `npx -y clerk@latest whoami --json` says this project is linked to app_project and has a production instance. The connected Clerk MCP server's `list_applications` returns only app_other from another workspace. Please continue without changing the wrong app.",
+      "expected_output": "Does not mutate through the mismatched MCP account; previews and enables Organizations through the CLI for the project-linked app only, including production because it exists",
+      "files": [],
+      "expectations": [
+        "Recognizes that MCP list_applications does NOT include the CLI-linked app_project",
+        "Does NOT call patch_instance_config for app_other or any MCP-visible application",
+        "Targets app_project with npx -y clerk@latest enable orgs --app, using --dry-run before --yes",
+        "Targets production only because linked.instances.production exists"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "I'm using Claude and accepted Clerk's connector card. The Clerk MCP server is connected, but my agent has no Clerk plugin or Clerk skills installed. Please add Clerk to my new Next.js app; I approve setup.",
+      "expected_output": "Treats the Claude connector as MCP-only and lets Clerk init install skills instead of incorrectly skipping them",
+      "files": [],
+      "expectations": [
+        "Does NOT treat the Claude MCP connector as the full Clerk plugin",
+        "Uses the Clerk CLI for local project setup",
+        "Does NOT add --no-skills to init solely because the MCP connector is connected",
+        "Does NOT claim that showing or accepting the connector card installed Clerk skills"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "My coding agent already has Clerk skills from an earlier clerk init, but no full Clerk plugin. I approve setting up this new Next.js project, but I do not want another agent installation. Please continue with project setup.",
+      "expected_output": "Skips plugin installation as declined and avoids reinstalling Clerk skills already present in this agent",
+      "files": [],
+      "expectations": [
+        "Does NOT install the plugin after the user declined agent installation",
+        "Runs Clerk init with --no-skills because Clerk skills are already installed in this agent",
+        "Does NOT infer that the plugin is installed merely because skills are available"
+      ]
     }
   ]
 }
