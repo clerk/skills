@@ -24,7 +24,7 @@ Show the user this checklist and wait for a yes:
 ```
 Here's what I'll do to get you set up with Clerk.
 
-1. Add Clerk's agent skills and MCP server for the coding agents on this machine if needed, preferably through the Clerk plugin.
+1. Add Clerk's agent skills and MCP server for the coding agents on this machine, through the Clerk plugin where possible, if they aren't installed yet.
 2. Set up Clerk in this project, or scaffold a new app if this directory is empty.
 3. Start your app with Clerk installed.
 
@@ -40,7 +40,7 @@ Only if the plugin is absent and the user agreed to install it, show Clerk's nat
 - **ChatGPT and Codex:** `plugin_asdk_app_6ae4e34683b08191933207035aa0d3ac`
 - **Claude:** connector `48a3eb31-a881-4d52-b179-1af31624356a` (MCP server only; no plugin or skills)
 
-Wait for the user to finish the card and verify what it installed. The Claude connector adds only MCP, so do not treat it as a full plugin; let `npx -y clerk@latest init` install skills. If you have no card tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
+Wait for the user to finish the card and verify what it installed. The Claude connector adds only the MCP server, so do not treat it as a full plugin; let `npx -y clerk@latest init` install skills. If you have no card tool, or it rejects the ID, run the fallback after the user agrees to the checklist:
 
 ```bash
 npx -y plugins add clerk/skills --yes
@@ -119,7 +119,7 @@ For a project that does not already use Clerk, run from the project root:
 npx -y clerk@latest init
 ```
 
-`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install skills. Add `--no-skills` only if the full plugin is installed, Clerk skills were already installed in this agent (including by an earlier `init`), or the user declined agent skills. A URL-served prompt or Claude MCP-only connector alone does not count. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an application above.
+`init` detects the framework and package manager, installs the SDK, and configures the app. It can also install skills. Add `--no-skills` only if the full plugin is installed, Clerk skills were already installed in this agent (including by an earlier `init`), or the user declined agent skills. A URL-served prompt or Claude's MCP-only connector alone does not count. Don't pass `--framework` or `--pm` unless asked; add `--app <application_id>` only when the user selected an application above.
 
 ## Step 1b: Empty directory
 
@@ -148,6 +148,8 @@ Frameworks without accountless support need real API keys. There, `init` applies
 If `init` reports the framework is unsupported or undetected, follow the quickstart instead. If it finishes but prints remaining steps, follow those, and use the matching quickstart for anything they don't cover.
 
 For an existing Clerk project with missing integration files, use that quickstart to add only the missing pieces without running `init`.
+
+`init` configures Next.js, React, React Router, Nuxt, TanStack Start, Astro, Vue, JavaScript/Vite, Expo, Express, and Fastify projects, existing iOS and macOS Xcode projects (see the [iOS setup prompt](https://clerk.com/docs/ios/getting-started/quickstart.md)), and Android Gradle projects (see the [Android setup prompt](https://clerk.com/docs/android/getting-started/quickstart.md)).
 
 Use the matching direct quickstart:
 
