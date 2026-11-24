@@ -44,9 +44,9 @@ Wait for the user to finish the card and verify what it installed. The Claude co
 npx -y plugins add clerk/skills --yes
 ```
 
-The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. The agent may need a reload or restart to load the MCP server. Sign-in may follow in a browser or the agent's MCP settings.
+The command installs the Clerk plugin, with its skills and the [Clerk MCP server](https://mcp.clerk.com/mcp), into every detected coding agent. Sign-in may follow in a browser or the agent's MCP settings.
 
-If the MCP server needs a restart to load, finish the code changes first, then ask the user to restart and sign in. Until then, on supported frameworks (Next.js, React Router, Astro, Nuxt, and TanStack Start), accountless setup writes temporary development keys so the app runs. Unsupported frameworks need real API keys. After the restart, create the application and its keys with the MCP server.
+If this agent doesn't have the Clerk MCP tools yet, finish the code changes first, then ask the user to restart this agent and sign in. Until then, on supported frameworks (Next.js, React Router, Astro, Nuxt, and TanStack Start), accountless setup writes temporary development keys so the app runs. Unsupported frameworks need real API keys. After the restart, create the application and its keys with the MCP server.
 
 For an agent the command doesn't support, the user can add the [Clerk MCP server](https://mcp.clerk.com/mcp) as a remote MCP server.
 
