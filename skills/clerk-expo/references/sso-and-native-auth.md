@@ -1,6 +1,6 @@
 # Social auth: browser SSO and native Google/Apple
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x):
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.x):
 >
 > - [OAuth custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
 > - [`useSSO`](https://clerk.com/docs/reference/expo/native-hooks/use-sso)
@@ -61,12 +61,12 @@ Fully native Google sheet (Credential Manager on Android). Dev build only.
 
 Setup:
 
-1. `npx expo install expo-crypto`
+1. `npx expo install @clerk/expo-google-signin expo-crypto`, and add `"@clerk/expo-google-signin"` to the `plugins` array next to `"@clerk/expo"`
 2. Env vars in `.env` (values from the Google Cloud OAuth clients configured for the Clerk instance):
    - `EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID` (always required)
    - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_CLIENT_ID` (iOS)
-   - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` (iOS — the config plugin writes it into the iOS URL types at prebuild; prebuild fails without it)
-3. `@clerk/expo` config plugin registered, then rebuild.
+   - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` (iOS. The `@clerk/expo-google-signin` plugin writes it into the iOS URL types at prebuild; the iOS sign-in fails without it)
+3. Rebuild the app.
 
 Full provider-side setup lives in the [Google sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-google) — fetch it if the Google Cloud side isn't already configured.
 
@@ -78,13 +78,18 @@ const { startGoogleAuthenticationFlow } = useSignInWithGoogle()
 
 const onPress = async () => {
   try {
-    const { createdSessionId, setActive } = await startGoogleAuthenticationFlow()
+    const { createdSessionId, setActive, signIn, signUp } = await startGoogleAuthenticationFlow()
     if (createdSessionId && setActive) {
       await setActive({ session: createdSessionId })
       router.replace('/')
+    } else if (
+      signIn?.status === 'needs_second_factor' ||
+      signUp?.status === 'missing_requirements'
+    ) {
+      // Continue the returned signIn / signUp (MFA, missing fields) with the custom-flow methods
     }
+    // Otherwise the user dismissed the account chooser; do nothing.
   } catch (err: any) {
-    if (err.code === 'SIGN_IN_CANCELLED' || err.code === '-5') return // user cancelled
     console.error('Sign in with Google error:', JSON.stringify(err, null, 2))
   }
 }
@@ -93,19 +98,17 @@ const onPress = async () => {
 if (Platform.OS !== 'ios' && Platform.OS !== 'android') return null
 ```
 
-Always wrap in try/catch and swallow the cancellation codes. On unsupported platforms (web), fall back to `useSSO({ strategy: 'oauth_google' })` or hide the button.
-
-**Next-major note**: native Google sign-in moves to a separate `@clerk/expo-google-signin` package (plus its own config plugin) in the next major version. On v3 the `@clerk/expo/google` import is correct and logs a dev-only migration warning — don't preinstall the new package.
+Cancellation resolves with `createdSessionId: null` and no pending `signIn` / `signUp` step, so don't show error UI for it. Real failures reject (on Android, a misconfigured OAuth client rejects with `GOOGLE_SIGN_IN_ERROR`), so always wrap the call in try/catch. Without `@clerk/expo-google-signin` installed, the hook throws an error with the install steps. On unsupported platforms (web), fall back to `useSSO({ strategy: 'oauth_google' })` or hide the button.
 
 ## Native Apple sign-in — `useSignInWithApple()`
 
-iOS only; dev build only. Requires `npx expo install expo-apple-authentication` and the Sign in with Apple capability (the `expo-apple-authentication` plugin handles the entitlement — add it to `app.json` plugins). Full setup: [Apple sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-apple)
+iOS only; dev build only. Requires `npx expo install expo-apple-authentication expo-crypto`. The `@clerk/expo` config plugin adds the Sign in with Apple entitlement. Full setup: [Apple sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-apple)
 
 ```tsx
 import { useSignInWithApple } from '@clerk/expo/apple'
 
 const { startAppleAuthenticationFlow } = useSignInWithApple()
-// identical result handling to the Google hook: setActive on createdSessionId, swallow cancellation
+// same result handling as the Google hook: setActive on createdSessionId, continue a pending signIn / signUp, otherwise treat it as cancelled
 ```
 
 On Android/web, fall back to `useSSO({ strategy: 'oauth_apple' })` or hide the button. App Store policy: apps offering third-party sign-in on iOS generally must also offer Sign in with Apple — mention this when adding Google-only auth to an iOS app.
@@ -114,6 +117,6 @@ On Android/web, fall back to `useSSO({ strategy: 'oauth_apple' })` or hide the b
 
 - Provider enabled in the dashboard before writing code.
 - `useSSO` path: scheme configured, no manual `maybeCompleteAuthSession`, cancellation silent, `setActive` called on `createdSessionId`.
-- Native hooks: dev build stated, platform-gated rendering, cancellation codes swallowed, browser-SSO or hidden-button fallback for unsupported platforms.
+- Native hooks: dev build stated, `@clerk/expo-google-signin` installed for Google, platform-gated rendering, cancellation handled without error UI, browser-SSO or hidden-button fallback for unsupported platforms.
 - Not paired with `AuthView`.
 - One real provider round-trip tested on a device or simulator.

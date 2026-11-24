@@ -2,7 +2,7 @@
 
 Post-auth patterns. Hooks below are imported from `@clerk/expo` unless noted; they mirror `@clerk/react`.
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo SDK reference](https://clerk.com/docs/reference/expo/overview) — plus `local-credentials` and `passkeys` pages under the Expo reference
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.x): [Expo SDK reference](https://clerk.com/docs/reference/expo/overview), plus the [`useBiometricCredentials()`](https://clerk.com/docs/reference/expo/native-hooks/use-biometric-credentials) and [passkeys](https://clerk.com/docs/reference/expo/passkeys) pages
 
 ## User profile data
 
@@ -89,25 +89,42 @@ export function PushTokenRegistrar() {
 - Server send: look up the user with the Backend SDK, read `unsafeMetadata.expoPushToken`, POST to `https://exp.host/--/api/v2/push/send`.
 - Re-register after sign-out/sign-in as a different user.
 
-## Biometric re-auth — `useLocalCredentials()`
+## Biometric sign-in: `useBiometricCredentials()`
 
-Dev build only. Stores the user's credentials in the keychain, gated by Face ID / Touch ID / device biometrics, for fast re-sign-in.
+Dev build only. Enrolls a hardware-backed credential for the signed-in user on this device, then signs them back in with Face ID, Touch ID, or device biometrics. No password is stored.
 
-Prerequisites: `npx expo install expo-local-authentication` (plus `expo-secure-store` from setup), iOS `NSFaceIDUsageDescription` in `app.json` → `ios.infoPlist`.
+Prerequisites: enable Clerk Dashboard → **User & authentication** → **Biometric** → **Sign-in with mobile biometrics** (otherwise `getAvailability()` reports `feature_disabled`), then `npx expo install @clerk/expo-biometrics` and rebuild. For the iOS Face ID prompt, pass `faceIDPermission` to the `@clerk/expo` plugin: `["@clerk/expo", { "faceIDPermission": "Sign in with Face ID" }]`. The iOS Simulator can't create the keys, so test on a physical iPhone.
 
 ```tsx
-import { useLocalCredentials } from '@clerk/expo/local-credentials'
+import { useBiometricCredentials } from '@clerk/expo/biometrics'
 
-const { hasCredentials, setCredentials, authenticate, biometricType } = useLocalCredentials()
+const { getAvailability, enroll, signIn, revokeCurrentDeviceCredential } = useBiometricCredentials()
 
-// After a successful password sign-in, offer to enable biometrics:
-await setCredentials({ identifier: emailAddress, password })
+// While signed in, offer to enable biometrics:
+await enroll()
 
-// On later launches, if hasCredentials:
-const signInResource = await authenticate() // prompts biometrics, performs the sign-in
+// On the sign-in screen:
+// After useAuth().isLoaded:
+try {
+  const { isAvailable } = await getAvailability()
+  if (isAvailable) {
+    const result = await signIn()
+    if (result.status === 'complete' && result.createdSessionId) {
+      await result.setActive({ session: result.createdSessionId })
+    }
+    // Otherwise continue result.signIn (e.g. needs_second_factor) with the custom-flow methods
+  }
+} catch {
+  // Keep another sign-in method available
+}
+
+// Before signing out, if the user turns biometrics off:
+await revokeCurrentDeviceCredential()
 ```
 
-Password-based instances only — it replays stored credentials. Confirm the exact return shape against `node_modules/@clerk/expo/dist/local-credentials/*.d.ts` before wiring UI.
+Fetch the hook's docs page before wiring UI; it lists the `unavailableReason` values and the `reverify()` method for step-up checks.
+
+`useLocalCredentials()` from `@clerk/expo/local-credentials` is deprecated (it replays a stored password). Don't use it in new code.
 
 ## Passkeys
 
