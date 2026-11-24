@@ -6,7 +6,7 @@ Every CRITICAL RULE in SKILL.md still applies. Only the build tool, the env var 
 
 ## What Every Setup Needs
 
-1. In the Clerk Dashboard, enable the **Native API** and turn off bot protection (**Challenge suspicious sign-ups**, or legacy **Bot sign-up protection**) in every instance the extension uses.
+1. In the Clerk Dashboard, enable the **Native API**. In the development instance only, turn off **Challenge suspicious sign-ups** (or legacy **Bot sign-up protection**) and **Require Device Intelligence checks**. Leave them on in production (see rule 8 in SKILL.md).
 2. Bundle `@clerk/chrome-extension` `^3.1.105` or later into the extension. Never load Clerk from a CDN or a `<script src="https://...">` tag: the Chrome Web Store rejects remotely hosted code, and 3.1.105 is the first release that doesn't fetch Protect scripts remotely.
 3. Manifest:
    - `permissions`: `["cookies", "storage"]`
