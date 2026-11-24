@@ -11,7 +11,9 @@ metadata:
 
 # Set up Clerk
 
-Check for the Clerk plugin first. It bundles Clerk's skills and the [Clerk MCP server](https://mcp.clerk.com/mcp). Use the MCP server for anything in the user's Clerk account, such as creating an application, getting its keys, changing settings, or going to production. It returns secret keys only for applications it creates, so for an existing application, have the user copy the secret key from the [API keys page](https://dashboard.clerk.com/~/api-keys) into the project's environment file.
+The Clerk MCP server is the preferred way for agents to work with Clerk. Use it for anything in the user's Clerk account, such as creating an application, getting its keys, changing settings, or going to production. It returns secret keys only for applications it creates, so for an existing application, have the user copy the secret key from the [API keys page](https://dashboard.clerk.com/~/api-keys) into the project's environment file.
+
+Check for the Clerk plugin first. It bundles the [Clerk MCP server](https://mcp.clerk.com/mcp) with Clerk's skills.
 
 ## Before you start
 
@@ -20,7 +22,7 @@ Show the user this checklist and wait for a yes:
 ```
 Here's what I'll do to get you set up with Clerk.
 
-1. Add Clerk's agent skills and MCP server for the coding agents on this machine, through the Clerk plugin where possible, if they aren't installed yet.
+1. Add the Clerk MCP server and Clerk's agent skills for the coding agents on this machine, through the Clerk plugin where possible, if they aren't installed yet.
 2. Set up Clerk in this project, or scaffold a new app if this directory is empty.
 3. Start your app with Clerk installed.
 
