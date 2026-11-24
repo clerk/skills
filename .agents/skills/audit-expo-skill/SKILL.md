@@ -18,8 +18,8 @@ The skill intentionally hardcodes verified code snippets (see its freshness gate
 
 ## Inputs
 
-- **SDK source of truth**: a `clerk/javascript` checkout containing `packages/expo/` (and `packages/shared/src/types/` for the sign-in/sign-up resource types).
-- **Docs source of truth**: a `clerk/clerk-docs` checkout containing `docs/getting-started/quickstart.expo.mdx`, `docs/guides/development/custom-flows/authentication/*.mdx`, and `docs/reference/expo/**`.
+- **SDK source of truth**: a `clerk/javascript` checkout containing `packages/expo/` and its companion packages `packages/expo-native-components/`, `packages/expo-google-signin/`, `packages/expo-biometrics/`, and `packages/expo-passkeys/` (and `packages/shared/src/types/` for the sign-in/sign-up resource types).
+- **Docs source of truth**: a `clerk/clerk-docs` checkout (or the `clerk-docs/` folder of a `clerk/clerk` checkout) containing `docs/getting-started/quickstart.expo.mdx`, `docs/guides/development/custom-flows/authentication/*.mdx`, and `docs/reference/expo/**`.
 - **Target skill**: `skills/clerk-expo/SKILL.md`, `references/*.md`, and `evals/evals.json`.
 - Optional corroboration: a `clerk/clerk-expo-quickstart` checkout (three example apps exercising the current API).
 
@@ -28,7 +28,7 @@ The skill intentionally hardcodes verified code snippets (see its freshness gate
 Resolve each checkout in this order:
 
 1. Use `--sdk <path>` / `--docs <path>` when supplied. The SDK path must contain `packages/expo/package.json`; the docs path must contain `docs/getting-started/quickstart.expo.mdx`.
-2. Look for sibling checkouts of this repository: `../javascript` and `../clerk-docs` (the standard Clerk projects layout), and `../clerk-expo-quickstart` for corroboration.
+2. Look for sibling checkouts of this repository: `../javascript` and `../clerk-docs` or `../clerk/clerk-docs` (the standard Clerk projects layout), and `../clerk-expo-quickstart` for corroboration.
 3. If `CLERK_JAVASCRIPT_REPO` / `CLERK_DOCS_REPO` are set, use those paths.
 4. If a checkout is missing and network access is acceptable, shallow-clone into `.context/`:
 
@@ -45,7 +45,7 @@ If neither is available, stop and ask the user for paths. Do not audit from memo
 ### 1. Establish the version delta
 
 - Read the skill's stamped version from `SKILL.md` frontmatter (`compatibility:`) and its freshness-gate text.
-- Read the current version from `packages/expo/package.json` plus `peerDependencies` (Expo SDK range, React Native floor, React range) and bundled native SDK versions (`clerk-ios`, `clerk-android` in dependencies).
+- Read the current version from `packages/expo/package.json` plus `peerDependencies` (Expo SDK range, React Native floor, React range) and the native SDK versions pinned in `packages/expo-native-components` (`ios/ClerkExpo.podspec`, `android/build.gradle`).
 - Read `packages/expo/CHANGELOG.md` entries between the stamped version and current. This is the primary work queue: every changelog entry either affects the skill or is explicitly irrelevant.
 
 If the stamped version equals the current version and the changelog shows nothing new, report "no drift" and stop.
@@ -54,11 +54,12 @@ If the stamped version equals the current version and the changelog shows nothin
 
 Build a structured inventory from source (prefer `src/` over `dist/`):
 
-- **Exports map**: `packages/expo/package.json` `exports` — every subpath (`/native`, `/web`, `/token-cache`, `/resource-cache`, `/secure-store`, `/local-credentials`, `/passkeys`, `/google`, `/apple`, `/legacy`, `/experimental`, …), noting additions and removals.
-- **Hooks**: everything re-exported from `src/hooks/index.ts` and the Expo-specific hooks (`useSSO`, `useAuth` extensions, `useSignInWithGoogle`, `useSignInWithApple`, `useLocalCredentials`). Capture signatures, return shapes, and `@deprecated` tags.
+- **Exports map**: `packages/expo/package.json` `exports` — every subpath (`/native-components`, `/native`, `/web`, `/token-cache`, `/resource-cache`, `/secure-store`, `/local-credentials`, `/biometrics`, `/passkeys`, `/google`, `/apple`, `/hosted-auth`, `/native-to-web`, `/legacy`, `/experimental`, …), noting additions and removals.
+- **Companion packages**: each `packages/expo-*` package's `package.json` (version, peers) and `app.plugin.js` where it has one, plus which `@clerk/expo` subpath loads it and whether a missing package fails at bundle time (static import) or at runtime (guarded require). Note the minimum `@clerk/expo` version that introduced each one.
+- **Hooks**: everything re-exported from `src/hooks/index.ts` and the Expo-specific hooks (`useSSO`, `useAuth` extensions, `useSignInWithGoogle`, `useSignInWithApple`, `useBiometricCredentials`, `useAppVersionSupport`, `useAuthViewState`, `useLocalCredentials`). Capture signatures, return shapes, and `@deprecated` tags.
 - **Custom-flow resources**: the `SignInFutureResource` / `SignUpFutureResource` method surface in `packages/shared/src/types/signInFuture.ts` and `signUpFuture.ts` (method names, param shapes, status enums). The skill's custom-flows reference mirrors this surface.
-- **Native components**: `src/native/index.ts` exports and each component's props types (`AuthView.types.ts`, `UserProfileView`, `UserButton`). Flag any prop the skill names that no longer exists, and any new public prop.
-- **Config plugin**: `src/plugin/withClerkExpo.ts` — required env vars, theme option schema, platform side effects (deployment targets, URL schemes).
+- **Native components**: `src/native-components/index.ts` exports (`src/native/` is a deprecated re-export) and each component's props types in `packages/expo-native-components/src/` (`AuthView.types.ts`, `EmbeddedNavigation.types.ts`, `UserProfileView.tsx`, `UserButton.tsx`). Flag any prop the skill names that no longer exists, and any new public prop.
+- **Config plugins**: `packages/expo/app.plugin.js` and the companion plugins (`expo-native-components`, `expo-google-signin`) — options (`appleSignIn`, `faceIDPermission`, `theme`, `keychainService`), required env vars, theme schema, platform side effects (deployment targets, entitlements, URL schemes). `src/plugin/withClerkExpo.ts` is not the user-facing plugin.
 - **Provider**: `src/provider/ClerkProvider.tsx` props, especially experimental ones (`__experimental_passkeys`, `__experimental_resourceCache`) and any newly stabilized names.
 - **Dev warnings / migration signals**: grep for `@deprecated`, `console.warn`, and package-migration notices (e.g. the `@clerk/expo-google-signin` split). These become "coming changes" notes in the skill.
 

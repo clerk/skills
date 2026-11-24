@@ -66,6 +66,24 @@ Rules baked into this pattern:
 4. **Keep `mode` at its default** (`signInOrUp`) unless the developer asks for separate flows.
 5. **Don't add `useSignInWithGoogle()` / `useSignInWithApple()` buttons next to `AuthView`** — it renders every enabled social provider itself. Provider availability comes from the instance config; fix gaps in the Clerk Dashboard, not in code.
 
+## Required sign-in screen (non-dismissible `AuthView`)
+
+When `AuthView` is the app's sign-in screen rather than a modal, gate on `useAuthViewState()` so it stays mounted through session tasks and the biometric enrollment prompt:
+
+```tsx
+import { AuthView, useAuthViewState } from '@clerk/expo/native-components'
+import { Redirect } from 'expo-router'
+
+export default function SignInScreen() {
+  const { isLoaded, isAuthFlowComplete } = useAuthViewState()
+  if (!isLoaded) return null
+  if (isAuthFlowComplete) return <Redirect href="/(home)" />
+  return <AuthView isDismissible={false} />
+}
+```
+
+Don't swap the screen on `useAuth().isSignedIn` alone; it flips before the native flow finishes. Docs: [`useAuthViewState()`](https://clerk.com/docs/reference/expo/native-hooks/use-auth-view-state).
+
 ## Theming
 
 The `@clerk/expo-native-components` config plugin accepts a JSON theme applied to both platforms at prebuild:
@@ -80,7 +98,7 @@ The `@clerk/expo-native-components` config plugin accepts a JSON theme applied t
 ```
 
 ```json
-// clerk-theme.json — every key optional; unknown keys warn
+// clerk-theme.json — every key optional; unknown color keys warn and are ignored
 {
   "colors": { "primary": "#6C47FF", "background": "#FFFFFF" },
   "darkColors": { "primary": "#8B6FFF", "background": "#0B0B0F" },
@@ -88,7 +106,7 @@ The `@clerk/expo-native-components` config plugin accepts a JSON theme applied t
 }
 ```
 
-Colors are 6- or 8-digit hex (validated at prebuild — invalid values fail the build with a descriptive error). Available color keys: `primary`, `background`, `input`, `danger`, `success`, `warning`, `foreground`, `mutedForeground`, `primaryForeground`, `inputForeground`, `neutral`, `border`, `ring`, `muted`, `shadow`. Rerun `npx expo prebuild --clean` (or `expo run:*`) after theme changes.
+Colors are 6- or 8-digit hex (validated at prebuild — invalid values fail the build with a descriptive error). Available color keys: `primary`, `background`, `input`, `danger`, `success`, `warning`, `foreground`, `mutedForeground`, `primaryForeground`, `inputForeground`, `neutral`, `border`, `ring`, `muted`, `shadow`, `secondaryButtonBackground`, `secondaryButtonForeground`. Rerun `npx expo prebuild --clean` (or `expo run:*`) after theme changes.
 
 For customization beyond the theme schema, the answer is custom flows, not fighting the native UI.
 

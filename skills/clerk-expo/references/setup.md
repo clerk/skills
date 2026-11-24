@@ -28,6 +28,7 @@ npx expo install expo-dev-client
 | Native Apple sign-in | `npx expo install expo-apple-authentication expo-crypto` |
 | Biometrics (`useBiometricCredentials`) | `npx expo install @clerk/expo-biometrics` |
 | Passkeys | `npx expo install @clerk/expo-passkeys` |
+| Minimum app version (`useAppVersionSupport`) | `npx expo install expo-application` |
 
 `init` wraps the root layout with `ClerkProvider` and `tokenCache` when it can, so check the layout before step 5. It doesn't install `expo-secure-store` or `expo-dev-client`, or add the config plugin, so complete those steps here.
 
@@ -68,7 +69,7 @@ Verify `app.json` / `app.config.js` includes the plugins (`npx expo install` usu
 ```
 
 - `@clerk/expo` adds the Sign in with Apple entitlement on iOS (opt out with `{ "appleSignIn": false }`) and the Android callback used by `useHostedAuth()`.
-- `@clerk/expo-native-components` links the Clerk iOS and Android SDKs, raises the iOS deployment target to 17.0, and accepts the `theme` option (see prebuilt-components.md).
+- `@clerk/expo-native-components` links the Clerk iOS and Android SDKs, raises the iOS deployment target to 17.0, and accepts the `theme` (see prebuilt-components.md) and `keychainService` options. When the package is installed, `@clerk/expo` applies this plugin for you and forwards those options, but list it explicitly to match the docs.
 - `@clerk/expo-google-signin` writes `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` into the iOS URL types.
 
 Plugin changes require a fresh prebuild: `npx expo prebuild --clean` or rerunning `expo run:*`.

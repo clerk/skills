@@ -27,7 +27,7 @@ const { startSSOFlow } = useSSO()
 
 const onPress = async () => {
   try {
-    const { createdSessionId, setActive, signUp } = await startSSOFlow({
+    const { createdSessionId, setActive, signIn, signUp } = await startSSOFlow({
       strategy: 'oauth_google', // oauth_apple, oauth_github, oauth_microsoft, ...
     })
     if (createdSessionId) {
@@ -36,8 +36,10 @@ const onPress = async () => {
     } else if (signUp?.status === 'missing_requirements') {
       // Instance requires fields the provider didn't supply (e.g. username) —
       // collect them and signUp.update(...), or relax requirements in the dashboard
+    } else if (signIn?.status === 'needs_second_factor') {
+      // MFA user: continue with useSignIn().signIn.mfa (custom-flows.md)
     }
-    // No createdSessionId and no missing requirements → user cancelled; do nothing.
+    // Otherwise the user cancelled; do nothing.
   } catch (err) {
     console.error(JSON.stringify(err, null, 2))
   }
@@ -66,7 +68,8 @@ Setup:
    - `EXPO_PUBLIC_CLERK_GOOGLE_WEB_CLIENT_ID` (always required)
    - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_CLIENT_ID` (iOS)
    - `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` (iOS. The `@clerk/expo-google-signin` plugin writes it into the iOS URL types at prebuild; the iOS sign-in fails without it)
-3. Rebuild the app.
+3. Also expose the client IDs under `expo.extra` in the app config (`app.config.ts` can read them from `process.env`). The hook reads `extra` first; `EXPO_PUBLIC_*` reads inside `node_modules` are not inlined, so production builds without `extra` throw "credentials not found".
+4. Rebuild the app.
 
 Full provider-side setup lives in the [Google sign-in guide](https://clerk.com/docs/guides/configure/auth-strategies/sign-in-with-google) — fetch it if the Google Cloud side isn't already configured.
 
@@ -86,7 +89,7 @@ const onPress = async () => {
       signIn?.status === 'needs_second_factor' ||
       signUp?.status === 'missing_requirements'
     ) {
-      // Continue the returned signIn / signUp (MFA, missing fields) with the custom-flow methods
+      // Continue with useSignIn().signIn / useSignUp().signUp (custom-flows.md). The returned objects are legacy resources.
     }
     // Otherwise the user dismissed the account chooser; do nothing.
   } catch (err: any) {
@@ -98,7 +101,7 @@ const onPress = async () => {
 if (Platform.OS !== 'ios' && Platform.OS !== 'android') return null
 ```
 
-Cancellation resolves with `createdSessionId: null` and no pending `signIn` / `signUp` step, so don't show error UI for it. Real failures reject (on Android, a misconfigured OAuth client rejects with `GOOGLE_SIGN_IN_ERROR`), so always wrap the call in try/catch. Without `@clerk/expo-google-signin` installed, the hook throws an error with the install steps. On unsupported platforms (web), fall back to `useSSO({ strategy: 'oauth_google' })` or hide the button.
+Cancellation resolves with `createdSessionId: null` and no pending `signIn` / `signUp` step, so don't show error UI for it. Real failures reject (on Android, a misconfigured OAuth client rejects with `GOOGLE_SIGN_IN_ERROR`), so always wrap the call in try/catch. Without `@clerk/expo-google-signin` installed, the hook throws an error with the install steps. On unsupported platforms (web), fall back to `useSSO()` with `startSSOFlow({ strategy: 'oauth_google' })` or hide the button.
 
 ## Native Apple sign-in — `useSignInWithApple()`
 
@@ -111,7 +114,7 @@ const { startAppleAuthenticationFlow } = useSignInWithApple()
 // same result handling as the Google hook: setActive on createdSessionId, continue a pending signIn / signUp, otherwise treat it as cancelled
 ```
 
-On Android/web, fall back to `useSSO({ strategy: 'oauth_apple' })` or hide the button. App Store policy: apps offering third-party sign-in on iOS generally must also offer Sign in with Apple — mention this when adding Google-only auth to an iOS app.
+On Android/web, fall back to `useSSO()` with `startSSOFlow({ strategy: 'oauth_apple' })` or hide the button. App Store policy: apps offering third-party sign-in on iOS generally must also offer Sign in with Apple — mention this when adding Google-only auth to an iOS app.
 
 ## Verification checklist
 

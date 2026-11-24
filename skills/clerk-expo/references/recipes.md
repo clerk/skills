@@ -38,7 +38,7 @@ const { setActive, userMemberships } = useOrganizationList({
 })
 
 // Current: organization?.name ?? 'Personal account'
-// Switch: setActive({ organization: membership.organization.id })
+// Switch: setActive?.({ organization: membership.organization.id }) (undefined until loaded)
 // List: userMemberships.data?.map((m) => m.organization) — guard while undefined
 ```
 
@@ -112,7 +112,7 @@ try {
     if (result.status === 'complete' && result.createdSessionId) {
       await result.setActive({ session: result.createdSessionId })
     }
-    // Otherwise continue result.signIn (e.g. needs_second_factor) with the custom-flow methods
+    // Otherwise continue with useSignIn().signIn (e.g. needs_second_factor); result.signIn is a legacy resource
   }
 } catch {
   // Keep another sign-in method available
@@ -137,6 +137,10 @@ import { passkeys } from '@clerk/expo/passkeys'
 ```
 
 Requires associated-domains setup (iOS) / asset links (Android). Fetch the [Expo passkeys reference](https://clerk.com/docs/reference/expo/passkeys) for the current platform configuration before implementing — the passkeys API is still experimental and changes.
+
+## Minimum app version
+
+When the developer sets a minimum app version in the Clerk Dashboard, Clerk rejects requests from older builds and `ClerkProvider` shows an update screen. It needs `npx expo install expo-application`; without it, the app is always reported as supported. For a custom screen, set `updateRequiredViewEnabled={false}` on `ClerkProvider` and read `useAppVersionSupport()` from `@clerk/expo` (`isSupported`, `currentVersion`, `minimumVersion`, `updateUrl`). Docs: [`useAppVersionSupport()`](https://clerk.com/docs/reference/expo/native-hooks/use-app-version-support).
 
 ## Offline resource caching
 
