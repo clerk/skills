@@ -1,0 +1,60 @@
+{
+  "skill_name": "clerk-mcp-auth",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "we have an mcp server in this repo (express + @modelcontextprotocol/sdk, deployed at https://mcp.acme.dev/mcp). our users already log in with auth0. i want claude and chatgpt to be able to connect to it with oauth, using clerk app app_123. can you set it up?",
+      "expected_output": "Registers https://mcp.acme.dev/mcp with configure_mcp_server on the development instance of app_123, adds RFC 9728 protected resource metadata, JWT token verification with an audience check, and a 401 WWW-Authenticate challenge to the server, checks it with check_mcp_server after updating/deploying, and leaves Auth0 credentials to the user",
+      "files": [],
+      "assertions": [
+        "Calls configure_mcp_server with application_id app_123, instance development, and resource_url https://mcp.acme.dev/mcp",
+        "Serves OAuth protected resource metadata (RFC 9728) that names Clerk as the authorization server",
+        "Verifies the Clerk JWT access token on every MCP request against Clerk's JWKS and checks that its audience is https://mcp.acme.dev/mcp",
+        "Returns 401 with a WWW-Authenticate header pointing to the protected resource metadata when the token is missing or invalid",
+        "Calls check_mcp_server with force_recheck: true for the same application, instance, and URL after implementing/deploying the server changes",
+        "Treats the token's sub as the user's Auth0 ID",
+        "Does not ask for, read, or write the Auth0 client secret"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "add clerk oauth to my mcp server so claude can connect. our users sign in with okta",
+      "expected_output": "Asks for the Clerk application ID and the MCP server URL it can't find, registers the server, adds metadata/token checks, and connects Okta as a public PKCE Single-Page Application through configure_identity_provider without handling a client secret",
+      "files": [],
+      "assertions": [
+        "Asks the user for the Clerk application ID instead of guessing or creating an application",
+        "Looks for the MCP server URL in the codebase and asks the user when it can't find it",
+        "Uses instance development when calling configure_mcp_server",
+        "Has the user create an Okta Single-Page Application (not a Web application) with the callback_url from a configure_identity_provider dry run as a sign-in redirect URI",
+        "Previews with configure_identity_provider and dry_run: true, then saves with the Okta https issuer URL and the Single-Page Application's client ID",
+        "Does not ask for, read, or handle an Okta client secret"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "our mcp server at https://mcp.contoso.dev/mcp already uses clerk app app_456 for oauth. users sign in with microsoft entra id and our db keys users by their entra object id. the az cli is logged in. connect entra so people sign in with their work accounts",
+      "expected_output": "Creates a public Entra app registration with Clerk's callback URL, connects it with configure_identity_provider, and maps Clerk's user ID to the oid claim before anyone signs in, so token sub values match the existing records",
+      "files": [],
+      "assertions": [
+        "Creates the Entra app registration with --public-client-redirect-uris set to Clerk's callback URL and --is-fallback-public-client true, not --web-redirect-uris",
+        "Calls configure_identity_provider with application_id app_456, issuer https://login.microsoftonline.com/<tenant-id>/v2.0, and the new app's client ID, without a client secret",
+        "Explains that Entra's sub is pairwise per application and won't match existing records",
+        "Maps the provider's user_mapping id to oid with patch_instance_config before users sign in, listing the other mapped fields too",
+        "Does not ask for, read, or create an Entra client secret"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "set up oauth for my mcp server with clerk (app_789, server https://mcp.example.org/mcp). we're a google workspace company, everyone logs in with google",
+      "expected_output": "Registers the server and protects it, then sends the user to the Clerk Dashboard's Identity provider page to enter a Google web client's ID and secret, with the OAuth consent screen set to Internal",
+      "files": [],
+      "assertions": [
+        "Does not call configure_identity_provider for Google, because Google web clients need a client secret",
+        "Tells the user to create a Google Web application OAuth client with Clerk's callback URL as an authorized redirect URI",
+        "Tells the user to set the OAuth consent screen audience to Internal so only their Workspace accounts can sign in",
+        "Sends the user to the Identity provider page in the Clerk Dashboard to enter the issuer https://accounts.google.com, Client ID, and Client Secret",
+        "Does not ask for, read, or handle the Google client secret"
+      ]
+    }
+  ]
+}
