@@ -1,6 +1,6 @@
 # Social auth: browser SSO and native Google/Apple
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.x):
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.17.x):
 >
 > - [OAuth custom flow](https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections)
 > - [`useSSO`](https://clerk.com/docs/reference/expo/native-hooks/use-sso)

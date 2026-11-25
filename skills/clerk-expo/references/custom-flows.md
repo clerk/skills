@@ -2,7 +2,7 @@
 
 Build your own auth UI with `useSignIn()` / `useSignUp()`. Works everywhere including Expo Go and web. Use when the developer wants their own UI, needs Expo Go, or asked for a specific strategy like SMS.
 
-> Canonical docs — use the Expo example when the guide has one; otherwise adapt the guide to Expo. Fetch the relevant guide to re-verify if the installed SDK is newer than 4.x:
+> Canonical docs — use the Expo example when the guide has one; otherwise adapt the guide to Expo. Fetch the relevant guide to re-verify if the installed SDK is newer than 4.17.x:
 >
 > - [Email/password](https://clerk.com/docs/guides/development/custom-flows/authentication/email-password)
 > - [Email/SMS OTP](https://clerk.com/docs/guides/development/custom-flows/authentication/email-sms-otp)

@@ -2,7 +2,7 @@
 
 Post-auth patterns. Hooks below are imported from `@clerk/expo` unless noted; they mirror `@clerk/react`.
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.x): [Expo SDK reference](https://clerk.com/docs/reference/expo/overview), plus the [`useBiometricCredentials()`](https://clerk.com/docs/reference/expo/native-hooks/use-biometric-credentials) and [passkeys](https://clerk.com/docs/reference/expo/passkeys) pages
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.17.x): [Expo SDK reference](https://clerk.com/docs/reference/expo/overview), plus the [`useBiometricCredentials()`](https://clerk.com/docs/reference/expo/native-hooks/use-biometric-credentials) and [passkeys](https://clerk.com/docs/reference/expo/passkeys) pages
 
 ## User profile data
 

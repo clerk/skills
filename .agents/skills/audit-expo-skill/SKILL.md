@@ -44,11 +44,12 @@ If neither is available, stop and ask the user for paths. Do not audit from memo
 
 ### 1. Establish the version delta
 
-- Read the skill's stamped version from `SKILL.md` frontmatter (`compatibility:`) and its freshness-gate text.
+- Read the skill's stamped version from `SKILL.md` frontmatter (`compatibility:`) and its freshness-gate text, plus the stamped companion package versions in `references/setup.md` (**Supported versions**).
 - Read the current version from `packages/expo/package.json` plus `peerDependencies` (Expo SDK range, React Native floor, React range) and the native SDK versions pinned in `packages/expo-native-components` (`ios/ClerkExpo.podspec`, `android/build.gradle`).
 - Read `packages/expo/CHANGELOG.md` entries between the stamped version and current. This is the primary work queue: every changelog entry either affects the skill or is explicitly irrelevant.
+- Do the same for each companion package (`packages/expo-*`). They are versioned separately from `@clerk/expo`, so a companion can ship native component, hook, or config plugin changes while `@clerk/expo` stays the same. Read each one's `package.json` version and its `CHANGELOG.md` entries since the stamped companion version.
 
-If the stamped version equals the current version and the changelog shows nothing new, report "no drift" and stop.
+Report "no drift" and stop only when `@clerk/expo` and every companion package match their stamped versions and none of their changelogs show anything new.
 
 ### 2. Inventory the SDK surface
 
@@ -95,7 +96,7 @@ Cite source file and line for every bucket-1/2/3 entry, plus the target skill lo
 
 Emit a review-ready proposal grouped by target file. For each change include severity (`drift`, `gap`, or `polish`), the source citation, the target location, and a unified diff or concise before/after. Always include, when any change is applied:
 
-- The `compatibility:` stamp and freshness-gate version in `SKILL.md` updated to the audited SDK version.
+- The `compatibility:` stamp and freshness-gate version in `SKILL.md` updated to the audited SDK version, and the companion package versions in `references/setup.md` updated to the audited ones.
 - Eval updates when expectations reference changed APIs.
 
 Do not rewrite accurate neighboring sections. Skill shrinkage is a valid proposal.
@@ -121,7 +122,7 @@ With `--apply`: apply `drift` and `gap` edits, update the version stamps, list `
 # clerk-expo skill audit - <YYYY-MM-DD>
 
 ## Summary
-<stamped vs current version, changelog entries reviewed, counts per bucket, largest drift>
+<stamped vs current version for `@clerk/expo` and each companion package, changelog entries reviewed, counts per bucket, largest drift>
 
 ## skills/clerk-expo/SKILL.md
 ### <section>

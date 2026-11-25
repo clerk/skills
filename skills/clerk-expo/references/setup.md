@@ -2,13 +2,13 @@
 
 Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what `clerk-setup` already did instead of repeating it.
 
-> Canonical doc (fetch to re-verify if the installed SDK is newer than 4.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
+> Canonical doc (fetch to re-verify if the installed SDK is newer than 4.17.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
 
 For CLI setup and key retrieval, follow `clerk-setup` over the quickstart; use the quickstart for Expo-specific integration details.
 
 ## Supported versions
 
-Written against `@clerk/expo` v4.17.x (November 2026). Peer requirements: Expo SDK 54–58, React Native ≥ 0.75, React 18 or 19. If the project's Expo SDK or RN version is below the floor, upgrading the app comes before adding Clerk.
+Written against `@clerk/expo` v4.17.x (November 2026), with companion packages `@clerk/expo-native-components` 0.4.x, `@clerk/expo-google-signin` 1.1.x, `@clerk/expo-biometrics` 1.1.x, and `@clerk/expo-passkeys` 2.2.x. Peer requirements: Expo SDK 54–58, React Native ≥ 0.75, React 18 or 19. If the project's Expo SDK or RN version is below the floor, upgrading the app comes before adding Clerk.
 
 ## 1. Install
 
