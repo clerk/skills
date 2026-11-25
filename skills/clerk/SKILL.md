@@ -1,9 +1,9 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, testing, impersonating a user, testing webhooks locally, or reading Application Logs to debug a sign-in or sign-up. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, testing, impersonating a user, testing webhooks locally, reading Application Logs to debug a sign-in or sign-up, or adding OAuth to an MCP server. Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
-  version: 2.0.2
+  version: 2.0.3
 ---
 
 # Clerk Skills Router
@@ -138,6 +138,12 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - Data syncing
 - Notifications & integrations
 
+**MCP server auth** → Use `clerk-mcp-auth`
+
+- OAuth for an MCP server so AI clients such as Claude and ChatGPT can connect
+- Registering the server with Clerk through the Clerk MCP server
+- Users signing in with the team's existing identity provider
+
 **E2E Testing** → Use `clerk-testing`
 
 - Playwright/Cypress setup
@@ -185,6 +191,7 @@ If you know your task, you can directly access:
 - `/clerk-orgs` - Organizations
 - `/clerk-billing` - Billing & subscriptions
 - `/clerk-webhooks` - Webhooks
+- `/clerk-mcp-auth` - OAuth for MCP servers
 - `/clerk-testing` - Testing
 - `/clerk-swift` - Swift/native iOS and macOS UI
 - `/clerk-android` - Native Android

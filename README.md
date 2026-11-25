@@ -145,6 +145,7 @@ For product analytics, the MCP server sends Clerk an event for each tool call. I
 | `clerk-billing` | Subscription billing and feature gating | Pricing tables, plans, per-seat, entitlements |
 | `clerk-webhooks` | Real-time events and data syncing | Database sync, notifications |
 | `clerk-testing` | E2E testing for auth flows | Playwright/Cypress tests |
+| `clerk-mcp-auth` | OAuth for MCP servers | Letting AI clients connect to your MCP server |
 
 ### Native Mobile
 
@@ -184,6 +185,7 @@ for how temporary keys and later account claiming work.
 | "Build custom sign-in form" | `clerk-custom-ui` |
 | "Sync users to Prisma via webhooks" | `clerk-webhooks` |
 | "Add Playwright tests for auth" | `clerk-testing` |
+| "Add OAuth to my MCP server so Claude can connect" | `clerk-mcp-auth` |
 | "Set up organizations for my B2B app" | `clerk-orgs` |
 | "Add subscription billing with pricing table" | `clerk-billing` |
 | "Gate features by plan" | `clerk-billing` |
