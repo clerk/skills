@@ -5,8 +5,8 @@ license: MIT
 allowed-tools: WebFetch
 metadata:
   author: clerk
-  version: 2.0.2
-compatibility: Requires @clerk/expo v3.4+ (written against v3.6.x, July 2026). Expo SDK 53-56, React Native 0.75+.
+  version: 2.1.0
+compatibility: Requires @clerk/expo v4.15+ (written against v4.17.x, November 2026). Expo SDK 54-58, React Native 0.75+.
 ---
 
 # Clerk Expo (React Native)
@@ -46,7 +46,7 @@ Match what the user asked for, then load the reference(s) listed. Load only what
 
 When the user says "add auth" without specifying UI:
 
-1. **Default to prebuilt native components** (`AuthView` + `UserButton` from `@clerk/expo/native`). Fastest to working auth; UI is maintained by Clerk. Tell the developer they are in beta and require a development build.
+1. **Default to prebuilt native components** (`AuthView` + `UserButton` from `@clerk/expo/native-components`). Fastest to working auth; UI is maintained by Clerk. Tell the developer they are in beta, need the `@clerk/expo-native-components` package, and require a development build.
 2. **Fall back to custom flows** when any of these hold — say why when you switch:
    - The project must run in Expo Go (no dev build).
    - The app targets web (native components don't render on web).
@@ -70,23 +70,35 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 
 1. **Publishable key** — Read from `process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` in app code. Never `NEXT_PUBLIC_`, never hardcoded. If the key is missing, follow the appropriate new or existing application path in [clerk-setup](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md). Expo has no accountless keys, and an agent's `init` won't write one without a target application, even when signed in. For a new application, have the developer sign in and select or create an application, then run `npx -y clerk@latest init --app <application_id>`. For an existing application, have them sign in, link the selected application if needed, then run `npx -y clerk@latest env pull`. Alternatively, ask the developer for the publishable key from Clerk Dashboard → **API keys** and wait. Don't continue until a real key is set, and never run a fresh `init` for an existing Clerk project.
 2. **Native API dashboard toggle** — Clerk's Native API must be enabled for the instance: Clerk Dashboard → **Native applications** (`https://dashboard.clerk.com/~/native-applications`). Tell the developer to verify this during setup; it is required for any native integration.
-3. **Factor availability** — Before implementing a specific strategy (SMS, email code, social provider), confirm it's enabled for the instance. Derive the Frontend API URL from the publishable key (base64-decode the middle segment) and fetch `<frontendApiUrl>/v1/environment?_is_native=true`, or ask the developer to check the dashboard (**User & authentication**). SMS in particular is instance-configuration-dependent — code written for a disabled factor fails at runtime, not build time.
-4. **Current custom-flows API only** — `useSignIn()` / `useSignUp()` from `@clerk/expo` (v3.4+) return `{ signIn, errors, fetchStatus }` and use method-based flows: `signIn.password()`, `signIn.phoneCode.sendCode()`, `signIn.finalize()`. Never generate the legacy pattern: destructuring `isLoaded`/`setActive` from `useSignIn()`/`useSignUp()` (the current hooks don't return them), or `signIn.create()` chained with `prepareFirstFactor()`/`attemptFirstFactor()` + `setActive({ session })`. That pattern lives at `@clerk/expo/legacy` and is only for maintaining existing legacy code, never for new work. Scope notes: `isLoaded` from `useAuth()`/`useUser()` is current API and required in guards; `signIn.create()` itself still exists for advanced cases — prefer the factor-specific methods.
+3. **Factor availability** — Before implementing a specific strategy (SMS, email code, social provider), confirm it's enabled for the instance. Derive the Frontend API URL from the publishable key (base64-decode the segment after `pk_test_` / `pk_live_`, then drop the trailing `$`) and fetch `<frontendApiUrl>/v1/environment?_is_native=true`, or ask the developer to check the dashboard (**User & authentication**). SMS in particular is instance-configuration-dependent — code written for a disabled factor fails at runtime, not build time.
+4. **Current custom-flows API only** — `useSignIn()` / `useSignUp()` from `@clerk/expo` return `{ signIn, errors, fetchStatus }` and use method-based flows: `signIn.password()`, `signIn.phoneCode.sendCode()`, `signIn.finalize()`. Never generate the legacy pattern: destructuring `isLoaded`/`setActive` from `useSignIn()`/`useSignUp()` (the current hooks don't return them), or `signIn.create()` chained with `prepareFirstFactor()`/`attemptFirstFactor()` + `setActive({ session })`. That pattern lives at `@clerk/expo/legacy` and is only for maintaining existing legacy code, never for new work. Scope notes: `isLoaded` from `useAuth()`/`useUser()` is current API and required in guards; `signIn.create()` itself still exists for advanced cases — prefer the factor-specific methods.
 5. **`useSSO()`, never `useOAuth()`** — `useOAuth` is deprecated. Note the asymmetry: `startSSOFlow()` still returns `{ createdSessionId, setActive }` and requires `setActive({ session: createdSessionId })` — SSO does not use `finalize()`.
 6. **Token cache** — `tokenCache` from `@clerk/expo/token-cache` on `ClerkProvider`. Never use `expo-secure-store` directly for session tokens, never AsyncStorage.
 7. **`resourceCache`, never `secureStore`** — if offline resource caching comes up, `@clerk/expo/secure-store` is deprecated; use `resourceCache` from `@clerk/expo/resource-cache`.
-8. **Build-type gating** — Native components (`@clerk/expo/native`) and native hooks (`useSignInWithGoogle`, `useSignInWithApple`, `useLocalCredentials`) require a development build (`npx expo run:ios` / `run:android`), not Expo Go, and don't exist on web. For web targets use `@clerk/expo/web` components or custom flows. State the build requirement before implementing a native-only feature.
+8. **Build-type gating** — Native components (`@clerk/expo/native-components`) and native hooks (`useSignInWithGoogle`, `useSignInWithApple`, `useBiometricCredentials`) require a development build (`npx expo run:ios` / `run:android`), not Expo Go, and don't exist on web. For web targets use `@clerk/expo/web` components or custom flows. State the build requirement before implementing a native-only feature.
 9. **Combined sign-in-or-up default** — one combined flow unless the developer asks for separate sign-in and sign-up screens.
-10. **Bot protection** — custom sign-up screens must render `<View nativeID="clerk-captcha" />`; Clerk's bot protection is on by default and needs this mount point.
-11. **Source verification for volatile surfaces** — before using native component props or native hook options, confirm against the installed package: `node_modules/@clerk/expo/dist/native/*.d.ts` and `package.json` `exports`. The installed version wins over this skill if they disagree.
-12. **Freshness gate** — this skill was verified against `@clerk/expo` 3.6.x. Check the installed version (`node_modules/@clerk/expo/package.json`). If it is a newer minor or major, treat this skill's code snippets as suspect: re-verify against the docs URL cited next to each snippet (every reference section carries one) or the installed `.d.ts` before using them. If it is older than 3.4, the method-based custom-flows API may not exist — offer an upgrade instead of writing legacy code.
+10. **Bot protection** — custom sign-up screens render `<View nativeID="clerk-captcha" />`. It is required on Expo web when the instance uses legacy bot sign-up protection. Clerk skips the browser CAPTCHA on iOS and Android, so it is harmless there and keeps the screen web-ready.
+11. **Source verification for volatile surfaces** — before using native component props or native hook options, confirm against the installed packages: `node_modules/@clerk/expo-native-components/dist/*.d.ts` for component props, `node_modules/@clerk/expo/dist/**/*.d.ts` for hooks, and `@clerk/expo`'s `package.json` `exports`. The installed version wins over this skill if they disagree.
+12. **Freshness gate** — this skill was verified against `@clerk/expo` 4.17.x. Check the installed version (`node_modules/@clerk/expo/package.json`). If it is newer than 4.17.x (a newer minor or major), treat this skill's code snippets as suspect: re-verify against the docs URL cited next to each snippet (every reference section carries one) or the installed `.d.ts` before using them. If it is older than 4.15, offer an upgrade to the latest v4 first. `@clerk/expo/native-components` arrived in 4.11, the current `@clerk/expo-native-components` renders blank with `@clerk/expo` older than 4.14, and `useAppVersionSupport()` arrived in 4.15. If it is v2 or older, the method-based custom-flows API doesn't exist, so offer an upgrade instead of writing legacy code.
 
-## Version Notes (v3.5–v3.6, June 2026)
+## Version Notes (v4, November 2026)
 
-- Minimum React Native raised to **0.75** in v3.5.0 (iOS SDK now links via SPM podspec). Peer range: `expo >=53 <57`.
-- Native components matured: iOS moved to Expo Modules; native↔JS session sync is automatic and bidirectional — never call `setActive()` after native-component auth.
-- The config plugin accepts a `theme` JSON file for native component styling (see references/prebuilt-components.md).
-- Native Google sign-in will move to a separate `@clerk/expo-google-signin` package in the next major (the `@clerk/expo/google` import keeps working in v3; a dev warning announces the migration). Don't preinstall the new package on v3.
+- Peer range is `expo >=54 <59`. v4.0 dropped Expo SDK 53, and v4.13 added SDK 58. React Native 0.75+.
+- Native features ship as optional companion packages. Install only the ones the app uses, then rebuild:
+
+| Feature | Install | Import from |
+| --- | --- | --- |
+| `AuthView`, `UserButton`, `UserProfileView` | `@clerk/expo-native-components` | `@clerk/expo/native-components` |
+| `useSignInWithGoogle()` | `@clerk/expo-google-signin` (and add its config plugin) | `@clerk/expo/google` |
+| `useBiometricCredentials()` | `@clerk/expo-biometrics` | `@clerk/expo/biometrics` |
+| Passkeys | `@clerk/expo-passkeys` | `@clerk/expo/passkeys` |
+
+- A missing native components, Google, or biometrics package fails at runtime with an install message, not at build time. A missing `@clerk/expo-passkeys` fails the bundle.
+- `@clerk/expo/native` still works but is deprecated. Never use it in new code.
+- `useLocalCredentials()` is deprecated and will be removed in the next major. Use `useBiometricCredentials()` for biometric sign-in.
+- Without `@clerk/expo-native-components`, the app doesn't include the Clerk iOS and Android SDKs and doesn't require iOS 17.
+- Native↔JS session sync is automatic and bidirectional. Never call `setActive()` after native-component auth.
+- Newer subpaths, each documented under the [Expo SDK reference](https://clerk.com/docs/reference/expo/overview): `@clerk/expo/hosted-auth` (`useHostedAuth()`, sign in through the Account Portal) and `@clerk/expo/native-to-web` (`useAuthenticatedWebView()`, `openInBrowser()`, open your web app already signed in, v4.17+).
 
 ## Common Pitfalls
 
@@ -96,7 +108,7 @@ Do not blend prebuilt components and custom flows for the same auth step (e.g. `
 | CRITICAL | Using `useOAuth()` | Use `useSSO()` (Gate 5) |
 | CRITICAL | Implementing SMS/social auth without checking the factor is enabled | Check environment/dashboard first (Gate 3) |
 | CRITICAL | Native components targeted at Expo Go or web | Require a dev build; offer custom flows otherwise (Gate 8) |
-| CRITICAL | Sign-up screen missing `<View nativeID="clerk-captcha" />` | Always include it (Gate 10) |
+| MEDIUM | Sign-up screen missing `<View nativeID="clerk-captcha" />` (breaks Expo web with legacy bot protection) | Always include it (Gate 10) |
 | HIGH | `NEXT_PUBLIC_` env prefix, or env var read inside `node_modules` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, passed explicitly to `ClerkProvider` |
 | HIGH | Session lost on restart | `tokenCache` from `@clerk/expo/token-cache` on the provider |
 | HIGH | Calling `setActive()` after `AuthView` / `UserButton` auth | Native components sync sessions automatically |

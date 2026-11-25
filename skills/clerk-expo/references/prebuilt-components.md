@@ -1,28 +1,29 @@
-# Prebuilt native components (@clerk/expo/native)
+# Prebuilt native components (@clerk/expo/native-components)
 
 The default "add auth" path. `AuthView`, `UserButton`, and `UserProfileView` render Clerk's native UI — SwiftUI on iOS, Jetpack Compose on Android — and handle every enabled auth strategy (password, OTP, social, MFA) with no flow code.
 
-> Canonical docs (fetch to re-verify if the installed SDK is newer than 3.6.x): [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
+> Canonical docs (fetch to re-verify if the installed SDK is newer than 4.17.x): [Native components overview](https://clerk.com/docs/reference/expo/native-components/overview) — plus `auth-view`, `user-button`, `user-profile-view`, `theming` pages alongside it
 
 **Status and requirements — tell the developer up front:**
 
 - Beta. Works well, but flag it before a production rollout decision.
 - Requires a development build (`npx expo run:ios` / `run:android`). Not Expo Go, not web.
-- Requires the `@clerk/expo` config plugin and a prebuild (see setup.md).
+- Requires the `@clerk/expo-native-components` package and its config plugin next to `@clerk/expo`, then a prebuild (see setup.md). Without the package, rendering a component throws at runtime, so install it before shipping an over-the-air update.
+- Requires iOS 17 or later.
 
 For native email-link sign-in, use `<AuthView />`. JavaScript-only custom email-link flows work on Expo web; use email codes for native custom UI. See [Clerk's sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options).
 
 ## Components
 
-Import from `@clerk/expo/native`:
+Import from `@clerk/expo/native-components` (`@clerk/expo/native` is deprecated):
 
 | Component | Renders | Props |
 | --- | --- | --- |
-| `AuthView` | Sign-in/sign-up UI, inline (fills parent) | `mode?: 'signInOrUp' \| 'signIn' \| 'signUp'` (default `signInOrUp`), `isDismissible?: boolean` (default true), `onDismiss?: () => void` |
-| `UserButton` | Avatar button that opens the native user profile | — |
-| `UserProfileView` | Profile/account management, inline | `isDismissible?`, `onDismiss?`, `style?` |
+| `AuthView` | Sign-in/sign-up UI, inline (fills parent) | `mode?: 'signInOrUp' \| 'signIn' \| 'signUp'` (default `signInOrUp`), `isDismissible?: boolean` (default true), `onDismiss?: () => void`, `logo?: ReactElement`, `logoMaxHeight?: number`, `onHostBack?: () => void` |
+| `UserButton` | Avatar button that opens the native user profile | `userProfileProps?: { customPages?, customDestinations? }` |
+| `UserProfileView` | Profile/account management, inline | `isDismissible?`, `onDismiss?`, `style?`, `customPages?`, `customDestinations?`, `onHostBack?` |
 
-These are the only public props. Do not invent event handlers (`onAuthEvent`, `onSignIn`, etc.) — react to auth state with `useAuth()` / `useUser()` instead. Verify props against `node_modules/@clerk/expo/dist/native/*.d.ts` for the installed version.
+These are the only public props. Do not invent event handlers (`onAuthEvent`, `onSignIn`, etc.) — react to auth state with `useAuth()` / `useUser()` instead. `onHostBack` shows a back button on the component's root screen for apps that push it onto their own navigation stack. `customPages` adds React Native screens or external links to the profile; fetch the user-profile-view docs page before using it. Verify props against `node_modules/@clerk/expo-native-components/dist/*.d.ts` for the installed version.
 
 ## Canonical screen
 
@@ -31,7 +32,7 @@ The components render inline; the app owns presentation. The docs pattern presen
 ```tsx
 // src/app/index.tsx
 import { useAuth } from '@clerk/expo'
-import { AuthView, UserButton } from '@clerk/expo/native'
+import { AuthView, UserButton } from '@clerk/expo/native-components'
 import { useState } from 'react'
 import { View, ActivityIndicator, Button, Modal } from 'react-native'
 
@@ -65,21 +66,39 @@ Rules baked into this pattern:
 4. **Keep `mode` at its default** (`signInOrUp`) unless the developer asks for separate flows.
 5. **Don't add `useSignInWithGoogle()` / `useSignInWithApple()` buttons next to `AuthView`** — it renders every enabled social provider itself. Provider availability comes from the instance config; fix gaps in the Clerk Dashboard, not in code.
 
+## Required sign-in screen (non-dismissible `AuthView`)
+
+When `AuthView` is the app's sign-in screen rather than a modal, gate on `useAuthViewState()` so it stays mounted through session tasks and the biometric enrollment prompt:
+
+```tsx
+import { AuthView, useAuthViewState } from '@clerk/expo/native-components'
+import { Redirect } from 'expo-router'
+
+export default function SignInScreen() {
+  const { isLoaded, isAuthFlowComplete } = useAuthViewState()
+  if (!isLoaded) return null
+  if (isAuthFlowComplete) return <Redirect href="/(home)" />
+  return <AuthView isDismissible={false} />
+}
+```
+
+Don't swap the screen on `useAuth().isSignedIn` alone; it flips before the native flow finishes. Docs: [`useAuthViewState()`](https://clerk.com/docs/reference/expo/native-hooks/use-auth-view-state).
+
 ## Theming
 
-The config plugin accepts a JSON theme applied to both platforms at prebuild:
+The `@clerk/expo-native-components` config plugin accepts a JSON theme applied to both platforms at prebuild:
 
 ```json
 // app.json
 {
   "expo": {
-    "plugins": [["@clerk/expo", { "theme": "./clerk-theme.json" }]]
+    "plugins": ["@clerk/expo", ["@clerk/expo-native-components", { "theme": "./clerk-theme.json" }]]
   }
 }
 ```
 
 ```json
-// clerk-theme.json — every key optional; unknown keys warn
+// clerk-theme.json — every key optional; unknown color keys warn and are ignored
 {
   "colors": { "primary": "#6C47FF", "background": "#FFFFFF" },
   "darkColors": { "primary": "#8B6FFF", "background": "#0B0B0F" },
@@ -87,14 +106,14 @@ The config plugin accepts a JSON theme applied to both platforms at prebuild:
 }
 ```
 
-Colors are 6- or 8-digit hex (validated at prebuild — invalid values fail the build with a descriptive error). Available color keys: `primary`, `background`, `input`, `danger`, `success`, `warning`, `foreground`, `mutedForeground`, `primaryForeground`, `inputForeground`, `neutral`, `border`, `ring`, `muted`, `shadow`. Rerun `npx expo prebuild --clean` (or `expo run:*`) after theme changes.
+Colors are 6- or 8-digit hex (validated at prebuild — invalid values fail the build with a descriptive error). Available color keys: `primary`, `background`, `input`, `danger`, `success`, `warning`, `foreground`, `mutedForeground`, `primaryForeground`, `inputForeground`, `neutral`, `border`, `ring`, `muted`, `shadow`, `secondaryButtonBackground`, `secondaryButtonForeground`. Rerun `npx expo prebuild --clean` (or `expo run:*`) after theme changes.
 
 For customization beyond the theme schema, the answer is custom flows, not fighting the native UI.
 
 ## Verification checklist
 
 - Dev build runs on device/simulator (not Expo Go); developer told about beta status.
-- Provider + token cache per setup.md; config plugin registered; prebuild done.
+- Provider + token cache per setup.md; `@clerk/expo-native-components` installed and its plugin registered; prebuild done.
 - `treatPendingAsSignedOut: false` passed to the `useAuth()` call gating the auth UI.
 - Auth modal mounted outside the signed-in/signed-out branch.
 - No `setActive()`, no `onAuthEvent`, no native Google/Apple hooks alongside `AuthView`.

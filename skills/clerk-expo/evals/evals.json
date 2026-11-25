@@ -6,7 +6,7 @@
       "prompt": "add auth to my expo app with clerk",
       "expected_output": "Defaults to prebuilt native components: ClerkProvider with tokenCache at the root, AuthView in a Modal kept mounted beside signed-in content, UserButton when signed in, dev build called out",
       "expectations": [
-        "Recommends AuthView/UserButton from @clerk/expo/native as the default path and mentions they are in beta",
+        "Recommends AuthView/UserButton from @clerk/expo/native-components as the default path, says to install @clerk/expo-native-components, and mentions they are in beta",
         "Wraps app in ClerkProvider with publishableKey from process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY and tokenCache from @clerk/expo/token-cache",
         "Registers the @clerk/expo config plugin (and expo-secure-store) in app.json",
         "Passes { treatPendingAsSignedOut: false } to the useAuth() call gating the auth UI",
@@ -37,7 +37,7 @@
         "Calls setActive({ session: createdSessionId }) after a successful flow",
         "Does not call WebBrowser.maybeCompleteAuthSession() manually",
         "Treats user cancellation (no createdSessionId) as non-fatal with no error UI",
-        "If offering native Google sign-in, imports useSignInWithGoogle from @clerk/expo/google, requires a dev build, and handles SIGN_IN_CANCELLED/-5 error codes",
+        "If offering native Google sign-in, imports useSignInWithGoogle from @clerk/expo/google, installs @clerk/expo-google-signin, requires a dev build, and treats a null createdSessionId with no pending signIn or signUp step as cancellation",
         "Mentions enabling the Google social connection in the Clerk Dashboard"
       ]
     },

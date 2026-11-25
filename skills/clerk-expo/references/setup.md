@@ -2,13 +2,13 @@
 
 Shared Expo-specific prerequisites for every path (prebuilt or custom). Use the canonical [clerk-setup skill](https://clerk.com/.well-known/skills/clerk-setup/SKILL.md) first for initial application setup, existing-app linking, and missing keys. Then complete the relevant steps here before implementing a flow; verify what `clerk-setup` already did instead of repeating it.
 
-> Canonical doc (fetch to re-verify if the installed SDK is newer than 3.6.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
+> Canonical doc (fetch to re-verify if the installed SDK is newer than 4.17.x): [Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart)
 
 For CLI setup and key retrieval, follow `clerk-setup` over the quickstart; use the quickstart for Expo-specific integration details.
 
 ## Supported versions
 
-Written against `@clerk/expo` v3.6.x (July 2026). Peer requirements: Expo SDK 53–56, React Native ≥ 0.75, React 18 or 19. If the project's Expo SDK or RN version is below the floor, upgrading the app comes before adding Clerk.
+Written against `@clerk/expo` v4.17.x (November 2026), with companion packages `@clerk/expo-native-components` 0.4.x, `@clerk/expo-google-signin` 1.1.x, `@clerk/expo-biometrics` 1.1.x, and `@clerk/expo-passkeys` 2.2.x. Peer requirements: Expo SDK 54–58, React Native ≥ 0.75, React 18 or 19. If the project's Expo SDK or RN version is below the floor, upgrading the app comes before adding Clerk.
 
 ## 1. Install
 
@@ -20,13 +20,15 @@ npx expo install expo-dev-client
 
 `npx expo install` (not `npm install`) ensures Expo-SDK-compatible versions. Additional peer deps are per-strategy — install only what the selected flow needs:
 
-| Feature                            | Install                                               |
-| ---------------------------------- | ----------------------------------------------------- |
-| Browser SSO/OAuth (`useSSO`)       | `npx expo install expo-auth-session expo-web-browser` |
-| Native Google sign-in              | `npx expo install expo-crypto`                        |
-| Native Apple sign-in               | `npx expo install expo-apple-authentication`          |
-| Biometrics (`useLocalCredentials`) | `npx expo install expo-local-authentication`          |
-| Passkeys                           | `npx expo install @clerk/expo-passkeys`               |
+| Feature | Install |
+| --- | --- |
+| Browser SSO/OAuth (`useSSO`) | `npx expo install expo-auth-session expo-web-browser` |
+| Native components (`AuthView`, …) | `npx expo install @clerk/expo-native-components` |
+| Native Google sign-in | `npx expo install @clerk/expo-google-signin expo-crypto` |
+| Native Apple sign-in | `npx expo install expo-apple-authentication expo-crypto` |
+| Biometrics (`useBiometricCredentials`) | `npx expo install @clerk/expo-biometrics` |
+| Passkeys | `npx expo install @clerk/expo-passkeys` |
+| Minimum app version (`useAppVersionSupport`) | `npx expo install expo-application` |
 
 `init` wraps the root layout with `ClerkProvider` and `tokenCache` when it can, so check the layout before step 5. It doesn't install `expo-secure-store` or `expo-dev-client`, or add the config plugin, so complete those steps here.
 
@@ -51,17 +53,26 @@ Rules:
 
 ## 4. Config plugin
 
-Verify `app.json` / `app.config.js` includes both plugins (`npx expo install` usually adds them):
+Verify `app.json` / `app.config.js` includes the plugins (`npx expo install` usually adds them). Add each companion package's plugin only when that package is installed:
 
 ```json
 {
   "expo": {
-    "plugins": ["expo-secure-store", "@clerk/expo"]
+    "plugins": [
+      "expo-secure-store",
+      "@clerk/expo",
+      "@clerk/expo-native-components",
+      "@clerk/expo-google-signin"
+    ]
   }
 }
 ```
 
-The `@clerk/expo` plugin registers the native modules (iOS min deployment target 17.0), wires Google sign-in when configured, and optionally accepts a `theme` option for native components (see prebuilt-components.md). Plugin changes require a fresh prebuild: `npx expo prebuild --clean` or rerunning `expo run:*`.
+- `@clerk/expo` adds the Sign in with Apple entitlement on iOS (opt out with `{ "appleSignIn": false }`) and the Android callback used by `useHostedAuth()`.
+- `@clerk/expo-native-components` links the Clerk iOS and Android SDKs, raises the iOS deployment target to 17.0, and accepts the `theme` (see prebuilt-components.md) and `keychainService` options. When the package is installed, `@clerk/expo` applies this plugin for you and forwards those options, but list it explicitly to match the docs.
+- `@clerk/expo-google-signin` writes `EXPO_PUBLIC_CLERK_GOOGLE_IOS_URL_SCHEME` into the iOS URL types.
+
+Plugin changes require a fresh prebuild: `npx expo prebuild --clean` or rerunning `expo run:*`.
 
 Apps using browser SSO also need a deep-link scheme in `app.json`: `"scheme": "yourapp"`.
 
@@ -98,14 +109,14 @@ export default function RootLayout() {
 
 ## 6. Expo Go vs development build vs web
 
-| Capability                                     | Expo Go | Dev build | Web |
-| ---------------------------------------------- | ------- | --------- | --- |
-| Custom flows (`useSignIn`, `useSignUp`, hooks) | Yes     | Yes       | Yes |
-| Browser SSO (`useSSO`)                         | Yes     | Yes       | Yes |
-| Native components (`@clerk/expo/native`)       | No      | Yes       | No  |
-| Native Google/Apple hooks                      | No      | Yes       | No  |
-| Biometrics, passkeys                           | No      | Yes       | No  |
-| Web UI components (`@clerk/expo/web`)          | —       | —         | Yes |
+| Capability                                          | Expo Go | Dev build | Web |
+| --------------------------------------------------- | ------- | --------- | --- |
+| Custom flows (`useSignIn`, `useSignUp`, hooks)      | Yes     | Yes       | Yes |
+| Browser SSO (`useSSO`)                              | Yes     | Yes       | Yes |
+| Native components (`@clerk/expo/native-components`) | No      | Yes       | No  |
+| Native Google/Apple hooks                           | No      | Yes       | No  |
+| Biometrics, passkeys                                | No      | Yes       | No  |
+| Web UI components (`@clerk/expo/web`)               | —       | —         | Yes |
 
 Dev build commands: `npx expo run:ios` / `npx expo run:android` (or EAS Build). State this requirement before implementing anything in the "No under Expo Go" rows.
 
