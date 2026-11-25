@@ -420,10 +420,11 @@ for (const separator of shellCommandSeparators) {
   });
 }
 
-test("requires setup guidance to include an initialization fence", () => {
-  assertViolation(
-    "Run `npx clerk@latest init` to set up Clerk.",
-    "include Clerk initialization",
+test("accepts setup guidance without Clerk CLI commands", () => {
+  assert.doesNotThrow(() =>
+    validatePromptInvariants(
+      options("Use the [Clerk MCP server](https://mcp.clerk.com/mcp)."),
+    ),
   );
 });
 
@@ -445,9 +446,16 @@ for (const fallback of [
 
 for (const subcommand of ["initialize", "init-extra"]) {
   test(`does not treat ${subcommand} as init`, () => {
-    assertViolation(
-      codeFence(`npx clerk@latest ${subcommand}`),
-      "include Clerk initialization",
+    assert.doesNotThrow(() =>
+      validatePromptInvariants(
+        options(
+          [
+            "## Authenticate",
+            codeFence("npx clerk@latest auth login"),
+            codeFence(`npx clerk@latest ${subcommand}`),
+          ].join("\n"),
+        ),
+      ),
     );
   });
 }
@@ -556,16 +564,4 @@ test("the canonical setup skill passes the invariant checker", async () => {
       requirePluginStep: true,
     }),
   );
-});
-
-// Docs and the Dashboard paste this prompt into agents that have no Clerk
-// skills, so the commands as written must let `init` install them. The prose
-// tells agents that already have the skills when to add `--no-skills`.
-test("the canonical init commands install skills for pasted prompts", async () => {
-  const content = await readFile(PROMPT_PATH, "utf8");
-  const initCommands = content.match(/^npx -y clerk@latest init[^\n]*$/gm) ?? [];
-  assert.equal(initCommands.length, 2);
-  for (const command of initCommands) {
-    assert.doesNotMatch(command, /(?:^|\s)--no-skills(?:\s|$)/);
-  }
 });

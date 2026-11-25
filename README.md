@@ -160,12 +160,8 @@ For product analytics, the MCP server sends Clerk an event for each tool call. I
 
 After installing Clerk Skills, ask your coding agent to add Clerk authentication
 to your app. The [`clerk-setup`](skills/clerk-setup/SKILL.md) skill sets up
-Clerk in an existing project, scaffolds a new app in an empty directory, and can
-link an existing Clerk application instead of creating a new one.
-
-For a new project on a supported framework, `clerk init` can start without a
-Clerk account or browser login. See [Accountless development keys](skills/clerk-setup/SKILL.md#step-1c-accountless-development-keys)
-for how temporary keys and later account claiming work.
+Clerk in an existing project or a new app, using the Clerk MCP server for your
+Clerk account.
 
 ### 2. Example Requests
 

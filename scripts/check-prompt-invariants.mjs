@@ -341,9 +341,7 @@ export function checkPromptInvariants({ content, filePath, manifest, requirePlug
   ) {
     report("install the Clerk plugin before initializing Clerk", pluginInstalls[0].line);
   }
-  if (firstInitIndex === -1) {
-    report("include Clerk initialization in setup guidance");
-  } else {
+  if (firstInitIndex !== -1) {
     const requiredLogin = commands
       .slice(0, firstInitIndex)
       .find(
