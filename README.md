@@ -119,6 +119,7 @@ For product analytics, the MCP server sends Clerk an event for each tool call. I
 |-------|---------|-------------|
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
 | `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, logs, deploy checks |
+| `clerk-protect` | Clerk Protect CLI (early access) | Fraud rules, protections, sign-in and sign-up investigations, replays |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
 | `clerk-migrate` | Migrate users into Clerk | Importing users from another auth provider, dev → prod |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |
@@ -173,6 +174,7 @@ for how temporary keys and later account claiming work.
 |---------|------------|
 | "List Clerk users" | `clerk-cli` |
 | "Why did this user's sign-in fail?" | `clerk-cli` |
+| "Why were these sign-ups blocked?" | `clerk-protect` |
 | "Add Clerk auth to my Next.js app" | `clerk-setup` |
 | "Migrate my users from Auth0 to Clerk" | `clerk-migrate` |
 | "Use Server Actions with Clerk" | `clerk-nextjs-patterns` |
