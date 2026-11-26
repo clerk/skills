@@ -119,7 +119,7 @@ For product analytics, the MCP server sends Clerk an event for each tool call. I
 |-------|---------|-------------|
 | `/clerk` | **Router** - Routes to the right skill | Always start here |
 | `clerk-cli` | Clerk CLI operations | Users, orgs, apps, env keys, logs, deploy checks |
-| `clerk-mcp-server` | Protect and instrument an MCP server | `@clerk/mcp-tools`, OAuth metadata, reporting |
+| `clerk-mcp-server` | Protect and instrument an MCP server | `@clerk/mcp-tools`, OAuth metadata, MCP analytics |
 | `clerk-setup` | Add Clerk to any framework | New projects, framework setup |
 | `clerk-migrate` | Migrate users into Clerk | Importing users from another auth provider, dev → prod |
 | `clerk-custom-ui` | Custom sign-in/up and appearance | Building custom forms, styling |

@@ -159,10 +159,10 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - If Clerk isn't set up yet, set it up first through `clerk-setup`
 - Do not use for Expo or React Native projects
 
-**Protecting or instrumenting an MCP server** → Use `clerk-mcp-server`
+**Your own MCP server** → register and check it with `clerk-cli`, write its code with `clerk-mcp-server`
 
 - OAuth authentication and protected resource metadata with `@clerk/mcp-tools`
-- Express, Hono, and Next.js server integration and activity reporting
+- Express, Hono, and Next.js server integration and MCP analytics reporting
 
 **Backend REST API** → Use `clerk-backend-api`
 
