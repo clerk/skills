@@ -1,6 +1,6 @@
 ---
 name: clerk
-description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, testing, impersonating a user, testing webhooks locally, or reading Application Logs to debug a sign-in or sign-up. Automatically routes to the specific skill based on their task.
+description: Clerk authentication router. Use when user asks about Clerk CLI operations, adding authentication, setting up Clerk, custom sign-in flows, Swift or native iOS auth, native Android auth, Next.js patterns, React patterns, Vue patterns, Nuxt patterns, Astro patterns, TanStack Start patterns, Expo patterns, React Router patterns, Chrome Extension patterns, organizations, billing, subscriptions, payments, pricing, plans, seat-based pricing, feature entitlements, syncing users, migrating or importing users from another auth provider, protecting or instrumenting an MCP server, testing, impersonating a user, testing webhooks locally, or reading Application Logs to debug a sign-in or sign-up. Automatically routes to the specific skill based on their task.
 license: MIT
 metadata:
   version: 2.0.2
@@ -159,6 +159,11 @@ All skills are written for the current SDK. When something differs in Core 2, it
 - If Clerk isn't set up yet, set it up first through `clerk-setup`
 - Do not use for Expo or React Native projects
 
+**Protecting or instrumenting an MCP server** → Use `clerk-mcp-server`
+
+- OAuth authentication and protected resource metadata with `@clerk/mcp-tools`
+- Express, Hono, and Next.js server integration and activity reporting
+
 **Backend REST API** → Use `clerk-backend-api`
 
 - Browse API tags and endpoints
@@ -171,6 +176,7 @@ If you know your task, you can directly access:
 
 - `/clerk-setup` - Framework setup
 - `/clerk-cli` - CLI operations and Clerk resource management
+- `/clerk-mcp-server` - Protecting and instrumenting an MCP server
 - `/clerk-migrate` - Migrating users in from another auth provider
 - `/clerk-custom-ui` - Custom flows & appearance
 - `/clerk-nextjs-patterns` - Next.js patterns
