@@ -8,11 +8,11 @@ Copy-pasteable patterns for common tasks. Treat these as starting points; confir
 clerk api ls                  # everything Backend API exposes
 clerk api ls users            # filter by keyword
 clerk api ls --platform       # Platform API (account-level)
-clerk api ls /users           # an endpoint path also lists each request body's fields
+clerk api ls /users           # body fields for exact /users matches
 clerk api ls /platform/applications --platform
 ```
 
-With an endpoint path as the filter, each endpoint at exactly that path that takes a body prints the body's content type, then one row per top-level field: name, type, `required` when the field is required, and the first line of its description. Read it before building a `-d` payload instead of learning the fields from a failed call.
+Copy the catalog route literally, including placeholders (quote paths such as `'/users/{user_id}'`). The filter can still list related endpoints; only an exact path gets the selected content type and top-level fields (item fields for arrays). Read them before building a `-d` payload instead of learning the fields from a failed call.
 
 The bundled catalog is cached locally for 1 hour. There is no force-refresh flag - once the TTL expires the next `clerk api ls` re-fetches automatically; on fetch failure the CLI falls back to the stale cache and prints a warning.
 
@@ -372,31 +372,25 @@ clerk api /v1/platform/applications/app_abc123 --platform
 
 `clerk agents mcp` makes Clerk the OAuth authorization server of an MCP server you build. It is unrelated to `clerk mcp`, which connects AI editors to Clerk's hosted MCP server. It needs CLI `<MIN_CLI_VERSION>` or later and a claimed app.
 
+Confirm the target app and instance before registering. Get the user's approval before running `configure` on production: it can register or mark an OAuth resource and change instance-wide OAuth settings. `check` is read-only.
+
 ```sh
-# 1. Register the server's public https URL on the linked development instance.
-#    Add --instance prod, or --app app_123 to target an app from any directory.
-clerk agents mcp configure https://mcp.example.com/mcp
+# 1. Register the server's public https URL on the development instance.
+clerk agents mcp configure https://mcp.example.com/mcp --instance dev
 
-# 2. Implement the printed setup_prompt in the server and deploy it at that URL.
+# 2. Implement the returned setup_prompt and test the handler before deploying.
 
-# 3. Verify. Exits 1 with mcp_check_failed after printing when any check fails.
-clerk agents mcp check https://mcp.example.com/mcp
-clerk agents mcp check --instance prod --json   # the instance's only MCP server
+# 3. Verify the registration and metadata. Exits 1 with mcp_check_failed after printing when any check fails.
+clerk agents mcp check https://mcp.example.com/mcp --instance dev
 ```
 
 What `configure` changes:
 
 - It registers the URL as an OAuth resource marked as an MCP server, or marks a legacy Dashboard registration of that URL. Rerunning it on a registered URL changes nothing; `configuration.status` is `created`, `marked`, or `unchanged`.
-- For the instance's first MCP server, it also turns on the audience claim (`aud_claim_enabled`) and client ID metadata documents (`client_id_metadata_documents_advertised`), only where they are off, and lists them in `enabled_settings`. A later server leaves OAuth settings alone; any setting that still blocks MCP clients is listed in `blockers` and has to be changed in the Dashboard.
-- It never changes dynamic client registration, PKCE, or consent.
+- If there is no other marked or legacy MCP server, `configure` first enables the audience claim (`aud_claim_enabled`) and client ID metadata documents (`client_id_metadata_documents_advertised`) if needed. Marking the sole legacy registration qualifies. A later server leaves OAuth settings alone; any setting that still blocks MCP clients is listed in `blockers` and has to be changed in the Dashboard.
+- It never changes dynamic client registration, PKCE, or consent. The OAuth settings are patched before the resource is registered or marked; if that write fails, the settings change may already have landed. Inspect the same instance's OAuth settings before reporting or retrying.
 
-The output names the `issuer`, the `audience` (the URL as registered), and the `protected_resource_metadata_url` the server must answer. Its `setup_prompt` tells a coding agent how to protect the server:
-
-- Express, Hono, or Next.js: wrap the MCP handler with `clerkInstrumentHandler()` from `@clerk/mcp-tools/express`, `@clerk/mcp-tools/hono`, or `@clerk/mcp-tools/next` (the package has no root import), and pass the same options, with `resourceUrl`, to `protectedResourceMetadataHandler` for the metadata route.
-- A fetch Worker, such as on Cloudflare Workers: `clerkInstrumentHandler()` from `@clerk/mcp-tools/fetch`, routed for both the server URL and the metadata URL; it serves the metadata too.
-- Any other server: `clerkClient.authenticateRequest(request, { acceptsToken: 'oauth_token', audience: '<server URL>' })` from `@clerk/backend`, rejecting requests unless `isAuthenticated` is true.
-
-`clerkInstrumentHandler()` ships in `@clerk/mcp-tools` 1.1.0 and replaces the deprecated `mcpAuth()` and `withClerkMcpAuth()`. Follow the `setup_prompt` the command prints rather than these notes when they differ.
+The output names the `issuer`, the `audience` (the URL as registered), and the `protected_resource_metadata_url` the server must answer. Implement the CLI's returned `setup_prompt` using its issuer, audience, and metadata URL. Test that an unauthenticated MCP request gets `401` with a Bearer `resource_metadata` challenge, a wrong-audience token is rejected, and a valid token for this resource reaches the handler. Deploy, then run `check` to verify the registration, settings, and metadata; it does not exercise the handler.
 
 What `check` verifies, without changing anything:
 
@@ -407,7 +401,7 @@ What `check` verifies, without changing anything:
 | `client_registration` | MCP clients can register: client ID metadata documents or dynamic client registration is on. |
 | `protected_resource_metadata` | An unauthenticated `GET` of the metadata URL answers `200` with a JSON object whose `resource` is identical to the registered URL and whose `authorization_servers` lists the issuer. |
 
-That `GET` is the only request `check` sends to the server: no MCP request, no `POST`, no JSON-RPC. Each failing check adds an entry to `next_steps`. Error codes and the JSON shape are in [agent-mode.md](agent-mode.md#register-and-check-your-own-mcp-server).
+Pass the URL unless you want the sole marked server, or the sole legacy registration when none is marked. `check` may send one unauthenticated metadata `GET`; it sends no MCP request. Each failing check adds a deduplicated entry to `next_steps`. Error codes and the JSON shape are in [agent-mode.md](agent-mode.md#register-and-check-your-own-mcp-server).
 
 ## Scripting patterns
 

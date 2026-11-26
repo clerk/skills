@@ -1,7 +1,7 @@
 ---
 name: clerk-cli
 description: >-
-  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, Application Logs, env keys, feature toggles, registering and checking your own MCP server with Clerk as its OAuth authorization server, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", "clerk logs", "check the logs", "application logs", "why did this sign-in fail", "debug a sign-up", "what happened to this user", "clerk agents mcp", "protect my MCP server with Clerk", "add OAuth to my MCP server", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
+  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, Application Logs, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", "clerk logs", "check the logs", "application logs", "why did this sign-in fail", "debug a sign-up", "what happened to this user", "clerk agents mcp", registering or checking your own MCP server with Clerk, or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
 license: MIT
 ---
 
@@ -108,7 +108,7 @@ The CLI ships with the Clerk OpenAPI catalog. Always discover endpoints dynamica
 clerk api ls                  # list every Backend API endpoint
 clerk api ls users            # filter by keyword (matches path, summary, tag, operationId)
 clerk api ls --platform apps  # list Platform API endpoints
-clerk api ls /users           # an endpoint path also lists request body fields
+clerk api ls /users           # body fields for exact /users matches
 ```
 
 Use this before `clerk api <path>`. If you don't see the endpoint you expected, it probably isn't exposed.
