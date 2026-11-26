@@ -106,7 +106,7 @@ Errors use the standard agent-mode format: bad JSON → `invalid_json`, missing 
 | `1`  | Runtime error (auth failure, API error, file I/O, etc.)                      |
 | `2`  | Usage or validation error (bad flags, malformed JSON body, unknown endpoint) |
 
-`clerk doctor` exits `1` when any check fails (warnings alone still exit `0`).
+`clerk doctor` exits `1` when any check fails (warnings alone still exit `0`). `clerk agents mcp check` does the same, with code `mcp_check_failed`, after printing its result.
 
 An interrupted long-running command, such as `clerk logs --follow` stopped with Ctrl-C, exits `130` (SIGINT), so `clerk logs --follow && next-step` doesn't run `next-step`.
 
@@ -152,6 +152,8 @@ An interrupted long-running command, such as `clerk logs --follow` stopped with 
 | `clerk logs [list]` (agent mode or `--json`) | `{data, cursor}`: `data` holds `log` objects as the Backend API returns them (with `--grouped`, `log_group` and `log` items; tell them apart by `object`); `cursor` is `{next, retention_limit_reached, retention_days, searched_from, searched_to}` |
 | `clerk logs --follow` (agent mode or `--json`) | NDJSON on stdout: one `log` object per line, no envelope |
 | `clerk logs get <id>` (agent mode or `--json`) | `{data, cursor}` with `log` objects oldest first; `cursor` has only `next` |
+| `clerk agents mcp configure <url>` (agent mode or `--json`) | `{application_id, instance_id, resource_url, authorization_server: {issuer, audience, protected_resource_metadata_url}, mcp_server: {id, uri, name}, configuration: {status, enabled_settings, oauth_settings, blockers}, setup_prompt, next_steps}` |
+| `clerk agents mcp check [url]` (agent mode or `--json`) | `{application_id, instance_id, resource_url, mcp_server, authorization_server, configuration: {status, mcp_servers, legacy_mcp_servers, oauth_settings, blockers}, checks: [{name, status, message}], passed, next_steps, setup_prompt}`; the nullable fields are `null` when the instance has no MCP server to check |
 | `clerk logs schema` / `clerk logs schema <type>` | `{object: "list", data: [log_schema...], total_count}` / one `log_schema` object (`event_type`, `fields[]` with `path`, `type`, `optional`, `enum?`) |
 | Any command (agent mode) | On error: `{"error":{"code","message","docsUrl?","errors?","examples?"}}` on stderr |
 
@@ -364,11 +366,36 @@ Errors are the usual JSON object on stderr. The codes to expect from `clerk logs
 
 Other API errors keep the API's own `code`, with its error list under `errors`. A `--payload-filter` path the API rejects fails that way, and the error lists the type's allowed paths.
 
+### Register and check your own MCP server
+
+The flow and what each command changes are in [recipes.md](recipes.md#your-own-mcp-server). In agent mode both commands print JSON on stdout (shapes in [Structured outputs](#structured-outputs-you-can-rely-on)).
+
+```sh
+clerk agents mcp configure https://mcp.example.com/mcp --instance prod   # register, then implement setup_prompt
+clerk agents mcp check https://mcp.example.com/mcp --instance prod       # read-only; exit 1 when a check fails
+```
+
+- **Confirm before `configure` on production.** It writes OAuth settings for the instance's first MCP server. `check` changes nothing.
+- **Read `checks` and `next_steps`, not just the exit code.** A failing `check` still prints the full result before exiting `1`. `next_steps` says what to do for each failure, and `setup_prompt` is repeated so the server can be fixed.
+- **Settings in `blockers` need the Dashboard.** `configure` only turns settings on for the first MCP server; tell the user which settings to change on the OAuth applications page.
+- **`configuration.status: "migration_required"`** from `check` means the instance has only legacy Dashboard registrations. Run `configure` on the URL to mark it.
+
+Errors are the usual JSON object on stderr. The codes to expect from `clerk agents mcp`:
+
+| Code | Exit | Meaning |
+| --- | --- | --- |
+| `usage_error` | `2` | Raised before any request. The URL isn't an absolute `https` URL, or has a fragment, credentials, whitespace, backslashes, dot segments, or characters the URL parser would rewrite; or `check` got no URL on an instance with several MCP servers (the message lists them) |
+| `mcp_server_not_registered` | `1` | `check` got a URL that is neither an MCP server nor a legacy registration on the instance. The message lists the registered URLs; check `--instance`, or run `configure` first |
+| `mcp_check_failed` | `1` | `check` printed its result and at least one check failed; the message names them |
+| `oauth_resource_conflict` | `1` | `configure` found the URL already registered as an OAuth resource that isn't an MCP server. Nothing was changed |
+| `legacy_oauth_provider` | `1` | The application still uses the legacy OAuth provider, which can't host MCP servers. The user migrates it on the OAuth applications page of the Dashboard |
+
 ### Use the catalog, not hard-coded paths
 
 ```sh
 clerk api ls users            # discover available user endpoints
 clerk api ls --platform apps   # platform-side endpoints
+clerk api ls /users           # an endpoint path also lists request body fields
 ```
 
 ### Surface doctor remedies to the user

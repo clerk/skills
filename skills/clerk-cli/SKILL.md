@@ -1,7 +1,7 @@
 ---
 name: clerk-cli
 description: >-
-  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, Application Logs, env keys, feature toggles, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", "clerk logs", "check the logs", "application logs", "why did this sign-in fail", "debug a sign-up", "what happened to this user", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
+  Operate the Clerk CLI (`clerk` binary) for authentication, user/org/session management, impersonation, local webhook testing, deploy verification, instance config, security audits, Application Logs, env keys, feature toggles, registering and checking your own MCP server with Clerk as its OAuth authorization server, and any Clerk Backend, Platform, or Frontend API call. Use when the user mentions Clerk management tasks, "list clerk users", "impersonate a user", "test webhooks locally", "enable orgs", "enable billing", "clerk security", "harden my Clerk instance", "clerk env pull", "clerk doctor", "clerk deploy", "clerk api", "clerk logs", "check the logs", "application logs", "why did this sign-in fail", "debug a sign-up", "what happened to this user", "clerk agents mcp", "protect my MCP server with Clerk", "add OAuth to my MCP server", or any ad-hoc Clerk API request. Prefer the CLI over raw HTTP: it handles auth, key resolution, app/instance targeting, and formatting automatically.
 license: MIT
 ---
 
@@ -76,7 +76,7 @@ clerk doctor --json           # structured health check; exit 1 if anything fail
 
 Each result has `name`, `status` (`pass`/`warn`/`fail`), `message`, optional `detail`, optional `remedy` (how to fix it), and optional `fix` (label for auto-fixable issues). Parse that and act on it, or surface it to the user. If `Host execution` warns, rerun the command on the host before trusting any auth/link/env/API failures from the same sandboxed run. Rerun `clerk doctor --json` whenever a later command starts misbehaving.
 
-If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <command> --help` first and refresh this skill bundle from its source. The reverse also applies: `--accountless` and the `accountless` JSON keys ship in CLI 3.3+ — on an older CLI, use the `--keyless` alias or upgrade.
+If `clerk --version` reports a newer CLI than this skill covers, trust `clerk <command> --help` and refresh this skill bundle. `--accountless` and the `accountless` JSON keys ship in CLI 3.3+ — on an older CLI, use the `--keyless` alias or upgrade.
 
 ## Accountless setup
 
@@ -96,6 +96,7 @@ Which commands need an account, and the full rules: [auth.md](references/auth.md
 | **Platform API (`--platform`)** | Account-level: applications, instances, billing | `clerk api --platform <path>` |
 | **Frontend API (`--fapi`)** | The instance's public client-facing API (what clerk-js calls) | `clerk api --fapi <path>` |
 | **Application Logs** | What happened on the instance: sign-ins, sign-ups, user and session changes | `logs`, `logs get`, `logs schema` |
+| **Your own MCP server** | Register it with Clerk, check its setup ([recipe](references/recipes.md#your-own-mcp-server)) | `agents mcp configure`, `agents mcp check` |
 
 A project is "linked" to an application via `clerk link`. Once linked, most commands auto-resolve the target app and dev instance from the repo's git remote. To target something else, pass `--app <id>` and/or `--instance dev|prod|<instance_id>`. See [references/auth.md](references/auth.md) for the full resolution order.
 
@@ -107,6 +108,7 @@ The CLI ships with the Clerk OpenAPI catalog. Always discover endpoints dynamica
 clerk api ls                  # list every Backend API endpoint
 clerk api ls users            # filter by keyword (matches path, summary, tag, operationId)
 clerk api ls --platform apps  # list Platform API endpoints
+clerk api ls /users           # an endpoint path also lists request body fields
 ```
 
 Use this before `clerk api <path>`. If you don't see the endpoint you expected, it probably isn't exposed.
@@ -156,13 +158,13 @@ For instance config, prefer the dedicated `clerk config ...` commands over raw P
 
 **JSON bodies must be valid JSON.** The CLI validates and rejects malformed payloads.
 
-**Endpoint paths may be given with or without `/v1/` prefix** - both work for Backend API calls. The CLI normalizes.
+**Backend API paths work with or without the `/v1/` prefix.**
 
 See [references/recipes.md](references/recipes.md) for concrete patterns: listing/filtering users, creating orgs, impersonation sessions, etc.
 
 ## Inspecting large outputs (do not flood your context)
 
-`users list`, `apps list`, `config pull`, and most `clerk api` GETs return payloads that can be many kilobytes or megabytes. Production tenants commonly have thousands of users; an instance config can be hundreds of fields deep. Reading those responses into the conversation costs context window for no benefit. Save the response to a file first, then query just what you need with `jq`:
+`users list`, `apps list`, `config pull`, and most `clerk api` GETs return payloads that can be many kilobytes or megabytes. Reading them whole into the conversation wastes context. Save the response to a file first, then query just what you need with `jq`:
 
 ```sh
 # 1. Persist the response. Use --limit 250 to maximize page size for users list.
