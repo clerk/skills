@@ -21,7 +21,7 @@ A file `clerk migrate export` did not write needs `--source`. Read the first use
 | `auth0` | `user_id` in `provider\|id` form, `email_verified` (boolean), `phone_number`, `phone_verified`, `user_metadata`, `app_metadata`, `given_name`, `family_name` |
 | `firebase` | `localId`, `passwordHash`, `salt` (JSON) or `passwordSalt` (CSV), `displayName`, `phoneNumber`, `disabled` |
 | `clerk` | `primary_email_address`, `verified_email_addresses`, `password_digest`, `password_hasher`, `primary_phone_number` |
-| `workos` | `id` starting `user_`, `email`, `email_verified` (boolean), `first_name`, `last_name`, `metadata`, sometimes `identities`; no password, phone, or username |
+| `workos` | `id` starting `user_`, `email`, `email_verified` (boolean), `first_name`, `last_name`, `metadata`, sometimes `identities` and `password_hash`; no phone or username |
 | `betterauth` | `user_id` (UUID), `email_verified` (boolean), `password_hash`, `phone_number`, `phone_number_verified`, `display_username` |
 | `authjs` | `email_verified`, `name`, `id`, `email`; minimal, and similar to some custom exports |
 
@@ -29,7 +29,7 @@ Three traps:
 
 - **A Firebase CSV export has no header row.** A CSV that opens with `user123,a@b.com,true,…` is Firebase. The source supplies the headers.
 - **Auth0 and Better Auth both use `user_id`.** Auth0's contains a `|` (`auth0|abc123`). Better Auth's is a bare UUID.
-- **WorkOS and Clerk both use `user_…` IDs.** A Clerk export carries `primary_email_address` and `password_digest`. A WorkOS export has a flat `email` and nothing password-shaped.
+- **WorkOS and Clerk both use `user_…` IDs.** A Clerk export carries `primary_email_address` and `password_digest`. A WorkOS export has a flat `email`, and a `password_hash` only when it was exported with `--password-hashes`.
 
 ## What the built-ins carry
 
@@ -41,7 +41,7 @@ Three traps:
 | `betterauth` | yes       | no      | no       |
 | `firebase`   | yes       | no      | no       |
 | `supabase`   | yes       | no      | partial  |
-| `workos`     | no        | no      | yes      |
+| `workos`     | partial   | no      | yes      |
 
 Run `clerk migrate sources <key>` for the note behind each level and where every field lands. Summarize the relevant rows for the user before importing.
 
@@ -178,6 +178,10 @@ Work out the format from the digests, then set `passwordHasher`. "As-is" means t
 | `U$P$…` (Drupal 7, users carried over from Drupal 6) | `md5_phpass`: remove the leading `U` |
 | `{SSHA}…` (LDAP) | `ldap_ssha`, as-is |
 | `scrypt:<N>:<r>:<p>$<salt>$<hex key>` (Werkzeug, Flask) | `scrypt_werkzeug`, as-is |
+| `$scrypt$v=1$n=<N>,r=<r>,p=<p>,kl=<bytes>$<salt>$<key>` (WorkOS) | `scrypt`, as-is |
+| `$bcrypt-pbkdf2-sha1$v=1$…`, `$bcrypt-pbkdf2-sha256$v=1$…` (WorkOS) | `bcrypt_pbkdf2_sha1`, `bcrypt_pbkdf2_sha256`, as-is |
+| `$bcrypt-ssha$v=1$…`, `$bcrypt-ssha256$v=1$…` (WorkOS) | `bcrypt_ssha`, `bcrypt_ssha256`, as-is |
+| `$pbkdf2$i=<iterations>,d=<digest>$<salt>$<key>` (WorkOS) | use the built-in `workos` source with `export workos --password-hashes`, which rewrites it for `pbkdf2_sha256`, `pbkdf2_sha512_hex` or `pbkdf2_sha1` |
 | Firebase scrypt | `scrypt_firebase`: use the built-in `firebase` source, which builds the digest |
 | 32 hex characters, no salt | `md5`, as-is. Ask first: a salt stored in another column makes a salted hash look the same |
 | 64 hex characters, no salt | `sha256`, as-is. Ask first, as for `md5` |
