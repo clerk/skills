@@ -45,7 +45,7 @@ The default `.clerk/` folder is gitignored automatically; a `-o`, `--runs-dir` o
 | --- | --- | --- | --- |
 | `clerk` | Resolved by the CLI, or `--secret-key` / `--app` / `--instance` | `CLERK_SECRET_KEY` | **Not exportable** |
 | `auth0` | `--domain`, `--client-id`, `--client-secret` | `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET` | **Not exportable** |
-| `workos` | `--api-key` (the `sk_…` secret key) | `WORKOS_API_KEY` | **Not exportable** |
+| `workos` | `--api-key` (the `sk_…` secret key) | `WORKOS_API_KEY` | Only with `--password-hashes <csv>` from WorkOS support |
 | `supabase` | `--db-url` (Postgres only) | `SUPABASE_DB_URL` | bcrypt or argon2, per user |
 | `authjs` | `--db-url` | `AUTHJS_DB_URL` | none — Auth.js stores none |
 | `betterauth` | `--db-url` | `BETTERAUTH_DB_URL` | scrypt, bcrypt or argon2, per user |
@@ -68,11 +68,11 @@ Field coverage
 
 `✓` means every user has the field, `!` some, `✗` none. **Tell the user about the `!` and `✗` rows.** A user with a password the export cannot carry resets it after the import.
 
-Three platforms never export passwords, **Clerk, Auth0 and WorkOS**, and each shows it differently:
+Three platforms' APIs never return passwords, **Clerk, Auth0 and WorkOS**, and each shows it differently:
 
 - **Clerk** counts the users who _have_ a password (`password_enabled`), labelled "not exportable", and warns when any user has one.
 - **Auth0** has no password row. It warns on every export that found users.
-- **WorkOS** always shows `✗ 0/N have a password (WorkOS returns none)`, and warns on every export that found users.
+- **WorkOS** shows `✗ 0/N have a password hash (needs --password-hashes)` without the support CSV, and warns on every export that found users. With `--password-hashes`, the row counts the users the CSV matched: `! 341/412 have a password hash`.
 
 ## Clerk
 
@@ -107,12 +107,14 @@ Two limits to state up front:
 
 ```sh
 clerk migrate export workos --api-key sk_…
+clerk migrate export workos --api-key sk_… --password-hashes ./workos-password-hashes.csv
 clerk migrate export workos --api-key sk_… --with-identities
 ```
 
 Needs the secret API key — the one starting `sk_`, from the WorkOS dashboard under **API Keys**. WorkOS is API-only, so there is no `--db-url` option. Pagination is cursor-based, so unlike Auth0 there is no user ceiling.
 
-- **No passwords, no TOTP.** WorkOS accepts password hashes on import and never returns them, and returns TOTP secrets only at enrolment. Unlike Auth0, no support request gets them. Every password user resets or signs in through SSO.
+- **Passwords come only from WorkOS support.** The API returns no hashes, and returns TOTP secrets only at enrolment. WorkOS support sends hashes on request as a CSV (`email,password_hash,first_name,last_name`). **Ask the user whether they have that CSV before exporting.** If they don't, tell them to email `support@workos.com` for a password hash export, or to accept that every password user resets. `--password-hashes <path>` merges the CSV into the export by email, ignoring case. A missing file fails before any request. Rows that match no user print a warning: relay it, because it usually means the CSV came from another WorkOS environment. Don't import the CSV on its own: it has no WorkOS `id`, `email_verified` or metadata.
+- **Some hash formats still reset.** The `workos` source sets the hasher per user. bcrypt, argon2id, argon2i, `$scrypt$`, `$pbkdf2$`, `$bcrypt-pbkdf2-*$` and `$bcrypt-ssha*$` keep the password. `$argon2d$`, `$firebase-scrypt$`, pbkdf2 SHA-256 with a key that isn't 32 bytes, and pbkdf2 SHA-512 above 420,000 iterations are dropped. Those users import without a password and reset, and the dry run counts them.
 - **`--with-identities` is off by default, and it is not free.** WorkOS has no bulk endpoint for OAuth identities, so it is one extra request per user — 1,000 users means roughly 1,010 requests. Nothing it returns can be imported; it buys an **OAuth providers** block under the coverage table and an `identities` array in the export file. Useful for deciding which social connections to enable in Clerk. Ask before passing it on a large tenant. A human run asks once, defaulting to no; `-y` skips it unless `--with-identities` is passed.
 
 ```
